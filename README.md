@@ -19,7 +19,7 @@ Proyecto de Tópicos Selectos de Ingeniería de Software — Infinite Labs.
 
 ## Enlaces
 - ClickUp: https://app.clickup.com/90141625121/v/o/s/90148704956
-- Figma: [pendiente]
+- Figma: https://www.figma.com/design/jT3VPe8Yb3UwLSuczpDQj9/Billo-%E2%80%94-Dise%C3%B1o?node-id=1-2&t=bDue41opVPmCiTXr-1
 
 ## Instalación del backend
 [Oscar completa esta sección]
