@@ -1,0 +1,55 @@
+Table usuarios {
+  id integer [pk, increment]
+  nombre varchar
+  email varchar [unique, not null]
+  password_hash varchar [not null]
+  rol varchar [note: "'usuario' o 'admin'"]
+  created_at timestamp
+}
+
+Table categorias {
+  id integer [pk, increment]
+  nombre varchar
+  tipo varchar [note: "'gasto' o 'membresia'"]
+  es_predefinida boolean
+}
+
+Table gastos {
+  id integer [pk, increment]
+  usuario_id integer [ref: > usuarios.id]
+  categoria_id integer [ref: > categorias.id]
+  monto decimal
+  fecha date
+  metodo_pago varchar
+  nota varchar
+  created_at timestamp
+}
+
+Table presupuestos {
+  id integer [pk, increment]
+  usuario_id integer [ref: > usuarios.id]
+  categoria_id integer [ref: > categorias.id]
+  monto_limite decimal
+  mes varchar [note: "formato YYYY-MM"]
+
+  indexes {
+    (usuario_id, categoria_id, mes) [unique]
+  }
+}
+
+Table catalogo_servicios {
+  id integer [pk, increment]
+  nombre varchar
+  logo_url varchar
+  costo_sugerido decimal
+}
+
+Table membresias {
+  id integer [pk, increment]
+  usuario_id integer [ref: > usuarios.id]
+  servicio_id integer [ref: > catalogo_servicios.id, null]
+  nombre varchar
+  costo decimal
+  frecuencia varchar
+  fecha_cobro date
+}
