@@ -81,4 +81,50 @@ Verificar y corregir el estilo de código (ESLint)
 npm run lint
 
 ## Instalación de la app móvil
-[Fernando completa esta sección]
+
+### Requisitos
+
+- [Node.js](https://nodejs.org/) 20 LTS o superior
+- [Git](https://git-scm.com/)
+- Una de estas opciones para correr la app en Android:
+  - La app **Expo Go** instalada en un teléfono Android, o
+  - **Android Studio** con un emulador configurado
+
+### Pasos
+
+```bash
+git clone https://github.com/JoshuaJose10/BILLO.git
+cd BILLO
+git checkout develop
+cd mobile
+npm install
+npx expo start
+```
+
+### Cómo abrir la app en Android
+
+- **Teléfono físico:** con el teléfono y la computadora en la **misma red Wi-Fi**, abre Expo Go y escanea el código QR que aparece en la terminal. Si el QR no funciona, en Expo Go elige ingresar la URL manualmente y escribe la dirección `exp://...` que muestra la terminal.
+- **Emulador:** con el emulador de Android Studio abierto, presiona `a` en la terminal donde corre `npx expo start`.
+- **Si la red bloquea la conexión** (por ejemplo, Wi-Fi de la escuela o red pública), inicia el servidor en modo túnel:
+
+  ```bash
+  npx expo start --tunnel
+  ```
+
+### Resultado esperado
+
+Se muestra una pantalla blanca con el texto **"Billo"** centrado.
+
+### Linter
+
+Desde la carpeta `mobile`:
+
+```bash
+npm run lint
+```
+
+Debe terminar sin errores. Para dar formato automático al código con Prettier:
+
+```bash
+npm run format
+```
