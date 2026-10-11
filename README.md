@@ -82,6 +82,8 @@ npm run lint
 
 ## Instalación de la app móvil
 
+Guía completa (requisitos, cómo correr, mapa de pantallas y lint): [mobile/README.md](mobile/README.md).
+
 ### Requisitos
 
 - [Node.js](https://nodejs.org/) 20 LTS o superior
@@ -113,7 +115,7 @@ npx expo start
 
 ### Resultado esperado
 
-Se muestra una pantalla blanca con el texto **"Billo"** centrado.
+Se abre la pantalla de **Login**. Consulta el mapa de pantallas en [mobile/README.md](mobile/README.md).
 
 ### Linter
 
