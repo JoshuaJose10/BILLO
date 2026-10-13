@@ -6,7 +6,6 @@ const pool = new Pool(config.db);
 // Función para testear la conexión al iniciar
 const testConnection = async () => {
   try {
-    // Realizamos una consulta liviana que retorna la hora actual de la BD
     const res = await pool.query('SELECT NOW()');
     console.log('✅ Conexión exitosa a PostgreSQL:', res.rows[0].now);
   } catch (err) {
