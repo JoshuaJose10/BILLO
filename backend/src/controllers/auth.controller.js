@@ -1,6 +1,9 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const { pool } = require('../db/index');
+const { jwtSecret, jwtExpiresIn } = require('../config/env');
 
+// REGISTRO DE USUARIOS EN EL SISTEMA
 const register = async (req, res) => {
   try {
     const { nombre, email, password } = req.body;
@@ -54,4 +57,76 @@ const register = async (req, res) => {
   }
 };
 
-module.exports = { register };
+// INICIO DE SESION DE USUARIOS EN EL SISTEMA
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validación básica de entrada
+    if (!email || !password) {
+      return res.status(400).json({
+        error: {
+          code: 'CAMPOS_REQUERIDOS',
+          message: 'El correo y la contraseña son obligatorios'
+        }
+      });
+    }
+
+    // 1. Buscar al usuario por correo
+    const query = 'SELECT id, nombre, email, password_hash FROM usuarios WHERE email = $1';
+    const result = await pool.query(query, [email.trim().toLowerCase()]);
+
+    const user = result.rows[0];
+
+    // 2. Si el usuario no existe, retornar 401 genérico
+    if (!user) {
+      return res.status(401).json({
+        error: {
+          code: 'CREDENCIALES_INVALIDAS',
+          message: 'Correo o contraseña incorrectos'
+        }
+      });
+    }
+
+    // 3. Comparar la contraseña con el hash
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+
+    // Si la contraseña no coincide, retornar exactamente el mismo 401
+    if (!isMatch) {
+      return res.status(401).json({
+        error: {
+          code: 'CREDENCIALES_INVALIDAS',
+          message: 'Correo o contraseña incorrectos'
+        }
+      });
+    }
+
+    // 4. Generar el JWT firmado
+    const token = jwt.sign(
+      { id: user.id },
+      jwtSecret,
+      { expiresIn: jwtExpiresIn }
+    );
+
+    // 5. Responder 200 con el token y datos públicos del usuario
+    return res.status(200).json({
+      token,
+      usuario: {
+        id: user.id,
+        nombre: user.nombre,
+        email: user.email
+      }
+    });
+
+  } catch (error) {
+    console.error('Error en el login:', error);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'Ocurrió un error inesperado en el servidor'
+      }
+    });
+  }
+};
+
+module.exports = { register, login };
