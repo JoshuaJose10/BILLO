@@ -129,4 +129,35 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+// DEVOLVER USUARIO POR MEDIO DE TOKEN
+const profile = async (req, res) => {
+  try {
+    const { id } = req.usuario;
+
+    // Buscar los datos públicos del usuario
+    const query = 'SELECT id, nombre, email FROM usuarios WHERE id = $1';
+    const result = await pool.query(query, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: {
+          code: 'USUARIO_NO_ENCONTRADO',
+          message: 'El usuario no existe'
+        }
+      });
+    }
+
+    // Responder 200 con { id, nombre, email }
+    return res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error al obtener el perfil:', error);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'Ocurrió un error inesperado en el servidor'
+      }
+    });
+  }
+};
+
+module.exports = { register, login, profile };
