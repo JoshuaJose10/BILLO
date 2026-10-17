@@ -1,11 +1,13 @@
 const express = require('express');
 const config = require('./config/env');
 const authRoutes = require('./routes/auth.routes');
+const categoriasRoutes = require('./routes/categorias.routes');
 const { testConnection } = require('./db');
 
 const app = express();
 app.use(express.json());
 app.use('/auth', authRoutes);
+app.use('/categorias', categoriasRoutes);
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', uptime: process.uptime() });
