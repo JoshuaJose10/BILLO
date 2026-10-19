@@ -1,6 +1,7 @@
 import { StyleSheet, Text } from 'react-native';
 
 import { colors } from '../theme/colors';
+import { fonts } from '../theme/fonts';
 
 // "¿No tienes cuenta? Crear cuenta": la parte enlazada en blanco y subrayada.
 export default function EnlaceAuth({ pregunta, accion, onPress }) {
@@ -16,14 +17,15 @@ export default function EnlaceAuth({ pregunta, accion, onPress }) {
 
 const styles = StyleSheet.create({
   texto: {
+    fontFamily: fonts.sans,
     color: colors.textSecondary,
     fontSize: 14,
     textAlign: 'center',
     marginTop: 20,
   },
   enlace: {
+    fontFamily: fonts.sansSemiBold,
     color: colors.text,
-    fontWeight: '600',
     textDecorationLine: 'underline',
   },
 });

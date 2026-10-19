@@ -7,6 +7,7 @@ import EnlaceAuth from '../components/EnlaceAuth';
 import Input from '../components/Input';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme/colors';
+import { fonts } from '../theme/fonts';
 import { esEmailValido, fuerzaPassword, MIN_PASSWORD } from '../utils/validacion';
 
 const COLOR_FUERZA = [colors.border, colors.fuerzaDebil, colors.fuerzaMedia, colors.fuerzaFuerte];
@@ -165,6 +166,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   pista: {
+    fontFamily: fonts.sans,
     color: colors.textSecondary,
     fontSize: 12,
   },
@@ -178,12 +180,14 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   errorApi: {
+    fontFamily: fonts.sans,
     color: colors.error,
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 12,
   },
   terminos: {
+    fontFamily: fonts.sans,
     color: colors.textSecondary,
     fontSize: 12,
     lineHeight: 17,

@@ -2,7 +2,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { forwardRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { colors, fonts } from '../theme/colors';
+import { colors } from '../theme/colors';
+import { fonts } from '../theme/fonts';
 
 // Campo con etiqueta en mayúsculas, ícono a la izquierda y error debajo.
 // `password` agrega el botón de ojo; `pie` se muestra entre el campo y el error.
@@ -79,12 +80,14 @@ const styles = StyleSheet.create({
     borderColor: colors.error,
   },
   input: {
+    fontFamily: fonts.sans,
     flex: 1,
     height: '100%',
     color: colors.text,
     fontSize: 16,
   },
   error: {
+    fontFamily: fonts.sans,
     color: colors.error,
     fontSize: 13,
     marginTop: 6,

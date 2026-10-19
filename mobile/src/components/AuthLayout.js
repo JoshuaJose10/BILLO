@@ -13,6 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '../theme/colors';
+import { fonts } from '../theme/fonts';
 
 // Estructura común de Login y Registro: wordmark arriba y formulario en una hoja inferior.
 // Con el teclado abierto el contenido se puede desplazar; tocar fuera cierra el teclado.
@@ -90,12 +91,13 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   wordmark: {
+    fontFamily: fonts.sansBold,
     color: colors.text,
     fontSize: 52,
-    fontWeight: '800',
     letterSpacing: -1.5,
   },
   lema: {
+    fontFamily: fonts.sans,
     color: colors.textSecondary,
     fontSize: 15,
     marginTop: 6,
@@ -120,11 +122,12 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   titulo: {
+    fontFamily: fonts.sansBold,
     color: colors.text,
     fontSize: 28,
-    fontWeight: '700',
   },
   subtitulo: {
+    fontFamily: fonts.sans,
     color: colors.textSecondary,
     fontSize: 15,
     lineHeight: 21,
