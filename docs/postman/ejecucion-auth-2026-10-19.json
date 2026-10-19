@@ -1,0 +1,837 @@
+{
+  "fechaLocal": "2026-10-19",
+  "zonaHoraria": "America/Mexico_City",
+  "ambiente": {
+    "baseUrl": "http://localhost:3000",
+    "ramaBackend": "develop",
+    "commitBackend": "22757d288788b52abbb36b4c2c4c7a989fe68af1",
+    "node": "v22.15.0",
+    "newman": "6.2.3",
+    "sistema": "Windows",
+    "baseDeDatos": "PostgreSQL real configurado en backend/.env; credenciales omitidas"
+  },
+  "comando": "npx --yes newman@6.2.3 run docs/postman/billo-api.postman_collection.json --iteration-count 2",
+  "resumen": {
+    "iteraciones": 2,
+    "peticiones": 22,
+    "erroresTransporte": 0,
+    "aserciones": 110,
+    "aprobadas": 78,
+    "fallidas": 32,
+    "erroresScripts": 0,
+    "tokenAutomaticoVerificado": true,
+    "registroRepetibleVerificado": true
+  },
+  "alcance": "Integración HTTP real. Dos iteraciones sin editar cuerpos, correos ni token. Fallas de contrato conservadas; no aprueba pantallas Android ni RF2–RF8. Cuentas QA persistentes; sin limpieza de usuarios existentes.",
+  "defectos": [
+    "AUTH-QA-01",
+    "AUTH-QA-02",
+    "AUTH-QA-03"
+  ],
+  "ejecuciones": [
+    {
+      "iteracion": 1,
+      "peticion": "01 CP-RF1-01 [API] — Registro válido e inicialización",
+      "metodo": "POST",
+      "ruta": "/auth/register",
+      "status": 201,
+      "tipoContenido": "application/json; charset=utf-8",
+      "respuesta": {
+        "id": 8,
+        "nombre": "QA Postman",
+        "email": "qa.postman.a6d2ee61167443adb1cc533a16c90a3e@example.test"
+      },
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "HTTP 201",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "Usuario creado con los datos de QA",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "CONTRATO: registro devuelve { usuario: {...} }",
+          "resultado": "Falla",
+          "mensaje": "expected { id: 8, nombre: 'QA Postman', …(1) } to have property 'usuario'"
+        }
+      ]
+    },
+    {
+      "iteracion": 1,
+      "peticion": "02 CP-RF1-03 [API] — Correo duplicado",
+      "metodo": "POST",
+      "ruta": "/auth/register",
+      "status": 409,
+      "tipoContenido": "application/json; charset=utf-8",
+      "respuesta": {
+        "error": {
+          "code": "EMAIL_DUPLICADO",
+          "message": "El correo ya está registrado"
+        }
+      },
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "HTTP 409",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "Código funcional: EMAIL_DUPLICADO",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "CONTRATO: error.codigo y error.mensaje",
+          "resultado": "Falla",
+          "mensaje": "expected { code: 'EMAIL_DUPLICADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ]
+    },
+    {
+      "iteracion": 1,
+      "peticion": "03 QA-AUTH-01 — Correo inválido",
+      "metodo": "POST",
+      "ruta": "/auth/register",
+      "status": 400,
+      "tipoContenido": "application/json; charset=utf-8",
+      "respuesta": {
+        "error": {
+          "code": "EMAIL_INVALIDO",
+          "message": "El formato del correo no es válido"
+        }
+      },
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "HTTP 400",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "Código funcional: EMAIL_INVALIDO",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "CONTRATO: error.codigo y error.mensaje",
+          "resultado": "Falla",
+          "mensaje": "expected { code: 'EMAIL_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ]
+    },
+    {
+      "iteracion": 1,
+      "peticion": "04 QA-AUTH-02 — Contraseña corta",
+      "metodo": "POST",
+      "ruta": "/auth/register",
+      "status": 400,
+      "tipoContenido": "application/json; charset=utf-8",
+      "respuesta": {
+        "error": {
+          "code": "PASSWORD_MUY_CORTA",
+          "message": "La contraseña debe tener al menos 8 caracteres"
+        }
+      },
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "HTTP 400",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "Código funcional: PASSWORD_MUY_CORTA",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "CONTRATO: error.codigo y error.mensaje",
+          "resultado": "Falla",
+          "mensaje": "expected { code: 'PASSWORD_MUY_CORTA', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ]
+    },
+    {
+      "iteracion": 1,
+      "peticion": "05 QA-AUTH-03 — Nombre vacío",
+      "metodo": "POST",
+      "ruta": "/auth/register",
+      "status": 400,
+      "tipoContenido": "application/json; charset=utf-8",
+      "respuesta": {
+        "error": {
+          "code": "NOMBRE_REQUERIDO",
+          "message": "El nombre es obligatorio"
+        }
+      },
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "HTTP 400",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "Código funcional: NOMBRE_REQUERIDO",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "CONTRATO: error.codigo y error.mensaje",
+          "resultado": "Falla",
+          "mensaje": "expected { code: 'NOMBRE_REQUERIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ]
+    },
+    {
+      "iteracion": 1,
+      "peticion": "06 CP-RF1-02 [API] — Login válido y guardar token",
+      "metodo": "POST",
+      "ruta": "/auth/login",
+      "status": 200,
+      "tipoContenido": "application/json; charset=utf-8",
+      "respuesta": {
+        "token": "[OMITIDO]",
+        "usuario": {
+          "id": 8,
+          "nombre": "QA Postman",
+          "email": "qa.postman.a6d2ee61167443adb1cc533a16c90a3e@example.test"
+        }
+      },
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "HTTP 200",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "Devuelve token y usuario registrado",
+          "resultado": "Pasa"
+        }
+      ]
+    },
+    {
+      "iteracion": 1,
+      "peticion": "07 CP-RF1-04 [API] — Contraseña incorrecta",
+      "metodo": "POST",
+      "ruta": "/auth/login",
+      "status": 401,
+      "tipoContenido": "application/json; charset=utf-8",
+      "respuesta": {
+        "error": {
+          "code": "CREDENCIALES_INVALIDAS",
+          "message": "Correo o contraseña incorrectos"
+        }
+      },
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "HTTP 401",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "Código funcional: CREDENCIALES_INVALIDAS",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "CONTRATO: error.codigo y error.mensaje",
+          "resultado": "Falla",
+          "mensaje": "expected { Object (code, message) } to contain keys 'codigo', and 'mensaje'"
+        },
+        {
+          "nombre": "Login fallido no devuelve token",
+          "resultado": "Pasa"
+        }
+      ]
+    },
+    {
+      "iteracion": 1,
+      "peticion": "08 QA-AUTH-04 — Correo inexistente sin revelar existencia",
+      "metodo": "POST",
+      "ruta": "/auth/login",
+      "status": 401,
+      "tipoContenido": "application/json; charset=utf-8",
+      "respuesta": {
+        "error": {
+          "code": "CREDENCIALES_INVALIDAS",
+          "message": "Correo o contraseña incorrectos"
+        }
+      },
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "HTTP 401",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "Código funcional: CREDENCIALES_INVALIDAS",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "CONTRATO: error.codigo y error.mensaje",
+          "resultado": "Falla",
+          "mensaje": "expected { Object (code, message) } to contain keys 'codigo', and 'mensaje'"
+        },
+        {
+          "nombre": "Mismo error para correo inexistente y contraseña incorrecta",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No devuelve token",
+          "resultado": "Pasa"
+        }
+      ]
+    },
+    {
+      "iteracion": 1,
+      "peticion": "09 QA-AUTH-05 — Token en ruta implementada /auth/profile",
+      "metodo": "GET",
+      "ruta": "/auth/profile",
+      "status": 200,
+      "tipoContenido": "application/json; charset=utf-8",
+      "respuesta": {
+        "id": 8,
+        "nombre": "QA Postman",
+        "email": "qa.postman.a6d2ee61167443adb1cc533a16c90a3e@example.test"
+      },
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "HTTP 200",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "Token válido identifica al usuario de esta ejecución",
+          "resultado": "Pasa"
+        }
+      ]
+    },
+    {
+      "iteracion": 1,
+      "peticion": "10 QA-AUTH-06 — Contrato /auth/perfil con token",
+      "metodo": "GET",
+      "ruta": "/auth/perfil",
+      "status": 404,
+      "tipoContenido": "text/html; charset=utf-8",
+      "respuesta": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /auth/perfil</pre>\n</body>\n</html>\n",
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Falla",
+          "mensaje": "expected 'text/html; charset=utf-8' to include 'application/json'"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Falla",
+          "mensaje": "Unexpected token '<' at 1:1\n<!DOCTYPE html>\n^"
+        },
+        {
+          "nombre": "HTTP 200",
+          "resultado": "Falla",
+          "mensaje": "expected response to have status code 200 but got 404"
+        },
+        {
+          "nombre": "CONTRATO: perfil corresponde al usuario autenticado",
+          "resultado": "Falla",
+          "mensaje": "expected undefined to equal 8"
+        }
+      ]
+    },
+    {
+      "iteracion": 1,
+      "peticion": "11 QA-AUTH-07 — Contrato /auth/perfil sin token",
+      "metodo": "GET",
+      "ruta": "/auth/perfil",
+      "status": 404,
+      "tipoContenido": "text/html; charset=utf-8",
+      "respuesta": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /auth/perfil</pre>\n</body>\n</html>\n",
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Falla",
+          "mensaje": "expected 'text/html; charset=utf-8' to include 'application/json'"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Falla",
+          "mensaje": "Unexpected token '<' at 1:1\n<!DOCTYPE html>\n^"
+        },
+        {
+          "nombre": "HTTP 401",
+          "resultado": "Falla",
+          "mensaje": "expected response to have status code 401 but got 404"
+        },
+        {
+          "nombre": "Código funcional: NO_AUTORIZADO",
+          "resultado": "Falla",
+          "mensaje": "expected undefined to be an object"
+        },
+        {
+          "nombre": "CONTRATO: error.codigo y error.mensaje",
+          "resultado": "Falla",
+          "mensaje": "Cannot convert undefined or null to object"
+        }
+      ]
+    },
+    {
+      "iteracion": 2,
+      "peticion": "01 CP-RF1-01 [API] — Registro válido e inicialización",
+      "metodo": "POST",
+      "ruta": "/auth/register",
+      "status": 201,
+      "tipoContenido": "application/json; charset=utf-8",
+      "respuesta": {
+        "id": 9,
+        "nombre": "QA Postman",
+        "email": "qa.postman.8f524dd0b3e14cdfb96b705302961586@example.test"
+      },
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "HTTP 201",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "Usuario creado con los datos de QA",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "CONTRATO: registro devuelve { usuario: {...} }",
+          "resultado": "Falla",
+          "mensaje": "expected { id: 9, nombre: 'QA Postman', …(1) } to have property 'usuario'"
+        }
+      ]
+    },
+    {
+      "iteracion": 2,
+      "peticion": "02 CP-RF1-03 [API] — Correo duplicado",
+      "metodo": "POST",
+      "ruta": "/auth/register",
+      "status": 409,
+      "tipoContenido": "application/json; charset=utf-8",
+      "respuesta": {
+        "error": {
+          "code": "EMAIL_DUPLICADO",
+          "message": "El correo ya está registrado"
+        }
+      },
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "HTTP 409",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "Código funcional: EMAIL_DUPLICADO",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "CONTRATO: error.codigo y error.mensaje",
+          "resultado": "Falla",
+          "mensaje": "expected { code: 'EMAIL_DUPLICADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ]
+    },
+    {
+      "iteracion": 2,
+      "peticion": "03 QA-AUTH-01 — Correo inválido",
+      "metodo": "POST",
+      "ruta": "/auth/register",
+      "status": 400,
+      "tipoContenido": "application/json; charset=utf-8",
+      "respuesta": {
+        "error": {
+          "code": "EMAIL_INVALIDO",
+          "message": "El formato del correo no es válido"
+        }
+      },
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "HTTP 400",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "Código funcional: EMAIL_INVALIDO",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "CONTRATO: error.codigo y error.mensaje",
+          "resultado": "Falla",
+          "mensaje": "expected { code: 'EMAIL_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ]
+    },
+    {
+      "iteracion": 2,
+      "peticion": "04 QA-AUTH-02 — Contraseña corta",
+      "metodo": "POST",
+      "ruta": "/auth/register",
+      "status": 400,
+      "tipoContenido": "application/json; charset=utf-8",
+      "respuesta": {
+        "error": {
+          "code": "PASSWORD_MUY_CORTA",
+          "message": "La contraseña debe tener al menos 8 caracteres"
+        }
+      },
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "HTTP 400",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "Código funcional: PASSWORD_MUY_CORTA",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "CONTRATO: error.codigo y error.mensaje",
+          "resultado": "Falla",
+          "mensaje": "expected { code: 'PASSWORD_MUY_CORTA', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ]
+    },
+    {
+      "iteracion": 2,
+      "peticion": "05 QA-AUTH-03 — Nombre vacío",
+      "metodo": "POST",
+      "ruta": "/auth/register",
+      "status": 400,
+      "tipoContenido": "application/json; charset=utf-8",
+      "respuesta": {
+        "error": {
+          "code": "NOMBRE_REQUERIDO",
+          "message": "El nombre es obligatorio"
+        }
+      },
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "HTTP 400",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "Código funcional: NOMBRE_REQUERIDO",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "CONTRATO: error.codigo y error.mensaje",
+          "resultado": "Falla",
+          "mensaje": "expected { code: 'NOMBRE_REQUERIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ]
+    },
+    {
+      "iteracion": 2,
+      "peticion": "06 CP-RF1-02 [API] — Login válido y guardar token",
+      "metodo": "POST",
+      "ruta": "/auth/login",
+      "status": 200,
+      "tipoContenido": "application/json; charset=utf-8",
+      "respuesta": {
+        "token": "[OMITIDO]",
+        "usuario": {
+          "id": 9,
+          "nombre": "QA Postman",
+          "email": "qa.postman.8f524dd0b3e14cdfb96b705302961586@example.test"
+        }
+      },
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "HTTP 200",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "Devuelve token y usuario registrado",
+          "resultado": "Pasa"
+        }
+      ]
+    },
+    {
+      "iteracion": 2,
+      "peticion": "07 CP-RF1-04 [API] — Contraseña incorrecta",
+      "metodo": "POST",
+      "ruta": "/auth/login",
+      "status": 401,
+      "tipoContenido": "application/json; charset=utf-8",
+      "respuesta": {
+        "error": {
+          "code": "CREDENCIALES_INVALIDAS",
+          "message": "Correo o contraseña incorrectos"
+        }
+      },
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "HTTP 401",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "Código funcional: CREDENCIALES_INVALIDAS",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "CONTRATO: error.codigo y error.mensaje",
+          "resultado": "Falla",
+          "mensaje": "expected { Object (code, message) } to contain keys 'codigo', and 'mensaje'"
+        },
+        {
+          "nombre": "Login fallido no devuelve token",
+          "resultado": "Pasa"
+        }
+      ]
+    },
+    {
+      "iteracion": 2,
+      "peticion": "08 QA-AUTH-04 — Correo inexistente sin revelar existencia",
+      "metodo": "POST",
+      "ruta": "/auth/login",
+      "status": 401,
+      "tipoContenido": "application/json; charset=utf-8",
+      "respuesta": {
+        "error": {
+          "code": "CREDENCIALES_INVALIDAS",
+          "message": "Correo o contraseña incorrectos"
+        }
+      },
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "HTTP 401",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "Código funcional: CREDENCIALES_INVALIDAS",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "CONTRATO: error.codigo y error.mensaje",
+          "resultado": "Falla",
+          "mensaje": "expected { Object (code, message) } to contain keys 'codigo', and 'mensaje'"
+        },
+        {
+          "nombre": "Mismo error para correo inexistente y contraseña incorrecta",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No devuelve token",
+          "resultado": "Pasa"
+        }
+      ]
+    },
+    {
+      "iteracion": 2,
+      "peticion": "09 QA-AUTH-05 — Token en ruta implementada /auth/profile",
+      "metodo": "GET",
+      "ruta": "/auth/profile",
+      "status": 200,
+      "tipoContenido": "application/json; charset=utf-8",
+      "respuesta": {
+        "id": 9,
+        "nombre": "QA Postman",
+        "email": "qa.postman.8f524dd0b3e14cdfb96b705302961586@example.test"
+      },
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "HTTP 200",
+          "resultado": "Pasa"
+        },
+        {
+          "nombre": "Token válido identifica al usuario de esta ejecución",
+          "resultado": "Pasa"
+        }
+      ]
+    },
+    {
+      "iteracion": 2,
+      "peticion": "10 QA-AUTH-06 — Contrato /auth/perfil con token",
+      "metodo": "GET",
+      "ruta": "/auth/perfil",
+      "status": 404,
+      "tipoContenido": "text/html; charset=utf-8",
+      "respuesta": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /auth/perfil</pre>\n</body>\n</html>\n",
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Falla",
+          "mensaje": "expected 'text/html; charset=utf-8' to include 'application/json'"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Falla",
+          "mensaje": "Unexpected token '<' at 1:1\n<!DOCTYPE html>\n^"
+        },
+        {
+          "nombre": "HTTP 200",
+          "resultado": "Falla",
+          "mensaje": "expected response to have status code 200 but got 404"
+        },
+        {
+          "nombre": "CONTRATO: perfil corresponde al usuario autenticado",
+          "resultado": "Falla",
+          "mensaje": "expected undefined to equal 9"
+        }
+      ]
+    },
+    {
+      "iteracion": 2,
+      "peticion": "11 QA-AUTH-07 — Contrato /auth/perfil sin token",
+      "metodo": "GET",
+      "ruta": "/auth/perfil",
+      "status": 404,
+      "tipoContenido": "text/html; charset=utf-8",
+      "respuesta": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /auth/perfil</pre>\n</body>\n</html>\n",
+      "pruebas": [
+        {
+          "nombre": "Respuesta JSON",
+          "resultado": "Falla",
+          "mensaje": "expected 'text/html; charset=utf-8' to include 'application/json'"
+        },
+        {
+          "nombre": "No expone contraseñas ni hashes",
+          "resultado": "Falla",
+          "mensaje": "Unexpected token '<' at 1:1\n<!DOCTYPE html>\n^"
+        },
+        {
+          "nombre": "HTTP 401",
+          "resultado": "Falla",
+          "mensaje": "expected response to have status code 401 but got 404"
+        },
+        {
+          "nombre": "Código funcional: NO_AUTORIZADO",
+          "resultado": "Falla",
+          "mensaje": "expected undefined to be an object"
+        },
+        {
+          "nombre": "CONTRATO: error.codigo y error.mensaje",
+          "resultado": "Falla",
+          "mensaje": "Cannot convert undefined or null to object"
+        }
+      ]
+    }
+  ]
+}

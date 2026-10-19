@@ -1,0 +1,722 @@
+{
+  "info": {
+    "_postman_id": "c74bfb83-270b-40bd-a66c-397e7be63816",
+    "name": "Billo API",
+    "description": "QA RF1: ejecutar la colección completa en orden. Cada iteración registra una cuenta QA exclusiva en example.test. baseUrl=http://localhost:3000; no necesita ambiente ni datos manuales. El login guarda token automáticamente. Las aserciones CONTRATO detectan diferencias reales y no bloquean las siguientes peticiones. Revisar docs/postman/README.md. RF2–RF8 y pruebas de UI están en docs/checklist-pruebas.md. No contiene JWT ni credenciales reales exportadas.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('Respuesta JSON', function () {",
+          "  pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "  pm.expect(function () { pm.response.json(); }).not.to.throw();",
+          "});",
+          "pm.test('No expone contraseñas ni hashes', function () {",
+          "  const body = pm.response.json();",
+          "  const usuario = body.usuario || body;",
+          "  pm.expect(usuario).not.to.have.property('password');",
+          "  pm.expect(usuario).not.to.have.property('password_hash');",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "qaEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "qaOtherEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "qaPassword",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "qaNombre",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "qaUserId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "qaCredentialError",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Autenticación — ejecutar en orden",
+      "item": [
+        {
+          "name": "01 CP-RF1-01 [API] — Registro válido e inicialización",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const runId = pm.variables.replaceIn('{{$guid}}').toLowerCase().replace(/-/g, '');",
+                  "const values = {",
+                  "  qaEmail: 'qa.postman.' + runId + '@example.test',",
+                  "  qaOtherEmail: 'qa.inexistente.' + runId + '@example.test',",
+                  "  qaPassword: 'Qa!' + runId,",
+                  "  qaNombre: 'QA Postman', token: '', qaUserId: '', qaCredentialError: ''",
+                  "};",
+                  "Object.keys(values).forEach(function (key) {",
+                  "  pm.collectionVariables.set(key, values[key]);",
+                  "  pm.variables.set(key, values[key]);",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+                  "let body = {}; try { body = pm.response.json(); } catch { /* La prueba Respuesta JSON registra el fallo. */ }",
+                  "// Capturar el ID permite continuar incluso si se detecta el defecto de envoltura.",
+                  "const usuario = body.usuario || body;",
+                  "pm.test('Usuario creado con los datos de QA', function () {",
+                  "  pm.expect(usuario.id).to.be.a('number').and.above(0);",
+                  "  pm.expect(usuario.nombre).to.equal(pm.variables.get('qaNombre'));",
+                  "  pm.expect(usuario.email).to.equal(pm.variables.get('qaEmail'));",
+                  "});",
+                  "if (pm.response.code === 201 && usuario.id) {",
+                  "  pm.collectionVariables.set('qaUserId', String(usuario.id));",
+                  "  pm.variables.set('qaUserId', String(usuario.id));",
+                  "}",
+                  "pm.test('CONTRATO: registro devuelve { usuario: {...} }', function () {",
+                  "  pm.expect(body).to.have.property('usuario').that.is.an('object');",
+                  "  pm.expect(body.usuario).to.include.all.keys('id', 'nombre', 'email');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"{{qaNombre}}\",\n  \"email\": \"{{qaEmail}}\",\n  \"password\": \"{{qaPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Cobertura API parcial de CP-RF1-01. Genera datos nuevos en cada ejecución/iteración. La navegación y el registro móvil se verifican en Android."
+          },
+          "response": []
+        },
+        {
+          "name": "02 CP-RF1-03 [API] — Correo duplicado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', function () { pm.response.to.have.status(409); });",
+                  "let body = {}; try { body = pm.response.json(); } catch { /* La prueba Respuesta JSON registra el fallo. */ }",
+                  "pm.test('Código funcional: EMAIL_DUPLICADO', function () {",
+                  "  pm.expect(body.error).to.be.an('object');",
+                  "  pm.expect(body.error.codigo || body.error.code).to.equal('EMAIL_DUPLICADO');",
+                  "  pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;",
+                  "});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje', function () {",
+                  "  pm.expect(body.error).to.include.all.keys('codigo', 'mensaje');",
+                  "  pm.expect(body.error.codigo).to.equal('EMAIL_DUPLICADO');",
+                  "  pm.expect(body.error.mensaje).to.be.a('string').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"{{qaNombre}}\",\n  \"email\": \"{{qaEmail}}\",\n  \"password\": \"{{qaPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Reutiliza automáticamente el correo creado por la petición 01. Debe responder 409."
+          },
+          "response": []
+        },
+        {
+          "name": "03 QA-AUTH-01 — Correo inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function () { pm.response.to.have.status(400); });",
+                  "let body = {}; try { body = pm.response.json(); } catch { /* La prueba Respuesta JSON registra el fallo. */ }",
+                  "pm.test('Código funcional: EMAIL_INVALIDO', function () {",
+                  "  pm.expect(body.error).to.be.an('object');",
+                  "  pm.expect(body.error.codigo || body.error.code).to.equal('EMAIL_INVALIDO');",
+                  "  pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;",
+                  "});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje', function () {",
+                  "  pm.expect(body.error).to.include.all.keys('codigo', 'mensaje');",
+                  "  pm.expect(body.error.codigo).to.equal('EMAIL_INVALIDO');",
+                  "  pm.expect(body.error.mensaje).to.be.a('string').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"{{qaNombre}}\",\n  \"email\": \"correo-sin-arroba\",\n  \"password\": \"{{qaPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Validación negativa de correo en registro; los demás campos son válidos."
+          },
+          "response": []
+        },
+        {
+          "name": "04 QA-AUTH-02 — Contraseña corta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function () { pm.response.to.have.status(400); });",
+                  "let body = {}; try { body = pm.response.json(); } catch { /* La prueba Respuesta JSON registra el fallo. */ }",
+                  "pm.test('Código funcional: PASSWORD_MUY_CORTA', function () {",
+                  "  pm.expect(body.error).to.be.an('object');",
+                  "  pm.expect(body.error.codigo || body.error.code).to.equal('PASSWORD_MUY_CORTA');",
+                  "  pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;",
+                  "});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje', function () {",
+                  "  pm.expect(body.error).to.include.all.keys('codigo', 'mensaje');",
+                  "  pm.expect(body.error.codigo).to.equal('PASSWORD_MUY_CORTA');",
+                  "  pm.expect(body.error.mensaje).to.be.a('string').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"{{qaNombre}}\",\n  \"email\": \"{{qaOtherEmail}}\",\n  \"password\": \"Abc1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Contraseña de 7 caracteres con correo válido y aún no registrado."
+          },
+          "response": []
+        },
+        {
+          "name": "05 QA-AUTH-03 — Nombre vacío",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function () { pm.response.to.have.status(400); });",
+                  "let body = {}; try { body = pm.response.json(); } catch { /* La prueba Respuesta JSON registra el fallo. */ }",
+                  "pm.test('Código funcional: NOMBRE_REQUERIDO', function () {",
+                  "  pm.expect(body.error).to.be.an('object');",
+                  "  pm.expect(body.error.codigo || body.error.code).to.equal('NOMBRE_REQUERIDO');",
+                  "  pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;",
+                  "});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje', function () {",
+                  "  pm.expect(body.error).to.include.all.keys('codigo', 'mensaje');",
+                  "  pm.expect(body.error.codigo).to.equal('NOMBRE_REQUERIDO');",
+                  "  pm.expect(body.error.mensaje).to.be.a('string').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"   \",\n  \"email\": \"{{qaOtherEmail}}\",\n  \"password\": \"{{qaPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Validación adicional observada en la implementación; NOMBRE_REQUERIDO no está enumerado en la sección de registro del contrato."
+          },
+          "response": []
+        },
+        {
+          "name": "06 CP-RF1-02 [API] — Login válido y guardar token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "let body = {}; try { body = pm.response.json(); } catch { /* La prueba Respuesta JSON registra el fallo. */ }",
+                  "pm.test('Devuelve token y usuario registrado', function () {",
+                  "  pm.expect(body.token).to.be.a('string').and.not.empty;",
+                  "  pm.expect(body.token.split('.')).to.have.lengthOf(3);",
+                  "  pm.expect(body.usuario.id).to.equal(Number(pm.variables.get('qaUserId')));",
+                  "  pm.expect(body.usuario.nombre).to.equal(pm.variables.get('qaNombre'));",
+                  "});",
+                  "if (pm.response.code === 200 && typeof body.token === 'string' && body.token) {",
+                  "  pm.collectionVariables.set('token', pm.response.json().token);",
+                  "  pm.variables.set('token', body.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{qaEmail}}\",\n  \"password\": \"{{qaPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Guarda el JWT automáticamente en la variable de colección token. Las solicitudes de perfil lo reutilizan. No imprime el JWT."
+          },
+          "response": []
+        },
+        {
+          "name": "07 CP-RF1-04 [API] — Contraseña incorrecta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', function () { pm.response.to.have.status(401); });",
+                  "let body = {}; try { body = pm.response.json(); } catch { /* La prueba Respuesta JSON registra el fallo. */ }",
+                  "pm.test('Código funcional: CREDENCIALES_INVALIDAS', function () {",
+                  "  pm.expect(body.error).to.be.an('object');",
+                  "  pm.expect(body.error.codigo || body.error.code).to.equal('CREDENCIALES_INVALIDAS');",
+                  "  pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;",
+                  "});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje', function () {",
+                  "  pm.expect(body.error).to.include.all.keys('codigo', 'mensaje');",
+                  "  pm.expect(body.error.codigo).to.equal('CREDENCIALES_INVALIDAS');",
+                  "  pm.expect(body.error.mensaje).to.be.a('string').and.not.empty;",
+                  "});",
+                  "pm.test('Login fallido no devuelve token', function () { pm.expect(body).not.to.have.property('token'); });",
+                  "if (pm.response.code === 401 && body.error) {",
+                  "  pm.collectionVariables.set('qaCredentialError', JSON.stringify(body.error));",
+                  "  pm.variables.set('qaCredentialError', JSON.stringify(body.error));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{qaEmail}}\",\n  \"password\": \"xxxx\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Debe rechazar credenciales y conservar el token de QA del login exitoso; un login fallido no reemplaza la sesión de la colección."
+          },
+          "response": []
+        },
+        {
+          "name": "08 QA-AUTH-04 — Correo inexistente sin revelar existencia",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', function () { pm.response.to.have.status(401); });",
+                  "let body = {}; try { body = pm.response.json(); } catch { /* La prueba Respuesta JSON registra el fallo. */ }",
+                  "pm.test('Código funcional: CREDENCIALES_INVALIDAS', function () {",
+                  "  pm.expect(body.error).to.be.an('object');",
+                  "  pm.expect(body.error.codigo || body.error.code).to.equal('CREDENCIALES_INVALIDAS');",
+                  "  pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;",
+                  "});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje', function () {",
+                  "  pm.expect(body.error).to.include.all.keys('codigo', 'mensaje');",
+                  "  pm.expect(body.error.codigo).to.equal('CREDENCIALES_INVALIDAS');",
+                  "  pm.expect(body.error.mensaje).to.be.a('string').and.not.empty;",
+                  "});",
+                  "pm.test('Mismo error para correo inexistente y contraseña incorrecta', function () {",
+                  "  const anterior = pm.variables.get('qaCredentialError');",
+                  "  pm.expect(anterior, 'Ejecutar primero la petición 07').to.be.a('string').and.not.empty;",
+                  "  pm.expect(body.error).to.deep.equal(JSON.parse(anterior));",
+                  "});",
+                  "pm.test('No devuelve token', function () { pm.expect(body).not.to.have.property('token'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{qaOtherEmail}}\",\n  \"password\": \"{{qaPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Usa un correo nuevo que las validaciones anteriores no debieron registrar. Compara el error completo con el login incorrecto."
+          },
+          "response": []
+        },
+        {
+          "name": "09 QA-AUTH-05 — Token en ruta implementada /auth/profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "let body = {}; try { body = pm.response.json(); } catch { /* La prueba Respuesta JSON registra el fallo. */ }",
+                  "pm.test('Token válido identifica al usuario de esta ejecución', function () {",
+                  "  pm.expect(body.id).to.equal(Number(pm.variables.get('qaUserId')));",
+                  "  pm.expect(body.nombre).to.equal(pm.variables.get('qaNombre'));",
+                  "  pm.expect(body.email).to.equal(pm.variables.get('qaEmail'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "profile"
+              ]
+            },
+            "description": "Comprobación adicional sobre la ruta implementada actualmente. El contrato dice /auth/perfil: esa diferencia se comprueba por separado y no se oculta. No cubre persistencia de sesión en el celular."
+          },
+          "response": []
+        },
+        {
+          "name": "10 QA-AUTH-06 — Contrato /auth/perfil con token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+                  "let body = {}; try { body = pm.response.json(); } catch { /* La prueba Respuesta JSON registra el fallo. */ }",
+                  "pm.test('CONTRATO: perfil corresponde al usuario autenticado', function () {",
+                  "  pm.expect(body.id).to.equal(Number(pm.variables.get('qaUserId')));",
+                  "  pm.expect(body.email).to.equal(pm.variables.get('qaEmail'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/perfil",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "perfil"
+              ]
+            },
+            "description": "Ruta documentada: debe existir y devolver el perfil autenticado. Un 404 HTML es un defecto de la API, no una petición a editar manualmente."
+          },
+          "response": []
+        },
+        {
+          "name": "11 QA-AUTH-07 — Contrato /auth/perfil sin token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', function () { pm.response.to.have.status(401); });",
+                  "let body = {}; try { body = pm.response.json(); } catch { /* La prueba Respuesta JSON registra el fallo. */ }",
+                  "pm.test('Código funcional: NO_AUTORIZADO', function () {",
+                  "  pm.expect(body.error).to.be.an('object');",
+                  "  pm.expect(body.error.codigo || body.error.code).to.equal('NO_AUTORIZADO');",
+                  "  pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;",
+                  "});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje', function () {",
+                  "  pm.expect(body.error).to.include.all.keys('codigo', 'mensaje');",
+                  "  pm.expect(body.error.codigo).to.equal('NO_AUTORIZADO');",
+                  "  pm.expect(body.error.mensaje).to.be.a('string').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/perfil",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "perfil"
+              ]
+            },
+            "description": "No hereda autenticación: debe responder 401 por ausencia de Authorization."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
