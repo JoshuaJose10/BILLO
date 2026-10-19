@@ -66,9 +66,9 @@ export default function LoginScreen({ navigation }) {
       mostrarFinal={passwordEnfocado}
     >
       <Input
-        etiqueta="Correo"
+        etiqueta="Correo electrónico"
         icono="email-outline"
-        placeholder="tu@correo.com"
+        placeholder="ejemplo@correo.com"
         value={email}
         onChangeText={cambiar('email', setEmail)}
         error={errores.email}
@@ -102,7 +102,7 @@ export default function LoginScreen({ navigation }) {
 
       {errorApi ? <Text style={styles.errorApi}>{errorApi}</Text> : null}
 
-      <Boton titulo="Entrar" icono="arrow-right" onPress={entrar} cargando={enviando} />
+      <Boton titulo="Entrar" icono="arrow-right" onPress={entrar} cargando={enviando} grande />
 
       <EnlaceAuth
         pregunta="¿No tienes cuenta?"

@@ -12,6 +12,8 @@ export const temas = {
     surfaceHighest: '#353535', // surface-container-highest
     surfaceBright: '#393939', // surface-bright
     card: '#0E0E0E', // hojas inferiores (surface-container-lowest)
+    sheet: 'rgba(14, 14, 14, 0.95)', // surface-container-lowest/95 (hoja de Login y Registro)
+    surfaceInput: 'rgba(31, 31, 31, 0.9)', // surface-container/90 (campos de Login y Registro)
 
     // Vidrio: blancos translúcidos sobre fondo oscuro
     glass04: 'rgba(255, 255, 255, 0.04)',
@@ -24,6 +26,7 @@ export const temas = {
     borderSoft: 'rgba(255, 255, 255, 0.05)', // white/5
     borderStrong: 'rgba(255, 255, 255, 0.10)', // white/10
     borderTop: 'rgba(255, 255, 255, 0.08)', // brillo superior de tarjetas, panel y hoja
+    outline: '#8E9192',
     outlineVariant: '#444748',
     handle: '#444748',
 
@@ -40,13 +43,10 @@ export const temas = {
 
     // Acciones
     primary: '#FFFFFF',
+    primaryFixedDim: '#C6C6C7', // primary-fixed-dim
     onPrimary: '#000000',
+    onPrimaryMuted: '#2F3131', // on-primary de Obsidian (botón principal de Login y Registro)
     navbar: 'rgba(24, 24, 27, 0.75)', // #18181b/75
-
-    // Indicador de fuerza de contraseña (HU-13)
-    fuerzaDebil: '#F87171',
-    fuerzaMedia: '#FBBF24',
-    fuerzaFuerte: '#4ADE80',
   },
 };
 
