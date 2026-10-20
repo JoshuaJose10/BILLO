@@ -1,27 +1,66 @@
-import { Platform } from 'react-native';
-
-// Paletas por tema. Para el tema claro basta con agregar `claro` con las mismas claves
-// y elegir cuál exportar (o leerlo con useColorScheme cuando se implemente).
+// Tokens del sistema "Obsidian Luminescence" (docs/diseno/stitch/obsidian_luminescence y la
+// configuración de Tailwind de las pantallas oscuras del export de Stitch).
+// Para el tema claro basta con agregar `claro` con las mismas claves y elegir cuál exportar.
 export const temas = {
   oscuro: {
-    background: '#000000',
-    surface: '#0E0E10',
-    card: '#1A1A1D',
-    border: '#2A2A2E',
-    text: '#FFFFFF',
-    textSecondary: '#A1A1AA',
-    error: '#F87171',
-    handle: '#3F3F46',
+    // Superficies (escala surface-container de Obsidian)
+    background: '#131313', // surface
+    surfaceLowest: '#0E0E0E', // surface-container-lowest
+    surfaceLow: '#1B1B1B', // surface-container-low
+    surface: '#1F1F1F', // surface-container (inputs)
+    surfaceHigh: '#2A2A2A', // surface-container-high (avatar, ícono de gasto, pastillas)
+    surfaceHighest: '#353535', // surface-container-highest
+    surfaceBright: '#393939', // surface-bright
+    card: '#0E0E0E', // hojas inferiores (surface-container-lowest)
+    sheet: 'rgba(14, 14, 14, 0.95)', // surface-container-lowest/95 (hoja de Login y Registro)
+    surfaceInput: 'rgba(31, 31, 31, 0.9)', // surface-container/90 (campos de Login y Registro)
+
+    // Vidrio: blancos translúcidos sobre fondo oscuro
+    glass04: 'rgba(255, 255, 255, 0.04)',
+    glass05: 'rgba(255, 255, 255, 0.05)',
+    glass07: 'rgba(255, 255, 255, 0.07)',
+    glass08: 'rgba(255, 255, 255, 0.08)',
+
+    // Bordes
+    border: 'rgba(255, 255, 255, 0.08)', // Border Subtle
+    borderSoft: 'rgba(255, 255, 255, 0.05)', // white/5
+    borderStrong: 'rgba(255, 255, 255, 0.10)', // white/10
+    borderTop: 'rgba(255, 255, 255, 0.08)', // brillo superior de tarjetas, panel y hoja
+    outline: '#8E9192',
+    outlineVariant: '#444748',
+    handle: '#444748',
+
+    // Texto
+    text: '#FFFFFF', // primary
+    onSurface: '#E2E2E2',
+    textVariant: '#C4C7C8', // on-surface-variant
+    textSecondary: '#A1A1AA', // zinc-400 / Tertiary Text
+    textChip: '#D4D4D8', // zinc-300
+    textMuted: '#71717A', // zinc-500 / Muted Text
+    textNav: '#A3A3A3', // neutral-400 (pestañas inactivas)
+    amount: '#E2E1EB', // secondary-fixed (montos de egresos)
+    error: '#FFB4AB',
+
+    // Acciones
     primary: '#FFFFFF',
+    primaryFixedDim: '#C6C6C7', // primary-fixed-dim
     onPrimary: '#000000',
-    fuerzaDebil: '#F87171',
-    fuerzaMedia: '#FBBF24',
-    fuerzaFuerte: '#4ADE80',
+    onPrimaryMuted: '#2F3131', // on-primary de Obsidian (botón principal de Login y Registro)
+    navbar: 'rgba(24, 24, 27, 0.75)', // #18181b/75
   },
 };
 
 export const colors = temas.oscuro;
 
-export const fonts = {
-  mono: Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' }),
+// Radios del export (Tailwind: DEFAULT 4, lg 8, xl 12, 2xl 16, 3xl 24, full).
+export const radios = {
+  sm: 4,
+  lg: 8,
+  xl: 12,
+  '2xl': 16,
+  tarjeta: 22,
+  '3xl': 24,
+  panel: 28,
+  hoja: 32,
+  full: 9999,
 };

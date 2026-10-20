@@ -7,9 +7,11 @@ import EnlaceAuth from '../components/EnlaceAuth';
 import Input from '../components/Input';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme/colors';
+import { fonts } from '../theme/fonts';
 import { esEmailValido, fuerzaPassword, MIN_PASSWORD } from '../utils/validacion';
 
-const COLOR_FUERZA = [colors.border, colors.fuerzaDebil, colors.fuerzaMedia, colors.fuerzaFuerte];
+// Color de cada barrita encendida (Stitch: bg-outline, bg-on-surface-variant, bg-primary).
+const COLOR_BARRA = [colors.outline, colors.textVariant, colors.primary];
 
 function validar({ nombre, email, password }) {
   const errores = {};
@@ -33,7 +35,7 @@ function FuerzaPassword({ password }) {
             key={n}
             style={[
               styles.barra,
-              { backgroundColor: n <= fuerza ? COLOR_FUERZA[fuerza] : colors.border },
+              { backgroundColor: n <= fuerza ? COLOR_BARRA[n - 1] : colors.surfaceBright },
             ]}
           />
         ))}
@@ -87,11 +89,12 @@ export default function RegistroScreen({ navigation }) {
       titulo="Crea tu cuenta"
       subtitulo="Comienza a registrar y optimizar tus finanzas."
       mostrarFinal={passwordEnfocado}
+      fondo="registro"
     >
       <Input
         etiqueta="Nombre"
         icono="account-outline"
-        placeholder="Tu nombre"
+        placeholder="Tu nombre completo"
         value={nombre}
         onChangeText={cambiar('nombre', setNombre)}
         error={errores.nombre}
@@ -105,9 +108,9 @@ export default function RegistroScreen({ navigation }) {
       />
       <Input
         ref={emailRef}
-        etiqueta="Correo"
+        etiqueta="Correo electrónico"
         icono="email-outline"
-        placeholder="tu@correo.com"
+        placeholder="ejemplo@correo.com"
         value={email}
         onChangeText={cambiar('email', setEmail)}
         error={errores.email}
@@ -142,10 +145,17 @@ export default function RegistroScreen({ navigation }) {
 
       {errorApi ? <Text style={styles.errorApi}>{errorApi}</Text> : null}
 
-      <Boton titulo="Crear cuenta" icono="arrow-right" onPress={crearCuenta} cargando={enviando} />
+      <Boton
+        titulo="Crear cuenta"
+        icono="arrow-right"
+        onPress={crearCuenta}
+        cargando={enviando}
+        grande
+      />
 
       <Text style={styles.terminos}>
-        Al registrarte aceptas nuestros Términos y Política de Privacidad.
+        Al registrarte aceptas nuestros <Text style={styles.terminosDestacado}>Términos</Text> y{' '}
+        <Text style={styles.terminosDestacado}>Política de Privacidad</Text>.
       </Text>
 
       <EnlaceAuth
@@ -158,36 +168,53 @@ export default function RegistroScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  // mt-1 px-1
   pistaFila: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 8,
+    marginTop: 4,
+    paddingHorizontal: 4,
   },
+  // body-sm: Inter 400 12/16, tracking 0.01em, text-outline
   pista: {
-    color: colors.textSecondary,
+    fontFamily: fonts.sans,
+    color: colors.outline,
     fontSize: 12,
+    lineHeight: 16,
+    letterSpacing: 0.12,
   },
+  // gap-1
   barras: {
     flexDirection: 'row',
     gap: 4,
   },
+  // w-5 h-1 rounded-full
   barra: {
-    width: 22,
+    width: 20,
     height: 4,
     borderRadius: 2,
   },
   errorApi: {
+    fontFamily: fonts.sans,
     color: colors.error,
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 12,
   },
+  // body-sm text-outline text-center mt-4 px-2 leading-relaxed
   terminos: {
-    color: colors.textSecondary,
+    fontFamily: fonts.sans,
+    color: colors.outline,
     fontSize: 12,
-    lineHeight: 17,
+    lineHeight: 19.5,
+    letterSpacing: 0.12,
     textAlign: 'center',
     marginTop: 16,
+    paddingHorizontal: 8,
+  },
+  // text-on-surface (solo texto, sin enlace)
+  terminosDestacado: {
+    color: colors.onSurface,
   },
 });

@@ -7,6 +7,7 @@ import EnlaceAuth from '../components/EnlaceAuth';
 import Input from '../components/Input';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme/colors';
+import { fonts } from '../theme/fonts';
 import { esEmailValido } from '../utils/validacion';
 
 function validar({ email, password }) {
@@ -65,9 +66,9 @@ export default function LoginScreen({ navigation }) {
       mostrarFinal={passwordEnfocado}
     >
       <Input
-        etiqueta="Correo"
+        etiqueta="Correo electrónico"
         icono="email-outline"
-        placeholder="tu@correo.com"
+        placeholder="ejemplo@correo.com"
         value={email}
         onChangeText={cambiar('email', setEmail)}
         error={errores.email}
@@ -101,7 +102,7 @@ export default function LoginScreen({ navigation }) {
 
       {errorApi ? <Text style={styles.errorApi}>{errorApi}</Text> : null}
 
-      <Boton titulo="Entrar" icono="arrow-right" onPress={entrar} cargando={enviando} />
+      <Boton titulo="Entrar" icono="arrow-right" onPress={entrar} cargando={enviando} grande />
 
       <EnlaceAuth
         pregunta="¿No tienes cuenta?"
@@ -114,6 +115,7 @@ export default function LoginScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   errorApi: {
+    fontFamily: fonts.sans,
     color: colors.error,
     fontSize: 14,
     textAlign: 'center',

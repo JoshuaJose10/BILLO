@@ -34,20 +34,22 @@ RootNavigator (stack)
 ├── Auth (AuthStack, sin header)          ← ruta inicial
 │   ├── Login      → "Entrar" (reset a Main) / "Crear cuenta" (a Registro)
 │   └── Registro
-├── Main (MainTabs, sin header)
-│   ├── Inicio     → "Nuevo gasto" (abre NuevoGasto)
-│   ├── Membresías
-│   └── Reportes
-└── NuevoGasto (encima de las tabs, con header y flecha atrás)
+├── Main (MainTabs, sin header, navbar flotante)
+│   ├── Inicio
+│   ├── Movimientos
+│   ├── [botón central +]  → abre NuevoGasto (acción, no es pestaña)
+│   ├── Reportes
+│   └── Cartera
+└── NuevoGasto (hoja inferior transparentModal, encima de la navbar)
 ```
 
-| Archivo                           | Qué contiene                                   |
-| --------------------------------- | ---------------------------------------------- |
-| `App.js`                          | `NavigationContainer` + `RootNavigator`        |
-| `src/navigation/RootNavigator.js` | Stack raíz: Auth, Main y NuevoGasto            |
-| `src/navigation/AuthStack.js`     | Stack de autenticación: Login y Registro       |
-| `src/navigation/MainTabs.js`      | Tabs inferiores: Inicio, Membresías y Reportes |
-| `src/screens/*Screen.js`          | Una pantalla por archivo                       |
+| Archivo                           | Qué contiene                                                        |
+| --------------------------------- | ------------------------------------------------------------------- |
+| `App.js`                          | `NavigationContainer` + `RootNavigator`                             |
+| `src/navigation/RootNavigator.js` | Stack raíz: Auth, Main y NuevoGasto                                 |
+| `src/navigation/AuthStack.js`     | Stack de autenticación: Login y Registro                            |
+| `src/navigation/MainTabs.js`      | Tabs: Inicio, Movimientos, Reportes y Cartera, con `NavbarFlotante` |
+| `src/screens/*Screen.js`          | Una pantalla por archivo                                            |
 
 El botón "Entrar" de Login es temporal; HU-13 lo reemplaza por el login real.
 

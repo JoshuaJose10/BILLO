@@ -1,17 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
+import PantallaProximamente from '../components/PantallaProximamente';
 
+// Placeholder: mismo contenido que antes ("Reportes"), con el tema oscuro y la navbar.
 export default function ReportesScreen() {
-  return (
-    <View style={styles.container}>
-      <Text>Reportes</Text>
-    </View>
-  );
+  return <PantallaProximamente icono="chart-pie-outline" titulo="Reportes" />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
