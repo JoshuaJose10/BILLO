@@ -21,6 +21,10 @@ Proyecto de Tópicos Selectos de Ingeniería de Software — Infinite Labs.
 - ClickUp: https://app.clickup.com/90141625121/v/o/s/90148704956
 - Figma:  https://www.figma.com/design/jT3VPe8Yb3UwLSuczpDQj9/Billo-%E2%80%94-Dise%C3%B1o?node-id=1-2&t=bDue41opVPmCiTXr-1
 
+## Revisión de cobertura
+
+Estado de implementación de RF2–RF8, evidencia del código y pendientes: [reporte de cobertura del repositorio](docs/qa/prototipo-reporte.md).
+
 ## Instalación del backend
 🛠️ Requisitos Previos
 Node.js (v18 o superior)
