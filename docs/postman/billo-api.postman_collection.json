@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "c74bfb83-270b-40bd-a66c-397e7be63816",
     "name": "Billo API",
-    "description": "QA RF1: ejecutar la colección completa en orden. Cada iteración registra una cuenta QA exclusiva en example.test. baseUrl=http://localhost:3000; no necesita ambiente ni datos manuales. El login guarda token automáticamente. Las aserciones CONTRATO detectan diferencias reales y no bloquean las siguientes peticiones. Revisar docs/postman/README.md. RF2–RF8 y pruebas de UI están en docs/checklist-pruebas.md. No contiene JWT ni credenciales reales exportadas.",
+    "description": "HU-15: QA API RF1/RF2. Ejecutar todas las carpetas en orden, sin ambiente. Dos usuarios nuevos por iteración; tokens e IDs automáticos. Perfil en /auth/profile por alcance acordado. No reporta bugs nuevos; conserva fallas de contrato. Ver docs/postman/README.md.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -68,6 +68,56 @@
       "key": "qaCredentialError",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "tokenB",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "qaEmailB",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "qaUserIdB",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "categoriaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "categoriaInexistente",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "gastoA",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "gastoB",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "fechaQA",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tokenInvalido",
+      "value": "invalido",
+      "type": "string"
+    },
+    {
+      "key": "mesQA",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -92,7 +142,11 @@
                   "Object.keys(values).forEach(function (key) {",
                   "  pm.collectionVariables.set(key, values[key]);",
                   "  pm.variables.set(key, values[key]);",
-                  "});"
+                  "});",
+                  "['tokenB','qaUserIdB','categoriaId','categoriaInexistente','gastoA','gastoB'].forEach(function(k){pm.collectionVariables.set(k,'');pm.variables.set(k,'');});",
+                  "const extra={qaEmailB:'qa.b.'+runId+'@example.test',fechaQA:new Date().toISOString().slice(0,10)};",
+                  "Object.keys(extra).forEach(function(k){pm.collectionVariables.set(k,extra[k]);pm.variables.set(k,extra[k]);});",
+                  "pm.collectionVariables.set('mesQA',extra.fechaQA.slice(0,7));pm.variables.set('mesQA',extra.fechaQA.slice(0,7));"
                 ]
               }
             },
@@ -623,29 +677,195 @@
                 "profile"
               ]
             },
-            "description": "Comprobación adicional sobre la ruta implementada actualmente. El contrato dice /auth/perfil: esa diferencia se comprueba por separado y no se oculta. No cubre persistencia de sesión en el celular."
+            "description": "Perfil mediante /auth/profile por alcance acordado de HU-15. No evalúa la discrepancia de nombre con /auth/perfil."
           },
           "response": []
         },
         {
-          "name": "10 QA-AUTH-06 — Contrato /auth/perfil con token",
+          "name": "QA-AUTH-08 — Perfil sin token",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [],
+            "url": "{{baseUrl}}/auth/profile",
+            "description": "QA-AUTH-08: Perfil sin token. Historia funcional: 01 Autenticación — ejecutar en orden."
+          },
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
-                  "let body = {}; try { body = pm.response.json(); } catch { /* La prueba Respuesta JSON registra el fallo. */ }",
-                  "pm.test('CONTRATO: perfil corresponde al usuario autenticado', function () {",
-                  "  pm.expect(body.id).to.equal(Number(pm.variables.get('qaUserId')));",
-                  "  pm.expect(body.email).to.equal(pm.variables.get('qaEmail'));",
-                  "});"
+                  "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
                 ]
               }
             }
           ],
+          "response": []
+        },
+        {
+          "name": "QA-AUTH-09 — Perfil con token inválido",
           "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenInvalido}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/auth/profile",
+            "description": "QA-AUTH-09: Perfil con token inválido. Historia funcional: 01 Autenticación — ejecutar en orden."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-AUTH-10 — Registrar usuario B",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "description": "QA-AUTH-10: Registrar usuario B. Historia funcional: 01 Autenticación — ejecutar en orden.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"QA Postman B\",\n  \"email\": \"{{qaEmailB}}\",\n  \"password\": \"{{qaPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function(){pm.response.to.have.status(201);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "const u=body.usuario||body;pm.test('B distinto de A',function(){pm.expect(u.id).to.be.a('number').and.above(0);pm.expect(u.id).not.to.equal(Number(pm.variables.get('qaUserId')));pm.expect(u.email).to.equal(pm.variables.get('qaEmailB'));});if(pm.response.code===201&&u.id){pm.collectionVariables.set('qaUserIdB',String(u.id));pm.variables.set('qaUserIdB',String(u.id));}pm.test('CONTRATO: registro envuelto',function(){pm.expect(body.usuario).to.be.an('object');});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-AUTH-11 — Login usuario B",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "description": "QA-AUTH-11: Login usuario B. Historia funcional: 01 Autenticación — ejecutar en orden.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{qaEmailB}}\",\n  \"password\": \"{{qaPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Token e identidad B',function(){pm.expect(body.token).to.be.a('string').and.not.empty;pm.expect(body.usuario.id).to.equal(Number(pm.variables.get('qaUserIdB')));});if(pm.response.code===200&&body.token){pm.collectionVariables.set('tokenB',String(body.token));pm.variables.set('tokenB',String(body.token));}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-AUTH-12 — Perfil usuario B",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/auth/profile",
+            "description": "QA-AUTH-12: Perfil usuario B. Historia funcional: 01 Autenticación — ejecutar en orden."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Perfil B correcto',function(){pm.expect(body.id).to.equal(Number(pm.variables.get('qaUserIdB')));pm.expect(body.email).to.equal(pm.variables.get('qaEmailB'));});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 Categorías — catálogo",
+      "item": [
+        {
+          "name": "QA-CAT-01 — Consultar categorías y preparar IDs",
+          "request": {
+            "method": "GET",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -656,64 +876,2511 @@
                 }
               ]
             },
-            "method": "GET",
             "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/auth/perfil",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "perfil"
-              ]
-            },
-            "description": "Ruta documentada: debe existir y devolver el perfil autenticado. Un 404 HTML es un defecto de la API, no una petición a editar manualmente."
+            "url": "{{baseUrl}}/categorias",
+            "description": "QA-CAT-01: Consultar categorías y preparar IDs. Historia funcional: 02 Categorías — catálogo."
           },
-          "response": []
-        },
-        {
-          "name": "11 QA-AUTH-07 — Contrato /auth/perfil sin token",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('HTTP 401', function () { pm.response.to.have.status(401); });",
-                  "let body = {}; try { body = pm.response.json(); } catch { /* La prueba Respuesta JSON registra el fallo. */ }",
-                  "pm.test('Código funcional: NO_AUTORIZADO', function () {",
-                  "  pm.expect(body.error).to.be.an('object');",
-                  "  pm.expect(body.error.codigo || body.error.code).to.equal('NO_AUTORIZADO');",
-                  "  pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;",
-                  "});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje', function () {",
-                  "  pm.expect(body.error).to.include.all.keys('codigo', 'mensaje');",
-                  "  pm.expect(body.error.codigo).to.equal('NO_AUTORIZADO');",
-                  "  pm.expect(body.error.mensaje).to.be.a('string').and.not.empty;",
-                  "});"
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Catálogo no vacío',function(){pm.expect(body).to.be.an('array').and.not.empty;body.forEach(function(x){pm.expect(x.id).to.be.a('number');pm.expect(x.nombre).to.be.a('string').and.not.empty;});});if(Array.isArray(body)&&body.length){pm.collectionVariables.set('categoriaId',String(body[0].id));pm.variables.set('categoriaId',String(body[0].id));pm.collectionVariables.set('categoriaInexistente',String(Math.max(...body.map(x=>x.id))+1));pm.variables.set('categoriaInexistente',String(Math.max(...body.map(x=>x.id))+1));}pm.test('CONTRATO: campos del catálogo',function(){body.forEach(function(x){pm.expect(x).to.include.all.keys('tipo','es_predefinida');});});"
                 ]
               }
             }
           ],
+          "response": []
+        },
+        {
+          "name": "QA-CAT-02 — Filtrar tipo gasto",
           "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/categorias?tipo=gasto",
+            "description": "QA-CAT-02: Filtrar tipo gasto. Historia funcional: 02 Categorías — catálogo."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('CONTRATO: solo categorías de gasto',function(){pm.expect(body).to.be.an('array').and.not.empty;body.forEach(function(x){pm.expect(x.tipo).to.equal('gasto');});});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-CAT-03 — Tipo inválido",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/categorias?tipo=invalido",
+            "description": "QA-CAT-03: Tipo inválido. Historia funcional: 02 Categorías — catálogo."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-CAT-04 — Sin token",
+          "request": {
+            "method": "GET",
             "auth": {
               "type": "noauth"
             },
-            "method": "GET",
             "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/auth/perfil",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "perfil"
+            "url": "{{baseUrl}}/categorias",
+            "description": "QA-CAT-04: Sin token. Historia funcional: 02 Categorías — catálogo."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "item": [
+        {
+          "name": "QA-GAS-CREAR-A — Crear gasto propio A",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
               ]
             },
-            "description": "No hereda autenticación: debe responder 401 por ausencia de Authorization."
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-CREAR-A: Crear gasto propio A. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.5,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function(){pm.response.to.have.status(201);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Datos del gasto',function(){pm.expect(body.gasto.id).to.be.a('number').and.above(0);pm.expect(body.gasto.monto).to.equal(80.5);pm.expect(body.gasto.categoria_id).to.equal(Number(pm.variables.get('categoriaId')));pm.expect(body.gasto.fecha).to.equal(pm.variables.get('fechaQA'));pm.expect(body.gasto.metodo_pago).to.equal('efectivo');pm.expect(body.gasto.nota).to.equal('QA HU-15');});if(pm.response.code===201&&body.gasto){pm.collectionVariables.set('gastoA',String(body.gasto.id));pm.variables.set('gastoA',String(body.gasto.id));}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-CREAR-B — Crear gasto propio B",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-CREAR-B: Crear gasto propio B. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.5,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function(){pm.response.to.have.status(201);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Datos del gasto',function(){pm.expect(body.gasto.id).to.be.a('number').and.above(0);pm.expect(body.gasto.monto).to.equal(80.5);pm.expect(body.gasto.categoria_id).to.equal(Number(pm.variables.get('categoriaId')));pm.expect(body.gasto.fecha).to.equal(pm.variables.get('fechaQA'));pm.expect(body.gasto.metodo_pago).to.equal('efectivo');pm.expect(body.gasto.nota).to.equal('QA HU-15');});if(pm.response.code===201&&body.gasto){pm.collectionVariables.set('gastoB',String(body.gasto.id));pm.variables.set('gastoB',String(body.gasto.id));}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-LISTA-A — Listado privado A",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-LISTA-A: Listado privado A. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Solo gasto propio y datos persistidos',function(){pm.expect(body).to.be.an('array').with.lengthOf(1);pm.expect(body[0].id).to.equal(Number(pm.variables.get('gastoA')));pm.expect(body[0].monto).to.equal(80.5);pm.expect(body.map(x=>x.id)).not.to.include(Number(pm.variables.get('gastoB')));});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-LISTA-B — Listado privado B",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-LISTA-B: Listado privado B. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Solo gasto propio y datos persistidos',function(){pm.expect(body).to.be.an('array').with.lengthOf(1);pm.expect(body[0].id).to.equal(Number(pm.variables.get('gastoB')));pm.expect(body[0].monto).to.equal(80.5);pm.expect(body.map(x=>x.id)).not.to.include(Number(pm.variables.get('gastoA')));});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-AJENO-A-PUT — A no puede PUT gasto ajeno",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos/{{gastoB}}",
+            "description": "QA-GAS-AJENO-A-PUT: A no puede PUT gasto ajeno. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 99,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', function(){pm.response.to.have.status(404);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('No revela propietario',function(){pm.expect(body.error.codigo||body.error.code).to.equal('GASTO_NO_ENCONTRADO');});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-AJENO-A-DELETE — A no puede DELETE gasto ajeno",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos/{{gastoB}}",
+            "description": "QA-GAS-AJENO-A-DELETE: A no puede DELETE gasto ajeno. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', function(){pm.response.to.have.status(404);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('No revela propietario',function(){pm.expect(body.error.codigo||body.error.code).to.equal('GASTO_NO_ENCONTRADO');});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-AJENO-B-PUT — B no puede PUT gasto ajeno",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-AJENO-B-PUT: B no puede PUT gasto ajeno. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 99,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', function(){pm.response.to.have.status(404);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('No revela propietario',function(){pm.expect(body.error.codigo||body.error.code).to.equal('GASTO_NO_ENCONTRADO');});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-AJENO-B-DELETE — B no puede DELETE gasto ajeno",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-AJENO-B-DELETE: B no puede DELETE gasto ajeno. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', function(){pm.response.to.have.status(404);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('No revela propietario',function(){pm.expect(body.error.codigo||body.error.code).to.equal('GASTO_NO_ENCONTRADO');});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-LISTA-A-TRAS-ATAQUE — Listado privado A-TRAS-ATAQUE",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-LISTA-A-TRAS-ATAQUE: Listado privado A-TRAS-ATAQUE. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Solo gasto propio y datos persistidos',function(){pm.expect(body).to.be.an('array').with.lengthOf(1);pm.expect(body[0].id).to.equal(Number(pm.variables.get('gastoA')));pm.expect(body[0].monto).to.equal(80.5);pm.expect(body.map(x=>x.id)).not.to.include(Number(pm.variables.get('gastoB')));});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-LISTA-B-TRAS-ATAQUE — Listado privado B-TRAS-ATAQUE",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-LISTA-B-TRAS-ATAQUE: Listado privado B-TRAS-ATAQUE. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Solo gasto propio y datos persistidos',function(){pm.expect(body).to.be.an('array').with.lengthOf(1);pm.expect(body[0].id).to.equal(Number(pm.variables.get('gastoB')));pm.expect(body[0].monto).to.equal(80.5);pm.expect(body.map(x=>x.id)).not.to.include(Number(pm.variables.get('gastoA')));});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-POST-MONTO-TEXTO — MONTO-TEXTO",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-POST-MONTO-TEXTO: MONTO-TEXTO. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": \"ochenta\",\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-POST-MONTO-CERO — MONTO-CERO",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-POST-MONTO-CERO: MONTO-CERO. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 0,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-POST-MONTO-NEGATIVO — MONTO-NEGATIVO",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-POST-MONTO-NEGATIVO: MONTO-NEGATIVO. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": -5,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-POST-MONTO-DECIMALES — MONTO-DECIMALES",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-POST-MONTO-DECIMALES: MONTO-DECIMALES. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.555,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-POST-MONTO-SUBCENTAVO — MONTO-SUBCENTAVO",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-POST-MONTO-SUBCENTAVO: MONTO-SUBCENTAVO. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 0.001,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-POST-MONTO-STRING — MONTO-STRING",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-POST-MONTO-STRING: MONTO-STRING. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": \"80.50\",\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-POST-CATEGORIA-INEXISTENTE — CATEGORIA-INEXISTENTE",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-POST-CATEGORIA-INEXISTENTE: CATEGORIA-INEXISTENTE. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.5,\n  \"categoria_id\": {{categoriaInexistente}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-POST-CATEGORIA-BOOL — CATEGORIA-BOOL",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-POST-CATEGORIA-BOOL: CATEGORIA-BOOL. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.5,\n  \"categoria_id\": true,\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-POST-CATEGORIA-VACIA — CATEGORIA-VACIA",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-POST-CATEGORIA-VACIA: CATEGORIA-VACIA. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.5,\n  \"categoria_id\": null,\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-POST-FECHA — FECHA",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-POST-FECHA: FECHA. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.5,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-02-30\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-POST-METODO — METODO",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-POST-METODO: METODO. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.5,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"bitcoin\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-POST-NOTA — NOTA",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-POST-NOTA: NOTA. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.5,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-POST-SIN-CUERPO — Sin cuerpo",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-POST-SIN-CUERPO: Sin cuerpo. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-PUT-MONTO-TEXTO — MONTO-TEXTO",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-PUT-MONTO-TEXTO: MONTO-TEXTO. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": \"ochenta\",\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-PUT-MONTO-CERO — MONTO-CERO",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-PUT-MONTO-CERO: MONTO-CERO. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 0,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-PUT-MONTO-NEGATIVO — MONTO-NEGATIVO",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-PUT-MONTO-NEGATIVO: MONTO-NEGATIVO. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": -5,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-PUT-MONTO-DECIMALES — MONTO-DECIMALES",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-PUT-MONTO-DECIMALES: MONTO-DECIMALES. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.555,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-PUT-MONTO-SUBCENTAVO — MONTO-SUBCENTAVO",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-PUT-MONTO-SUBCENTAVO: MONTO-SUBCENTAVO. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 0.001,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-PUT-MONTO-STRING — MONTO-STRING",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-PUT-MONTO-STRING: MONTO-STRING. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": \"80.50\",\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-PUT-CATEGORIA-INEXISTENTE — CATEGORIA-INEXISTENTE",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-PUT-CATEGORIA-INEXISTENTE: CATEGORIA-INEXISTENTE. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.5,\n  \"categoria_id\": {{categoriaInexistente}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-PUT-CATEGORIA-BOOL — CATEGORIA-BOOL",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-PUT-CATEGORIA-BOOL: CATEGORIA-BOOL. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.5,\n  \"categoria_id\": true,\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-PUT-CATEGORIA-VACIA — CATEGORIA-VACIA",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-PUT-CATEGORIA-VACIA: CATEGORIA-VACIA. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.5,\n  \"categoria_id\": null,\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-PUT-FECHA — FECHA",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-PUT-FECHA: FECHA. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.5,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-02-30\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-PUT-METODO — METODO",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-PUT-METODO: METODO. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.5,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"bitcoin\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-PUT-NOTA — NOTA",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-PUT-NOTA: NOTA. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.5,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-PUT-SIN-CUERPO — Sin cuerpo",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-PUT-SIN-CUERPO: Sin cuerpo. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-EDITAR — Actualizar gasto A",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-EDITAR: Actualizar gasto A. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 99.9,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Datos del gasto',function(){pm.expect(body.gasto.id).to.be.a('number').and.above(0);pm.expect(body.gasto.monto).to.equal(99.9);pm.expect(body.gasto.categoria_id).to.equal(Number(pm.variables.get('categoriaId')));pm.expect(body.gasto.fecha).to.equal(pm.variables.get('fechaQA'));pm.expect(body.gasto.metodo_pago).to.equal('efectivo');pm.expect(body.gasto.nota).to.equal('QA HU-15');});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-PERSISTENCIA — Consultar actualización persistida",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-PERSISTENCIA: Consultar actualización persistida. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Actualización persistida',function(){const x=body.find(x=>x.id===Number(pm.variables.get('gastoA')));pm.expect(x.monto).to.equal(99.9);pm.expect(x.nota).to.equal('QA HU-15');});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-FILTROS — Filtrar mes y categoría",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos?mes={{mesQA}}&categoria_id={{categoriaId}}",
+            "description": "QA-GAS-FILTROS: Filtrar mes y categoría. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Incluye propio y filtra correctamente',function(){pm.expect(body.map(x=>x.id)).to.include(Number(pm.variables.get('gastoA')));body.forEach(function(x){pm.expect(x.fecha.slice(0,7)).to.equal(pm.variables.get('mesQA'));pm.expect(x.categoria_id).to.equal(Number(pm.variables.get('categoriaId')));});});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-MES-INVALIDO — Filtro mes inválido",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos?mes=2026-13",
+            "description": "QA-GAS-MES-INVALIDO: Filtro mes inválido. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-GET-SIN-TOKEN — SIN-TOKEN",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-GET-SIN-TOKEN: SIN-TOKEN. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-GET-TOKEN-INVALIDO — TOKEN-INVALIDO",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenInvalido}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-GET-TOKEN-INVALIDO: TOKEN-INVALIDO. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-POST-SIN-TOKEN — SIN-TOKEN",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-POST-SIN-TOKEN: SIN-TOKEN. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.5,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-POST-TOKEN-INVALIDO — TOKEN-INVALIDO",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenInvalido}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-POST-TOKEN-INVALIDO: TOKEN-INVALIDO. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.5,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-PUT-SIN-TOKEN — SIN-TOKEN",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-PUT-SIN-TOKEN: SIN-TOKEN. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.5,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-PUT-TOKEN-INVALIDO — TOKEN-INVALIDO",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenInvalido}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-PUT-TOKEN-INVALIDO: TOKEN-INVALIDO. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.5,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"{{fechaQA}}\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA HU-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-DELETE-SIN-TOKEN — SIN-TOKEN",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-DELETE-SIN-TOKEN: SIN-TOKEN. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-DELETE-TOKEN-INVALIDO — TOKEN-INVALIDO",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenInvalido}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-DELETE-TOKEN-INVALIDO: TOKEN-INVALIDO. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-BORRAR-A — Eliminar gasto A",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-BORRAR-A: Eliminar gasto A. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Eliminado',function(){pm.expect(body.eliminado).to.equal(true);});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-REBORRAR-A — Segundo borrado devuelve 404",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos/{{gastoA}}",
+            "description": "QA-GAS-REBORRAR-A: Segundo borrado devuelve 404. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', function(){pm.response.to.have.status(404);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-VERIFICAR-BORRADO-A — Verificar ausencia del gasto eliminado",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-VERIFICAR-BORRADO-A: Verificar ausencia del gasto eliminado. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Gasto eliminado ausente',function(){pm.expect(body.map(x=>x.id)).not.to.include(Number(pm.variables.get('gastoA')));});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-BORRAR-B — Eliminar gasto B",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos/{{gastoB}}",
+            "description": "QA-GAS-BORRAR-B: Eliminar gasto B. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Eliminado',function(){pm.expect(body.eliminado).to.equal(true);});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-REBORRAR-B — Segundo borrado devuelve 404",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos/{{gastoB}}",
+            "description": "QA-GAS-REBORRAR-B: Segundo borrado devuelve 404. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', function(){pm.response.to.have.status(404);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
+                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-GAS-VERIFICAR-BORRADO-B — Verificar ausencia del gasto eliminado",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-GAS-VERIFICAR-BORRADO-B: Verificar ausencia del gasto eliminado. Historia funcional: 03 HU-12 Gastos — CRUD y privacidad RF2."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Gasto eliminado ausente',function(){pm.expect(body.map(x=>x.id)).not.to.include(Number(pm.variables.get('gastoB')));});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 Limpieza — solo cuentas creadas por esta iteración",
+      "item": [
+        {
+          "name": "QA-LIMPIEZA-A — Eliminar gastos residuales de negativos",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-LIMPIEZA-A: Eliminar gastos residuales de negativos. Historia funcional: 04 Limpieza — solo cuentas creadas por esta iteración."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "",
+                  "pm.test('Listado para limpieza',function(){pm.expect(body).to.be.an('array');});",
+                  "const token=pm.variables.get('token');",
+                  "const base=pm.variables.get('baseUrl');",
+                  "const ids=Array.isArray(body)?body.map(x=>x.id):[];",
+                  "function next(){",
+                  "  if(!ids.length){pm.sendRequest({url:base+'/gastos',method:'GET',header:{Authorization:'Bearer '+token}},function(err,res){pm.test('Limpieza verificada A',function(){pm.expect(err).to.equal(null);pm.expect(res.code).to.equal(200);pm.expect(res.json()).to.deep.equal([]);});});return;}",
+                  "  const id=ids.shift();",
+                  "  pm.sendRequest({url:base+'/gastos/'+id,method:'DELETE',header:{Authorization:'Bearer '+token}},function(err,res){pm.test('Limpieza gasto '+id,function(){pm.expect(err).to.equal(null);pm.expect(res.code).to.equal(200);pm.expect(res.json().eliminado).to.equal(true);});next();});",
+                  "}next();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "QA-LIMPIEZA-B — Eliminar gastos residuales de negativos",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/gastos",
+            "description": "QA-LIMPIEZA-B: Eliminar gastos residuales de negativos. Historia funcional: 04 Limpieza — solo cuentas creadas por esta iteración."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "",
+                  "pm.test('Listado para limpieza',function(){pm.expect(body).to.be.an('array');});",
+                  "const token=pm.variables.get('tokenB');",
+                  "const base=pm.variables.get('baseUrl');",
+                  "const ids=Array.isArray(body)?body.map(x=>x.id):[];",
+                  "function next(){",
+                  "  if(!ids.length){pm.sendRequest({url:base+'/gastos',method:'GET',header:{Authorization:'Bearer '+token}},function(err,res){pm.test('Limpieza verificada B',function(){pm.expect(err).to.equal(null);pm.expect(res.code).to.equal(200);pm.expect(res.json()).to.deep.equal([]);});});return;}",
+                  "  const id=ids.shift();",
+                  "  pm.sendRequest({url:base+'/gastos/'+id,method:'DELETE',header:{Authorization:'Bearer '+token}},function(err,res){pm.test('Limpieza gasto '+id,function(){pm.expect(err).to.equal(null);pm.expect(res.code).to.equal(200);pm.expect(res.json().eliminado).to.equal(true);});next();});",
+                  "}next();"
+                ]
+              }
+            }
+          ],
           "response": []
         }
       ]

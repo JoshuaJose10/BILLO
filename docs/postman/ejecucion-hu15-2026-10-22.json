@@ -1,0 +1,6061 @@
+{
+  "task": "HU-15",
+  "date": "2026-10-22",
+  "timezone": "America/Mexico_City",
+  "backendCommit": "8b9975f1674d46b3b4ae011d77f5f10af6f43081",
+  "backendTree": "0057d3a278f45bb1d0788f1bf56fc68b33299815",
+  "collectionSha256": "c937b3234d8c42d2bdafd2a119ca34a228ab1a9aeb8f526940ed8d106d3e8ebd",
+  "node": "v22.15.0",
+  "newman": "6.2.3",
+  "iterations": 2,
+  "scope": "Perfil en /auth/profile por instrucción del usuario; sin nuevos reportes de bugs. Se conservan fallas observadas. Cuentas QA nuevas por iteración; limpieza de gastos vía API.",
+  "groups": {
+    "01 Autenticación — ejecutar en orden": {
+      "cases": 28,
+      "passed": 8,
+      "failed": 20,
+      "assertionsPassed": 118,
+      "assertionsFailed": 20
+    },
+    "02 Categorías — catálogo": {
+      "cases": 8,
+      "passed": 0,
+      "failed": 8,
+      "assertionsPassed": 26,
+      "assertionsFailed": 12
+    },
+    "03 HU-12 Gastos — CRUD y privacidad RF2": {
+      "cases": 108,
+      "passed": 26,
+      "failed": 82,
+      "assertionsPassed": 404,
+      "assertionsFailed": 118
+    },
+    "04 Limpieza — solo cuentas creadas por esta iteración": {
+      "cases": 4,
+      "passed": 4,
+      "failed": 0,
+      "assertionsPassed": 28,
+      "assertionsFailed": 0
+    }
+  },
+  "stats": {
+    "iterations": {
+      "total": 2,
+      "pending": 0,
+      "failed": 0
+    },
+    "items": {
+      "total": 148,
+      "pending": 0,
+      "failed": 0
+    },
+    "scripts": {
+      "total": 298,
+      "pending": 0,
+      "failed": 0
+    },
+    "prerequests": {
+      "total": 148,
+      "pending": 0,
+      "failed": 0
+    },
+    "requests": {
+      "total": 160,
+      "pending": 0,
+      "failed": 0
+    },
+    "tests": {
+      "total": 148,
+      "pending": 0,
+      "failed": 0
+    },
+    "assertions": {
+      "total": 726,
+      "pending": 0,
+      "failed": 150
+    },
+    "testScripts": {
+      "total": 296,
+      "pending": 0,
+      "failed": 0
+    },
+    "prerequestScripts": {
+      "total": 2,
+      "pending": 0,
+      "failed": 0
+    }
+  },
+  "auxiliaryRequests": 12,
+  "executionErrors": [],
+  "executions": [
+    {
+      "iteration": 1,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "01 CP-RF1-01 [API] — Registro válido e inicialización",
+      "method": "POST",
+      "path": "auth/register",
+      "status": 201,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Usuario creado con los datos de QA",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: registro devuelve { usuario: {...} }",
+          "passed": false,
+          "error": "expected { id: 10, nombre: 'QA Postman', …(1) } to have property 'usuario'"
+        }
+      ],
+      "response": {
+        "id": 10,
+        "nombre": "QA Postman",
+        "email": "[CORREO_QA]"
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "02 CP-RF1-03 [API] — Correo duplicado",
+      "method": "POST",
+      "path": "auth/register",
+      "status": 409,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 409",
+          "passed": true
+        },
+        {
+          "name": "Código funcional: EMAIL_DUPLICADO",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'EMAIL_DUPLICADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "EMAIL_DUPLICADO",
+          "message": "El correo ya está registrado"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "03 QA-AUTH-01 — Correo inválido",
+      "method": "POST",
+      "path": "auth/register",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Código funcional: EMAIL_INVALIDO",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'EMAIL_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "EMAIL_INVALIDO",
+          "message": "El formato del correo no es válido"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "04 QA-AUTH-02 — Contraseña corta",
+      "method": "POST",
+      "path": "auth/register",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Código funcional: PASSWORD_MUY_CORTA",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'PASSWORD_MUY_CORTA', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "PASSWORD_MUY_CORTA",
+          "message": "La contraseña debe tener al menos 8 caracteres"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "05 QA-AUTH-03 — Nombre vacío",
+      "method": "POST",
+      "path": "auth/register",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Código funcional: NOMBRE_REQUERIDO",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'NOMBRE_REQUERIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NOMBRE_REQUERIDO",
+          "message": "El nombre es obligatorio"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "06 CP-RF1-02 [API] — Login válido y guardar token",
+      "method": "POST",
+      "path": "auth/login",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Devuelve token y usuario registrado",
+          "passed": true
+        }
+      ],
+      "response": {
+        "token": "[OMITIDO]",
+        "usuario": {
+          "id": 10,
+          "nombre": "QA Postman",
+          "email": "[CORREO_QA]"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "07 CP-RF1-04 [API] — Contraseña incorrecta",
+      "method": "POST",
+      "path": "auth/login",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Código funcional: CREDENCIALES_INVALIDAS",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { Object (code, message) } to contain keys 'codigo', and 'mensaje'"
+        },
+        {
+          "name": "Login fallido no devuelve token",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "CREDENCIALES_INVALIDAS",
+          "message": "Correo o contraseña incorrectos"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "08 QA-AUTH-04 — Correo inexistente sin revelar existencia",
+      "method": "POST",
+      "path": "auth/login",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Código funcional: CREDENCIALES_INVALIDAS",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { Object (code, message) } to contain keys 'codigo', and 'mensaje'"
+        },
+        {
+          "name": "Mismo error para correo inexistente y contraseña incorrecta",
+          "passed": true
+        },
+        {
+          "name": "No devuelve token",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "CREDENCIALES_INVALIDAS",
+          "message": "Correo o contraseña incorrectos"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "09 QA-AUTH-05 — Token en ruta implementada /auth/profile",
+      "method": "GET",
+      "path": "auth/profile",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Token válido identifica al usuario de esta ejecución",
+          "passed": true
+        }
+      ],
+      "response": {
+        "id": 10,
+        "nombre": "QA Postman",
+        "email": "[CORREO_QA]"
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "QA-AUTH-08 — Perfil sin token",
+      "method": "GET",
+      "path": "auth/profile",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'NO_AUTORIZADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "QA-AUTH-09 — Perfil con token inválido",
+      "method": "GET",
+      "path": "auth/profile",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'TOKEN_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "TOKEN_INVALIDO",
+          "message": "El token es inválido o ha expirado"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "QA-AUTH-10 — Registrar usuario B",
+      "method": "POST",
+      "path": "auth/register",
+      "status": 201,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "B distinto de A",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: registro envuelto",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        }
+      ],
+      "response": {
+        "id": 11,
+        "nombre": "QA Postman B",
+        "email": "[CORREO_QA]"
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "QA-AUTH-11 — Login usuario B",
+      "method": "POST",
+      "path": "auth/login",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Token e identidad B",
+          "passed": true
+        }
+      ],
+      "response": {
+        "token": "[OMITIDO]",
+        "usuario": {
+          "id": 11,
+          "nombre": "QA Postman B",
+          "email": "[CORREO_QA]"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "QA-AUTH-12 — Perfil usuario B",
+      "method": "GET",
+      "path": "auth/profile",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Perfil B correcto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "id": 11,
+        "nombre": "QA Postman B",
+        "email": "[CORREO_QA]"
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 Categorías — catálogo",
+      "name": "QA-CAT-01 — Consultar categorías y preparar IDs",
+      "method": "GET",
+      "path": "categorias",
+      "status": 200,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Catálogo no vacío",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: campos del catálogo",
+          "passed": false,
+          "error": "expected { id: 1, nombre: 'Entretenimiento' } to contain keys 'tipo', and 'es_predefinida'"
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "nombre": "Entretenimiento"
+        },
+        {
+          "id": 2,
+          "nombre": "Comida"
+        },
+        {
+          "id": 3,
+          "nombre": "Transporte"
+        },
+        {
+          "id": 4,
+          "nombre": "Salud"
+        },
+        {
+          "id": 5,
+          "nombre": "Otros"
+        },
+        {
+          "id": 6,
+          "nombre": "Servicios"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "02 Categorías — catálogo",
+      "name": "QA-CAT-02 — Filtrar tipo gasto",
+      "method": "GET",
+      "path": "categorias",
+      "status": 200,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: solo categorías de gasto",
+          "passed": false,
+          "error": "expected undefined to equal 'gasto'"
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "nombre": "Entretenimiento"
+        },
+        {
+          "id": 2,
+          "nombre": "Comida"
+        },
+        {
+          "id": 3,
+          "nombre": "Transporte"
+        },
+        {
+          "id": 4,
+          "nombre": "Salud"
+        },
+        {
+          "id": 5,
+          "nombre": "Otros"
+        },
+        {
+          "id": 6,
+          "nombre": "Servicios"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "02 Categorías — catálogo",
+      "name": "QA-CAT-03 — Tipo inválido",
+      "method": "GET",
+      "path": "categorias",
+      "status": 200,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 200"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "Cannot convert undefined or null to object"
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "nombre": "Entretenimiento"
+        },
+        {
+          "id": 2,
+          "nombre": "Comida"
+        },
+        {
+          "id": 3,
+          "nombre": "Transporte"
+        },
+        {
+          "id": 4,
+          "nombre": "Salud"
+        },
+        {
+          "id": 5,
+          "nombre": "Otros"
+        },
+        {
+          "id": 6,
+          "nombre": "Servicios"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "02 Categorías — catálogo",
+      "name": "QA-CAT-04 — Sin token",
+      "method": "GET",
+      "path": "categorias",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'NO_AUTORIZADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-CREAR-A — Crear gasto propio A",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Datos del gasto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 1,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-CREAR-B — Crear gasto propio B",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Datos del gasto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 2,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-LISTA-A — Listado privado A",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Solo gasto propio y datos persistidos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-LISTA-B — Listado privado B",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Solo gasto propio y datos persistidos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 2,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-AJENO-A-PUT — A no puede PUT gasto ajeno",
+      "method": "PUT",
+      "path": "gastos/2",
+      "status": 404,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 404",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'GASTO_NO_ENCONTRADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        },
+        {
+          "name": "No revela propietario",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "GASTO_NO_ENCONTRADO",
+          "message": "Gasto no encontrado"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-AJENO-A-DELETE — A no puede DELETE gasto ajeno",
+      "method": "DELETE",
+      "path": "gastos/2",
+      "status": 404,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 404",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'GASTO_NO_ENCONTRADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        },
+        {
+          "name": "No revela propietario",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "GASTO_NO_ENCONTRADO",
+          "message": "Gasto no encontrado"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-AJENO-B-PUT — B no puede PUT gasto ajeno",
+      "method": "PUT",
+      "path": "gastos/1",
+      "status": 404,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 404",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'GASTO_NO_ENCONTRADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        },
+        {
+          "name": "No revela propietario",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "GASTO_NO_ENCONTRADO",
+          "message": "Gasto no encontrado"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-AJENO-B-DELETE — B no puede DELETE gasto ajeno",
+      "method": "DELETE",
+      "path": "gastos/1",
+      "status": 404,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 404",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'GASTO_NO_ENCONTRADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        },
+        {
+          "name": "No revela propietario",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "GASTO_NO_ENCONTRADO",
+          "message": "Gasto no encontrado"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-LISTA-A-TRAS-ATAQUE — Listado privado A-TRAS-ATAQUE",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Solo gasto propio y datos persistidos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-LISTA-B-TRAS-ATAQUE — Listado privado B-TRAS-ATAQUE",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Solo gasto propio y datos persistidos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 2,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-MONTO-TEXTO — MONTO-TEXTO",
+      "method": "POST",
+      "path": "gastos",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'MONTO_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-MONTO-CERO — MONTO-CERO",
+      "method": "POST",
+      "path": "gastos",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'MONTO_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-MONTO-NEGATIVO — MONTO-NEGATIVO",
+      "method": "POST",
+      "path": "gastos",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'MONTO_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-MONTO-DECIMALES — MONTO-DECIMALES",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 201"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "Cannot convert undefined or null to object"
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 3,
+          "monto": 80.56,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-MONTO-SUBCENTAVO — MONTO-SUBCENTAVO",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 201"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "Cannot convert undefined or null to object"
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 4,
+          "monto": 0,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-MONTO-STRING — MONTO-STRING",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 201"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "Cannot convert undefined or null to object"
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 5,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-CATEGORIA-INEXISTENTE — CATEGORIA-INEXISTENTE",
+      "method": "POST",
+      "path": "gastos",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'CATEGORIA_INEXISTENTE', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "CATEGORIA_INEXISTENTE",
+          "message": "La categoría seleccionada no existe"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-CATEGORIA-BOOL — CATEGORIA-BOOL",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 201"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "Cannot convert undefined or null to object"
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 6,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-CATEGORIA-VACIA — CATEGORIA-VACIA",
+      "method": "POST",
+      "path": "gastos",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'CATEGORIA_INEXISTENTE', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "CATEGORIA_INEXISTENTE",
+          "message": "La categoría seleccionada no existe"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-FECHA — FECHA",
+      "method": "POST",
+      "path": "gastos",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'FECHA_INVALIDA', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "FECHA_INVALIDA",
+          "message": "La fecha no es válida (formato esperado: YYYY-MM-DD)"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-METODO — METODO",
+      "method": "POST",
+      "path": "gastos",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'METODO_PAGO_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "METODO_PAGO_INVALIDO",
+          "message": "El método de pago debe ser efectivo, tarjeta, transferencia u otro"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-NOTA — NOTA",
+      "method": "POST",
+      "path": "gastos",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'NOTA_INVALIDA', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NOTA_INVALIDA",
+          "message": "La nota no puede exceder los 200 caracteres"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-SIN-CUERPO — Sin cuerpo",
+      "method": "POST",
+      "path": "gastos",
+      "status": 500,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 500"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'ERROR_SERVIDOR', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "ERROR_SERVIDOR",
+          "message": "No se pudo registrar el gasto"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-MONTO-TEXTO — MONTO-TEXTO",
+      "method": "PUT",
+      "path": "gastos/1",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'MONTO_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-MONTO-CERO — MONTO-CERO",
+      "method": "PUT",
+      "path": "gastos/1",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'MONTO_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-MONTO-NEGATIVO — MONTO-NEGATIVO",
+      "method": "PUT",
+      "path": "gastos/1",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'MONTO_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-MONTO-DECIMALES — MONTO-DECIMALES",
+      "method": "PUT",
+      "path": "gastos/1",
+      "status": 200,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 200"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "Cannot convert undefined or null to object"
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 1,
+          "monto": 80.56,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-MONTO-SUBCENTAVO — MONTO-SUBCENTAVO",
+      "method": "PUT",
+      "path": "gastos/1",
+      "status": 200,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 200"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "Cannot convert undefined or null to object"
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 1,
+          "monto": 0,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-MONTO-STRING — MONTO-STRING",
+      "method": "PUT",
+      "path": "gastos/1",
+      "status": 200,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 200"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "Cannot convert undefined or null to object"
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 1,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-CATEGORIA-INEXISTENTE — CATEGORIA-INEXISTENTE",
+      "method": "PUT",
+      "path": "gastos/1",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'CATEGORIA_INEXISTENTE', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "CATEGORIA_INEXISTENTE",
+          "message": "La categoría seleccionada no existe"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-CATEGORIA-BOOL — CATEGORIA-BOOL",
+      "method": "PUT",
+      "path": "gastos/1",
+      "status": 200,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 200"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "Cannot convert undefined or null to object"
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 1,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-CATEGORIA-VACIA — CATEGORIA-VACIA",
+      "method": "PUT",
+      "path": "gastos/1",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'CATEGORIA_INEXISTENTE', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "CATEGORIA_INEXISTENTE",
+          "message": "La categoría seleccionada no existe"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-FECHA — FECHA",
+      "method": "PUT",
+      "path": "gastos/1",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'FECHA_INVALIDA', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "FECHA_INVALIDA",
+          "message": "La fecha no es válida (formato esperado: YYYY-MM-DD)"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-METODO — METODO",
+      "method": "PUT",
+      "path": "gastos/1",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'METODO_PAGO_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "METODO_PAGO_INVALIDO",
+          "message": "El método de pago debe ser efectivo, tarjeta, transferencia u otro"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-NOTA — NOTA",
+      "method": "PUT",
+      "path": "gastos/1",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'NOTA_INVALIDA', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NOTA_INVALIDA",
+          "message": "La nota no puede exceder los 200 caracteres"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-SIN-CUERPO — Sin cuerpo",
+      "method": "PUT",
+      "path": "gastos/1",
+      "status": 500,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 500"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'ERROR_SERVIDOR', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "ERROR_SERVIDOR",
+          "message": "No se pudo actualizar el gasto"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-EDITAR — Actualizar gasto A",
+      "method": "PUT",
+      "path": "gastos/1",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Datos del gasto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 1,
+          "monto": 99.9,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PERSISTENCIA — Consultar actualización persistida",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Actualización persistida",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 6,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 5,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 4,
+          "monto": 0,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 3,
+          "monto": 80.56,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 1,
+          "monto": 99.9,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-FILTROS — Filtrar mes y categoría",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Incluye propio y filtra correctamente",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 6,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 5,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 4,
+          "monto": 0,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 3,
+          "monto": 80.56,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 1,
+          "monto": 99.9,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-MES-INVALIDO — Filtro mes inválido",
+      "method": "GET",
+      "path": "gastos",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'MES_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MES_INVALIDO",
+          "message": "El formato del mes debe ser YYYY-MM"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-GET-SIN-TOKEN — SIN-TOKEN",
+      "method": "GET",
+      "path": "gastos",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'NO_AUTORIZADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-GET-TOKEN-INVALIDO — TOKEN-INVALIDO",
+      "method": "GET",
+      "path": "gastos",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'TOKEN_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "TOKEN_INVALIDO",
+          "message": "El token es inválido o ha expirado"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-SIN-TOKEN — SIN-TOKEN",
+      "method": "POST",
+      "path": "gastos",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'NO_AUTORIZADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-TOKEN-INVALIDO — TOKEN-INVALIDO",
+      "method": "POST",
+      "path": "gastos",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'TOKEN_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "TOKEN_INVALIDO",
+          "message": "El token es inválido o ha expirado"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-SIN-TOKEN — SIN-TOKEN",
+      "method": "PUT",
+      "path": "gastos/1",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'NO_AUTORIZADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-TOKEN-INVALIDO — TOKEN-INVALIDO",
+      "method": "PUT",
+      "path": "gastos/1",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'TOKEN_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "TOKEN_INVALIDO",
+          "message": "El token es inválido o ha expirado"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-DELETE-SIN-TOKEN — SIN-TOKEN",
+      "method": "DELETE",
+      "path": "gastos/1",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'NO_AUTORIZADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-DELETE-TOKEN-INVALIDO — TOKEN-INVALIDO",
+      "method": "DELETE",
+      "path": "gastos/1",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'TOKEN_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "TOKEN_INVALIDO",
+          "message": "El token es inválido o ha expirado"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-BORRAR-A — Eliminar gasto A",
+      "method": "DELETE",
+      "path": "gastos/1",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Eliminado",
+          "passed": true
+        }
+      ],
+      "response": {
+        "eliminado": true
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-REBORRAR-A — Segundo borrado devuelve 404",
+      "method": "DELETE",
+      "path": "gastos/1",
+      "status": 404,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 404",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'GASTO_NO_ENCONTRADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "GASTO_NO_ENCONTRADO",
+          "message": "Gasto no encontrado"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-VERIFICAR-BORRADO-A — Verificar ausencia del gasto eliminado",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Gasto eliminado ausente",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 6,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 5,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 4,
+          "monto": 0,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 3,
+          "monto": 80.56,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-BORRAR-B — Eliminar gasto B",
+      "method": "DELETE",
+      "path": "gastos/2",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Eliminado",
+          "passed": true
+        }
+      ],
+      "response": {
+        "eliminado": true
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-REBORRAR-B — Segundo borrado devuelve 404",
+      "method": "DELETE",
+      "path": "gastos/2",
+      "status": 404,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 404",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'GASTO_NO_ENCONTRADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "GASTO_NO_ENCONTRADO",
+          "message": "Gasto no encontrado"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-VERIFICAR-BORRADO-B — Verificar ausencia del gasto eliminado",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Gasto eliminado ausente",
+          "passed": true
+        }
+      ],
+      "response": []
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Limpieza — solo cuentas creadas por esta iteración",
+      "name": "QA-LIMPIEZA-A — Eliminar gastos residuales de negativos",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Listado para limpieza",
+          "passed": true
+        },
+        {
+          "name": "Limpieza gasto 6",
+          "passed": true
+        },
+        {
+          "name": "Limpieza gasto 5",
+          "passed": true
+        },
+        {
+          "name": "Limpieza gasto 4",
+          "passed": true
+        },
+        {
+          "name": "Limpieza gasto 3",
+          "passed": true
+        },
+        {
+          "name": "Limpieza verificada A",
+          "passed": true
+        }
+      ],
+      "response": []
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Limpieza — solo cuentas creadas por esta iteración",
+      "name": "QA-LIMPIEZA-B — Eliminar gastos residuales de negativos",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Listado para limpieza",
+          "passed": true
+        },
+        {
+          "name": "Limpieza verificada B",
+          "passed": true
+        }
+      ],
+      "response": []
+    },
+    {
+      "iteration": 2,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "01 CP-RF1-01 [API] — Registro válido e inicialización",
+      "method": "POST",
+      "path": "auth/register",
+      "status": 201,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Usuario creado con los datos de QA",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: registro devuelve { usuario: {...} }",
+          "passed": false,
+          "error": "expected { id: 12, nombre: 'QA Postman', …(1) } to have property 'usuario'"
+        }
+      ],
+      "response": {
+        "id": 12,
+        "nombre": "QA Postman",
+        "email": "[CORREO_QA]"
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "02 CP-RF1-03 [API] — Correo duplicado",
+      "method": "POST",
+      "path": "auth/register",
+      "status": 409,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 409",
+          "passed": true
+        },
+        {
+          "name": "Código funcional: EMAIL_DUPLICADO",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'EMAIL_DUPLICADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "EMAIL_DUPLICADO",
+          "message": "El correo ya está registrado"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "03 QA-AUTH-01 — Correo inválido",
+      "method": "POST",
+      "path": "auth/register",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Código funcional: EMAIL_INVALIDO",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'EMAIL_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "EMAIL_INVALIDO",
+          "message": "El formato del correo no es válido"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "04 QA-AUTH-02 — Contraseña corta",
+      "method": "POST",
+      "path": "auth/register",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Código funcional: PASSWORD_MUY_CORTA",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'PASSWORD_MUY_CORTA', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "PASSWORD_MUY_CORTA",
+          "message": "La contraseña debe tener al menos 8 caracteres"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "05 QA-AUTH-03 — Nombre vacío",
+      "method": "POST",
+      "path": "auth/register",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Código funcional: NOMBRE_REQUERIDO",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'NOMBRE_REQUERIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NOMBRE_REQUERIDO",
+          "message": "El nombre es obligatorio"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "06 CP-RF1-02 [API] — Login válido y guardar token",
+      "method": "POST",
+      "path": "auth/login",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Devuelve token y usuario registrado",
+          "passed": true
+        }
+      ],
+      "response": {
+        "token": "[OMITIDO]",
+        "usuario": {
+          "id": 12,
+          "nombre": "QA Postman",
+          "email": "[CORREO_QA]"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "07 CP-RF1-04 [API] — Contraseña incorrecta",
+      "method": "POST",
+      "path": "auth/login",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Código funcional: CREDENCIALES_INVALIDAS",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { Object (code, message) } to contain keys 'codigo', and 'mensaje'"
+        },
+        {
+          "name": "Login fallido no devuelve token",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "CREDENCIALES_INVALIDAS",
+          "message": "Correo o contraseña incorrectos"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "08 QA-AUTH-04 — Correo inexistente sin revelar existencia",
+      "method": "POST",
+      "path": "auth/login",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Código funcional: CREDENCIALES_INVALIDAS",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { Object (code, message) } to contain keys 'codigo', and 'mensaje'"
+        },
+        {
+          "name": "Mismo error para correo inexistente y contraseña incorrecta",
+          "passed": true
+        },
+        {
+          "name": "No devuelve token",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "CREDENCIALES_INVALIDAS",
+          "message": "Correo o contraseña incorrectos"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "09 QA-AUTH-05 — Token en ruta implementada /auth/profile",
+      "method": "GET",
+      "path": "auth/profile",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Token válido identifica al usuario de esta ejecución",
+          "passed": true
+        }
+      ],
+      "response": {
+        "id": 12,
+        "nombre": "QA Postman",
+        "email": "[CORREO_QA]"
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "QA-AUTH-08 — Perfil sin token",
+      "method": "GET",
+      "path": "auth/profile",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'NO_AUTORIZADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "QA-AUTH-09 — Perfil con token inválido",
+      "method": "GET",
+      "path": "auth/profile",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'TOKEN_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "TOKEN_INVALIDO",
+          "message": "El token es inválido o ha expirado"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "QA-AUTH-10 — Registrar usuario B",
+      "method": "POST",
+      "path": "auth/register",
+      "status": 201,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "B distinto de A",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: registro envuelto",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        }
+      ],
+      "response": {
+        "id": 13,
+        "nombre": "QA Postman B",
+        "email": "[CORREO_QA]"
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "QA-AUTH-11 — Login usuario B",
+      "method": "POST",
+      "path": "auth/login",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Token e identidad B",
+          "passed": true
+        }
+      ],
+      "response": {
+        "token": "[OMITIDO]",
+        "usuario": {
+          "id": 13,
+          "nombre": "QA Postman B",
+          "email": "[CORREO_QA]"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "QA-AUTH-12 — Perfil usuario B",
+      "method": "GET",
+      "path": "auth/profile",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Perfil B correcto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "id": 13,
+        "nombre": "QA Postman B",
+        "email": "[CORREO_QA]"
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "02 Categorías — catálogo",
+      "name": "QA-CAT-01 — Consultar categorías y preparar IDs",
+      "method": "GET",
+      "path": "categorias",
+      "status": 200,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Catálogo no vacío",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: campos del catálogo",
+          "passed": false,
+          "error": "expected { id: 1, nombre: 'Entretenimiento' } to contain keys 'tipo', and 'es_predefinida'"
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "nombre": "Entretenimiento"
+        },
+        {
+          "id": 2,
+          "nombre": "Comida"
+        },
+        {
+          "id": 3,
+          "nombre": "Transporte"
+        },
+        {
+          "id": 4,
+          "nombre": "Salud"
+        },
+        {
+          "id": 5,
+          "nombre": "Otros"
+        },
+        {
+          "id": 6,
+          "nombre": "Servicios"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "02 Categorías — catálogo",
+      "name": "QA-CAT-02 — Filtrar tipo gasto",
+      "method": "GET",
+      "path": "categorias",
+      "status": 200,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: solo categorías de gasto",
+          "passed": false,
+          "error": "expected undefined to equal 'gasto'"
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "nombre": "Entretenimiento"
+        },
+        {
+          "id": 2,
+          "nombre": "Comida"
+        },
+        {
+          "id": 3,
+          "nombre": "Transporte"
+        },
+        {
+          "id": 4,
+          "nombre": "Salud"
+        },
+        {
+          "id": 5,
+          "nombre": "Otros"
+        },
+        {
+          "id": 6,
+          "nombre": "Servicios"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "02 Categorías — catálogo",
+      "name": "QA-CAT-03 — Tipo inválido",
+      "method": "GET",
+      "path": "categorias",
+      "status": 200,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 200"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "Cannot convert undefined or null to object"
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "nombre": "Entretenimiento"
+        },
+        {
+          "id": 2,
+          "nombre": "Comida"
+        },
+        {
+          "id": 3,
+          "nombre": "Transporte"
+        },
+        {
+          "id": 4,
+          "nombre": "Salud"
+        },
+        {
+          "id": 5,
+          "nombre": "Otros"
+        },
+        {
+          "id": 6,
+          "nombre": "Servicios"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "02 Categorías — catálogo",
+      "name": "QA-CAT-04 — Sin token",
+      "method": "GET",
+      "path": "categorias",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'NO_AUTORIZADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-CREAR-A — Crear gasto propio A",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Datos del gasto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 7,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-CREAR-B — Crear gasto propio B",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Datos del gasto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 8,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-LISTA-A — Listado privado A",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Solo gasto propio y datos persistidos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 7,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-LISTA-B — Listado privado B",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Solo gasto propio y datos persistidos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 8,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-AJENO-A-PUT — A no puede PUT gasto ajeno",
+      "method": "PUT",
+      "path": "gastos/8",
+      "status": 404,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 404",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'GASTO_NO_ENCONTRADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        },
+        {
+          "name": "No revela propietario",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "GASTO_NO_ENCONTRADO",
+          "message": "Gasto no encontrado"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-AJENO-A-DELETE — A no puede DELETE gasto ajeno",
+      "method": "DELETE",
+      "path": "gastos/8",
+      "status": 404,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 404",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'GASTO_NO_ENCONTRADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        },
+        {
+          "name": "No revela propietario",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "GASTO_NO_ENCONTRADO",
+          "message": "Gasto no encontrado"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-AJENO-B-PUT — B no puede PUT gasto ajeno",
+      "method": "PUT",
+      "path": "gastos/7",
+      "status": 404,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 404",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'GASTO_NO_ENCONTRADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        },
+        {
+          "name": "No revela propietario",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "GASTO_NO_ENCONTRADO",
+          "message": "Gasto no encontrado"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-AJENO-B-DELETE — B no puede DELETE gasto ajeno",
+      "method": "DELETE",
+      "path": "gastos/7",
+      "status": 404,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 404",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'GASTO_NO_ENCONTRADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        },
+        {
+          "name": "No revela propietario",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "GASTO_NO_ENCONTRADO",
+          "message": "Gasto no encontrado"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-LISTA-A-TRAS-ATAQUE — Listado privado A-TRAS-ATAQUE",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Solo gasto propio y datos persistidos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 7,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-LISTA-B-TRAS-ATAQUE — Listado privado B-TRAS-ATAQUE",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Solo gasto propio y datos persistidos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 8,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-MONTO-TEXTO — MONTO-TEXTO",
+      "method": "POST",
+      "path": "gastos",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'MONTO_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-MONTO-CERO — MONTO-CERO",
+      "method": "POST",
+      "path": "gastos",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'MONTO_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-MONTO-NEGATIVO — MONTO-NEGATIVO",
+      "method": "POST",
+      "path": "gastos",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'MONTO_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-MONTO-DECIMALES — MONTO-DECIMALES",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 201"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "Cannot convert undefined or null to object"
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 9,
+          "monto": 80.56,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-MONTO-SUBCENTAVO — MONTO-SUBCENTAVO",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 201"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "Cannot convert undefined or null to object"
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 10,
+          "monto": 0,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-MONTO-STRING — MONTO-STRING",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 201"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "Cannot convert undefined or null to object"
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 11,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-CATEGORIA-INEXISTENTE — CATEGORIA-INEXISTENTE",
+      "method": "POST",
+      "path": "gastos",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'CATEGORIA_INEXISTENTE', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "CATEGORIA_INEXISTENTE",
+          "message": "La categoría seleccionada no existe"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-CATEGORIA-BOOL — CATEGORIA-BOOL",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 201"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "Cannot convert undefined or null to object"
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 12,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-CATEGORIA-VACIA — CATEGORIA-VACIA",
+      "method": "POST",
+      "path": "gastos",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'CATEGORIA_INEXISTENTE', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "CATEGORIA_INEXISTENTE",
+          "message": "La categoría seleccionada no existe"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-FECHA — FECHA",
+      "method": "POST",
+      "path": "gastos",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'FECHA_INVALIDA', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "FECHA_INVALIDA",
+          "message": "La fecha no es válida (formato esperado: YYYY-MM-DD)"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-METODO — METODO",
+      "method": "POST",
+      "path": "gastos",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'METODO_PAGO_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "METODO_PAGO_INVALIDO",
+          "message": "El método de pago debe ser efectivo, tarjeta, transferencia u otro"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-NOTA — NOTA",
+      "method": "POST",
+      "path": "gastos",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'NOTA_INVALIDA', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NOTA_INVALIDA",
+          "message": "La nota no puede exceder los 200 caracteres"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-SIN-CUERPO — Sin cuerpo",
+      "method": "POST",
+      "path": "gastos",
+      "status": 500,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 500"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'ERROR_SERVIDOR', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "ERROR_SERVIDOR",
+          "message": "No se pudo registrar el gasto"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-MONTO-TEXTO — MONTO-TEXTO",
+      "method": "PUT",
+      "path": "gastos/7",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'MONTO_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-MONTO-CERO — MONTO-CERO",
+      "method": "PUT",
+      "path": "gastos/7",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'MONTO_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-MONTO-NEGATIVO — MONTO-NEGATIVO",
+      "method": "PUT",
+      "path": "gastos/7",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'MONTO_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-MONTO-DECIMALES — MONTO-DECIMALES",
+      "method": "PUT",
+      "path": "gastos/7",
+      "status": 200,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 200"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "Cannot convert undefined or null to object"
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 7,
+          "monto": 80.56,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-MONTO-SUBCENTAVO — MONTO-SUBCENTAVO",
+      "method": "PUT",
+      "path": "gastos/7",
+      "status": 200,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 200"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "Cannot convert undefined or null to object"
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 7,
+          "monto": 0,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-MONTO-STRING — MONTO-STRING",
+      "method": "PUT",
+      "path": "gastos/7",
+      "status": 200,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 200"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "Cannot convert undefined or null to object"
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 7,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-CATEGORIA-INEXISTENTE — CATEGORIA-INEXISTENTE",
+      "method": "PUT",
+      "path": "gastos/7",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'CATEGORIA_INEXISTENTE', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "CATEGORIA_INEXISTENTE",
+          "message": "La categoría seleccionada no existe"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-CATEGORIA-BOOL — CATEGORIA-BOOL",
+      "method": "PUT",
+      "path": "gastos/7",
+      "status": 200,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 200"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": false,
+          "error": "expected undefined to be an object"
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "Cannot convert undefined or null to object"
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 7,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-CATEGORIA-VACIA — CATEGORIA-VACIA",
+      "method": "PUT",
+      "path": "gastos/7",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'CATEGORIA_INEXISTENTE', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "CATEGORIA_INEXISTENTE",
+          "message": "La categoría seleccionada no existe"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-FECHA — FECHA",
+      "method": "PUT",
+      "path": "gastos/7",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'FECHA_INVALIDA', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "FECHA_INVALIDA",
+          "message": "La fecha no es válida (formato esperado: YYYY-MM-DD)"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-METODO — METODO",
+      "method": "PUT",
+      "path": "gastos/7",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'METODO_PAGO_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "METODO_PAGO_INVALIDO",
+          "message": "El método de pago debe ser efectivo, tarjeta, transferencia u otro"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-NOTA — NOTA",
+      "method": "PUT",
+      "path": "gastos/7",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'NOTA_INVALIDA', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NOTA_INVALIDA",
+          "message": "La nota no puede exceder los 200 caracteres"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-SIN-CUERPO — Sin cuerpo",
+      "method": "PUT",
+      "path": "gastos/7",
+      "status": 500,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": false,
+          "error": "expected response to have status code 400 but got 500"
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'ERROR_SERVIDOR', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "ERROR_SERVIDOR",
+          "message": "No se pudo actualizar el gasto"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-EDITAR — Actualizar gasto A",
+      "method": "PUT",
+      "path": "gastos/7",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Datos del gasto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 7,
+          "monto": 99.9,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PERSISTENCIA — Consultar actualización persistida",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Actualización persistida",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 12,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 11,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 10,
+          "monto": 0,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 9,
+          "monto": 80.56,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 7,
+          "monto": 99.9,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-FILTROS — Filtrar mes y categoría",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Incluye propio y filtra correctamente",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 12,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 11,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 10,
+          "monto": 0,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 9,
+          "monto": 80.56,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 7,
+          "monto": 99.9,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-MES-INVALIDO — Filtro mes inválido",
+      "method": "GET",
+      "path": "gastos",
+      "status": 400,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'MES_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MES_INVALIDO",
+          "message": "El formato del mes debe ser YYYY-MM"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-GET-SIN-TOKEN — SIN-TOKEN",
+      "method": "GET",
+      "path": "gastos",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'NO_AUTORIZADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-GET-TOKEN-INVALIDO — TOKEN-INVALIDO",
+      "method": "GET",
+      "path": "gastos",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'TOKEN_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "TOKEN_INVALIDO",
+          "message": "El token es inválido o ha expirado"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-SIN-TOKEN — SIN-TOKEN",
+      "method": "POST",
+      "path": "gastos",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'NO_AUTORIZADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-POST-TOKEN-INVALIDO — TOKEN-INVALIDO",
+      "method": "POST",
+      "path": "gastos",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'TOKEN_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "TOKEN_INVALIDO",
+          "message": "El token es inválido o ha expirado"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-SIN-TOKEN — SIN-TOKEN",
+      "method": "PUT",
+      "path": "gastos/7",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'NO_AUTORIZADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-PUT-TOKEN-INVALIDO — TOKEN-INVALIDO",
+      "method": "PUT",
+      "path": "gastos/7",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'TOKEN_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "TOKEN_INVALIDO",
+          "message": "El token es inválido o ha expirado"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-DELETE-SIN-TOKEN — SIN-TOKEN",
+      "method": "DELETE",
+      "path": "gastos/7",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'NO_AUTORIZADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-DELETE-TOKEN-INVALIDO — TOKEN-INVALIDO",
+      "method": "DELETE",
+      "path": "gastos/7",
+      "status": 401,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'TOKEN_INVALIDO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "TOKEN_INVALIDO",
+          "message": "El token es inválido o ha expirado"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-BORRAR-A — Eliminar gasto A",
+      "method": "DELETE",
+      "path": "gastos/7",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Eliminado",
+          "passed": true
+        }
+      ],
+      "response": {
+        "eliminado": true
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-REBORRAR-A — Segundo borrado devuelve 404",
+      "method": "DELETE",
+      "path": "gastos/7",
+      "status": 404,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 404",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'GASTO_NO_ENCONTRADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "GASTO_NO_ENCONTRADO",
+          "message": "Gasto no encontrado"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-VERIFICAR-BORRADO-A — Verificar ausencia del gasto eliminado",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Gasto eliminado ausente",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 12,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 11,
+          "monto": 80.5,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 10,
+          "monto": 0,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        },
+        {
+          "id": 9,
+          "monto": 80.56,
+          "categoria_id": 1,
+          "fecha": "2026-10-23",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU-15"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-BORRAR-B — Eliminar gasto B",
+      "method": "DELETE",
+      "path": "gastos/8",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Eliminado",
+          "passed": true
+        }
+      ],
+      "response": {
+        "eliminado": true
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-REBORRAR-B — Segundo borrado devuelve 404",
+      "method": "DELETE",
+      "path": "gastos/8",
+      "status": 404,
+      "passed": false,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 404",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.codigo y error.mensaje",
+          "passed": false,
+          "error": "expected { code: 'GASTO_NO_ENCONTRADO', …(1) } to contain keys 'codigo', and 'mensaje'"
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "GASTO_NO_ENCONTRADO",
+          "message": "Gasto no encontrado"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 HU-12 Gastos — CRUD y privacidad RF2",
+      "name": "QA-GAS-VERIFICAR-BORRADO-B — Verificar ausencia del gasto eliminado",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Gasto eliminado ausente",
+          "passed": true
+        }
+      ],
+      "response": []
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Limpieza — solo cuentas creadas por esta iteración",
+      "name": "QA-LIMPIEZA-A — Eliminar gastos residuales de negativos",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Listado para limpieza",
+          "passed": true
+        },
+        {
+          "name": "Limpieza gasto 12",
+          "passed": true
+        },
+        {
+          "name": "Limpieza gasto 11",
+          "passed": true
+        },
+        {
+          "name": "Limpieza gasto 10",
+          "passed": true
+        },
+        {
+          "name": "Limpieza gasto 9",
+          "passed": true
+        },
+        {
+          "name": "Limpieza verificada A",
+          "passed": true
+        }
+      ],
+      "response": []
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Limpieza — solo cuentas creadas por esta iteración",
+      "name": "QA-LIMPIEZA-B — Eliminar gastos residuales de negativos",
+      "method": "GET",
+      "path": "gastos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Listado para limpieza",
+          "passed": true
+        },
+        {
+          "name": "Limpieza verificada B",
+          "passed": true
+        }
+      ],
+      "response": []
+    }
+  ]
+}
