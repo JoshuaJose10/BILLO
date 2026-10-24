@@ -279,6 +279,21 @@ Provienen de la ampliación del Canvas. No forman parte de v1.0.
 | X-02 | RF12 Captura por voz | Ninguno | Ninguno (la app transcribe y manda `POST /gastos` normal) |
 | X-03 | RF13 Widgets | Ninguno | Reutiliza `GET /reportes/resumen` |
 
+## Trazabilidad con QA (v1.1)
+
+Los reportes en `docs/qa/` se escribieron contra v1.0 y se conservan como historial. Con v1.1 quedan así:
+
+| Reporte | Tema | Resultado con v1.1 |
+|---|---|---|
+| AUTH-QA-01 | Registro sin envoltura `usuario` | Pasa a **HU-18** (el contrato mantiene la envoltura y agrega `token`) |
+| AUTH-QA-02 | Errores con `code/message` | **Resuelto por contrato**: el formato oficial pasa a ser `code/message` |
+| AUTH-QA-03 | `/auth/perfil` responde 404 | Pasa a **HU-18** (`/auth/perfil` oficial, `/auth/profile` alias temporal) |
+| BUG-RF2-01 a 03 | Monto y categoría aceptados indebidamente | Pasan a **HU-18** (el contrato no cambia) |
+| BUG-RF2-04 | Claves de error en gastos | **Resuelto por contrato** (mismo motivo que AUTH-QA-02) |
+| BUG-RF2-05 | 401 con `TOKEN_INVALIDO` | Pasa a **HU-18** (el contrato mantiene `NO_AUTORIZADO`) |
+| BUG-RF2-06 | POST/PUT sin cuerpo → 500 | Pasa a **HU-18** |
+
 ## Registro de cambios
 - 2026-09-30 — v0.1 — Primera versión (auth + gastos). Autor: Joshua.
 - 2026-10-13 — v1.0 — Se agregan convenciones (encabezado de token, formatos, rol), categorías, presupuestos con estados de alerta, catálogo de servicios, membresías, reportes (resumen y por categoría), registro de token push y modo exploración sin API. En gastos se explicitan `metodo_pago` y `nota` (ya existían en el esquema). Se congela el esquema de seis tablas. Se proponen C-01 y C-02 y se dejan X-01 a X-03 como extensiones. Autor: Joshua. Aprobación: pendiente de Fernando y Oscar.
+- 2026-10-23 — v1.1 — Alineación con el backend de S1 (HU-16), verificada con `curl` sobre `develop` (`30707e5`). Errores con `{ "error": { "code", "message" } }` en todos los ejemplos (antes `codigo/mensaje`); 500 con `ERROR_SERVIDOR` (antes `ERROR_INTERNO`); se agregan `JSON_INVALIDO` y `RUTA_NO_ENCONTRADA` para que todo error sea JSON. El 401 por token ausente, inválido o vencido usa siempre `NO_AUTORIZADO`. Registro y login devuelven `{ usuario, token }`. `GET /auth/perfil` queda como ruta oficial y `GET /auth/profile` como alias temporal; se documenta la respuesta real del perfil y su 404 `USUARIO_NO_ENCONTRADO`. Se agregan los códigos que el backend ya usa: `NOMBRE_REQUERIDO`, `CAMPOS_REQUERIDOS`, `NOTA_INVALIDA` y `CATEGORIA_INEXISTENTE` en el filtro de `GET /gastos`. Se definen el correo sin distinción de mayúsculas, el monto como número JSON y el cuerpo ausente como 400. Se añaden la tabla de estado de implementación, las diferencias actuales marcadas «se corrige en HU-18» y la trazabilidad con los reportes QA. Sin cambios en el esquema ni en S2/S3. Autor: Joshua.
