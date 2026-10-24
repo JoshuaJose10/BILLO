@@ -1,23 +1,62 @@
-# Contrato de API — Billo (v1.0)
+# Contrato de API — Billo (v1.1)
 
 Estado: **esquema de BD congelado desde el 2026-10-13** (ver «Congelamiento del esquema»). Cualquier cambio al contrato o al esquema se acuerda con el equipo y se anota en el **Registro de cambios**.
 
 Cada sección indica en qué sprint se implementa: **S1** (Sprint 1), **S2** (Sprint 2), **S3** (Sprint 3).
 
+Este documento describe el comportamiento **acordado**. Donde el backend actual responde distinto, la diferencia se marca con **«Diferencia actual (se corrige en HU-18)»**; no se oculta ni se da por aprobada.
+
+## Estado de implementación (verificado el 2026-10-23)
+
+Verificado con `curl` contra el backend de `develop` (commit `30707e5`), PostgreSQL local y una cuenta QA creada para la prueba.
+
+| Ruta | Implementada | ¿Cumple el contrato? |
+|---|---|---|
+| `POST /auth/register` | Sí | No: cuerpo de éxito sin envoltura ni token; sin cuerpo → 500 |
+| `POST /auth/login` | Sí | Parcial: éxito correcto; sin cuerpo → 500; correo con mayúsculas al registrar no puede iniciar sesión |
+| `GET /auth/perfil` | No (404 HTML) | No: solo existe el alias `/auth/profile` |
+| `GET /auth/profile` (alias temporal) | Sí | Parcial: token inválido o vencido → `TOKEN_INVALIDO` |
+| `GET /categorias` | Sí | No: ignora `tipo` y no devuelve `tipo` ni `es_predefinida` |
+| `POST /gastos`, `PUT /gastos/:id` | Sí | Parcial: validación de monto y categoría más permisiva; sin cuerpo → 500 |
+| `GET /gastos`, `DELETE /gastos/:id` | Sí | Sí, salvo el código del 401 |
+| Presupuestos, catálogo, membresías, reportes, notificaciones (S2/S3) | No (404 HTML) | Pendiente de su sprint |
+
 ## Convenciones
 
-- **Autenticación:** las rutas marcadas «requiere token» llevan el encabezado `Authorization: Bearer <token>` con el token que devuelve `POST /auth/login`. Sin token, con token inválido o vencido: 401 `NO_AUTORIZADO`.
-- **Formato:** JSON en petición y respuesta (`Content-Type: application/json`).
+- **Autenticación:** las rutas marcadas «requiere token» llevan el encabezado `Authorization: Bearer <token>` con el token que devuelven `POST /auth/register` y `POST /auth/login`. Sin token, con token inválido o vencido: 401 `NO_AUTORIZADO` (ver «Errores de autenticación»).
+- **Formato:** JSON en petición y respuesta (`Content-Type: application/json`), **incluidas las respuestas de error**.
 - **Fechas:** `YYYY-MM-DD` (por ejemplo `2026-10-05`). **Meses:** `YYYY-MM` (por ejemplo `2026-10`).
 - **Montos:** número decimal mayor a 0, con hasta 2 decimales (`85.50`). Las respuestas devuelven los montos como número.
+- **Correo:** se compara sin distinguir mayúsculas y minúsculas (se guarda en minúsculas).
 - **Privacidad:** toda ruta con token trabaja solo con los datos del usuario del token. Un recurso de otro usuario responde igual que si no existiera (404).
-- **Rol:** el token incluye el rol (`usuario` o `admin`). Las rutas de administración responden 403 `PROHIBIDO` si el rol no es `admin`.
+- **Rol:** el token incluye el rol (`usuario` o `admin`). Las rutas de administración responden 403 `PROHIBIDO` si el rol no es `admin`. Hoy el token solo lleva `id`; el rol se agrega junto con las rutas de administración (S3).
 
 ## Formato estándar de errores
 Todas las respuestas de error usan:
-{ "error": { "codigo": "CODIGO_ERROR", "mensaje": "Descripción legible" } }
+{ "error": { "code": "CODIGO_ERROR", "message": "Descripción legible" } }
 
-Errores que pueden aparecer en cualquier ruta: 401 `NO_AUTORIZADO`, 500 `ERROR_INTERNO`.
+- `code` es estable y es lo que deben evaluar la app y las pruebas.
+- `message` es texto para personas; puede cambiar de redacción sin que cambie el contrato.
+
+Ejemplo: 400 → { "error": { "code": "MONTO_INVALIDO", "message": "El monto debe ser un número mayor a 0" } }
+
+Errores que pueden aparecer en cualquier ruta:
+
+| HTTP | `code` | Cuándo |
+|---|---|---|
+| 400 | `JSON_INVALIDO` | El cuerpo no es JSON válido |
+| 401 | `NO_AUTORIZADO` | Ruta con token: falta, es inválido o está vencido |
+| 404 | `RUTA_NO_ENCONTRADA` | La ruta o el método no existen |
+| 500 | `ERROR_SERVIDOR` | Error inesperado del servidor |
+
+> **Diferencia actual (se corrige en HU-18):** un JSON malformado responde 400 y una ruta inexistente 404, pero ambos en **HTML** de Express (sin `error.code`; el 400 incluye la traza del servidor). `POST /auth/register` responde su 500 como `{ "error": "Error interno del servidor" }` (texto, sin `code`).
+
+### Errores de autenticación
+El 401 de cualquier ruta con token usa siempre `NO_AUTORIZADO`, sea por token ausente, con formato distinto a `Bearer <token>`, inválido o vencido. El `message` puede distinguir el caso.
+
+401 → { "error": { "code": "NO_AUTORIZADO", "message": "El token es inválido o ha expirado" } }
+
+> **Diferencia actual (se corrige en HU-18):** token ausente o sin `Bearer` → `NO_AUTORIZADO` (correcto); token inválido o vencido → `TOKEN_INVALIDO`.
 
 ## Autenticación (S1)
 
