@@ -1,40 +1,99 @@
-# Contrato de API — Billo (v1.0)
+# Contrato de API — Billo (v1.1)
 
 Estado: **esquema de BD congelado desde el 2026-10-13** (ver «Congelamiento del esquema»). Cualquier cambio al contrato o al esquema se acuerda con el equipo y se anota en el **Registro de cambios**.
 
 Cada sección indica en qué sprint se implementa: **S1** (Sprint 1), **S2** (Sprint 2), **S3** (Sprint 3).
 
+Este documento describe el comportamiento **acordado**. Donde el backend actual responde distinto, la diferencia se marca con **«Diferencia actual (se corrige en HU-18)»** (o **HU-17** para las validaciones de gastos); no se oculta ni se da por aprobada.
+
+## Estado de implementación (verificado el 2026-10-23)
+
+Verificado con `curl` contra el backend de `develop` (commit `30707e5`), PostgreSQL local y una cuenta QA creada para la prueba.
+
+| Ruta | Implementada | ¿Cumple el contrato? |
+|---|---|---|
+| `POST /auth/register` | Sí | No: cuerpo de éxito sin envoltura ni token; sin cuerpo → 500 |
+| `POST /auth/login` | Sí | Parcial: éxito correcto; sin cuerpo → 500; correo con mayúsculas al registrar no puede iniciar sesión |
+| `GET /auth/perfil` | No (404 HTML) | No: solo existe el alias `/auth/profile` |
+| `GET /auth/profile` (alias temporal) | Sí | Parcial: token inválido o vencido → `TOKEN_INVALIDO` |
+| `GET /categorias` | Sí | No: ignora `tipo` y no devuelve `tipo` ni `es_predefinida` |
+| `POST /gastos`, `PUT /gastos/:id` | Sí | Parcial: validación de monto y categoría más permisiva; sin cuerpo → 500 |
+| `GET /gastos`, `DELETE /gastos/:id` | Sí | Sí, salvo el código del 401 |
+| Presupuestos, catálogo, membresías, reportes, notificaciones (S2/S3) | No (404 HTML) | Pendiente de su sprint |
+
 ## Convenciones
 
-- **Autenticación:** las rutas marcadas «requiere token» llevan el encabezado `Authorization: Bearer <token>` con el token que devuelve `POST /auth/login`. Sin token, con token inválido o vencido: 401 `NO_AUTORIZADO`.
-- **Formato:** JSON en petición y respuesta (`Content-Type: application/json`).
+- **Autenticación:** las rutas marcadas «requiere token» llevan el encabezado `Authorization: Bearer <token>` con el token que devuelven `POST /auth/register` y `POST /auth/login`. Sin token, con token inválido o vencido: 401 `NO_AUTORIZADO` (ver «Errores de autenticación»).
+- **Formato:** JSON en petición y respuesta (`Content-Type: application/json`), **incluidas las respuestas de error**.
 - **Fechas:** `YYYY-MM-DD` (por ejemplo `2026-10-05`). **Meses:** `YYYY-MM` (por ejemplo `2026-10`).
 - **Montos:** número decimal mayor a 0, con hasta 2 decimales (`85.50`). Las respuestas devuelven los montos como número.
+- **Correo:** se compara sin distinguir mayúsculas y minúsculas (se guarda en minúsculas).
 - **Privacidad:** toda ruta con token trabaja solo con los datos del usuario del token. Un recurso de otro usuario responde igual que si no existiera (404).
-- **Rol:** el token incluye el rol (`usuario` o `admin`). Las rutas de administración responden 403 `PROHIBIDO` si el rol no es `admin`.
+- **Rol:** el token incluye el rol (`usuario` o `admin`). Las rutas de administración responden 403 `PROHIBIDO` si el rol no es `admin`. Hoy el token solo lleva `id`; el rol se agrega junto con las rutas de administración (S3).
 
 ## Formato estándar de errores
 Todas las respuestas de error usan:
-{ "error": { "codigo": "CODIGO_ERROR", "mensaje": "Descripción legible" } }
+{ "error": { "code": "CODIGO_ERROR", "message": "Descripción legible" } }
 
-Errores que pueden aparecer en cualquier ruta: 401 `NO_AUTORIZADO`, 500 `ERROR_INTERNO`.
+- `code` es estable y es lo que deben evaluar la app y las pruebas.
+- `message` es texto para personas; puede cambiar de redacción sin que cambie el contrato.
+
+Ejemplo: 400 → { "error": { "code": "MONTO_INVALIDO", "message": "El monto debe ser un número mayor a 0" } }
+
+Errores que pueden aparecer en cualquier ruta:
+
+| HTTP | `code` | Cuándo |
+|---|---|---|
+| 400 | `JSON_INVALIDO` | El cuerpo no es JSON válido |
+| 401 | `NO_AUTORIZADO` | Ruta con token: falta, es inválido o está vencido |
+| 404 | `RUTA_NO_ENCONTRADA` | La ruta o el método no existen |
+| 500 | `ERROR_SERVIDOR` | Error inesperado del servidor |
+
+> **Diferencia actual (se corrige en HU-18):** un JSON malformado responde 400 y una ruta inexistente 404, pero ambos en **HTML** de Express (sin `error.code`; el 400 incluye la traza del servidor). `POST /auth/register` responde su 500 como `{ "error": "Error interno del servidor" }` (texto, sin `code`).
+
+### Errores de autenticación
+El 401 de cualquier ruta con token usa siempre `NO_AUTORIZADO`, sea por token ausente, con formato distinto a `Bearer <token>`, inválido o vencido. El `message` puede distinguir el caso.
+
+401 → { "error": { "code": "NO_AUTORIZADO", "message": "El token es inválido o ha expirado" } }
+
+> **Diferencia actual (se corrige en HU-18):** token ausente o sin `Bearer` → `NO_AUTORIZADO` (correcto); token inválido o vencido → `TOKEN_INVALIDO`.
 
 ## Autenticación (S1)
 
+Registro y login devuelven la misma forma, `{ usuario, token }`, para que la app inicie sesión justo después de registrarse.
+
 ### POST /auth/register  (público)
 Body: { "nombre": "Ana", "email": "ana@correo.com", "password": "Segura123" }
-- 201 → { "usuario": { "id": 7, "nombre": "Ana", "email": "ana@correo.com" } }
-- 400 → EMAIL_INVALIDO, PASSWORD_MUY_CORTA (mínimo 8 caracteres)
+- 201 → { "usuario": { "id": 7, "nombre": "Ana", "email": "ana@correo.com" }, "token": "eyJhbGciOi..." }
+- 400 → NOMBRE_REQUERIDO, EMAIL_INVALIDO, PASSWORD_MUY_CORTA (mínimo 8 caracteres). Sin cuerpo se valida como campos vacíos (400, no 500).
 - 409 → EMAIL_DUPLICADO
+
+Ejemplo 409 → { "error": { "code": "EMAIL_DUPLICADO", "message": "El correo ya está registrado" } }
+
+> **Diferencia actual (se corrige en HU-18):**
+> - El 201 devuelve el usuario sin envoltura y sin token: `{ "id": 7, "nombre": "Ana", "email": "ana@correo.com" }`.
+> - Sin cuerpo responde 500 `{ "error": "Error interno del servidor" }`.
+> - El correo se guarda tal como llega; si tiene mayúsculas, el login (que busca en minúsculas) responde 401 `CREDENCIALES_INVALIDAS` con la contraseña correcta.
 
 ### POST /auth/login  (público)
 Body: { "email": "ana@correo.com", "password": "Segura123" }
-- 200 → { "token": "...", "usuario": { "id": 7, "nombre": "Ana" } }
+- 200 → { "usuario": { "id": 7, "nombre": "Ana", "email": "ana@correo.com" }, "token": "eyJhbGciOi..." }
+- 400 → CAMPOS_REQUERIDOS (falta correo o contraseña, o no hay cuerpo)
 - 401 → CREDENCIALES_INVALIDAS (mismo mensaje si el correo no existe o la contraseña es incorrecta)
 
+Ejemplo 401 → { "error": { "code": "CREDENCIALES_INVALIDAS", "message": "Correo o contraseña incorrectos" } }
+
+> **Diferencia actual (se corrige en HU-18):** sin cuerpo responde 500 `ERROR_SERVIDOR` en lugar de 400 `CAMPOS_REQUERIDOS`. El 200 ya cumple (el orden de las claves no importa).
+
 ### GET /auth/perfil  (requiere token)
-- 200 → { "id": 7, "nombre": "Ana", "email": "ana@correo.com" }
+Ruta oficial. **Alias temporal:** `GET /auth/profile` responde igual mientras la app migra; se retira cuando la app use solo `/auth/perfil` (se anotará en el Registro de cambios).
+- 200 → { "id": 7, "nombre": "Ana", "email": "ana@correo.com" } (el usuario sin envoltura y sin contraseña)
 - 401 → NO_AUTORIZADO (falta token, token inválido o vencido)
+- 404 → USUARIO_NO_ENCONTRADO (el token es válido pero el usuario ya no existe)
+
+Ejemplo 401 → { "error": { "code": "NO_AUTORIZADO", "message": "Token no proporcionado o formato inválido" } }
+
+> **Diferencia actual (se corrige en HU-18):** `/auth/perfil` aún no existe y responde 404 HTML `Cannot GET /auth/perfil`; solo está `/auth/profile`, que responde el 200 de arriba. HU-18 agrega `/auth/perfil` y deja `/auth/profile` como alias. Token inválido o vencido → `TOKEN_INVALIDO` (ver «Errores de autenticación»).
 
 ## Categorías (S1)
 
@@ -43,29 +102,41 @@ Query opcional: `tipo` = `gasto` o `membresia`. Sin `tipo` devuelve todas.
 - 200 → [ { "id": 1, "nombre": "Comida", "tipo": "gasto", "es_predefinida": true }, ... ]
 - 400 → TIPO_INVALIDO
 
-Lista inicial (cargada por migración o seed): Comida, Transporte, Entretenimiento, Servicios, Salud y Otros.
+Lista inicial (cargada por migración o seed): Comida, Transporte, Entretenimiento, Servicios, Salud y Otros. Los `id` dependen del orden de carga: la app y las pruebas deben leerlos de esta ruta, no fijarlos.
+
+> **Diferencia actual (se corrige en HU-18):** responde 200 `[ { "id": 1, "nombre": "Entretenimiento" }, ... ]`, sin `tipo` ni `es_predefinida`; el parámetro `tipo` se ignora (también un valor inválido devuelve 200 con todas las categorías, en lugar de 400 `TIPO_INVALIDO`).
 
 ## Gastos (todas requieren token) (S1)
 
-`metodo_pago` acepta: `efectivo`, `tarjeta`, `transferencia`, `otro`. `nota` es opcional (máximo 200 caracteres).
+`metodo_pago` acepta: `efectivo`, `tarjeta`, `transferencia`, `otro`. `nota` es opcional (máximo 200 caracteres; si se omite, se guarda `null`). `monto` debe ser un número JSON (no una cadena) y `categoria_id` un entero positivo de una categoría existente.
 
 ### POST /gastos
 Body: { "monto": 85.50, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago": "efectivo", "nota": "Tacos" }
-- 201 → { "gasto": { "id": 41, "monto": 85.50, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago": "efectivo", "nota": "Tacos" } }
-- 400 → MONTO_INVALIDO, CATEGORIA_INEXISTENTE, FECHA_INVALIDA, METODO_PAGO_INVALIDO
+- 201 → { "gasto": { "id": 41, "monto": 85.5, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago": "efectivo", "nota": "Tacos" } }
+- 400 → MONTO_INVALIDO, CATEGORIA_INEXISTENTE, FECHA_INVALIDA, METODO_PAGO_INVALIDO, NOTA_INVALIDA. Sin cuerpo se valida como campos vacíos (400, no 500).
+
+Ejemplo 400 → { "error": { "code": "MONTO_INVALIDO", "message": "El monto debe ser un número mayor a 0" } }
+
+> **Diferencia actual (se corrige en HU-17):**
+> - Acepta `monto` como cadena (`"80.50"`), con más de 2 decimales (`80.555` se guarda como `80.56`; `0.001` se guarda como `0`) y `categoria_id: true` (se toma como `1`). Ver BUG-RF2-01 a BUG-RF2-03.
+> - Sin cuerpo responde 500 `ERROR_SERVIDOR` (BUG-RF2-06).
 
 > S2: cuando el gasto toca una categoría con presupuesto en ese mes, la respuesta agrega `"alerta"` (ver Presupuestos). Es un campo adicional: no cambia lo implementado en S1.
 
 ### GET /gastos?mes=2026-10&categoria_id=3
-Los filtros `mes` y `categoria_id` son opcionales. Orden: fecha descendente.
-- 200 → [ { "id": 41, "monto": 85.50, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago": "efectivo", "nota": "Tacos" }, ... ]
-- 400 → MES_INVALIDO
+Los filtros `mes` y `categoria_id` son opcionales. Orden: fecha descendente y, con la misma fecha, el más reciente primero (`id` descendente). Sin gastos: 200 `[]`.
+- 200 → [ { "id": 41, "monto": 85.5, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago": "efectivo", "nota": "Tacos" }, ... ]
+- 400 → MES_INVALIDO, CATEGORIA_INEXISTENTE (`categoria_id` no es un entero positivo)
 
 ### PUT /gastos/:id
-Body: igual que POST
+Body: igual que POST (se reemplazan todos los campos)
 - 200 → { "gasto": { ... } } (gasto actualizado)
-- 400 → MONTO_INVALIDO, CATEGORIA_INEXISTENTE, FECHA_INVALIDA, METODO_PAGO_INVALIDO
-- 404 → GASTO_NO_ENCONTRADO (no existe o no pertenece al usuario)
+- 400 → MONTO_INVALIDO, CATEGORIA_INEXISTENTE, FECHA_INVALIDA, METODO_PAGO_INVALIDO, NOTA_INVALIDA
+- 404 → GASTO_NO_ENCONTRADO (no existe, no pertenece al usuario o el `id` no es un entero positivo)
+
+Ejemplo 404 → { "error": { "code": "GASTO_NO_ENCONTRADO", "message": "Gasto no encontrado" } }
+
+> **Diferencia actual (se corrige en HU-17):** las mismas de `POST /gastos` (validación de monto y categoría, y 500 sin cuerpo).
 
 ### DELETE /gastos/:id
 - 200 → { "eliminado": true }
@@ -208,6 +279,26 @@ Provienen de la ampliación del Canvas. No forman parte de v1.0.
 | X-02 | RF12 Captura por voz | Ninguno | Ninguno (la app transcribe y manda `POST /gastos` normal) |
 | X-03 | RF13 Widgets | Ninguno | Reutiliza `GET /reportes/resumen` |
 
+## Trazabilidad con QA (v1.1)
+
+Los reportes en `docs/qa/` se escribieron contra v1.0 y se conservan como historial. Con v1.1 quedan así:
+
+| Reporte | Tema | Resultado con v1.1 |
+|---|---|---|
+| AUTH-QA-01 | Registro sin envoltura `usuario` | Pasa a **HU-18** (el contrato mantiene la envoltura y agrega `token`) |
+| AUTH-QA-02 | Errores con `code/message` | **Resuelto por contrato**: el formato oficial pasa a ser `code/message` |
+| AUTH-QA-03 | `/auth/perfil` responde 404 | Pasa a **HU-18** (`/auth/perfil` oficial, `/auth/profile` alias temporal) |
+| BUG-RF2-01 a 03 | Monto y categoría aceptados indebidamente | Pasan a **HU-17** (validaciones de gastos; el contrato no cambia) |
+| BUG-RF2-04 | Claves de error en gastos | **Resuelto por contrato** (mismo motivo que AUTH-QA-02) |
+| BUG-RF2-05 | 401 con `TOKEN_INVALIDO` | Pasa a **HU-18** (el contrato mantiene `NO_AUTORIZADO`) |
+| BUG-RF2-06 | POST/PUT de gastos sin cuerpo → 500 | Pasa a **HU-17** (validaciones de gastos) |
+| Sin reporte (HU-16) | Correo con mayúsculas al registrar no puede iniciar sesión | Pasa a **HU-18** |
+| Sin reporte (HU-16) | `POST /auth/register` sin cuerpo → 500 | Pasa a **HU-18** |
+| Sin reporte (HU-16) | JSON malformado → 400 HTML; ruta inexistente → 404 HTML | Pasa a **HU-18** |
+
+Pendiente en la colección Postman (**HU-22**, Luis Dorian): agregar las aserciones de que el 401 trae `error.code` = `NO_AUTORIZADO` y de que el registro devuelve `token`. Hoy la colección solo revisa el HTTP 401, las claves del error y la envoltura `usuario`.
+
 ## Registro de cambios
 - 2026-09-30 — v0.1 — Primera versión (auth + gastos). Autor: Joshua.
 - 2026-10-13 — v1.0 — Se agregan convenciones (encabezado de token, formatos, rol), categorías, presupuestos con estados de alerta, catálogo de servicios, membresías, reportes (resumen y por categoría), registro de token push y modo exploración sin API. En gastos se explicitan `metodo_pago` y `nota` (ya existían en el esquema). Se congela el esquema de seis tablas. Se proponen C-01 y C-02 y se dejan X-01 a X-03 como extensiones. Autor: Joshua. Aprobación: pendiente de Fernando y Oscar.
+- 2026-10-23 — v1.1 — Alineación con el backend de S1 (HU-16), verificada con `curl` sobre `develop` (`30707e5`). Errores con `{ "error": { "code", "message" } }` en todos los ejemplos (antes `codigo/mensaje`); 500 con `ERROR_SERVIDOR` (antes `ERROR_INTERNO`); se agregan `JSON_INVALIDO` y `RUTA_NO_ENCONTRADA` para que todo error sea JSON. El 401 por token ausente, inválido o vencido usa siempre `NO_AUTORIZADO`. Registro y login devuelven `{ usuario, token }`. `GET /auth/perfil` queda como ruta oficial y `GET /auth/profile` como alias temporal; se documenta la respuesta real del perfil y su 404 `USUARIO_NO_ENCONTRADO`. Se agregan los códigos que el backend ya usa: `NOMBRE_REQUERIDO`, `CAMPOS_REQUERIDOS`, `NOTA_INVALIDA` y `CATEGORIA_INEXISTENTE` en el filtro de `GET /gastos`. Se definen el correo sin distinción de mayúsculas, el monto como número JSON y el cuerpo ausente como 400. Se añaden la tabla de estado de implementación, las diferencias actuales marcadas «se corrige en HU-18» (o HU-17 para validaciones de gastos) y la trazabilidad con los reportes QA (aserciones pendientes de Postman en HU-22). Sin cambios en el esquema ni en S2/S3. Autor: Joshua.

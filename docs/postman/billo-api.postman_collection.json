@@ -226,10 +226,10 @@
                   "  pm.expect(body.error.codigo || body.error.code).to.equal('EMAIL_DUPLICADO');",
                   "  pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;",
                   "});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje', function () {",
-                  "  pm.expect(body.error).to.include.all.keys('codigo', 'mensaje');",
-                  "  pm.expect(body.error.codigo).to.equal('EMAIL_DUPLICADO');",
-                  "  pm.expect(body.error.mensaje).to.be.a('string').and.not.empty;",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)', function () {",
+                  "  pm.expect(body.error).to.include.all.keys('code', 'message');",
+                  "  pm.expect(body.error.code).to.equal('EMAIL_DUPLICADO');",
+                  "  pm.expect(body.error.message).to.be.a('string').and.not.empty;",
                   "});"
                 ]
               }
@@ -285,10 +285,10 @@
                   "  pm.expect(body.error.codigo || body.error.code).to.equal('EMAIL_INVALIDO');",
                   "  pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;",
                   "});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje', function () {",
-                  "  pm.expect(body.error).to.include.all.keys('codigo', 'mensaje');",
-                  "  pm.expect(body.error.codigo).to.equal('EMAIL_INVALIDO');",
-                  "  pm.expect(body.error.mensaje).to.be.a('string').and.not.empty;",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)', function () {",
+                  "  pm.expect(body.error).to.include.all.keys('code', 'message');",
+                  "  pm.expect(body.error.code).to.equal('EMAIL_INVALIDO');",
+                  "  pm.expect(body.error.message).to.be.a('string').and.not.empty;",
                   "});"
                 ]
               }
@@ -344,10 +344,10 @@
                   "  pm.expect(body.error.codigo || body.error.code).to.equal('PASSWORD_MUY_CORTA');",
                   "  pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;",
                   "});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje', function () {",
-                  "  pm.expect(body.error).to.include.all.keys('codigo', 'mensaje');",
-                  "  pm.expect(body.error.codigo).to.equal('PASSWORD_MUY_CORTA');",
-                  "  pm.expect(body.error.mensaje).to.be.a('string').and.not.empty;",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)', function () {",
+                  "  pm.expect(body.error).to.include.all.keys('code', 'message');",
+                  "  pm.expect(body.error.code).to.equal('PASSWORD_MUY_CORTA');",
+                  "  pm.expect(body.error.message).to.be.a('string').and.not.empty;",
                   "});"
                 ]
               }
@@ -403,10 +403,10 @@
                   "  pm.expect(body.error.codigo || body.error.code).to.equal('NOMBRE_REQUERIDO');",
                   "  pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;",
                   "});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje', function () {",
-                  "  pm.expect(body.error).to.include.all.keys('codigo', 'mensaje');",
-                  "  pm.expect(body.error.codigo).to.equal('NOMBRE_REQUERIDO');",
-                  "  pm.expect(body.error.mensaje).to.be.a('string').and.not.empty;",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)', function () {",
+                  "  pm.expect(body.error).to.include.all.keys('code', 'message');",
+                  "  pm.expect(body.error.code).to.equal('NOMBRE_REQUERIDO');",
+                  "  pm.expect(body.error.message).to.be.a('string').and.not.empty;",
                   "});"
                 ]
               }
@@ -521,10 +521,10 @@
                   "  pm.expect(body.error.codigo || body.error.code).to.equal('CREDENCIALES_INVALIDAS');",
                   "  pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;",
                   "});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje', function () {",
-                  "  pm.expect(body.error).to.include.all.keys('codigo', 'mensaje');",
-                  "  pm.expect(body.error.codigo).to.equal('CREDENCIALES_INVALIDAS');",
-                  "  pm.expect(body.error.mensaje).to.be.a('string').and.not.empty;",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)', function () {",
+                  "  pm.expect(body.error).to.include.all.keys('code', 'message');",
+                  "  pm.expect(body.error.code).to.equal('CREDENCIALES_INVALIDAS');",
+                  "  pm.expect(body.error.message).to.be.a('string').and.not.empty;",
                   "});",
                   "pm.test('Login fallido no devuelve token', function () { pm.expect(body).not.to.have.property('token'); });",
                   "if (pm.response.code === 401 && body.error) {",
@@ -585,10 +585,10 @@
                   "  pm.expect(body.error.codigo || body.error.code).to.equal('CREDENCIALES_INVALIDAS');",
                   "  pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;",
                   "});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje', function () {",
-                  "  pm.expect(body.error).to.include.all.keys('codigo', 'mensaje');",
-                  "  pm.expect(body.error.codigo).to.equal('CREDENCIALES_INVALIDAS');",
-                  "  pm.expect(body.error.mensaje).to.be.a('string').and.not.empty;",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)', function () {",
+                  "  pm.expect(body.error).to.include.all.keys('code', 'message');",
+                  "  pm.expect(body.error.code).to.equal('CREDENCIALES_INVALIDAS');",
+                  "  pm.expect(body.error.message).to.be.a('string').and.not.empty;",
                   "});",
                   "pm.test('Mismo error para correo inexistente y contraseña incorrecta', function () {",
                   "  const anterior = pm.variables.get('qaCredentialError');",
@@ -701,7 +701,7 @@
                   "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -736,7 +736,7 @@
                   "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -955,7 +955,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -983,7 +983,7 @@
                   "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -1197,7 +1197,7 @@
                   "pm.test('HTTP 404', function(){pm.response.to.have.status(404);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   "pm.test('No revela propietario',function(){pm.expect(body.error.codigo||body.error.code).to.equal('GASTO_NO_ENCONTRADO');});"
                 ]
               }
@@ -1232,7 +1232,7 @@
                   "pm.test('HTTP 404', function(){pm.response.to.have.status(404);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   "pm.test('No revela propietario',function(){pm.expect(body.error.codigo||body.error.code).to.equal('GASTO_NO_ENCONTRADO');});"
                 ]
               }
@@ -1281,7 +1281,7 @@
                   "pm.test('HTTP 404', function(){pm.response.to.have.status(404);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   "pm.test('No revela propietario',function(){pm.expect(body.error.codigo||body.error.code).to.equal('GASTO_NO_ENCONTRADO');});"
                 ]
               }
@@ -1316,7 +1316,7 @@
                   "pm.test('HTTP 404', function(){pm.response.to.have.status(404);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   "pm.test('No revela propietario',function(){pm.expect(body.error.codigo||body.error.code).to.equal('GASTO_NO_ENCONTRADO');});"
                 ]
               }
@@ -1431,7 +1431,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -1480,7 +1480,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -1529,7 +1529,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -1578,7 +1578,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -1627,7 +1627,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -1676,7 +1676,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -1725,7 +1725,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -1774,7 +1774,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -1823,7 +1823,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -1872,7 +1872,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -1921,7 +1921,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -1970,7 +1970,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2005,7 +2005,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2054,7 +2054,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2103,7 +2103,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2152,7 +2152,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2201,7 +2201,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2250,7 +2250,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2299,7 +2299,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2348,7 +2348,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2397,7 +2397,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2446,7 +2446,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2495,7 +2495,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2544,7 +2544,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2593,7 +2593,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2628,7 +2628,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2776,7 +2776,7 @@
                   "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2804,7 +2804,7 @@
                   "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2839,7 +2839,7 @@
                   "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2881,7 +2881,7 @@
                   "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2930,7 +2930,7 @@
                   "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -2972,7 +2972,7 @@
                   "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -3021,7 +3021,7 @@
                   "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -3049,7 +3049,7 @@
                   "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -3084,7 +3084,7 @@
                   "pm.test('HTTP 401', function(){pm.response.to.have.status(401);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -3152,7 +3152,7 @@
                   "pm.test('HTTP 404', function(){pm.response.to.have.status(404);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
@@ -3253,7 +3253,7 @@
                   "pm.test('HTTP 404', function(){pm.response.to.have.status(404);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
                   "pm.test('Error JSON descriptivo',function(){pm.expect(body.error).to.be.an('object');pm.expect(body.error.mensaje || body.error.message).to.be.a('string').and.not.empty;});",
-                  "pm.test('CONTRATO: error.codigo y error.mensaje',function(){pm.expect(body.error).to.include.all.keys('codigo','mensaje');});",
+                  "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   ""
                 ]
               }
