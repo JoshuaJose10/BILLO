@@ -31,7 +31,7 @@ Los CP-RF1 originales conservan sus IDs. Los QA-GAS trazan HU-12; crear un gasto
 
 Privacidad: listas separadas, PUT/DELETE ajenos en ambos sentidos → 404 y consulta posterior que confirma datos intactos. Luego se verifica actualización y eliminación persistidas.
 
-Las aserciones funcionales aceptan code/message para continuar; las de CONTRATO exigen codigo/mensaje. Un caso puede tener HTTP correcto y fallar por contrato.
+Las aserciones funcionales aceptan code/message o codigo/mensaje para continuar; desde el contrato v1.1 (HU-16) las de CONTRATO exigen `error.code` y `error.message`. Un caso puede tener HTTP correcto y fallar por contrato. Las evidencias JSON de 2026-10-19 y 2026-10-22 se ejecutaron con la versión anterior (codigo/mensaje) y no se modifican.
 
 ## Newman y evidencia
 
