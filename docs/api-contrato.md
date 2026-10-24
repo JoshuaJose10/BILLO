@@ -4,7 +4,7 @@ Estado: **esquema de BD congelado desde el 2026-10-13** (ver «Congelamiento del
 
 Cada sección indica en qué sprint se implementa: **S1** (Sprint 1), **S2** (Sprint 2), **S3** (Sprint 3).
 
-Este documento describe el comportamiento **acordado**. Donde el backend actual responde distinto, la diferencia se marca con **«Diferencia actual (se corrige en HU-18)»**; no se oculta ni se da por aprobada.
+Este documento describe el comportamiento **acordado**. Donde el backend actual responde distinto, la diferencia se marca con **«Diferencia actual (se corrige en HU-18)»** (o **HU-17** para las validaciones de gastos); no se oculta ni se da por aprobada.
 
 ## Estado de implementación (verificado el 2026-10-23)
 
@@ -117,7 +117,7 @@ Body: { "monto": 85.50, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago":
 
 Ejemplo 400 → { "error": { "code": "MONTO_INVALIDO", "message": "El monto debe ser un número mayor a 0" } }
 
-> **Diferencia actual (se corrige en HU-18):**
+> **Diferencia actual (se corrige en HU-17):**
 > - Acepta `monto` como cadena (`"80.50"`), con más de 2 decimales (`80.555` se guarda como `80.56`; `0.001` se guarda como `0`) y `categoria_id: true` (se toma como `1`). Ver BUG-RF2-01 a BUG-RF2-03.
 > - Sin cuerpo responde 500 `ERROR_SERVIDOR` (BUG-RF2-06).
 
@@ -136,7 +136,7 @@ Body: igual que POST (se reemplazan todos los campos)
 
 Ejemplo 404 → { "error": { "code": "GASTO_NO_ENCONTRADO", "message": "Gasto no encontrado" } }
 
-> **Diferencia actual (se corrige en HU-18):** las mismas de `POST /gastos` (validación de monto y categoría, y 500 sin cuerpo).
+> **Diferencia actual (se corrige en HU-17):** las mismas de `POST /gastos` (validación de monto y categoría, y 500 sin cuerpo).
 
 ### DELETE /gastos/:id
 - 200 → { "eliminado": true }
@@ -288,12 +288,17 @@ Los reportes en `docs/qa/` se escribieron contra v1.0 y se conservan como histor
 | AUTH-QA-01 | Registro sin envoltura `usuario` | Pasa a **HU-18** (el contrato mantiene la envoltura y agrega `token`) |
 | AUTH-QA-02 | Errores con `code/message` | **Resuelto por contrato**: el formato oficial pasa a ser `code/message` |
 | AUTH-QA-03 | `/auth/perfil` responde 404 | Pasa a **HU-18** (`/auth/perfil` oficial, `/auth/profile` alias temporal) |
-| BUG-RF2-01 a 03 | Monto y categoría aceptados indebidamente | Pasan a **HU-18** (el contrato no cambia) |
+| BUG-RF2-01 a 03 | Monto y categoría aceptados indebidamente | Pasan a **HU-17** (validaciones de gastos; el contrato no cambia) |
 | BUG-RF2-04 | Claves de error en gastos | **Resuelto por contrato** (mismo motivo que AUTH-QA-02) |
 | BUG-RF2-05 | 401 con `TOKEN_INVALIDO` | Pasa a **HU-18** (el contrato mantiene `NO_AUTORIZADO`) |
-| BUG-RF2-06 | POST/PUT sin cuerpo → 500 | Pasa a **HU-18** |
+| BUG-RF2-06 | POST/PUT de gastos sin cuerpo → 500 | Pasa a **HU-17** (validaciones de gastos) |
+| Sin reporte (HU-16) | Correo con mayúsculas al registrar no puede iniciar sesión | Pasa a **HU-18** |
+| Sin reporte (HU-16) | `POST /auth/register` sin cuerpo → 500 | Pasa a **HU-18** |
+| Sin reporte (HU-16) | JSON malformado → 400 HTML; ruta inexistente → 404 HTML | Pasa a **HU-18** |
+
+Pendiente en la colección Postman (**HU-22**, Luis Dorian): agregar las aserciones de que el 401 trae `error.code` = `NO_AUTORIZADO` y de que el registro devuelve `token`. Hoy la colección solo revisa el HTTP 401, las claves del error y la envoltura `usuario`.
 
 ## Registro de cambios
 - 2026-09-30 — v0.1 — Primera versión (auth + gastos). Autor: Joshua.
 - 2026-10-13 — v1.0 — Se agregan convenciones (encabezado de token, formatos, rol), categorías, presupuestos con estados de alerta, catálogo de servicios, membresías, reportes (resumen y por categoría), registro de token push y modo exploración sin API. En gastos se explicitan `metodo_pago` y `nota` (ya existían en el esquema). Se congela el esquema de seis tablas. Se proponen C-01 y C-02 y se dejan X-01 a X-03 como extensiones. Autor: Joshua. Aprobación: pendiente de Fernando y Oscar.
-- 2026-10-23 — v1.1 — Alineación con el backend de S1 (HU-16), verificada con `curl` sobre `develop` (`30707e5`). Errores con `{ "error": { "code", "message" } }` en todos los ejemplos (antes `codigo/mensaje`); 500 con `ERROR_SERVIDOR` (antes `ERROR_INTERNO`); se agregan `JSON_INVALIDO` y `RUTA_NO_ENCONTRADA` para que todo error sea JSON. El 401 por token ausente, inválido o vencido usa siempre `NO_AUTORIZADO`. Registro y login devuelven `{ usuario, token }`. `GET /auth/perfil` queda como ruta oficial y `GET /auth/profile` como alias temporal; se documenta la respuesta real del perfil y su 404 `USUARIO_NO_ENCONTRADO`. Se agregan los códigos que el backend ya usa: `NOMBRE_REQUERIDO`, `CAMPOS_REQUERIDOS`, `NOTA_INVALIDA` y `CATEGORIA_INEXISTENTE` en el filtro de `GET /gastos`. Se definen el correo sin distinción de mayúsculas, el monto como número JSON y el cuerpo ausente como 400. Se añaden la tabla de estado de implementación, las diferencias actuales marcadas «se corrige en HU-18» y la trazabilidad con los reportes QA. Sin cambios en el esquema ni en S2/S3. Autor: Joshua.
+- 2026-10-23 — v1.1 — Alineación con el backend de S1 (HU-16), verificada con `curl` sobre `develop` (`30707e5`). Errores con `{ "error": { "code", "message" } }` en todos los ejemplos (antes `codigo/mensaje`); 500 con `ERROR_SERVIDOR` (antes `ERROR_INTERNO`); se agregan `JSON_INVALIDO` y `RUTA_NO_ENCONTRADA` para que todo error sea JSON. El 401 por token ausente, inválido o vencido usa siempre `NO_AUTORIZADO`. Registro y login devuelven `{ usuario, token }`. `GET /auth/perfil` queda como ruta oficial y `GET /auth/profile` como alias temporal; se documenta la respuesta real del perfil y su 404 `USUARIO_NO_ENCONTRADO`. Se agregan los códigos que el backend ya usa: `NOMBRE_REQUERIDO`, `CAMPOS_REQUERIDOS`, `NOTA_INVALIDA` y `CATEGORIA_INEXISTENTE` en el filtro de `GET /gastos`. Se definen el correo sin distinción de mayúsculas, el monto como número JSON y el cuerpo ausente como 400. Se añaden la tabla de estado de implementación, las diferencias actuales marcadas «se corrige en HU-18» (o HU-17 para validaciones de gastos) y la trazabilidad con los reportes QA (aserciones pendientes de Postman en HU-22). Sin cambios en el esquema ni en S2/S3. Autor: Joshua.
