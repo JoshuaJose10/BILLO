@@ -60,20 +60,40 @@ El 401 de cualquier ruta con token usa siempre `NO_AUTORIZADO`, sea por token au
 
 ## Autenticación (S1)
 
+Registro y login devuelven la misma forma, `{ usuario, token }`, para que la app inicie sesión justo después de registrarse.
+
 ### POST /auth/register  (público)
 Body: { "nombre": "Ana", "email": "ana@correo.com", "password": "Segura123" }
-- 201 → { "usuario": { "id": 7, "nombre": "Ana", "email": "ana@correo.com" } }
-- 400 → EMAIL_INVALIDO, PASSWORD_MUY_CORTA (mínimo 8 caracteres)
+- 201 → { "usuario": { "id": 7, "nombre": "Ana", "email": "ana@correo.com" }, "token": "eyJhbGciOi..." }
+- 400 → NOMBRE_REQUERIDO, EMAIL_INVALIDO, PASSWORD_MUY_CORTA (mínimo 8 caracteres). Sin cuerpo se valida como campos vacíos (400, no 500).
 - 409 → EMAIL_DUPLICADO
+
+Ejemplo 409 → { "error": { "code": "EMAIL_DUPLICADO", "message": "El correo ya está registrado" } }
+
+> **Diferencia actual (se corrige en HU-18):**
+> - El 201 devuelve el usuario sin envoltura y sin token: `{ "id": 7, "nombre": "Ana", "email": "ana@correo.com" }`.
+> - Sin cuerpo responde 500 `{ "error": "Error interno del servidor" }`.
+> - El correo se guarda tal como llega; si tiene mayúsculas, el login (que busca en minúsculas) responde 401 `CREDENCIALES_INVALIDAS` con la contraseña correcta.
 
 ### POST /auth/login  (público)
 Body: { "email": "ana@correo.com", "password": "Segura123" }
-- 200 → { "token": "...", "usuario": { "id": 7, "nombre": "Ana" } }
+- 200 → { "usuario": { "id": 7, "nombre": "Ana", "email": "ana@correo.com" }, "token": "eyJhbGciOi..." }
+- 400 → CAMPOS_REQUERIDOS (falta correo o contraseña, o no hay cuerpo)
 - 401 → CREDENCIALES_INVALIDAS (mismo mensaje si el correo no existe o la contraseña es incorrecta)
 
+Ejemplo 401 → { "error": { "code": "CREDENCIALES_INVALIDAS", "message": "Correo o contraseña incorrectos" } }
+
+> **Diferencia actual (se corrige en HU-18):** sin cuerpo responde 500 `ERROR_SERVIDOR` en lugar de 400 `CAMPOS_REQUERIDOS`. El 200 ya cumple (el orden de las claves no importa).
+
 ### GET /auth/perfil  (requiere token)
-- 200 → { "id": 7, "nombre": "Ana", "email": "ana@correo.com" }
+Ruta oficial. **Alias temporal:** `GET /auth/profile` responde igual mientras la app migra; se retira cuando la app use solo `/auth/perfil` (se anotará en el Registro de cambios).
+- 200 → { "id": 7, "nombre": "Ana", "email": "ana@correo.com" } (el usuario sin envoltura y sin contraseña)
 - 401 → NO_AUTORIZADO (falta token, token inválido o vencido)
+- 404 → USUARIO_NO_ENCONTRADO (el token es válido pero el usuario ya no existe)
+
+Ejemplo 401 → { "error": { "code": "NO_AUTORIZADO", "message": "Token no proporcionado o formato inválido" } }
+
+> **Diferencia actual (se corrige en HU-18):** `/auth/perfil` aún no existe y responde 404 HTML `Cannot GET /auth/perfil`; solo está `/auth/profile`, que responde el 200 de arriba. HU-18 agrega `/auth/perfil` y deja `/auth/profile` como alias. Token inválido o vencido → `TOKEN_INVALIDO` (ver «Errores de autenticación»).
 
 ## Categorías (S1)
 
