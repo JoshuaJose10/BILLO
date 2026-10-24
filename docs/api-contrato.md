@@ -102,29 +102,41 @@ Query opcional: `tipo` = `gasto` o `membresia`. Sin `tipo` devuelve todas.
 - 200 → [ { "id": 1, "nombre": "Comida", "tipo": "gasto", "es_predefinida": true }, ... ]
 - 400 → TIPO_INVALIDO
 
-Lista inicial (cargada por migración o seed): Comida, Transporte, Entretenimiento, Servicios, Salud y Otros.
+Lista inicial (cargada por migración o seed): Comida, Transporte, Entretenimiento, Servicios, Salud y Otros. Los `id` dependen del orden de carga: la app y las pruebas deben leerlos de esta ruta, no fijarlos.
+
+> **Diferencia actual (se corrige en HU-18):** responde 200 `[ { "id": 1, "nombre": "Entretenimiento" }, ... ]`, sin `tipo` ni `es_predefinida`; el parámetro `tipo` se ignora (también un valor inválido devuelve 200 con todas las categorías, en lugar de 400 `TIPO_INVALIDO`).
 
 ## Gastos (todas requieren token) (S1)
 
-`metodo_pago` acepta: `efectivo`, `tarjeta`, `transferencia`, `otro`. `nota` es opcional (máximo 200 caracteres).
+`metodo_pago` acepta: `efectivo`, `tarjeta`, `transferencia`, `otro`. `nota` es opcional (máximo 200 caracteres; si se omite, se guarda `null`). `monto` debe ser un número JSON (no una cadena) y `categoria_id` un entero positivo de una categoría existente.
 
 ### POST /gastos
 Body: { "monto": 85.50, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago": "efectivo", "nota": "Tacos" }
-- 201 → { "gasto": { "id": 41, "monto": 85.50, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago": "efectivo", "nota": "Tacos" } }
-- 400 → MONTO_INVALIDO, CATEGORIA_INEXISTENTE, FECHA_INVALIDA, METODO_PAGO_INVALIDO
+- 201 → { "gasto": { "id": 41, "monto": 85.5, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago": "efectivo", "nota": "Tacos" } }
+- 400 → MONTO_INVALIDO, CATEGORIA_INEXISTENTE, FECHA_INVALIDA, METODO_PAGO_INVALIDO, NOTA_INVALIDA. Sin cuerpo se valida como campos vacíos (400, no 500).
+
+Ejemplo 400 → { "error": { "code": "MONTO_INVALIDO", "message": "El monto debe ser un número mayor a 0" } }
+
+> **Diferencia actual (se corrige en HU-18):**
+> - Acepta `monto` como cadena (`"80.50"`), con más de 2 decimales (`80.555` se guarda como `80.56`; `0.001` se guarda como `0`) y `categoria_id: true` (se toma como `1`). Ver BUG-RF2-01 a BUG-RF2-03.
+> - Sin cuerpo responde 500 `ERROR_SERVIDOR` (BUG-RF2-06).
 
 > S2: cuando el gasto toca una categoría con presupuesto en ese mes, la respuesta agrega `"alerta"` (ver Presupuestos). Es un campo adicional: no cambia lo implementado en S1.
 
 ### GET /gastos?mes=2026-10&categoria_id=3
-Los filtros `mes` y `categoria_id` son opcionales. Orden: fecha descendente.
-- 200 → [ { "id": 41, "monto": 85.50, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago": "efectivo", "nota": "Tacos" }, ... ]
-- 400 → MES_INVALIDO
+Los filtros `mes` y `categoria_id` son opcionales. Orden: fecha descendente y, con la misma fecha, el más reciente primero (`id` descendente). Sin gastos: 200 `[]`.
+- 200 → [ { "id": 41, "monto": 85.5, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago": "efectivo", "nota": "Tacos" }, ... ]
+- 400 → MES_INVALIDO, CATEGORIA_INEXISTENTE (`categoria_id` no es un entero positivo)
 
 ### PUT /gastos/:id
-Body: igual que POST
+Body: igual que POST (se reemplazan todos los campos)
 - 200 → { "gasto": { ... } } (gasto actualizado)
-- 400 → MONTO_INVALIDO, CATEGORIA_INEXISTENTE, FECHA_INVALIDA, METODO_PAGO_INVALIDO
-- 404 → GASTO_NO_ENCONTRADO (no existe o no pertenece al usuario)
+- 400 → MONTO_INVALIDO, CATEGORIA_INEXISTENTE, FECHA_INVALIDA, METODO_PAGO_INVALIDO, NOTA_INVALIDA
+- 404 → GASTO_NO_ENCONTRADO (no existe, no pertenece al usuario o el `id` no es un entero positivo)
+
+Ejemplo 404 → { "error": { "code": "GASTO_NO_ENCONTRADO", "message": "Gasto no encontrado" } }
+
+> **Diferencia actual (se corrige en HU-18):** las mismas de `POST /gastos` (validación de monto y categoría, y 500 sin cuerpo).
 
 ### DELETE /gastos/:id
 - 200 → { "eliminado": true }
