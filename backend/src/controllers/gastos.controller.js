@@ -19,6 +19,15 @@ const esMesValido = (mesStr) => {
   return typeof mesStr === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(mesStr);
 };
 
+const esMontoValido = (monto) => {
+  return (
+    typeof monto === 'number' &&
+    Number.isFinite(monto) &&
+    monto >= 0.01 &&
+    /^\d+(\.\d{1,2})?$/.test(String(monto))
+  );
+};
+
 const formatearGasto = (row) => ({
   id: row.id,
   monto: Number(row.monto),
@@ -28,21 +37,11 @@ const formatearGasto = (row) => ({
   nota: row.nota,
 });
 
-const validarDatosGasto = async ({
-  monto,
-  categoria_id,
-  fecha,
-  metodo_pago,
-  nota,
-}) => {
-  const montoNum =
-    typeof monto === 'number'
-      ? monto
-      : typeof monto === 'string' && monto.trim() !== ''
-        ? Number(monto)
-        : NaN;
+const validarDatosGasto = async (body) => {
+  const { monto, categoria_id, fecha, metodo_pago, nota } =
+    body && typeof body === 'object' ? body : {};
 
-  if (!Number.isFinite(montoNum) || montoNum <= 0) {
+  if (!esMontoValido(monto)) {
     return {
       error: {
         code: 'MONTO_INVALIDO',
@@ -83,8 +82,11 @@ const validarDatosGasto = async ({
     };
   }
 
-  const catId = Number(categoria_id);
-  if (!Number.isInteger(catId) || catId <= 0) {
+  if (
+    typeof categoria_id !== 'number' ||
+    !Number.isInteger(categoria_id) ||
+    categoria_id <= 0
+  ) {
     return {
       error: {
         code: 'CATEGORIA_INEXISTENTE',
@@ -95,7 +97,7 @@ const validarDatosGasto = async ({
 
   const catResult = await pool.query(
     'SELECT id FROM categorias WHERE id = $1',
-    [catId]
+    [categoria_id]
   );
   if (catResult.rows.length === 0) {
     return {
@@ -108,8 +110,8 @@ const validarDatosGasto = async ({
 
   return {
     datos: {
-      monto: montoNum,
-      categoria_id: catId,
+      monto,
+      categoria_id,
       fecha,
       metodo_pago,
       nota: nota ?? null,
@@ -325,4 +327,3 @@ module.exports = {
   actualizarGasto,
   eliminarGasto,
 };
-
