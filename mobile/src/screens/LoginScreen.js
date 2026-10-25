@@ -1,13 +1,15 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRef, useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import AuthLayout from '../components/AuthLayout';
 import Boton from '../components/Boton';
 import EnlaceAuth from '../components/EnlaceAuth';
 import Input from '../components/Input';
-import { useAuth } from '../context/AuthContext';
-import { colors } from '../theme/colors';
+import { SESION_VENCIDA, useAuth } from '../context/AuthContext';
+import { colors, radios } from '../theme/colors';
 import { fonts } from '../theme/fonts';
+import { mensajeError } from '../utils/errores';
 import { esEmailValido } from '../utils/validacion';
 
 function validar({ email, password }) {
@@ -19,7 +21,7 @@ function validar({ email, password }) {
 }
 
 export default function LoginScreen({ navigation }) {
-  const { iniciarSesion } = useAuth();
+  const { iniciarSesion, motivoCierre, limpiarMotivoCierre } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errores, setErrores] = useState({});
@@ -48,11 +50,7 @@ export default function LoginScreen({ navigation }) {
       // Con éxito el token cambia y RootNavigator muestra Main.
       await iniciarSesion(email, password);
     } catch (e) {
-      setErrorApi(
-        e?.status === 401 || e?.codigo === 'CREDENCIALES_INVALIDAS'
-          ? 'Correo o contraseña incorrectos'
-          : e?.mensaje || 'Ocurrió un error inesperado',
-      );
+      setErrorApi(mensajeError(e?.code, e?.message));
     } finally {
       enviandoRef.current = false;
       setEnviando(false);
@@ -65,6 +63,21 @@ export default function LoginScreen({ navigation }) {
       subtitulo="Ingresa tus credenciales para acceder a tus finanzas."
       mostrarFinal={passwordEnfocado}
     >
+      {motivoCierre === SESION_VENCIDA ? (
+        <View style={styles.aviso} accessibilityRole="alert">
+          <MaterialCommunityIcons name="clock-alert-outline" size={20} color={colors.text} />
+          <Text style={styles.avisoTexto}>Tu sesión expiró. Inicia sesión de nuevo.</Text>
+          <Pressable
+            onPress={limpiarMotivoCierre}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel="Cerrar aviso"
+          >
+            <MaterialCommunityIcons name="close" size={18} color={colors.textSecondary} />
+          </Pressable>
+        </View>
+      ) : null}
+
       <Input
         etiqueta="Correo electrónico"
         icono="email-outline"
@@ -114,6 +127,25 @@ export default function LoginScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  aviso: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: radios['2xl'],
+    backgroundColor: colors.glass07,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+  },
+  avisoTexto: {
+    fontFamily: fonts.sansMedium,
+    flex: 1,
+    color: colors.text,
+    fontSize: 14,
+    lineHeight: 20,
+  },
   errorApi: {
     fontFamily: fonts.sans,
     color: colors.error,

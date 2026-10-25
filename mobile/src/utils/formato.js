@@ -1,8 +1,12 @@
 import { ayer, fechaLocalISO, parsearFechaLocal } from './fechas';
 
-const formatoMXN = new Intl.NumberFormat('es-MX', {
+// Moneda y región de toda la app. Único lugar donde se definen.
+export const MONEDA = 'MXN';
+export const LOCALE = 'es-MX';
+
+const formatoMoneda = new Intl.NumberFormat(LOCALE, {
   style: 'currency',
-  currency: 'MXN',
+  currency: MONEDA,
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
@@ -31,12 +35,12 @@ export function aNumero(valor) {
 
 // 1237.25 → "$1,237.25"
 export function formatearMonto(valor) {
-  return formatoMXN.format(aNumero(valor));
+  return formatoMoneda.format(aNumero(valor));
 }
 
-const formatoMXNEntero = new Intl.NumberFormat('es-MX', {
+const formatoMonedaEntero = new Intl.NumberFormat(LOCALE, {
   style: 'currency',
-  currency: 'MXN',
+  currency: MONEDA,
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 });
@@ -45,8 +49,8 @@ const formatoMXNEntero = new Intl.NumberFormat('es-MX', {
 export function formatearMontoCorto(valor) {
   const centavos = Math.round(aNumero(valor) * 100);
   return centavos % 100 === 0
-    ? formatoMXNEntero.format(centavos / 100)
-    : formatoMXN.format(centavos / 100);
+    ? formatoMonedaEntero.format(centavos / 100)
+    : formatoMoneda.format(centavos / 100);
 }
 
 // Monto mientras se escribe en el teclado ("1234.5" → "$1,234.5"): respeta los
