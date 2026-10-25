@@ -9,12 +9,18 @@ import { fechaRelativa, formatearMonto } from '../utils/formato';
 // Movimiento de la lista (Stitch: Inicio, panel "Movimientos"): ícono de la categoría,
 // título (nota o categoría), fecha relativa en mono y el monto con "-".
 // El backend solo guarda la fecha, sin hora, así que el subtítulo no lleva hora.
-export default function ItemGasto({ gasto, nombreCategoria }) {
+// Con `metodoPago` (etiqueta, p. ej. "Efectivo") el subtítulo es "Categoría · Método", para
+// listas donde la fecha ya va en el encabezado del día (Movimientos).
+export default function ItemGasto({ gasto, nombreCategoria, metodoPago }) {
   const categoria = nombreCategoria || 'Sin categoría';
-  const titulo = gasto.nota?.trim() || categoria;
-  const subtitulo = gasto.nota?.trim()
-    ? `${categoria} · ${fechaRelativa(gasto.fecha)}`
-    : fechaRelativa(gasto.fecha);
+  const nota = gasto.nota?.trim();
+  const titulo = nota || categoria;
+  const fecha = fechaRelativa(gasto.fecha);
+  const subtitulo = metodoPago
+    ? `${categoria} · ${metodoPago}`
+    : nota
+      ? `${categoria} · ${fecha}`
+      : fecha;
 
   return (
     <View style={styles.fila}>

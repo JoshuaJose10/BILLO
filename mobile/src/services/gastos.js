@@ -13,6 +13,10 @@ export const METODOS_PAGO = [
 
 export const METODO_PAGO_DEFECTO = 'efectivo';
 
+// 'tarjeta' → 'Tarjeta'. Un valor desconocido se muestra tal cual.
+export const etiquetaMetodoPago = (valor) =>
+  METODOS_PAGO.find((m) => m.valor === valor)?.etiqueta || valor || '';
+
 // Límite de `nota` que valida el backend (la columna admite 255, la API 200).
 export const NOTA_MAX = 200;
 
