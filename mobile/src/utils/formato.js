@@ -82,6 +82,30 @@ export function fechaRelativa(fechaStr, hoy = new Date()) {
   return fecha.getFullYear() === hoy.getFullYear() ? texto : `${texto} ${fecha.getFullYear()}`;
 }
 
+const formatoNombreMes = new Intl.DateTimeFormat(LOCALE, { month: 'long' });
+const formatoDiaSemana = new Intl.DateTimeFormat(LOCALE, { weekday: 'long' });
+
+// "octubre" → "Octubre"
+export const capitalizar = (texto) => (texto ? texto.charAt(0).toUpperCase() + texto.slice(1) : '');
+
+// "2026-10" → "Octubre"
+export function nombreMes(mes) {
+  const [anio, numero] = mes.split('-').map(Number);
+  return capitalizar(formatoNombreMes.format(new Date(anio, numero - 1, 1)));
+}
+
+// "2026-10" → "Octubre 2026"
+export function nombreMesAnio(mes) {
+  return `${nombreMes(mes)} ${mes.slice(0, 4)}`;
+}
+
+// Encabezado de un día en Movimientos: "Hoy", "Ayer" o "Jueves 7 oct" (con año si no es el actual).
+export function tituloDia(fechaStr, hoy = new Date()) {
+  const relativa = fechaRelativa(fechaStr, hoy);
+  if (relativa === 'Hoy' || relativa === 'Ayer') return relativa;
+  return `${capitalizar(formatoDiaSemana.format(parsearFechaLocal(fechaStr)))} ${relativa}`;
+}
+
 // Primeras palabras de un texto para mostrarlo en un chip.
 export function resumirTexto(texto, maxCaracteres = 14) {
   const limpio = (texto || '').trim().replace(/\s+/g, ' ');
