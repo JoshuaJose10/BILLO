@@ -1,34 +1,28 @@
 import { API_URL, TIMEOUT_MS } from '../config/api';
 
+// Códigos que genera la app (no vienen del servidor).
 export const SIN_CONEXION = 'SIN_CONEXION';
-const MENSAJE_SIN_CONEXION = 'No se pudo conectar con el servidor';
+export const ERROR_DESCONOCIDO = 'ERROR_DESCONOCIDO';
 
 // Se registra desde AuthContext: cualquier 401 en una ruta con token cierra la sesión.
+// Recibe el token con el que se hizo la petición.
 let alNoAutorizado = null;
 
 export function setAlNoAutorizado(fn) {
   alNoAutorizado = fn;
 }
 
-// El contrato define { error: { codigo, mensaje } }, pero el backend actual responde
-// { error: { code, message } } y en algunos 500 { error: 'texto' }. Aceptamos todos.
+// Contrato v1.1: { error: { code, message } }. Si la respuesta no trae ese formato
+// (HTML de Express, 500 con texto, sin cuerpo) se reporta como ERROR_DESCONOCIDO.
 function normalizarError(status, body) {
   const error = body?.error;
-  if (error && typeof error === 'object') {
-    return {
-      codigo: error.codigo || error.code || `HTTP_${status}`,
-      mensaje: error.mensaje || error.message || 'Ocurrió un error inesperado',
-      status,
-    };
+  if (error && typeof error === 'object' && typeof error.code === 'string') {
+    return { code: error.code, message: error.message || '', status };
   }
-  return {
-    codigo: status >= 500 ? 'ERROR_INTERNO' : `HTTP_${status}`,
-    mensaje: typeof error === 'string' ? error : 'Ocurrió un error inesperado',
-    status,
-  };
+  return { code: ERROR_DESCONOCIDO, message: '', status };
 }
 
-// fetch con timeout y errores normalizados. Lanza siempre { codigo, mensaje, status }.
+// fetch con timeout y errores normalizados. Lanza siempre { code, message, status }.
 // Con `token` se envía el encabezado Authorization y un 401 dispara el cierre de sesión.
 export async function apiFetch(ruta, { method = 'GET', body, token } = {}) {
   const controller = new AbortController();
@@ -47,7 +41,7 @@ export async function apiFetch(ruta, { method = 'GET', body, token } = {}) {
     });
   } catch {
     // Timeout (abort), sin red o servidor apagado.
-    throw { codigo: SIN_CONEXION, mensaje: MENSAJE_SIN_CONEXION, status: 0 };
+    throw { code: SIN_CONEXION, message: '', status: 0 };
   } finally {
     clearTimeout(timer);
   }
@@ -61,7 +55,7 @@ export async function apiFetch(ruta, { method = 'GET', body, token } = {}) {
 
   if (!respuesta.ok) {
     if (respuesta.status === 401 && token && alNoAutorizado) {
-      alNoAutorizado();
+      alNoAutorizado(token);
     }
     throw normalizarError(respuesta.status, datos);
   }

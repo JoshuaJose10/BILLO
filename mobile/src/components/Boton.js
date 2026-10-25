@@ -9,6 +9,7 @@ import { fonts } from '../theme/fonts';
 // tracking-tight, ícono 18, gap-1.5 y brillo blanco).
 // `grande`: variante de Login y Registro en Stitch (h-14 rounded-2xl, headline-sm en
 // on-primary, mt-3 y shadow-lg shadow-primary/5).
+// `secundario`: sin relleno, con borde y texto claro (acciones como "Cerrar sesión").
 export default function Boton({
   titulo,
   onPress,
@@ -17,9 +18,14 @@ export default function Boton({
   icono,
   compacto = false,
   grande = false,
+  secundario = false,
 }) {
   const inactivo = cargando || disabled;
-  const colorContenido = grande ? colors.onPrimaryMuted : colors.onPrimary;
+  const colorContenido = secundario
+    ? colors.text
+    : grande
+      ? colors.onPrimaryMuted
+      : colors.onPrimary;
 
   return (
     <Pressable
@@ -31,6 +37,7 @@ export default function Boton({
         styles.boton,
         compacto ? styles.botonCompacto : null,
         grande ? styles.botonGrande : null,
+        secundario ? styles.botonSecundario : null,
         pressed && !inactivo ? (grande ? styles.presionadoGrande : styles.presionado) : null,
         inactivo ? styles.inactivo : null,
       ]}
@@ -44,6 +51,7 @@ export default function Boton({
               styles.texto,
               compacto ? styles.textoCompacto : null,
               grande ? styles.textoGrande : null,
+              secundario ? styles.textoSecundario : null,
             ]}
           >
             {titulo}
@@ -87,6 +95,12 @@ const styles = StyleSheet.create({
     shadowRadius: 7.5,
     shadowOpacity: 0.05,
   },
+  // bg-white/[0.07] border border-white/10 (como el botón de cerrar de las hojas)
+  botonSecundario: {
+    backgroundColor: colors.glass07,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+  },
   presionado: {
     opacity: 0.85,
   },
@@ -114,5 +128,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 24,
     letterSpacing: -0.18,
+  },
+  textoSecundario: {
+    color: colors.text,
   },
 });
