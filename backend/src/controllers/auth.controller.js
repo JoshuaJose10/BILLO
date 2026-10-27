@@ -6,33 +6,51 @@ const { jwtSecret, jwtExpiresIn } = require('../config/env');
 // REGISTRO DE USUARIOS EN EL SISTEMA
 const register = async (req, res) => {
   try {
-    const { nombre, email, password } = req.body;
+    const { nombre, email, password } =
+      req.body && typeof req.body === 'object' ? req.body : {};
 
     // 1. Validaciones básicas
-    if (!nombre || nombre.trim() === '') {
+    if (typeof nombre !== 'string' || nombre.trim() === '') {
       return res.status(400).json({
-        error: { code: 'NOMBRE_REQUERIDO', message: 'El nombre es obligatorio' }
+        error: {
+          code: 'NOMBRE_REQUERIDO',
+          message: 'El nombre es obligatorio',
+        },
       });
     }
 
+    const emailNormalizado =
+      typeof email === 'string' ? email.trim().toLowerCase() : '';
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(emailNormalizado)) {
       return res.status(400).json({
-        error: { code: 'EMAIL_INVALIDO', message: 'El formato del correo no es válido' }
+        error: {
+          code: 'EMAIL_INVALIDO',
+          message: 'El formato del correo no es válido',
+        },
       });
     }
 
-    if (!password || password.length < 8) {
+    if (typeof password !== 'string' || password.length < 8) {
       return res.status(400).json({
-        error: { code: 'PASSWORD_MUY_CORTA', message: 'La contraseña debe tener al menos 8 caracteres' }
+        error: {
+          code: 'PASSWORD_MUY_CORTA',
+          message: 'La contraseña debe tener al menos 8 caracteres',
+        },
       });
     }
 
     // 2. Verificar si el correo ya existe
-    const userExist = await pool.query('SELECT id FROM usuarios WHERE email = $1', [email]);
+    const userExist = await pool.query(
+      'SELECT id FROM usuarios WHERE LOWER(email) = $1',
+      [emailNormalizado]
+    );
     if (userExist.rows.length > 0) {
       return res.status(409).json({
-        error: { code: 'EMAIL_DUPLICADO', message: 'El correo ya está registrado' }
+        error: {
+          code: 'EMAIL_DUPLICADO',
+          message: 'El correo ya está registrado',
+        },
       });
     }
 
@@ -45,35 +63,61 @@ const register = async (req, res) => {
       VALUES ($1, $2, $3)
       RETURNING id, nombre, email
     `;
-    const result = await pool.query(insertQuery, [nombre, email, hash]);
+    const result = await pool.query(insertQuery, [
+      nombre,
+      emailNormalizado,
+      hash,
+    ]);
 
-    // 5. Responder con los datos del usuario creado (sin contraseña)
+    // 5. Generar el JWT firmado y responder con { usuario, token }
     const newUser = result.rows[0];
-    res.status(201).json(newUser);
+    const token = jwt.sign({ id: newUser.id }, jwtSecret, {
+      expiresIn: jwtExpiresIn,
+    });
 
+    return res.status(201).json({
+      usuario: {
+        id: newUser.id,
+        nombre: newUser.nombre,
+        email: newUser.email,
+      },
+      token,
+    });
   } catch (error) {
     console.error('Error en el registro:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'Error interno del servidor',
+      },
+    });
   }
 };
 
 // INICIO DE SESION DE USUARIOS EN EL SISTEMA
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } =
+      req.body && typeof req.body === 'object' ? req.body : {};
 
     // Validación básica de entrada
-    if (!email || !password) {
+    if (
+      typeof email !== 'string' ||
+      email.trim() === '' ||
+      typeof password !== 'string' ||
+      password === ''
+    ) {
       return res.status(400).json({
         error: {
           code: 'CAMPOS_REQUERIDOS',
-          message: 'El correo y la contraseña son obligatorios'
-        }
+          message: 'El correo y la contraseña son obligatorios',
+        },
       });
     }
 
     // 1. Buscar al usuario por correo
-    const query = 'SELECT id, nombre, email, password_hash FROM usuarios WHERE email = $1';
+    const query =
+      'SELECT id, nombre, email, password_hash FROM usuarios WHERE LOWER(email) = $1';
     const result = await pool.query(query, [email.trim().toLowerCase()]);
 
     const user = result.rows[0];
@@ -83,8 +127,8 @@ const login = async (req, res) => {
       return res.status(401).json({
         error: {
           code: 'CREDENCIALES_INVALIDAS',
-          message: 'Correo o contraseña incorrectos'
-        }
+          message: 'Correo o contraseña incorrectos',
+        },
       });
     }
 
@@ -96,35 +140,32 @@ const login = async (req, res) => {
       return res.status(401).json({
         error: {
           code: 'CREDENCIALES_INVALIDAS',
-          message: 'Correo o contraseña incorrectos'
-        }
+          message: 'Correo o contraseña incorrectos',
+        },
       });
     }
 
     // 4. Generar el JWT firmado
-    const token = jwt.sign(
-      { id: user.id },
-      jwtSecret,
-      { expiresIn: jwtExpiresIn }
-    );
+    const token = jwt.sign({ id: user.id }, jwtSecret, {
+      expiresIn: jwtExpiresIn,
+    });
 
     // 5. Responder 200 con el token y datos públicos del usuario
     return res.status(200).json({
-      token,
       usuario: {
         id: user.id,
         nombre: user.nombre,
-        email: user.email
-      }
+        email: user.email,
+      },
+      token,
     });
-
   } catch (error) {
     console.error('Error en el login:', error);
     return res.status(500).json({
       error: {
         code: 'ERROR_SERVIDOR',
-        message: 'Ocurrió un error inesperado en el servidor'
-      }
+        message: 'Ocurrió un error inesperado en el servidor',
+      },
     });
   }
 };
@@ -142,8 +183,8 @@ const profile = async (req, res) => {
       return res.status(404).json({
         error: {
           code: 'USUARIO_NO_ENCONTRADO',
-          message: 'El usuario no existe'
-        }
+          message: 'El usuario no existe',
+        },
       });
     }
 
@@ -154,8 +195,8 @@ const profile = async (req, res) => {
     return res.status(500).json({
       error: {
         code: 'ERROR_SERVIDOR',
-        message: 'Ocurrió un error inesperado en el servidor'
-      }
+        message: 'Ocurrió un error inesperado en el servidor',
+      },
     });
   }
 };

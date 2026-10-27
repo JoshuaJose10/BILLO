@@ -9,8 +9,8 @@ const authMiddleware = (req, res, next) => {
     return res.status(401).json({
       error: {
         code: 'NO_AUTORIZADO',
-        message: 'Token no proporcionado o formato inválido'
-      }
+        message: 'Token no proporcionado o formato inválido',
+      },
     });
   }
 
@@ -27,9 +27,9 @@ const authMiddleware = (req, res, next) => {
   } catch {
     return res.status(401).json({
       error: {
-        code: 'TOKEN_INVALIDO',
-        message: 'El token es inválido o ha expirado'
-      }
+        code: 'NO_AUTORIZADO',
+        message: 'El token es inválido o ha expirado',
+      },
     });
   }
 };
