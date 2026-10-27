@@ -14,3 +14,10 @@
 - [ ] `npm run lint` sin errores
 - [ ] No hay contraseñas ni claves en el código
 - [ ] Actualicé la documentación si algo cambió
+
+## Qué revisé (para el revisor)
+- [ ] Leí el diff completo
+- [ ] Lo probé o lo corrí localmente
+- [ ] El CI está en verde
+- [ ] Se cumplen los criterios de aceptación de la tarea
+- [ ] No hay secretos ni colores o textos sueltos que debieron ir en el tema
