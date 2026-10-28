@@ -49,6 +49,12 @@
           ]
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "f61e8d44-9e9d-4283-b057-d9d5956b6f04"
+      }
+    },
+    "owner": "joshua1020yts-team"
   }
 }
