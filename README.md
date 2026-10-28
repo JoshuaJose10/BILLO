@@ -58,6 +58,11 @@ DB_USER=postgres
 DB_PASSWORD=tu_contraseña_aqui
 DB_NAME=billo_dev
 
+
+5. Crear la base de datos y esquema desde cero
+Con PostgreSQL corriendo y las credenciales configuradas en .env, ejecuta un solo comando para crear todo el esquema:
+npm run migrate
+
 💻 Cómo Correr el Backend
 Modo Desarrollo (con Nodemon)
 Ejecuta el servidor con recarga automática al detectar cambios:
