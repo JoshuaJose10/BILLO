@@ -24,7 +24,14 @@
     "plugins": [
       "expo-secure-store",
       "@react-native-community/datetimepicker",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Billo usa el micrófono para registrar gastos con tu voz.",
+          "speechRecognitionPermission": "Billo usa el reconocimiento de voz para convertir lo que dices en un gasto."
+        }
+      ]
     ]
   }
 }
