@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop]
+
+# Si llega un push nuevo a la misma rama, se cancela la ejecución anterior
+concurrency:
+  group: ci-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    # El nombre se usa como check obligatorio en las reglas de rama: no cambiarlo
+    name: Backend (lint)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: backend
+
+    # Base de datos de prueba para cuando HU-28 agregue las pruebas
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: billo_test
+          POSTGRES_PASSWORD: billo_test
+          POSTGRES_DB: billo_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U billo_test -d billo_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: billo_test
+      DB_PASSWORD: billo_test
+      DB_NAME: billo_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      # Se activa cuando HU-28 entregue las pruebas
+      # - run: npm test
+
+  mobile:
+    # El nombre se usa como check obligatorio en las reglas de rama: no cambiarlo
+    name: Mobile (lint)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run lint
