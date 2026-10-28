@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Boton from '../components/Boton';
 import { colors, radios } from '../theme/colors';
 import { fonts } from '../theme/fonts';
-import { cargarVoz } from './modulosNativos';
+import { cargarVoz, cargarWidget } from './modulosNativos';
+import { guardarDatoWidget } from './widget/datoWidget';
 
 // HU-23 (spike RF11-RF13): pantalla de pruebas técnicas. Solo se registra en __DEV__ y no
 // forma parte del flujo de la app. En Expo Go los módulos nativos no existen y cada sección
@@ -102,6 +103,53 @@ function PruebaVoz() {
   );
 }
 
+function PruebaWidget() {
+  const widget = cargarWidget();
+  const [dato, setDato] = useState('$1,234.50 (prueba)');
+  const [estado, setEstado] = useState('');
+
+  if (!widget) {
+    return (
+      <Text style={styles.aviso}>No disponible: requiere el development build en Android.</Text>
+    );
+  }
+
+  const actualizar = async () => {
+    try {
+      await guardarDatoWidget(dato);
+      let sinWidget = false;
+      await widget.requestWidgetUpdate({
+        widgetName: 'ResumenMes',
+        renderWidget: () => <widget.ResumenMesWidget dato={dato} />,
+        widgetNotFound: () => {
+          sinWidget = true;
+        },
+      });
+      setEstado(
+        sinWidget
+          ? 'Dato guardado. Agrega el widget "Billo" a la pantalla de inicio para verlo.'
+          : 'Widget actualizado',
+      );
+    } catch (e) {
+      setEstado(`Error: ${e.message}`);
+    }
+  };
+
+  return (
+    <>
+      <Text style={styles.texto}>Texto que mostrará el widget:</Text>
+      <TextInput
+        value={dato}
+        onChangeText={setDato}
+        style={styles.input}
+        placeholderTextColor={colors.textMuted}
+      />
+      <Boton titulo="Guardar y actualizar widget" icono="widgets-outline" onPress={actualizar} />
+      {estado ? <Text style={styles.aviso}>{estado}</Text> : null}
+    </>
+  );
+}
+
 export default function LaboratorioScreen() {
   const insets = useSafeAreaInsets();
 
@@ -112,6 +160,9 @@ export default function LaboratorioScreen() {
     >
       <Seccion titulo="Voz (RF12)">
         <PruebaVoz />
+      </Seccion>
+      <Seccion titulo="Widget de Android (RF13)">
+        <PruebaWidget />
       </Seccion>
     </ScrollView>
   );
@@ -152,6 +203,17 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 28,
     color: colors.text,
+  },
+  input: {
+    fontFamily: fonts.sans,
+    fontSize: 16,
+    color: colors.text,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: radios.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
   aviso: {
     fontFamily: fonts.mono,

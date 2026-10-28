@@ -31,6 +31,23 @@
           "microphonePermission": "Billo usa el micrófono para registrar gastos con tu voz.",
           "speechRecognitionPermission": "Billo usa el reconocimiento de voz para convertir lo que dices en un gasto."
         }
+      ],
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "ResumenMes",
+              "label": "Billo",
+              "description": "Total del mes (prueba del spike HU-23)",
+              "minWidth": "250dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal"
+            }
+          ]
+        }
       ]
     ]
   }
