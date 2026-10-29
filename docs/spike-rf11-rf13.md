@@ -34,8 +34,8 @@
 | `npx expo config` lee la configuración con los plugins nuevos | ✅ Sin errores |
 | `npx expo prebuild --platform android` (local, sin subir la carpeta `android/`) | ✅ Genera el proyecto con `newArchEnabled=true`, el permiso `RECORD_AUDIO`, la visibilidad de `com.google.android.googlequicksearchbox` y el receiver `.widget.ResumenMes` con su `widgetprovider_resumenmes.xml` |
 | `npx expo export --platform android` (el bundle de JS compila) | ✅ 1415 módulos |
-| `eas build --profile development --platform android` | ⏳ pendiente: necesita la sesión de Expo de Joshua |
-| Instalar el APK y abrir la app | ⏳ pendiente de probar en dispositivo |
+| `eas build --profile development --platform android` | ✅ Build `d68cb1f1` en EAS (plan gratuito: ~23 min en fila más la compilación) |
+| Instalar el APK y abrir la app | ✅ Abre, se conecta a Metro con `npm run start:dev-client` y la pantalla de pruebas muestra voz y widget disponibles (2026-10-28) |
 
 ### 2.2 Expo Go sigue funcionando
 
@@ -70,13 +70,13 @@ Por qué esta:
 | Prueba (frase: "cincuenta pesos en tacos") | Resultado |
 |--------------------------------------------|-----------|
 | Se instala y el prebuild agrega `RECORD_AUDIO` y la consulta al servicio de Google | ✅ |
-| Aparece el diálogo de permiso del micrófono con el texto en español | ⏳ pendiente de probar en dispositivo |
+| Se otorga el permiso del micrófono | ✅ (el reconocimiento funcionó; falta confirmar que el texto del diálogo salga en español) |
 | `es-MX` aparece como soportado en "Ver idiomas" | ⏳ pendiente de probar en dispositivo |
-| Texto reconocido (escribir lo que salió en 5 intentos) | ⏳ pendiente de probar en dispositivo |
+| Texto reconocido | ✅ Intento 1: **"$50 en tacos"** (resultado final). El reconocedor convierte "cincuenta pesos" en "$50" por su cuenta. ⏳ faltan intentos 2 a 5 |
 | Tiempo desde que terminas de hablar hasta el resultado final | ⏳ pendiente de probar en dispositivo |
 | Funciona sin internet | ⏳ pendiente de probar en dispositivo |
 
-Nota: el reconocedor de Google suele escribir los números con dígitos ("50 pesos en tacos"), así que el indicador "Coincide con la frase" puede decir "no" aunque el reconocimiento sea correcto. El parser del Sprint 3 debe aceptar dígitos y números escritos con palabras.
+Nota (confirmada en dispositivo): el reconocedor escribe montos con formato, por ejemplo "cincuenta pesos" → "$50". Por eso el indicador "Coincide con la frase" dice "no" aunque el reconocimiento sea correcto. El parser del Sprint 3 debe aceptar `$50`, `50 pesos` y `cincuenta pesos`; esto lo simplifica, porque el monto suele llegar ya como número.
 
 ### 2.4 RF13: Widget de Android
 
@@ -97,8 +97,8 @@ Nota: el reconocedor de Google suele escribir los números con dígitos ("50 pes
 | Prueba | Resultado |
 |--------|-----------|
 | El prebuild genera el receiver y el XML del widget | ✅ |
-| El widget "Billo" aparece en el selector de widgets del launcher | ⏳ pendiente de probar en dispositivo |
-| Al agregarlo muestra el texto fijo y "Sin datos: abre Billo" (o el último dato guardado) | ⏳ pendiente de probar en dispositivo |
+| El widget "Billo" aparece en el selector de widgets del launcher | ✅ |
+| Al agregarlo muestra el texto fijo y el último dato guardado | ✅ Muestra "BILLO · TOTAL DEL MES" y "$1,234.50 (prueba)", guardado antes de agregar el widget: la tarea en segundo plano lee el dato sin abrir la app |
 | "Guardar y actualizar widget" cambia el dato en menos de 2 s | ⏳ pendiente de probar en dispositivo |
 | El dato sigue ahí después de cerrar la app y reiniciar el teléfono | ⏳ pendiente de probar en dispositivo |
 | Tocar el widget abre Billo | ⏳ pendiente de probar en dispositivo |
