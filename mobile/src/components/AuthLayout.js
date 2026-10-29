@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   iconoSombra: {
     marginBottom: 12,
     borderRadius: 16,
-    shadowColor: '#000000',
+    shadowColor: colors.sombra,
     shadowOffset: { width: 0, height: 10 },
     shadowRadius: 15,
     shadowOpacity: 0.35,
@@ -137,9 +137,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(42, 42, 42, 0.8)', // surface-container-high/80
+    backgroundColor: colors.surfaceHigh80, // surface-container-high/80
     borderWidth: 1,
-    borderColor: 'rgba(68, 71, 72, 0.3)', // outline-variant/30
+    borderColor: colors.outlineVariant30, // outline-variant/30
   },
   // text-[32px] font-bold tracking-tight leading-none text-white
   wordmark: {

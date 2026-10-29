@@ -58,11 +58,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderStrong,
   },
-  // shadow-[0_0_12px_rgba(255,255,255,0.2)]; el borde blanco conserva el mismo tamaño.
+  // shadow-[0_0_12px] blanco al 20%; el borde blanco conserva el mismo tamaño.
   seleccionado: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
-    shadowColor: '#FFFFFF',
+    shadowColor: colors.brillo,
     shadowOffset: { width: 0, height: 0 },
     shadowRadius: 6,
     shadowOpacity: 0.2,
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   },
   // hover:border-white/20
   presionado: {
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: colors.borderPressed,
   },
   texto: {
     fontFamily: fonts.sansMedium,

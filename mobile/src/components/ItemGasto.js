@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 10,
     borderRadius: radios['2xl'],
-    backgroundColor: 'rgba(27, 27, 27, 0.5)',
+    backgroundColor: colors.surfaceLow50,
   },
   // w-10 h-10 rounded-2xl bg-surface-container-high
   icono: {
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.surfaceHigh,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(255, 255, 255, 0.12)',
+    borderTopColor: colors.borderTopStrong,
   },
   textos: {
     flex: 1,

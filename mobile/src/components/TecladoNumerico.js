@@ -33,7 +33,7 @@ export default function TecladoNumerico({ onTecla, disabled = false }) {
                 <MaterialCommunityIcons
                   name="backspace-outline"
                   size={19}
-                  color="rgba(255, 255, 255, 0.8)"
+                  color={colors.iconSoft}
                 />
               ) : (
                 <Text style={[styles.texto, tecla === TECLA_PUNTO ? styles.punto : null]}>
@@ -80,6 +80,6 @@ const styles = StyleSheet.create({
   // "." font-semibold text-white/90
   punto: {
     fontFamily: fonts.sansSemiBold,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: colors.textSoft,
   },
 });

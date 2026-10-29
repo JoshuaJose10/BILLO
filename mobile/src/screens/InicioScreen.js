@@ -257,13 +257,13 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     color: colors.textVariant,
   },
-  // font-headline-md text-headline-md text-primary tracking-tight
+  // font-headline-md text-headline-md tracking-tight, en el acento (Luminal Glow)
   saludo: {
     fontFamily: fonts.sansSemiBold,
     fontSize: 22,
     lineHeight: 28,
     letterSpacing: -0.55,
-    color: colors.text,
+    color: colors.acentoTexto,
   },
   // Panel: rounded-[28px] bg-surface-container-lowest/80 p-space-md pt-4; mt-1 + gap-3.5
   // El brillo superior del diseño es el borde de arriba, en todo el ancho y con el radio.
@@ -275,17 +275,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderTopLeftRadius: radios.panel,
     borderTopRightRadius: radios.panel,
-    backgroundColor: 'rgba(14, 14, 14, 0.8)',
+    backgroundColor: colors.surfaceLowest80,
   },
   panelFila: {
     paddingHorizontal: 16,
-    backgroundColor: 'rgba(14, 14, 14, 0.8)',
+    backgroundColor: colors.surfaceLowest80,
   },
   panelPie: {
     height: 16,
     borderBottomLeftRadius: radios.panel,
     borderBottomRightRadius: radios.panel,
-    backgroundColor: 'rgba(14, 14, 14, 0.8)',
+    backgroundColor: colors.surfaceLowest80,
   },
   // w-8 h-1 rounded-full bg-surface-container-highest mx-auto mb-3 opacity-60
   panelJalador: {
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
   // gap-2.5 entre movimientos (mismo fondo que el panel)
   separador: {
     height: 10,
-    backgroundColor: 'rgba(14, 14, 14, 0.8)',
+    backgroundColor: colors.surfaceLowest80,
   },
   vacio: {
     alignItems: 'center',

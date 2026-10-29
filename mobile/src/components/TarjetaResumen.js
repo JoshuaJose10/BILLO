@@ -42,15 +42,15 @@ export default function TarjetaResumen({ total, principales = [] }) {
 }
 
 const styles = StyleSheet.create({
-  // rounded-[22px] bg-surface-container-low/70 p-3.5 shadow-[0_8px_28px_rgba(0,0,0,0.35)]
+  // rounded-[22px] bg-surface-container-low/70 p-3.5 shadow-[0_8px_28px] negro al 35%
   // El brillo superior del diseño es el borde de arriba, en todo el ancho y con el radio.
   tarjeta: {
     padding: 14,
     borderRadius: radios.tarjeta,
     borderTopWidth: 1,
     borderTopColor: colors.borderTop,
-    backgroundColor: 'rgba(27, 27, 27, 0.7)',
-    shadowColor: '#000',
+    backgroundColor: colors.surfaceLow70,
+    shadowColor: colors.sombra,
     shadowOffset: { width: 0, height: 8 },
     shadowRadius: 14,
     shadowOpacity: 0.35,
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 14,
   },
-  // px-2.5 py-1 rounded-full bg-[#1c1c1e] border border-white/10 gap-1.5
+  // px-2.5 py-1 rounded-full bg-surfaceChip border border-white/10 gap-1.5
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: radios.full,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: colors.surfaceChip,
     borderWidth: 1,
     borderColor: colors.borderStrong,
   },

@@ -264,7 +264,8 @@ export default function NuevoGastoScreen({ navigation }) {
             onChangeText={setNota}
             placeholder="Ej. Tacos con amigos"
             placeholderTextColor={colors.textSecondary}
-            selectionColor={colors.text}
+            cursorColor={colors.acento}
+            selectionColor={colors.acento}
             maxLength={NOTA_MAX}
             autoFocus
             returnKeyType="done"
