@@ -50,7 +50,7 @@ Todo lo nativo vive en `mobile/src/spike/` y se carga con `require` dentro de `t
 |--------|-----------|
 | `npm run lint` en mobile | ✅ |
 | El bundle de Android compila con los imports protegidos | ✅ |
-| Abrir la app en Expo Go: login, inicio, nuevo gasto y perfil funcionan igual | ⏳ pendiente de probar en dispositivo |
+| Abrir la app en Expo Go: login, inicio, nuevo gasto y perfil funcionan igual | ⏳ pendiente en Android con Expo Go para SDK 57. En **iPhone no se puede**: Expo Go de iOS ya es para SDK 58 y el proyecto (desde `develop`, no por el spike) usa SDK 57 ("Project is incompatible with this version of Expo Go") |
 | En Expo Go, Perfil → "Laboratorio (spike)" muestra "No disponible: requiere el development build" en voz y widget, sin pantalla roja | ⏳ pendiente de probar en dispositivo |
 
 La pantalla **Laboratorio (spike)** solo se registra con `__DEV__`, así que no aparece en un build de producción.
@@ -100,7 +100,7 @@ Nota (confirmada en dispositivo): el reconocedor escribe montos con formato, por
 | El widget "Billo" aparece en el selector de widgets del launcher | ✅ |
 | Al agregarlo muestra el texto fijo y el último dato guardado | ✅ Muestra "BILLO · TOTAL DEL MES" y "$1,234.50 (prueba)", guardado antes de agregar el widget: la tarea en segundo plano lee el dato sin abrir la app |
 | "Guardar y actualizar widget" cambia el dato en menos de 2 s | ✅ Al instante |
-| El dato sigue ahí después de cerrar la app y reiniciar el teléfono | ❌ **Falló en el development build:** después de reiniciar, el widget quedó vacío (sin contenido) y Android mostró "Billo se cerró debido a un error". Se tocó "Eliminar caché", que borra la caché pero no los datos de SecureStore. **Causa probable (no confirmada):** al reiniciar, Android ejecuta la tarea en segundo plano del widget, y en un development build el JS no viene en el APK sino de Metro; si Metro no estaba disponible, la tarea falla. En un build de release el JS va dentro del APK. ⏳ Verificar en un build de release y, si vuelve a fallar, sacar el log con `adb logcat` |
+| El dato sigue ahí después de cerrar la app y reiniciar el teléfono | ❌ **Falló en el development build:** después de reiniciar, el widget quedó vacío (sin contenido) y Android mostró "Billo se cerró debido a un error". Se tocó "Eliminar caché". **El dato sí se conservó:** después del reinicio, la pantalla de pruebas leyó `$999.00`, el último texto guardado. Lo que falla es solo dibujar el widget al arrancar, no el almacenamiento. **Causa probable (no confirmada):** al reiniciar, Android ejecuta la tarea en segundo plano del widget, y en un development build el JS no viene en el APK sino de Metro; si Metro no estaba disponible, la tarea falla. En un build de release el JS va dentro del APK. ⏳ Verificar en un build de release y, si vuelve a fallar, sacar el log con `adb logcat` |
 | Tocar el widget abre Billo | ✅ Al instante |
 
 ### 2.5 RF11: Cambio de moneda
@@ -167,7 +167,8 @@ Nota (confirmada en dispositivo): el reconocedor escribe montos con formato, por
 5. **RF13, reinicio del dispositivo:** en el development build el widget quedó vacío y la app se cerró después de reiniciar (sección 2.4). Hasta probarlo en release no se sabe si es un problema del development build o de la librería. Hay un issue abierto parecido (ANR en `HeadlessJsTaskWorker.startWork`).
 6. **RF13, actualizaciones:** Android limita la actualización automática a 30 minutos como mínimo; el total se debe actualizar desde la app cada vez que cambia un gasto. Algunos launchers con ahorro de batería agresivo (por ejemplo Xiaomi o Huawei) pueden restringir las tareas en segundo plano.
 7. **RF11, tasa diaria:** el BCE publica una tasa por día hábil (no hay tasa en fin de semana ni en tiempo real). Para un control de gastos personal es suficiente, pero hay que mostrar la fecha de la tasa. Si la fuente cae, se usa el respaldo o la última tasa guardada.
-8. **`android.package` es permanente:** `com.billo.app` no se puede cambiar después de publicar en Google Play.
+8. **Expo Go en iPhone ya no sirve con SDK 57:** la App Store solo ofrece la versión más reciente de Expo Go (SDK 58). Quien use iPhone necesita un development build de iOS (requiere cuenta de Apple Developer) o actualizar el proyecto a SDK 58. Esto no lo causa el spike, pero hace más urgente decidir entre development build y migrar a SDK 58. Si se migra, revisar el issue abierto de `react-native-android-widget` con SDK 58 (riesgo 4).
+9. **`android.package` es permanente:** `com.billo.app` no se puede cambiar después de publicar en Google Play.
 
 ---
 
@@ -196,4 +197,4 @@ cd backend && npm run dev
 curl -w "\n%{time_total}s\n" "http://localhost:3000/tipo-cambio?de=USD&a=MXN"
 ```
 
-**Dispositivo de prueba:** tablet Android, ⏳ _modelo / versión de Android_. Pruebas del 2026-10-28 con el development build `d68cb1f1`.
+**Dispositivo de prueba:** Samsung Galaxy Tab S9 FE (SM-X510), Android ⏳ _versión_. Pruebas del 2026-10-28 con el development build `d68cb1f1`.
