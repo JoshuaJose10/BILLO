@@ -37,6 +37,18 @@ export default function PerfilScreen({ navigation }) {
       </View>
 
       <Boton titulo="Cerrar sesión" icono="logout" onPress={confirmarCerrarSesion} secundario />
+
+      {/* HU-23 (spike): acceso a la pantalla de pruebas, solo en desarrollo. */}
+      {__DEV__ ? (
+        <View style={styles.laboratorio}>
+          <Boton
+            titulo="Laboratorio (spike)"
+            icono="flask-outline"
+            onPress={() => navigation.navigate('Laboratorio')}
+            secundario
+          />
+        </View>
+      ) : null}
     </HojaInferior>
   );
 }
@@ -63,5 +75,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     color: colors.textSecondary,
+  },
+  laboratorio: {
+    marginTop: 12,
   },
 });

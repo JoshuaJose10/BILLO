@@ -4,6 +4,8 @@ import PantallaCarga from '../components/PantallaCarga';
 import { useAuth } from '../context/AuthContext';
 import NuevoGastoScreen from '../screens/NuevoGastoScreen';
 import PerfilScreen from '../screens/PerfilScreen';
+import LaboratorioScreen from '../spike/LaboratorioScreen';
+import { colors } from '../theme/colors';
 import AuthStack from './AuthStack';
 import MainTabs from './MainTabs';
 
@@ -17,6 +19,13 @@ const opcionesHoja = {
   animation: 'none',
   gestureEnabled: false,
   contentStyle: { backgroundColor: 'transparent' },
+};
+
+// HU-23 (spike): pantalla de pruebas de voz y widget, solo en desarrollo.
+const opcionesLaboratorio = {
+  title: 'Laboratorio (spike)',
+  headerStyle: { backgroundColor: colors.background },
+  headerTintColor: colors.text,
 };
 
 // Con token se muestran Main y las hojas (NuevoGasto, Perfil); sin token, Auth. Al cambiar
@@ -33,6 +42,13 @@ export default function RootNavigator() {
           <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
           <Stack.Screen name="NuevoGasto" component={NuevoGastoScreen} options={opcionesHoja} />
           <Stack.Screen name="Perfil" component={PerfilScreen} options={opcionesHoja} />
+          {__DEV__ ? (
+            <Stack.Screen
+              name="Laboratorio"
+              component={LaboratorioScreen}
+              options={opcionesLaboratorio}
+            />
+          ) : null}
         </>
       ) : (
         <Stack.Screen name="Auth" component={AuthStack} options={{ headerShown: false }} />

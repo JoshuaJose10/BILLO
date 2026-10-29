@@ -67,3 +67,11 @@ Consulta [la guía de QA](../docs/postman/README.md) y el
   ```bash
   npm run lint
   ```
+
+## Endpoints experimentales
+
+- `GET /tipo-cambio?de=USD&a=MXN` — **experimental (HU-23, spike RF11)**. Devuelve el tipo de cambio desde [Frankfurter](https://frankfurter.dev) (gratis, sin clave) y lo guarda en memoria una hora. No requiere token y no forma parte del contrato de la API; puede cambiar o eliminarse en el Sprint 3. Ver [docs/spike-rf11-rf13.md](../docs/spike-rf11-rf13.md).
+  ```bash
+  curl "http://localhost:3000/tipo-cambio?de=USD&a=MXN"
+  # {"de":"USD","a":"MXN","tasa":18.6311,"fecha":"2026-10-28","fuente":"frankfurter.dev (BCE)","cache":false}
+  ```
