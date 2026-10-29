@@ -77,6 +77,7 @@ export const temas = {
 
     // Acento de marca (Luminal Glow)
     acento: '#8B5CF6',
+    acentoTexto: '#C4B5FD', // acento para texto sobre fondo oscuro (violeta claro)
 
     // Semánticos de estado financiero; la variante Suave (~15%) es para fondos de barras y avisos
     exito: '#10B981', // en meta / ingresos

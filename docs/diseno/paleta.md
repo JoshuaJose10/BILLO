@@ -98,7 +98,11 @@ igual que el `/NN` de Tailwind.
 
 | Token | Valor | Uso |
 | --- | --- | --- |
-| `acento` | `#8B5CF6` | Color de marca (violeta). Definido, todavía sin aplicar en pantallas. |
+| `acento` | `#8B5CF6` | Color de marca (violeta). Cursor y selección del campo de nota en Nuevo gasto. |
+| `acentoTexto` | `#C4B5FD` | Acento para texto sobre fondo oscuro (violeta claro). Saludo "Hola, {nombre}" de Inicio. |
+
+El acento se usa de forma discreta: no cambia botones, la pestaña activa, el botón `+`, chips, fondos
+ni sombras.
 
 ## Semánticos
 
@@ -129,7 +133,7 @@ que no esté en la tabla usa el color de Otros.
 Regla del brief para chips: seleccionado → fondo sólido del color de la categoría con texto e ícono
 blancos; no seleccionado → superficie neutra con un micro-punto del color de la categoría.
 
-Aplicar acento y categorías en pantallas corresponde a HU-33, HU-35 y HU-37.
+Aplicar los colores de categoría en pantallas corresponde a HU-33, HU-35 y HU-37.
 
 ## Pendiente: tema claro
 

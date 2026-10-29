@@ -282,13 +282,13 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     color: colors.textVariant,
   },
-  // font-headline-md text-headline-md text-primary tracking-tight
+  // font-headline-md text-headline-md tracking-tight, en el acento (Luminal Glow)
   saludo: {
     fontFamily: fonts.sansSemiBold,
     fontSize: 22,
     lineHeight: 28,
     letterSpacing: -0.55,
-    color: colors.text,
+    color: colors.acentoTexto,
   },
   // w-10 h-10 rounded-full bg-surface-container-high/80
   botonIcono: {
