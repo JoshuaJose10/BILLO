@@ -6,7 +6,7 @@ import Boton from '../components/Boton';
 import { colors, radios } from '../theme/colors';
 import { fonts } from '../theme/fonts';
 import { cargarVoz, cargarWidget } from './modulosNativos';
-import { guardarDatoWidget } from './widget/datoWidget';
+import { guardarDatoWidget, leerDatoWidget } from './widget/datoWidget';
 
 // HU-23 (spike RF11-RF13): pantalla de pruebas técnicas. Solo se registra en __DEV__ y no
 // forma parte del flujo de la app. En Expo Go los módulos nativos no existen y cada sección
@@ -73,9 +73,12 @@ function PruebaVoz() {
   const verIdiomas = async () => {
     try {
       const { locales, installedLocales } = await voz.getSupportedLocales({});
-      const tieneMx = (lista) => (lista.includes('es-MX') ? 'sí' : 'no');
+      // Con el servicio en línea de Google las listas suelen llegar vacías aunque es-MX funcione.
+      const tieneMx = (lista) =>
+        lista.length === 0 ? 'lista vacía' : lista.includes('es-MX') ? 'sí' : 'no';
       setEstado(
-        `es-MX soportado: ${tieneMx(locales)} · instalado sin conexión: ${tieneMx(installedLocales)}`,
+        `es-MX soportado: ${tieneMx(locales)} (${locales.length} idiomas) · ` +
+          `instalado sin conexión: ${tieneMx(installedLocales)} (${installedLocales.length})`,
       );
     } catch (e) {
       setEstado(`No se pudieron leer los idiomas: ${e.message}`);
@@ -107,6 +110,21 @@ function PruebaWidget() {
   const widget = cargarWidget();
   const [dato, setDato] = useState('$1,234.50 (prueba)');
   const [estado, setEstado] = useState('');
+
+  // Muestra el dato que ya estaba guardado para comprobar que sobrevive a reinicios.
+  useEffect(() => {
+    if (!widget) return;
+    leerDatoWidget()
+      .then((guardado) => {
+        if (guardado) {
+          setDato(guardado);
+          setEstado(`Dato guardado actualmente: ${guardado}`);
+        } else {
+          setEstado('No hay dato guardado todavía');
+        }
+      })
+      .catch((e) => setEstado(`No se pudo leer el dato guardado: ${e.message}`));
+  }, [widget]);
 
   if (!widget) {
     return (
