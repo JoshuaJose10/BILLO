@@ -42,7 +42,16 @@ npm run migrate
 3. En una base de datos vacía, ejecuta secuencialmente todas las migraciones (`001` a `009`) en orden alfabético dentro de transacciones individuales.
 4. Es completamente **idempotente**: ejecutar `npm run migrate` varias veces seguidas no falla ni duplica registros.
 
-## Ejecución del servidor
+## QA · Sprint 2
+
+`npm run qa:baseline` ejecuta Newman contra una base PostgreSQL nueva y temporal.
+Requiere un usuario con permiso `CREATEDB`; lee la conexión de `.env`, aplica las
+nueve migraciones y elimina la base al terminar. Guarda evidencias sanitizadas
+en `docs/postman/ejecucion-sprint2.json` y `docs/qa/gastos-resultados.json`.
+Consulta [la guía de QA](../docs/postman/README.md) y el
+[reporte de línea base](../docs/qa/sprint2-linea-base.md).
+
+## Comandos del servidor
 
 - **Modo desarrollo (con recarga automática):**
   ```bash
