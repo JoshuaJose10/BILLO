@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.surfaceHigh,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(255, 255, 255, 0.15)',
+    borderTopColor: colors.borderTopAvatar,
   },
   // font-headline-sm text-headline-sm text-primary
   avatarTexto: {
@@ -297,9 +297,9 @@ const styles = StyleSheet.create({
     borderRadius: radios.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(42, 42, 42, 0.8)',
+    backgroundColor: colors.surfaceHigh80,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(255, 255, 255, 0.12)',
+    borderTopColor: colors.borderTopStrong,
   },
   // Panel: rounded-[28px] bg-surface-container-lowest/80 p-space-md pt-4; mt-1 + gap-3.5
   // El brillo superior del diseño es el borde de arriba, en todo el ancho y con el radio.
@@ -311,17 +311,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderTopLeftRadius: radios.panel,
     borderTopRightRadius: radios.panel,
-    backgroundColor: 'rgba(14, 14, 14, 0.8)',
+    backgroundColor: colors.surfaceLowest80,
   },
   panelFila: {
     paddingHorizontal: 16,
-    backgroundColor: 'rgba(14, 14, 14, 0.8)',
+    backgroundColor: colors.surfaceLowest80,
   },
   panelPie: {
     height: 16,
     borderBottomLeftRadius: radios.panel,
     borderBottomRightRadius: radios.panel,
-    backgroundColor: 'rgba(14, 14, 14, 0.8)',
+    backgroundColor: colors.surfaceLowest80,
   },
   // w-8 h-1 rounded-full bg-surface-container-highest mx-auto mb-3 opacity-60
   panelJalador: {
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
   // gap-2.5 entre movimientos (mismo fondo que el panel)
   separador: {
     height: 10,
-    backgroundColor: 'rgba(14, 14, 14, 0.8)',
+    backgroundColor: colors.surfaceLowest80,
   },
   vacio: {
     alignItems: 'center',

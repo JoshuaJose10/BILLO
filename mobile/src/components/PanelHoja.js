@@ -36,7 +36,7 @@ export default function PanelHoja({ titulo, onCerrar, children }) {
 const styles = StyleSheet.create({
   fondo: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: colors.scrim,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
   },

@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   velo: {
-    backgroundColor: 'rgba(19, 19, 19, 0.6)',
+    backgroundColor: colors.background60,
   },
   // px-margin gap-6 opacity-35
   composicion: {
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 12,
-    backgroundColor: 'rgba(57, 57, 57, 0.4)', // surface-bright/40
+    backgroundColor: colors.surfaceBright40, // surface-bright/40
     alignItems: 'center',
     justifyContent: 'center',
     transform: [{ rotate: '-6deg' }],

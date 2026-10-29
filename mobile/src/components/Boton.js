@@ -68,11 +68,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  // shadow-[0_0_30px_rgba(255,255,255,0.25)]
+  // shadow-[0_0_30px] blanco al 25%
   botonCompacto: {
     height: 48,
     gap: 6,
-    shadowColor: '#FFFFFF',
+    shadowColor: colors.brillo,
     shadowOffset: { width: 0, height: 0 },
     shadowRadius: 15,
     shadowOpacity: 0.25,
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 16,
     marginTop: 12,
-    shadowColor: '#FFFFFF',
+    shadowColor: colors.brillo,
     shadowOffset: { width: 0, height: 10 },
     shadowRadius: 7.5,
     shadowOpacity: 0.05,

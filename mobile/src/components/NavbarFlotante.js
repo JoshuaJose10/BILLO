@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   // shadow-2xl
   sombra: {
     borderRadius: 9999,
-    shadowColor: '#000',
+    shadowColor: colors.sombra,
     shadowOffset: { width: 0, height: 25 },
     shadowRadius: 25,
     shadowOpacity: 0.25,
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  // bg-[#18181b]/75 encima del blur
+  // bg-zinc-900/75 encima del blur
   capa: {
     backgroundColor: colors.navbar,
   },
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     top: 0,
     borderRadius: 9999,
     backgroundColor: colors.primary,
-    shadowColor: '#000',
+    shadowColor: colors.sombra,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 6,
     shadowOpacity: 0.1,
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.primary,
-    shadowColor: '#000',
+    shadowColor: colors.sombra,
     shadowOffset: { width: 0, height: 10 },
     shadowRadius: 15,
     shadowOpacity: 0.1,

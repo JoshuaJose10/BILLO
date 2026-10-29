@@ -352,20 +352,20 @@ const styles = StyleSheet.create({
   },
   // bg-black/40 + backdrop-blur-sm
   velo: {
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: colors.scrimSoft,
   },
-  // rounded-t-[32px] bg-[#0c0c0e]/95 px-5 pt-2 pb-5. El borde superior hace de brillo,
+  // rounded-t-[32px] bg-sheetDeep px-5 pt-2 pb-5. El borde superior hace de brillo,
   // en todo el ancho y siguiendo el radio.
-  // shadow-[0_-20px_50px_rgba(0,0,0,0.9)]
+  // shadow-[0_-20px_50px] negro al 90%
   hoja: {
-    backgroundColor: 'rgba(12, 12, 14, 0.95)',
+    backgroundColor: colors.sheetDeep,
     borderTopLeftRadius: radios.hoja,
     borderTopRightRadius: radios.hoja,
     borderTopWidth: 1,
     borderTopColor: colors.borderTop,
     paddingHorizontal: 20,
     paddingTop: 8,
-    shadowColor: '#000',
+    shadowColor: colors.sombra,
     shadowOffset: { width: 0, height: -20 },
     shadowRadius: 25,
     shadowOpacity: 0.9,
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 4,
     borderRadius: radios.full,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: colors.handleSheet,
     marginTop: 6,
     marginBottom: 12,
   },
