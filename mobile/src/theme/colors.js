@@ -79,6 +79,21 @@ export const temas = {
     // Acento de marca (Luminal Glow)
     acento: '#8B5CF6',
     acentoTexto: '#C4B5FD', // acento para texto sobre fondo oscuro (violeta claro)
+    acentoSuave: 'rgba(139, 92, 246, 0.15)', // fondo de chips y botones activos con acento
+
+    // Brillo atmosférico del fondo (FondoDegradado). Cada color tiene su versión al 0% para que
+    // el degradado se desvanezca en el mismo tono y no pase por gris.
+    brilloIndigo: 'rgba(79, 70, 229, 0.35)',
+    brilloIndigoFin: 'rgba(79, 70, 229, 0)',
+    brilloVioleta: 'rgba(124, 58, 237, 0.25)',
+    brilloVioletaFin: 'rgba(124, 58, 237, 0)',
+
+    // Reflejo superior del ícono de categoría (IconoCategoria)
+    brilloIcono: 'rgba(255, 255, 255, 0.22)',
+    brilloIconoFin: 'rgba(255, 255, 255, 0)',
+
+    // Texto oscuro sobre colores de categoría claros (theme/categorias.js)
+    textoSobreClaro: '#111114',
 
     // Semánticos de estado financiero; la variante Suave (~15%) es para fondos de barras y avisos
     exito: '#10B981', // en meta / ingresos

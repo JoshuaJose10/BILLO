@@ -81,7 +81,7 @@ igual que el `/NN` de Tailwind.
 | `textSoft` | `rgba(255, 255, 255, 0.9)` | Punto del teclado |
 | `iconSoft` | `rgba(255, 255, 255, 0.8)` | Ícono de borrar del teclado |
 | `amount` | `#E2E1EB` | Montos de egresos |
-| `error` | `#FFB4AB` | Errores de formulario |
+| `error` | `#FFB4AB` | Sin uso en las vistas desde HU-43 (los errores usan `alerta`) |
 
 ### Acciones y sombras
 
@@ -99,11 +99,28 @@ igual que el `/NN` de Tailwind.
 
 | Token | Valor | Uso |
 | --- | --- | --- |
-| `acento` | `#8B5CF6` | Color de marca (violeta). Cursor y selección del campo de nota en Nuevo gasto. |
-| `acentoTexto` | `#C4B5FD` | Acento para texto sobre fondo oscuro (violeta claro). Saludo "Hola, {nombre}" de Inicio. |
+| `acento` | `#8B5CF6` | Color de marca (violeta). Cursor y selección de la nota, borde de foco de Input, borde de ChipSelector y SelectorMes al presionar, borde y halo del chip "Todas" seleccionado. |
+| `acentoTexto` | `#C4B5FD` | Acento para texto sobre fondo oscuro (violeta claro). Saludo de Inicio, enlaces de Login y Registro (EnlaceAuth), texto e ícono del chip "Todas" seleccionado. |
+| `acentoSuave` | `rgba(139, 92, 246, 0.15)` | Fondo de chips y botones activos con acento. |
 
-El acento se usa de forma discreta: no cambia botones, la pestaña activa, el botón `+`, chips, fondos
-ni sombras.
+El acento se usa de forma discreta: no cambia Boton (blanco/negro), la pestaña activa ni el botón `+`
+de la barra flotante. Con el acento sólido de fondo ningún texto llega a 4.5:1 (blanco 4.23, `#111114`
+4.45), por eso los estados activos usan `acentoSuave` + borde `acento` + texto `acentoTexto`.
+
+## Brillo del fondo
+
+`FondoDegradado` pinta dos halos sobre el 60% superior de la pantalla, encima de `background`: índigo
+desde la esquina superior izquierda y violeta desde la derecha. Se usa en Inicio, Movimientos y, sobre
+el velo de `FondoAuth`, en Login y Registro.
+
+| Token | Valor | Uso |
+| --- | --- | --- |
+| `brilloIndigo` | `rgba(79, 70, 229, 0.35)` | Halo índigo (brief) |
+| `brilloIndigoFin` | `rgba(79, 70, 229, 0)` | Final del halo índigo |
+| `brilloVioleta` | `rgba(124, 58, 237, 0.25)` | Halo violeta (brief) |
+| `brilloVioletaFin` | `rgba(124, 58, 237, 0)` | Final del halo violeta |
+
+Los finales al 0% conservan el tono: degradar a `transparent` haría que iOS pase por gris.
 
 ## Semánticos
 
@@ -115,26 +132,46 @@ Estado financiero. Cada uno tiene una variante `Suave` al ~15% para fondos de ba
 | `aviso` | `#FF9F0A` | `avisoSuave` · `rgba(255, 159, 10, 0.15)` | Cerca del límite |
 | `alerta` | `#FF453A` | `alertaSuave` · `rgba(255, 69, 58, 0.15)` | Límite excedido |
 
-`alerta` (estado financiero) es distinto de `error` (validación de formularios) y del coral de Comida.
+`alerta` también es el color de los errores en pantalla: textos de error de Input, Login, Registro y
+Nuevo gasto, aviso de error de Inicio y bordes de error de Input, MontoGrande y ChipCategoria. El token
+`error` (`#FFB4AB`) queda sin usos en las vistas.
 
 ## Categorías
 
-La clave es el nombre exacto del seed (`backend/migrations/007_seed_categorias.sql`). Una categoría
-que no esté en la tabla usa el color de Otros.
+En `theme/categorias.js`. La clave es el nombre exacto del seed
+(`backend/migrations/007_seed_categorias.sql`, con mayúsculas y acentos). Una categoría que no esté en
+la tabla (personalizada, renombrada, `null`) usa los valores de Otros.
 
-| Categoría (seed) | Color |
-| --- | --- |
-| Comida | `#FF3B69` |
-| Transporte | `#4F7FFF` |
-| Entretenimiento | `#7C3AED` |
-| Servicios | `#00C288` |
-| Salud | `#F472B6` |
-| Otros | `#8E8E93` |
+- `colorCategoria(nombre)`: color base.
+- `degradadoCategoria(nombre)`: `[claro, base, oscuro]` para el degradado diagonal de `IconoCategoria`.
+  Claro = 25% hacia blanco, oscuro = 25% hacia negro.
+- `textoSobreCategoria(nombre)`: texto sobre el color sólido. Blanco solo si su contraste WCAG es
+  ≥ 4.5:1; si no, `textoSobreClaro` (`#111114`).
 
-Regla del brief para chips: seleccionado → fondo sólido del color de la categoría con texto e ícono
-blancos; no seleccionado → superficie neutra con un micro-punto del color de la categoría.
+| Categoría (seed) | Base | Degradado (claro → oscuro) | Contraste blanco | Contraste `#111114` | Texto |
+| --- | --- | --- | --- | --- | --- |
+| Comida | `#FF3B69` | `#FF6C8F` → `#BF2C4F` | 3.45 | 5.46 | `#111114` |
+| Transporte | `#4F7FFF` | `#7B9FFF` → `#3B5FBF` | 3.61 | 5.22 | `#111114` |
+| Entretenimiento | `#7C3AED` | `#9D6BF2` → `#5D2CB2` | 5.70 | 3.31 | blanco |
+| Servicios | `#00C288` | `#40D1A6` → `#009266` | 2.31 | 8.14 | `#111114` |
+| Salud | `#F472B6` | `#F795C8` → `#B75689` | 2.65 | 7.12 | `#111114` |
+| Otros | `#8E8E93` | `#AAAAAE` → `#6B6B6E` | 3.26 | 5.78 | `#111114` |
 
-Aplicar los colores de categoría en pantallas corresponde a HU-33, HU-35 y HU-37.
+### Dónde se aplican
+
+- **`IconoCategoria`** (filas de gasto de Inicio y Movimientos): squircle de 40px con el degradado,
+  reflejo blanco arriba (`brilloIcono` → `brilloIconoFin`), glifo blanco y sombra del color base.
+- **`ChipCategoria`**: seleccionado → fondo del color de la categoría, texto e ícono con
+  `textoSobreCategoria` y halo del mismo color; no seleccionado → superficie neutra con micro-punto de
+  6px del color. El chip "Todas" (con `icono` propio) no lleva punto y, seleccionado, usa el acento.
+
+El brief pide texto blanco en los chips seleccionados; aquí manda el contraste WCAG.
+
+| Token | Valor | Uso |
+| --- | --- | --- |
+| `brilloIcono` | `rgba(255, 255, 255, 0.22)` | Reflejo superior de `IconoCategoria` |
+| `brilloIconoFin` | `rgba(255, 255, 255, 0)` | Final del reflejo |
+| `textoSobreClaro` | `#111114` | Texto sobre categorías claras |
 
 ## Pendiente: tema claro
 
