@@ -41,7 +41,8 @@
 
 Todo lo nativo vive en `mobile/src/spike/` y se carga con `require` dentro de `try/catch` (`src/spike/modulosNativos.js`). Las pantallas actuales no importan nada nativo nuevo.
 
-- `react-native-android-widget` **lanza un error al importarse** en Expo Go (usa `TurboModuleRegistry.getEnforcing`). Por eso ni `index.js` ni la pantalla de pruebas lo importan directamente: `registrarWidget()` y `cargarWidget()` lo cargan protegidos.
+- `react-native-android-widget` **lanza un error al importarse** en Expo Go (usa `TurboModuleRegistry.getEnforcing`). Por eso ni `index.js` ni la pantalla de pruebas lo importan directamente: `registrarWidget()` y `cargarWidget()` revisan primero `TurboModuleRegistry.get('AndroidWidget')` y solo entonces lo cargan.
+- **Lección para el Sprint 3:** `try/catch` alrededor de `require` no basta en desarrollo, porque Metro reporta el error a la pantalla roja antes de que llegue al `catch`. Hay que preguntar si el módulo nativo existe antes de cargarlo.
 - `expo-speech-recognition` también lanza un error al importarse sin el módulo nativo (`requireNativeModule`). Se carga igual, con `cargarVoz()`.
 - Con `expo-dev-client` instalado, `expo start` abre el development build por defecto. Para no cambiar el trabajo diario, **`npm start` ahora corre `expo start --go`** (y `npm run android`, `expo start --go --android`). Para el APK del spike se usa `npm run start:dev-client`.
 - Los config plugins solo se aplican al generar el build nativo; no afectan Expo Go.
@@ -51,7 +52,7 @@ Todo lo nativo vive en `mobile/src/spike/` y se carga con `require` dentro de `t
 | `npm run lint` en mobile | ✅ |
 | El bundle de Android compila con los imports protegidos | ✅ |
 | Abrir la app en Expo Go: login, inicio, nuevo gasto y perfil funcionan igual | ⏳ pendiente en Android con Expo Go para SDK 57. En **iPhone no se puede**: Expo Go de iOS ya es para SDK 58 y el proyecto (desde `develop`, no por el spike) usa SDK 57 ("Project is incompatible with this version of Expo Go") |
-| En Expo Go, Perfil → "Laboratorio (spike)" muestra "No disponible: requiere el development build" en voz y widget, sin pantalla roja | ⏳ pendiente de probar en dispositivo |
+| En Expo Go, Perfil → "Laboratorio (spike)" muestra "No disponible: requiere el development build" en voz y widget, sin pantalla roja | ❌→🔧 **Primera prueba (Expo Go SDK 57, Android): pantalla roja** `Cannot find native module 'ExpoSpeechRecognition'` al abrir el Laboratorio. La app no se cerró (al descartar el error la pantalla seguía), pero en desarrollo Metro manda a la pantalla roja los errores de un `require` hecho fuera de la carga inicial, **aunque esté dentro de try/catch**. Corregido en `8e092cb`: antes del `require` se revisa que el módulo exista (`requireOptionalNativeModule` y `TurboModuleRegistry.get`). ⏳ Repetir la prueba |
 
 La pantalla **Laboratorio (spike)** solo se registra con `__DEV__`, así que no aparece en un build de producción.
 
@@ -197,4 +198,4 @@ cd backend && npm run dev
 curl -w "\n%{time_total}s\n" "http://localhost:3000/tipo-cambio?de=USD&a=MXN"
 ```
 
-**Dispositivo de prueba:** Samsung Galaxy Tab S9 FE (SM-X510), Android ⏳ _versión_. Pruebas del 2026-10-28 con el development build `d68cb1f1`.
+**Dispositivo de prueba:** Samsung Galaxy Tab S9 FE (SM-X510), Android 16, One UI 8.5. Pruebas del 2026-10-28 con el development build `d68cb1f1`.
