@@ -13,12 +13,12 @@
 | Requisito | Recomendación | Razón corta | Estimado Sprint 3 |
 |-----------|---------------|-------------|-------------------|
 | **RF11** Cambio de moneda | **IR** | La fuente se probó de punta a punta desde nuestro servidor: gratis, sin clave, incluye MXN y USD y responde en menos de 0.5 s. | 12 h |
-| **RF12** Registro por voz | **IR** *(provisional hasta probar en dispositivo)* | Librería mantenida y versionada por SDK, módulo de Expo compatible con la nueva arquitectura; el plugin configura permisos y el build lo genera bien. Falta confirmar la calidad del reconocimiento en es-MX. | 16 h |
-| **RF13** Widget de Android | **IR** *(provisional y con prioridad baja)* | La librería genera el widget y su tarea en segundo plano; el prebuild sale bien. Es la parte con más riesgo: depende de un solo mantenedor y `expo-widgets` (oficial) apenas soporta Android desde SDK 58. | 10 h |
+| **RF12** Registro por voz | **IR** | Probado en dispositivo: reconoció la frase en es-MX en 5 de 5 intentos, con el permiso del micrófono en español. Librería mantenida, versionada por SDK y compatible con la nueva arquitectura. | 16 h |
+| **RF13** Widget de Android | **IR** *(condicionado y con prioridad baja)* | Probado en dispositivo: aparece en el selector, muestra el dato guardado, se actualiza al instante y abre la app al tocarlo. **Pero después de reiniciar el dispositivo quedó vacío y la app se cerró con error** (ver 2.4). Antes de comprometer RF13 en el Sprint 3 hay que repetir esa prueba en un build de release. Además depende de un solo mantenedor. | 12 h |
 
 **Cambiar a NO IR si en el dispositivo pasa algo de esto:**
 - RF12: falla en es-MX en 2 o más de 5 intentos con la frase de prueba en un lugar silencioso, o el teléfono de prueba no tiene servicio de reconocimiento.
-- RF13: el widget no aparece en el selector, no se actualiza al tocar "Guardar y actualizar widget" o la app se cierra sola (crash/ANR) al agregarlo.
+- RF13: en un build de release (con el JS dentro del APK) el widget sigue vacío o la app se cierra después de reiniciar el dispositivo.
 
 ---
 
@@ -50,7 +50,7 @@ Todo lo nativo vive en `mobile/src/spike/` y se carga con `require` dentro de `t
 |--------|-----------|
 | `npm run lint` en mobile | ✅ |
 | El bundle de Android compila con los imports protegidos | ✅ |
-| Abrir la app en Expo Go: login, inicio, nuevo gasto y perfil funcionan igual | ⏳ pendiente de probar en dispositivo (no se pudo abrir Expo Go desde la máquina del spike) |
+| Abrir la app en Expo Go: login, inicio, nuevo gasto y perfil funcionan igual | ⏳ pendiente de probar en dispositivo |
 | En Expo Go, Perfil → "Laboratorio (spike)" muestra "No disponible: requiere el development build" en voz y widget, sin pantalla roja | ⏳ pendiente de probar en dispositivo |
 
 La pantalla **Laboratorio (spike)** solo se registra con `__DEV__`, así que no aparece en un build de producción.
@@ -70,11 +70,11 @@ Por qué esta:
 | Prueba (frase: "cincuenta pesos en tacos") | Resultado |
 |--------------------------------------------|-----------|
 | Se instala y el prebuild agrega `RECORD_AUDIO` y la consulta al servicio de Google | ✅ |
-| Se otorga el permiso del micrófono | ✅ (el reconocimiento funcionó; falta confirmar que el texto del diálogo salga en español) |
-| `es-MX` aparece como soportado en "Ver idiomas" | ⏳ pendiente de probar en dispositivo |
-| Texto reconocido | ✅ Intento 1: **"$50 en tacos"** (resultado final). El reconocedor convierte "cincuenta pesos" en "$50" por su cuenta. ⏳ faltan intentos 2 a 5 |
-| Tiempo desde que terminas de hablar hasta el resultado final | ⏳ pendiente de probar en dispositivo |
-| Funciona sin internet | ⏳ pendiente de probar en dispositivo |
+| Aparece el permiso del micrófono con el texto en español | ✅ |
+| `es-MX` aparece como soportado en "Ver idiomas" | ⚠️ Respondió "no" en soportado y en instalado, aunque el reconocimiento en es-MX funcionó. Con el servicio en línea de Google, `getSupportedLocales` suele regresar listas vacías. **No usarlo para decidir si mostrar la voz**: mejor intentar y manejar el error `language-not-supported`. Desde `5a6b96c` la pantalla muestra cuántos idiomas regresó la lista |
+| Texto reconocido (5 intentos) | ✅ **5 de 5 correctos**: "$50 en tacos", "50 pesos en tacos", "$50 en tacos", "$50 en tacos", "$50 en tacos". El reconocedor convierte "cincuenta pesos" en número (con o sin `$`) |
+| Tiempo desde que terminas de hablar hasta el resultado final | No se midió; el texto parcial aparece mientras se habla |
+| Funciona sin internet | No se probó (opcional). Como no hay idioma instalado sin conexión, se espera que **no** funcione sin internet |
 
 Nota (confirmada en dispositivo): el reconocedor escribe montos con formato, por ejemplo "cincuenta pesos" → "$50". Por eso el indicador "Coincide con la frase" dice "no" aunque el reconocimiento sea correcto. El parser del Sprint 3 debe aceptar `$50`, `50 pesos` y `cincuenta pesos`; esto lo simplifica, porque el monto suele llegar ya como número.
 
@@ -99,9 +99,9 @@ Nota (confirmada en dispositivo): el reconocedor escribe montos con formato, por
 | El prebuild genera el receiver y el XML del widget | ✅ |
 | El widget "Billo" aparece en el selector de widgets del launcher | ✅ |
 | Al agregarlo muestra el texto fijo y el último dato guardado | ✅ Muestra "BILLO · TOTAL DEL MES" y "$1,234.50 (prueba)", guardado antes de agregar el widget: la tarea en segundo plano lee el dato sin abrir la app |
-| "Guardar y actualizar widget" cambia el dato en menos de 2 s | ⏳ pendiente de probar en dispositivo |
-| El dato sigue ahí después de cerrar la app y reiniciar el teléfono | ⏳ pendiente de probar en dispositivo |
-| Tocar el widget abre Billo | ⏳ pendiente de probar en dispositivo |
+| "Guardar y actualizar widget" cambia el dato en menos de 2 s | ✅ Al instante |
+| El dato sigue ahí después de cerrar la app y reiniciar el teléfono | ❌ **Falló en el development build:** después de reiniciar, el widget quedó vacío (sin contenido) y Android mostró "Billo se cerró debido a un error". Se tocó "Eliminar caché", que borra la caché pero no los datos de SecureStore. **Causa probable (no confirmada):** al reiniciar, Android ejecuta la tarea en segundo plano del widget, y en un development build el JS no viene en el APK sino de Metro; si Metro no estaba disponible, la tarea falla. En un build de release el JS va dentro del APK. ⏳ Verificar en un build de release y, si vuelve a fallar, sacar el log con `adb logcat` |
+| Tocar el widget abre Billo | ✅ Al instante |
 
 ### 2.5 RF11: Cambio de moneda
 
@@ -152,9 +152,9 @@ Nota (confirmada en dispositivo): el reconocedor escribe montos con formato, por
 |-----------|--------|-------|
 | RF11 | Migración `moneda` en gastos (2 h), validación y contrato (2 h), endpoint definitivo con respaldo y caché (2 h), selector de moneda y conversión en la app (4 h), pruebas (2 h) | **12** |
 | RF12 | Pantalla o botón de voz en Nuevo gasto (4 h), parser de español: números en dígitos y en palabras, categoría, "pesos/dólares" (8 h), manejo de permisos y errores (2 h), pruebas en dispositivo (2 h) | **16** |
-| RF13 | Diseño final del widget y imagen de vista previa (3 h), calcular y guardar el total del mes al crear, editar o borrar gastos (3 h), almacenamiento no seguro para el dato (1 h), pruebas en 2 launchers (3 h) | **10** |
+| RF13 | Diseño final del widget y imagen de vista previa (3 h), calcular y guardar el total del mes al crear, editar o borrar gastos (3 h), almacenamiento no seguro para el dato (1 h), pruebas en 2 launchers (3 h), **antes de empezar:** repetir la prueba de reinicio en un build de release (2 h) | **12** |
 | Común | Builds de EAS, distribuir el APK a QA y ajustar el flujo con development build | **4** |
-| **Total** | | **42** |
+| **Total** | | **44** |
 
 ---
 
@@ -164,9 +164,10 @@ Nota (confirmada en dispositivo): el reconocedor escribe montos con formato, por
 2. **Plan gratuito de EAS:** los builds en la nube tienen un cupo mensual y cola de espera. Revisar el cupo del plan gratuito en expo.dev antes del sprint. `eas build --local` no corre en Windows.
 3. **RF12 depende del servicio de Google:** en Android usa el reconocedor del sistema (normalmente la app de Google). Teléfonos sin servicios de Google o sin el paquete de es-MX pueden fallar. El audio se procesa en los servidores de Google salvo que el modelo sin conexión esté instalado (Android 13+): hay que mencionarlo en el aviso de privacidad.
 4. **RF13, un solo mantenedor:** `react-native-android-widget` depende de una persona. Hay un issue abierto sobre crash en builds de release con Expo SDK 58 / AGP 9 (R8). Con SDK 57 no aplica, pero hay que revisarlo antes de actualizar. Alternativa: `expo-widgets` (oficial) en SDK 58.
-5. **RF13, actualizaciones:** Android limita la actualización automática a 30 minutos como mínimo; el total se debe actualizar desde la app cada vez que cambia un gasto. Algunos launchers con ahorro de batería agresivo (por ejemplo Xiaomi o Huawei) pueden restringir las tareas en segundo plano.
-6. **RF11, tasa diaria:** el BCE publica una tasa por día hábil (no hay tasa en fin de semana ni en tiempo real). Para un control de gastos personal es suficiente, pero hay que mostrar la fecha de la tasa. Si la fuente cae, se usa el respaldo o la última tasa guardada.
-7. **`android.package` es permanente:** `com.billo.app` no se puede cambiar después de publicar en Google Play.
+5. **RF13, reinicio del dispositivo:** en el development build el widget quedó vacío y la app se cerró después de reiniciar (sección 2.4). Hasta probarlo en release no se sabe si es un problema del development build o de la librería. Hay un issue abierto parecido (ANR en `HeadlessJsTaskWorker.startWork`).
+6. **RF13, actualizaciones:** Android limita la actualización automática a 30 minutos como mínimo; el total se debe actualizar desde la app cada vez que cambia un gasto. Algunos launchers con ahorro de batería agresivo (por ejemplo Xiaomi o Huawei) pueden restringir las tareas en segundo plano.
+7. **RF11, tasa diaria:** el BCE publica una tasa por día hábil (no hay tasa en fin de semana ni en tiempo real). Para un control de gastos personal es suficiente, pero hay que mostrar la fecha de la tasa. Si la fuente cae, se usa el respaldo o la última tasa guardada.
+8. **`android.package` es permanente:** `com.billo.app` no se puede cambiar después de publicar en Google Play.
 
 ---
 
@@ -195,4 +196,4 @@ cd backend && npm run dev
 curl -w "\n%{time_total}s\n" "http://localhost:3000/tipo-cambio?de=USD&a=MXN"
 ```
 
-**Teléfono de prueba:** ⏳ _modelo / versión de Android_
+**Dispositivo de prueba:** tablet Android, ⏳ _modelo / versión de Android_. Pruebas del 2026-10-28 con el development build `d68cb1f1`.
