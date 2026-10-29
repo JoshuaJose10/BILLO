@@ -1,60 +1,96 @@
-﻿# Billo API — HU-15
+# Billo API · Sprint 2 · línea base
 
-Colección importable: [billo-api.postman_collection.json](billo-api.postman_collection.json), Postman Collection v2.1. **74 peticiones por iteración**, cuatro carpetas en orden.
+Colección Postman v2.1: [billo-api.postman_collection.json](billo-api.postman_collection.json).
+Contrato v1.1 (HU-16), sobre `develop` con HU-17, HU-18 y HU-19 integradas.
 
-## Alcance acordado
+## Ejecución reproducible con Newman
 
-Se usa `GET /auth/profile` por instrucción del solicitante. La diferencia con `/auth/perfil` queda excluida. No se crean reportes de bugs nuevos ni se modifican asignaciones o estados externos. Las demás fallas se conservan en las aserciones y el resumen; no se consideran aprobadas.
+Requiere Node.js 22, PostgreSQL y un usuario con permiso `CREATEDB`. Configurar
+`DB_HOST`, `DB_PORT`, `DB_USER` y `DB_PASSWORD` en `backend/.env` desde el ejemplo.
+`QA_ADMIN_DATABASE` es opcional (por defecto `postgres`). No publicar ese archivo.
 
-Los reportes anteriores son antecedentes de otros commits y no se suman a esta ejecución.
-
-## Preparación y Collection Runner
-
-1. Usar backend de `develop`, con HU-08 y HU-12 integradas; registrar el commit probado.
-2. Configurar `backend/.env` desde `.env.example` con PostgreSQL de QA, JWT_SECRET y expiración. No publicar credenciales.
-3. Desde `backend`: `npm install`, `npm run migrate`, `npm run dev`.
-4. Confirmar `/health` → 200 y conexión a PostgreSQL.
-5. Importar la colección en Postman. Seleccionar **sin ambiente**, las 74 peticiones y **dos iteraciones**. Modificar solamente `baseUrl` si cambia el servidor.
-
-Cada iteración registra A/B con correos distintos de example.test, obtiene sus IDs/tokens y lee la categoría válida del catálogo. No hay que copiar datos manualmente. La primera petición reinicializa la sesión. No usar variables globales o de ambiente que oculten las variables de colección. Los valores de sesión exportados están vacíos; `tokenInvalido=invalido` es un dato negativo público.
-
-## Cobertura
-
-| Carpeta | Casos por iteración | Alcance |
-|---|---:|---|
-| Autenticación RF1 | 14 | Registro válido/duplicado/inválido, login válido/incorrecto/inexistente, perfil A/B, sin token y token inválido |
-| Categorías | 4 | Catálogo, filtro gasto, tipo inválido y sin token |
-| HU-12 Gastos RF2 | 54 | CRUD, persistencia, filtros, privacidad A/B, validaciones y cuatro rutas sin token/con token inválido |
-| Limpieza | 2 | Eliminar gastos residuales de las cuentas creadas por la iteración |
-
-Los CP-RF1 originales conservan sus IDs. Los QA-GAS trazan HU-12; crear un gasto y rechazar monto/categoría inválidos cubren la parte API de CP-RF2-01/02/03. No aprueban pantallas móviles. No se verifica la expiración de un JWT firmado: token inválido y ausencia de token son escenarios distintos.
-
-Privacidad: listas separadas, PUT/DELETE ajenos en ambos sentidos → 404 y consulta posterior que confirma datos intactos. Luego se verifica actualización y eliminación persistidas.
-
-Las aserciones funcionales aceptan code/message o codigo/mensaje para continuar; desde el contrato v1.1 (HU-16) las de CONTRATO exigen `error.code` y `error.message`. Un caso puede tener HTTP correcto y fallar por contrato. Las evidencias JSON de 2026-10-19 y 2026-10-22 se ejecutaron con la versión anterior (codigo/mensaje) y no se modifican.
-
-## Newman y evidencia
-
-Desde la raíz en PowerShell, con el backend activo:
+Desde la raíz:
 
 ```powershell
-$qaRawReport = Join-Path $env:TEMP 'billo-hu15-newman.json'
-npx --yes newman@6.2.3 run docs/postman/billo-api.postman_collection.json --iteration-count 2 --reporters cli,json --reporter-json-export $qaRawReport
-$qaRunnerExit = $LASTEXITCODE
-node docs/postman/resumir-ejecucion.cjs $qaRawReport docs/postman/ejecucion-hu15-2026-10-22.json
-Remove-Item -LiteralPath $qaRawReport
+cd backend
+npm ci
+npm run qa:baseline
 ```
 
-Newman devuelve 1 si hay aserciones fallidas; distinguirlas de errores del ejecutor. El conversor guarda HTTP, respuesta sanitizada y aserciones por caso. Omite solicitudes, cabeceras y variables de sesión. El reporte crudo contiene JWT y credenciales de prueba: no versionarlo.
+El comando usa Newman **6.2.3**, fijado en `package-lock.json`. Crea una base
+`billo_qa_<instante>_<aleatorio>` desde `template0`, verifica que esté vacía y aplica
+las nueve migraciones. Genera un JWT_SECRET temporal, importa `src/app.js` sin
+modificaciones y escucha en un puerto disponible de `127.0.0.1`. No necesita un
+servidor previo y no utiliza `DB_NAME` como destino de pruebas.
 
-Un caso es una petición de colección por iteración; pasa cuando todas sus aserciones pasan y no hay error de transporte. Las aserciones se cuentan aparte. Fallas repetidas no equivalen a bugs distintos.
+Ejecuta **79 peticiones × 2 iteraciones = 158 casos**, comprueba que la limpieza
+deje cero gastos y elimina exclusivamente la base creada por esa ejecución.
+Los errores de ejecución también pasan por la limpieza. Una terminación forzada
+del proceso puede impedirla.
 
-La limpieza usa pm.sendRequest para borrar gastos residuales de negativos aceptados indebidamente y verificar listas vacías. Sus aserciones pertenecen a los dos casos de limpieza; el total de solicitudes HTTP puede superar el de casos. Las cuentas permanecen porque no existe API para borrarlas. No ejecutar en producción.
+Guarda solo evidencia sanitizada:
 
-Ver [resumen HU-15](../qa/hu15-reporte.md) y [evidencia sanitizada](ejecucion-hu15-2026-10-22.json).
+- [ejecucion-sprint2.json](ejecucion-sprint2.json): colección completa, resultados
+  por caso y aserción, totales de Newman, commit, hashes y migraciones.
+- [gastos-resultados.json](../qa/gastos-resultados.json): los 108 casos de gastos
+  extraídos de **la misma ejecución**; no se suman de nuevo al total.
 
-## Revisión y regresión
+Código de salida: `0` si no hay fallos; `1` si hay casos o aserciones fallidos,
+aunque se alcance el 95 %; `2` si el ejecutor no pudo completar la verificación.
+`acceptance` indica por separado si casos y aserciones alcanzan el 95 %.
+Los reportes crudos de Newman no se escriben en disco porque contienen sesiones.
 
-Joshua debe ejecutar sin modificar datos manualmente y contrastar el resumen con groups, stats y las aserciones del JSON. Comprobar aislamiento y limpieza en ambas iteraciones.
+## Repetición de Joshua
 
-Tras una corrección, ejecutar toda la colección sobre el nuevo commit y guardar evidencia con otro nombre. No sobrescribir esta ejecución histórica. Repetir el mismo commit verifica repetibilidad; no acredita regresión posterior a una corrección.
+Usar el mismo código, lockfile y colección. Para conservar la evidencia publicada,
+dirigir la repetición a otro directorio absoluto:
+
+```powershell
+$env:QA_OUTPUT_DIR = Join-Path $env:TEMP 'billo-sprint2-joshua'
+npm run qa:baseline
+$qaExit = $LASTEXITCODE
+Remove-Item Env:QA_OUTPUT_DIR
+```
+
+Comparar `summary`, `groups`, `stats.assertions`, nombres de fallos,
+`executionErrors`, hashes de los archivos y `database` con la evidencia publicada.
+Los instantes, nombre aleatorio de BD, IDs, correos y JWT pueden variar. La BD
+debe iniciar sin tablas, aplicar todas las migraciones, terminar con cero gastos
+y quedar eliminada. Joshua registra su resultado y confirma los números en el
+[reporte de línea base](../qa/sprint2-linea-base.md); esta entrega no sustituye su revisión.
+
+## Cobertura y conteo
+
+| Carpeta | Casos por iteración |
+|---|---:|
+| Autenticación | 17 |
+| Categorías | 4 |
+| Gastos: CRUD, privacidad A/B, filtros, validaciones y tokens | 54 |
+| Limpieza por API | 2 |
+| HU-18: JSON malformado y ruta inexistente | 2 |
+
+Se conservan los 74 casos originales de HU-15 y se agregan cinco: alias del
+perfil, registro sin cuerpo, login sin cuerpo, JSON malformado y ruta inexistente.
+Se usa `/auth/perfil` como ruta oficial, con un caso separado para `/auth/profile`.
+Se exigen `error.code` y `error.message`, y `NO_AUTORIZADO` en los 401 de rutas
+protegidas. El 401 del login sigue siendo `CREDENCIALES_INVALIDAS`.
+Ambos registros deben devolver `{ usuario, token }`. El registro B envía el correo
+en mayúsculas y comprueba normalización y login posterior en minúsculas.
+
+Un caso pasa cuando todas sus aserciones pasan y no existe error de transporte.
+Las solicitudes auxiliares de `pm.sendRequest` pertenecen a los casos de limpieza.
+El conversor exige que el número de casos y aserciones coincida con Newman y que
+se haya ejecutado la colección completa. No hay casos excluidos ni saltados.
+
+Para usar Postman manualmente: importar la colección, seleccionar sin ambiente,
+ajustar `baseUrl` al servidor QA y ejecutar todas las carpetas en orden, dos
+iteraciones. El ejecutor anterior es la vía que garantiza una base nueva.
+No se prueba expiración de JWT firmado, la UI móvil ni el arranque de `src/index.js`.
+
+## Antecedentes
+
+Los reportes de [HU-15](../qa/hu15-reporte.md),
+[2026-10-22](ejecucion-hu15-2026-10-22.json) y
+[2026-10-19](ejecucion-auth-2026-10-19.json) son históricos y se conservan intactos.
+Los alcances antiguos que excluían `/auth/perfil` o nuevos bugs no aplican a esta
+línea base. No se reconstruye una ejecución histórica sin sus artefactos originales.
