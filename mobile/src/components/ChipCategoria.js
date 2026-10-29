@@ -1,20 +1,21 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colorCategoria, textoSobreCategoria } from '../theme/categorias';
+import { colorCategoria, fondoChipCategoria } from '../theme/categorias';
 import { colors, radios } from '../theme/colors';
 import { fonts } from '../theme/fonts';
 import { iconoCategoria } from '../utils/categorias';
 
 // Chip de categoría (Stitch: nuevo_gasto_bottom_sheet + reglas de chips de Luminal Glow).
 // px-3 py-1.5 rounded-xl gap-1.5, ícono 15.
-// Seleccionado: fondo del color de la categoría, texto e ícono con contraste
-// (textoSobreCategoria), font-semibold y halo del mismo color.
+// Seleccionado: fondo en la versión profunda del color (fondoChipCategoria, >= 4.5:1 con
+// blanco), texto e ícono blancos, font-semibold y halo del color base vivo.
 // Sin seleccionar: bg-white/[0.05] border-white/10 text-zinc-300 font-medium, ícono zinc-400 y
 // micro-punto de 6px del color de la categoría.
 // `error` pinta el borde en alerta (no se eligió categoría).
 // `icono` reemplaza el que corresponde al nombre y marca un chip que no es categoría (por
-// ejemplo "Todas"): sin micro-punto y, seleccionado, con el acento.
+// ejemplo "Todas"): sin micro-punto y, seleccionado, con el acento translúcido. No usa acento
+// sólido porque su versión profunda se confunde con el violeta de Entretenimiento.
 export default function ChipCategoria({
   nombre,
   icono,
@@ -27,8 +28,9 @@ export default function ChipCategoria({
   let estiloSeleccionado = null;
   let colorContenido = colors.textSecondary;
   if (seleccionado && esCategoria) {
-    estiloSeleccionado = { backgroundColor: color, borderColor: color, shadowColor: color };
-    colorContenido = textoSobreCategoria(nombre);
+    const fondo = fondoChipCategoria(nombre);
+    estiloSeleccionado = { backgroundColor: fondo, borderColor: fondo, shadowColor: color };
+    colorContenido = colors.text;
   } else if (seleccionado) {
     estiloSeleccionado = styles.seleccionadoAcento;
     colorContenido = colors.acentoTexto;

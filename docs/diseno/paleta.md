@@ -81,7 +81,6 @@ igual que el `/NN` de Tailwind.
 | `textSoft` | `rgba(255, 255, 255, 0.9)` | Punto del teclado |
 | `iconSoft` | `rgba(255, 255, 255, 0.8)` | Ícono de borrar del teclado |
 | `amount` | `#E2E1EB` | Montos de egresos |
-| `error` | `#FFB4AB` | Sin uso en las vistas desde HU-43 (los errores usan `alerta`) |
 
 ### Acciones y sombras
 
@@ -105,7 +104,9 @@ igual que el `/NN` de Tailwind.
 
 El acento se usa de forma discreta: no cambia Boton (blanco/negro), la pestaña activa ni el botón `+`
 de la barra flotante. Con el acento sólido de fondo ningún texto llega a 4.5:1 (blanco 4.23, `#111114`
-4.45), por eso los estados activos usan `acentoSuave` + borde `acento` + texto `acentoTexto`.
+4.45), por eso los estados activos usan `acentoSuave` + borde `acento` + texto `acentoTexto`. El chip
+"Todas" tampoco usa un acento profundo: el que llega a 4.5:1 (`#8452F5`) es casi igual al violeta de
+Entretenimiento (`#7C3AED`) y "Todas" se leería como una categoría.
 
 ## Brillo del fondo
 
@@ -133,45 +134,63 @@ Estado financiero. Cada uno tiene una variante `Suave` al ~15% para fondos de ba
 | `alerta` | `#FF453A` | `alertaSuave` · `rgba(255, 69, 58, 0.15)` | Límite excedido |
 
 `alerta` también es el color de los errores en pantalla: textos de error de Input, Login, Registro y
-Nuevo gasto, aviso de error de Inicio y bordes de error de Input, MontoGrande y ChipCategoria. El token
-`error` (`#FFB4AB`) queda sin usos en las vistas.
+Nuevo gasto, aviso de error de Inicio y bordes de error de Input, MontoGrande y ChipCategoria.
 
 ## Categorías
 
-En `theme/categorias.js`. La clave es el nombre exacto del seed
-(`backend/migrations/007_seed_categorias.sql`, con mayúsculas y acentos). Una categoría que no esté en
-la tabla (personalizada, renombrada, `null`) usa los valores de Otros.
+En `theme/categorias.js`. La clave es el nombre del seed
+(`backend/migrations/007_seed_categorias.sql`); se busca sin espacios a los lados y sin distinguir
+mayúsculas (`" comida "` → Comida). Una categoría que no esté en la tabla (personalizada, renombrada,
+`null`) usa los valores de Otros.
 
-- `colorCategoria(nombre)`: color base.
-- `degradadoCategoria(nombre)`: `[claro, base, oscuro]` para el degradado diagonal de `IconoCategoria`.
-  Claro = 25% hacia blanco, oscuro = 25% hacia negro.
-- `textoSobreCategoria(nombre)`: texto sobre el color sólido. Blanco solo si su contraste WCAG es
-  ≥ 4.5:1; si no, `textoSobreClaro` (`#111114`).
+- `colorCategoria(nombre)`: color base vivo (micro-punto, halo del chip, sombra del ícono).
+- `fondoChipCategoria(nombre)`: el mismo tono más oscuro (solo baja la luminosidad HSL) hasta dar
+  ≥ 4.5:1 con texto blanco. Es el fondo del chip seleccionado.
+- `degradadoCategoria(nombre)`: `[claro, centro, oscuro]` para el degradado diagonal de
+  `IconoCategoria`. En general claro = 25% hacia blanco, centro = base y oscuro = 25% hacia negro.
 
-| Categoría (seed) | Base | Degradado (claro → oscuro) | Contraste blanco | Contraste `#111114` | Texto |
-| --- | --- | --- | --- | --- | --- |
-| Comida | `#FF3B69` | `#FF6C8F` → `#BF2C4F` | 3.45 | 5.46 | `#111114` |
-| Transporte | `#4F7FFF` | `#7B9FFF` → `#3B5FBF` | 3.61 | 5.22 | `#111114` |
-| Entretenimiento | `#7C3AED` | `#9D6BF2` → `#5D2CB2` | 5.70 | 3.31 | blanco |
-| Servicios | `#00C288` | `#40D1A6` → `#009266` | 2.31 | 8.14 | `#111114` |
-| Salud | `#F472B6` | `#F795C8` → `#B75689` | 2.65 | 7.12 | `#111114` |
-| Otros | `#8E8E93` | `#AAAAAE` → `#6B6B6E` | 3.26 | 5.78 | `#111114` |
+### Chip seleccionado (texto blanco)
+
+| Categoría (seed) | Base | Blanco sobre base | Fondo de chip | Blanco sobre fondo |
+| --- | --- | --- | --- | --- |
+| Comida | `#FF3B69` | 3.45 | `#EA0037` | 4.61 |
+| Transporte | `#4F7FFF` | 3.61 | `#2F68FF` | 4.62 |
+| Entretenimiento | `#7C3AED` | 5.70 | `#7C3AED` (igual) | 5.70 |
+| Servicios | `#00C288` | 2.31 | `#00855D` | 4.65 |
+| Salud | `#F472B6` | 2.65 | `#E0117E` | 4.61 |
+| Otros | `#8E8E93` | 3.26 | `#74747A` | 4.64 |
+
+### Ícono (glifo blanco sobre el degradado)
+
+El glifo de 20px ocupa la parte central de la diagonal del squircle de 40px: el contraste se mide en
+el 25%, 50% y 75% del degradado. La meta para íconos es 3:1. En Servicios y Salud el final ya pasaba
+(3.96 y 4.46); lo que fallaba era el centro, así que se oscurecieron el centro y el claro, sin cambiar
+el tono.
+
+| Categoría | Degradado (claro · centro · oscuro) | Glifo 25% / 50% / 75% | Glifo vs final |
+| --- | --- | --- | --- |
+| Comida | `#FF6C8F` · `#FF3B69` · `#BF2C4F` | 3.09 / 3.45 / 4.40 | 5.69 |
+| Transporte | `#7B9FFF` · `#4F7FFF` · `#3B5FBF` | 3.03 / 3.61 / 4.57 | 5.87 |
+| Entretenimiento | `#9D6BF2` · `#7C3AED` · `#5D2CB2` | 4.57 / 5.70 / 6.95 | 8.51 |
+| Servicios | `#00C288` · `#00A876` · `#009266` | 2.65 / 3.06 / 3.47 | 3.96 |
+| Salud | `#F472B6` · `#F25EAC` · `#B75689` | 2.83 / 3.01 / 3.65 | 4.46 |
+| Otros | `#AAAAAE` · `#8E8E93` · `#6B6B6E` | 2.73 / 3.26 / 4.13 | 5.31 |
+
+Antes del ajuste, Servicios daba 2.12 / 2.31 / 2.99 y Salud 2.35 / 2.65 / 3.40.
 
 ### Dónde se aplican
 
 - **`IconoCategoria`** (filas de gasto de Inicio y Movimientos): squircle de 40px con el degradado,
   reflejo blanco arriba (`brilloIcono` → `brilloIconoFin`), glifo blanco y sombra del color base.
-- **`ChipCategoria`**: seleccionado → fondo del color de la categoría, texto e ícono con
-  `textoSobreCategoria` y halo del mismo color; no seleccionado → superficie neutra con micro-punto de
-  6px del color. El chip "Todas" (con `icono` propio) no lleva punto y, seleccionado, usa el acento.
-
-El brief pide texto blanco en los chips seleccionados; aquí manda el contraste WCAG.
+- **`ChipCategoria`**: seleccionado → fondo `fondoChipCategoria`, texto e ícono blancos y halo del
+  color base; no seleccionado → superficie neutra con micro-punto de 6px del color base. El chip
+  "Todas" (con `icono` propio) no lleva punto y, seleccionado, usa el acento translúcido.
+- **`TarjetaResumen`** (Inicio): micro-punto de 6px del color base en cada chip de categoría.
 
 | Token | Valor | Uso |
 | --- | --- | --- |
 | `brilloIcono` | `rgba(255, 255, 255, 0.22)` | Reflejo superior de `IconoCategoria` |
 | `brilloIconoFin` | `rgba(255, 255, 255, 0)` | Final del reflejo |
-| `textoSobreClaro` | `#111114` | Texto sobre categorías claras |
 
 ## Pendiente: tema claro
 

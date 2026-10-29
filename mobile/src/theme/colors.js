@@ -62,7 +62,6 @@ export const temas = {
     textSoft: 'rgba(255, 255, 255, 0.9)', // white/90 (punto del teclado)
     iconSoft: 'rgba(255, 255, 255, 0.8)', // white/80 (borrar del teclado)
     amount: '#E2E1EB', // secondary-fixed (montos de egresos)
-    error: '#FFB4AB',
 
     // Acciones
     primary: '#FFFFFF',
@@ -91,9 +90,6 @@ export const temas = {
     // Reflejo superior del ícono de categoría (IconoCategoria)
     brilloIcono: 'rgba(255, 255, 255, 0.22)',
     brilloIconoFin: 'rgba(255, 255, 255, 0)',
-
-    // Texto oscuro sobre colores de categoría claros (theme/categorias.js)
-    textoSobreClaro: '#111114',
 
     // Semánticos de estado financiero; la variante Suave (~15%) es para fondos de barras y avisos
     exito: '#10B981', // en meta / ingresos
