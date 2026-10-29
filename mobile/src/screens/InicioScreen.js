@@ -3,7 +3,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Pressable,
   RefreshControl,
@@ -13,6 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import Avatar from '../components/Avatar';
 import Boton from '../components/Boton';
 import Etiqueta from '../components/Etiqueta';
 import ItemGasto from '../components/ItemGasto';
@@ -22,6 +22,7 @@ import { useAuth } from '../context/AuthContext';
 import { useGastosService } from '../services/gastos';
 import { colors, radios } from '../theme/colors';
 import { fonts } from '../theme/fonts';
+import { mensajeError } from '../utils/errores';
 import { mesActual } from '../utils/fechas';
 
 // Las N categorías con más gasto: [{ id, nombre, total }] de mayor a menor.
@@ -43,14 +44,14 @@ const ordenarGastos = (gastos) =>
 export default function InicioScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
-  const { usuario, cerrarSesion } = useAuth();
+  const { usuario } = useAuth();
   const { listarCategorias, listarGastos } = useGastosService();
 
   const [gastos, setGastos] = useState([]);
   const [gastosMes, setGastosMes] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
-  const [mensajeError, setMensajeError] = useState('');
+  const [textoError, setTextoError] = useState('');
   const [refrescando, setRefrescando] = useState(false);
   const [hayDatos, setHayDatos] = useState(false);
 
@@ -69,7 +70,7 @@ export default function InicioScreen({ navigation }) {
       setEstado('listo');
       setHayDatos(true);
     } catch (error) {
-      setMensajeError(error?.mensaje || 'No se pudo conectar con el servidor');
+      setTextoError(mensajeError(error?.code, error?.message));
       setEstado('error');
     }
   }, [listarCategorias, listarGastos]);
@@ -98,38 +99,27 @@ export default function InicioScreen({ navigation }) {
     [gastosMes, nombresCategoria],
   );
   const primerNombre = (usuario?.nombre || '').trim().split(' ')[0];
-  const inicial = primerNombre.charAt(0).toUpperCase() || '?';
 
   const abrirNuevoGasto = () => navigation.navigate('NuevoGasto');
-
-  // TEMPORAL: se moverá a Perfil/Ajustes cuando exista esa pantalla.
-  const confirmarCerrarSesion = () =>
-    Alert.alert('Cerrar sesión', '¿Quieres cerrar tu sesión?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Cerrar sesión', style: 'destructive', onPress: cerrarSesion },
-    ]);
 
   const encabezado = (
     <View>
       <View style={styles.cabecera}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarTexto}>{inicial}</Text>
-        </View>
+        <Pressable
+          onPress={() => navigation.navigate('Perfil')}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Abrir perfil"
+          style={({ pressed }) => (pressed ? styles.avatarPresionado : null)}
+        >
+          <Avatar nombre={primerNombre} />
+        </Pressable>
         <View style={styles.saludoTextos}>
           <Etiqueta style={styles.bienvenida}>Bienvenido de nuevo</Etiqueta>
           <Text style={styles.saludo} numberOfLines={1}>
             Hola{primerNombre ? `, ${primerNombre}` : ''}
           </Text>
         </View>
-        <Pressable
-          onPress={confirmarCerrarSesion}
-          hitSlop={10}
-          style={styles.botonIcono}
-          accessibilityRole="button"
-          accessibilityLabel="Cerrar sesión"
-        >
-          <MaterialCommunityIcons name="logout" size={20} color={colors.text} />
-        </Pressable>
       </View>
 
       <TarjetaResumen total={totalMes} principales={principales} />
@@ -167,7 +157,7 @@ export default function InicioScreen({ navigation }) {
     return (
       <View style={[styles.pantalla, styles.centro, styles.relleno]}>
         <MaterialCommunityIcons name="wifi-off" size={40} color={colors.textSecondary} />
-        <Text style={styles.estadoTitulo}>{mensajeError}</Text>
+        <Text style={styles.estadoTitulo}>{textoError}</Text>
         <View style={styles.botonEstado}>
           <Boton titulo="Reintentar" onPress={reintentar} />
         </View>
@@ -190,7 +180,7 @@ export default function InicioScreen({ navigation }) {
             {encabezado}
             {estado === 'error' ? (
               <View style={styles.avisoError}>
-                <Text style={styles.avisoTexto}>{mensajeError}</Text>
+                <Text style={styles.avisoTexto}>{textoError}</Text>
                 <Pressable onPress={cargar} hitSlop={8} accessibilityRole="button">
                   <Text style={styles.avisoAccion}>Reintentar</Text>
                 </Pressable>
@@ -254,23 +244,8 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     marginBottom: 8,
   },
-  // w-10 h-10 rounded-full bg-surface-container-high
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: radios.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceHigh,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.borderTopAvatar,
-  },
-  // font-headline-sm text-headline-sm text-primary
-  avatarTexto: {
-    fontFamily: fonts.sansSemiBold,
-    fontSize: 18,
-    lineHeight: 24,
-    color: colors.text,
+  avatarPresionado: {
+    opacity: 0.7,
   },
   saludoTextos: {
     flex: 1,
@@ -289,17 +264,6 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     letterSpacing: -0.55,
     color: colors.acentoTexto,
-  },
-  // w-10 h-10 rounded-full bg-surface-container-high/80
-  botonIcono: {
-    width: 40,
-    height: 40,
-    borderRadius: radios.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceHigh80,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.borderTopStrong,
   },
   // Panel: rounded-[28px] bg-surface-container-lowest/80 p-space-md pt-4; mt-1 + gap-3.5
   // El brillo superior del diseño es el borde de arriba, en todo el ancho y con el radio.

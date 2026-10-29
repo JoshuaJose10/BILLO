@@ -1,0 +1,74 @@
+﻿"Task Name","Description","Assignee","Due Date","Severidad","QA ID","Registro externo"
+"S2-CAT-01 [API] Categorías sin tipo ni es_predefinida","# S2-CAT-01 · Categorías sin los campos del contrato v1.1
+
+- Estado: abierto; tarea de ClickUp pendiente de alta.
+- Responsable propuesto: Oscar Alejandro Arias Corona.
+- Fecha límite propuesta: 2026-10-29, America/Mexico_City.
+- Severidad propuesta: media. Relacionado con HU-18 y bloquea la línea base de HU-28.
+- Fuente: `develop` en el commit registrado en [la evidencia](../../postman/ejecucion-sprint2.json).
+
+Precondición: usuario registrado, token válido y migraciones completas.
+Reproducción: enviar `GET /categorias`, después `GET /categorias?tipo=gasto`,
+con `Authorization: Bearer <token>`.
+
+Esperado: 200 y cada elemento con `id`, `nombre`, `tipo` y `es_predefinida`;
+el filtro devuelve solo `tipo=gasto`.
+
+Observado: 200 con elementos como `{ ""id"": 1, ""nombre"": ""Entretenimiento"" }`.
+Faltan `tipo` y `es_predefinida`; no se puede comprobar el filtrado con la respuesta.
+`QA-CAT-01` y `QA-CAT-02` fallan en ambas iteraciones: **4 casos y 4 aserciones**.
+La consulta actual de `backend/src/controllers/categorias.controller.js` selecciona
+solo `id, nombre`.
+
+Validar la corrección ejecutando la colección completa con `npm run qa:baseline`.
+Alta externa pendiente: conservar este ID en la tarea y enlazarla en el reporte.
+","Oscar Alejandro Arias Corona","2026-10-29","Media","S2-CAT-01","Pendiente de crear; responsable y fecha propuestos"
+"S2-CAT-02 [API] Categorías acepta tipo inválido","# S2-CAT-02 · Categorías acepta un tipo inválido
+
+- Estado: abierto; tarea de ClickUp pendiente de alta.
+- Responsable propuesto: Oscar Alejandro Arias Corona.
+- Fecha límite propuesta: 2026-10-29, America/Mexico_City.
+- Severidad propuesta: media. Relacionado con HU-18 y bloquea la línea base de HU-28.
+- Fuente: `develop` en el commit registrado en [la evidencia](../../postman/ejecucion-sprint2.json).
+
+Precondición: usuario registrado y token válido.
+Reproducción: enviar `GET /categorias?tipo=invalido` con
+`Authorization: Bearer <token>`.
+
+Esperado: HTTP 400 y `{ ""error"": { ""code"": ""TIPO_INVALIDO"", ""message"": ""..."" } }`.
+Observado: HTTP 200 y el catálogo completo; el controlador ignora `req.query.tipo`.
+`QA-CAT-03` falla en ambas iteraciones: **2 casos y 6 aserciones**.
+
+Validar además los tipos válidos `gasto` y `membresia`, junto con S2-CAT-01,
+y repetir la colección completa. No se considera demostrado el filtrado correcto
+solo por rechazar `invalido`.
+
+Alta externa pendiente: conservar este ID en la tarea y enlazarla en el reporte.
+","Oscar Alejandro Arias Corona","2026-10-29","Media","S2-CAT-02","Pendiente de crear; responsable y fecha propuestos"
+"S2-HTTP-01 [API] Errores globales devuelven HTML","# S2-HTTP-01 · Errores globales devuelven HTML
+
+- Estado: abierto; tarea de ClickUp pendiente de alta.
+- Responsable propuesto: Oscar Alejandro Arias Corona.
+- Fecha límite propuesta: 2026-10-29, America/Mexico_City.
+- Severidad propuesta: media. Regresión pendiente de HU-18; bloquea la línea base de HU-28.
+- Fuente: `develop` en el commit registrado en [la evidencia](../../postman/ejecucion-sprint2.json).
+
+Reproducción, sin token:
+
+1. Enviar `POST /auth/register`, `Content-Type: application/json`, cuerpo literal `{""nombre"":`.
+2. Enviar `GET /qa-ruta-inexistente`.
+
+Esperado: 400 `JSON_INVALIDO` y 404 `RUTA_NO_ENCONTRADA`, respectivamente;
+ambos con `Content-Type: application/json` y `{ error: { code, message } }`.
+
+Observado: estados 400 y 404 correctos, pero `text/html; charset=utf-8` y páginas
+HTML de Express. El 400 incluye una traza del servidor. `src/app.js` no instala
+un manejador JSON para rutas inexistentes ni para errores del parser.
+`QA-HTTP-JSON` y `QA-HTTP-RUTA` fallan en ambas iteraciones:
+**4 casos y 12 aserciones**. Se agrupan en un registro por el manejo global faltante.
+
+Validar los dos errores y repetir la colección completa. Las respuestas no deben
+exponer trazas internas; conservar los códigos documentados de v1.1.
+
+Alta externa pendiente: conservar este ID en la tarea y enlazarla en el reporte.
+","Oscar Alejandro Arias Corona","2026-10-29","Media","S2-HTTP-01","Pendiente de crear; responsable y fecha propuestos"

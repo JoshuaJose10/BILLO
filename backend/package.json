@@ -7,7 +7,8 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "lint": "eslint .",
-    "migrate": "node src/db/migrate.js"
+    "migrate": "node src/db/migrate.js",
+    "qa:baseline": "node qa/gastos.cjs"
   },
   "keywords": [],
   "author": "",
@@ -16,7 +17,6 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "dotenv": "^18.0.4",
-    "expo": "^58.0.14",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.23.0"
@@ -27,6 +27,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
     "globals": "^17.12.0",
+    "newman": "6.2.3",
     "nodemon": "^3.1.14",
     "prettier": "^3.9.9"
   }

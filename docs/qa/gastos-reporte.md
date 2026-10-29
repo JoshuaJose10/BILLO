@@ -1,5 +1,11 @@
 # QA de CRUD de gastos — RF2
 
+> Reporte histórico. El script citado abajo no estaba versionado y no se puede
+> reconstruir esta ejecución. La entrega actual agrega `backend/qa/gastos.cjs`
+> y `docs/qa/gastos-resultados.json` para una **nueva** ejecución de Newman:
+> [Sprint 2 · línea base](sprint2-linea-base.md). El JSON actual no es evidencia
+> de los 70 casos históricos descritos aquí. Usar la guía actual para reproducirlo.
+
 Fecha de revisión: 18 de octubre de 2026 (America/Mexico_City).
 Rama: `feature/gastos-crud`. Commit de la aplicación: `bb11ed23471f7fce3a9bede5c89e03fee33bf4d4`.
 Ambiente: Windows, Node.js `v22.15.0`, Express y PostgreSQL reales; configuración local de `backend/.env` sin divulgar credenciales.

@@ -8,6 +8,7 @@ import Input from '../components/Input';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/fonts';
+import { mensajeError } from '../utils/errores';
 import { esEmailValido, fuerzaPassword, MIN_PASSWORD } from '../utils/validacion';
 
 // Color de cada barrita encendida (Stitch: bg-outline, bg-on-surface-variant, bg-primary).
@@ -76,8 +77,7 @@ export default function RegistroScreen({ navigation }) {
       // Registra y deja la sesión iniciada; RootNavigator cambia a Main.
       await registrarse(nombre, email, password);
     } catch (e) {
-      // EMAIL_DUPLICADO (409) → "El correo ya está registrado", tal como lo envía la API.
-      setErrorApi(e?.mensaje || 'Ocurrió un error inesperado');
+      setErrorApi(mensajeError(e?.code, e?.message));
     } finally {
       enviandoRef.current = false;
       setEnviando(false);

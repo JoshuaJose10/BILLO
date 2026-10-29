@@ -1,5 +1,13 @@
 import * as SecureStore from 'expo-secure-store';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import { apiFetch, setAlNoAutorizado } from '../services/api';
 import * as authService from '../services/auth';
@@ -7,12 +15,22 @@ import * as authService from '../services/auth';
 const CLAVE_TOKEN = 'billo_token';
 const CLAVE_USUARIO = 'billo_usuario';
 
+// Motivo de `motivoCierre` cuando la API rechaza el token (401).
+export const SESION_VENCIDA = 'SESION_VENCIDA';
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [usuario, setUsuario] = useState(null);
   const [cargando, setCargando] = useState(true);
+  // Por qué se cerró la sesión sin que el usuario lo pidiera (null si no aplica).
+  const [motivoCierre, setMotivoCierre] = useState(null);
+  const tokenRef = useRef(null);
+
+  useEffect(() => {
+    tokenRef.current = token;
+  }, [token]);
 
   // Al abrir la app recupera la sesión guardada.
   useEffect(() => {
@@ -37,11 +55,13 @@ export function AuthProvider({ children }) {
   const guardarSesion = useCallback(async (nuevoToken, nuevoUsuario) => {
     await SecureStore.setItemAsync(CLAVE_TOKEN, nuevoToken);
     await SecureStore.setItemAsync(CLAVE_USUARIO, JSON.stringify(nuevoUsuario ?? null));
+    setMotivoCierre(null);
     setUsuario(nuevoUsuario ?? null);
     setToken(nuevoToken);
   }, []);
 
-  const cerrarSesion = useCallback(async () => {
+  const terminarSesion = useCallback(async (motivo) => {
+    setMotivoCierre(motivo);
     setToken(null);
     setUsuario(null);
     try {
@@ -51,6 +71,11 @@ export function AuthProvider({ children }) {
       // El estado en memoria ya quedó limpio.
     }
   }, []);
+
+  // Cierre pedido por el usuario: no deja aviso en Login.
+  const cerrarSesion = useCallback(() => terminarSesion(null), [terminarSesion]);
+
+  const limpiarMotivoCierre = useCallback(() => setMotivoCierre(null), []);
 
   const iniciarSesion = useCallback(
     async (email, password) => {
@@ -66,24 +91,45 @@ export function AuthProvider({ children }) {
       if (t) {
         await guardarSesion(t, u);
       } else {
-        // El backend actual no devuelve token al registrar: iniciamos sesión con las mismas credenciales.
+        // Hasta HU-18 el backend no devuelve token al registrar: iniciamos sesión con las mismas credenciales.
         await iniciarSesion(email, password);
       }
     },
     [guardarSesion, iniciarSesion],
   );
 
-  // Cualquier 401 en una llamada con token cierra la sesión.
+  // Un 401 con el token de la sesión actual la cierra con el aviso de sesión vencida.
+  // Si la petición usó un token anterior (el usuario ya salió o volvió a entrar), se ignora.
   useEffect(() => {
-    setAlNoAutorizado(() => {
-      cerrarSesion();
+    setAlNoAutorizado((tokenUsado) => {
+      if (tokenUsado === tokenRef.current) {
+        terminarSesion(SESION_VENCIDA);
+      }
     });
     return () => setAlNoAutorizado(null);
-  }, [cerrarSesion]);
+  }, [terminarSesion]);
 
   const valor = useMemo(
-    () => ({ token, usuario, cargando, iniciarSesion, registrarse, cerrarSesion }),
-    [token, usuario, cargando, iniciarSesion, registrarse, cerrarSesion],
+    () => ({
+      token,
+      usuario,
+      cargando,
+      motivoCierre,
+      iniciarSesion,
+      registrarse,
+      cerrarSesion,
+      limpiarMotivoCierre,
+    }),
+    [
+      token,
+      usuario,
+      cargando,
+      motivoCierre,
+      iniciarSesion,
+      registrarse,
+      cerrarSesion,
+      limpiarMotivoCierre,
+    ],
   );
 
   return <AuthContext.Provider value={valor}>{children}</AuthContext.Provider>;

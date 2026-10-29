@@ -14,6 +14,12 @@ export function mesActual(date = new Date()) {
   return `${date.getFullYear()}-${dosDigitos(date.getMonth() + 1)}`;
 }
 
+// "YYYY-MM" desplazado `n` meses (negativo hacia atrás): sumarMeses('2026-01', -1) → '2025-12'.
+export function sumarMeses(mes, n) {
+  const [anio, numero] = mes.split('-').map(Number);
+  return mesActual(new Date(anio, numero - 1 + n, 1));
+}
+
 // "YYYY-MM-DD" → Date a medianoche local. new Date("YYYY-MM-DD") la interpreta en UTC.
 export function parsearFechaLocal(fechaStr) {
   const [anio, mes, dia] = String(fechaStr).split('-').map(Number);

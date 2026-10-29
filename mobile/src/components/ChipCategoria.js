@@ -9,7 +9,14 @@ import { iconoCategoria } from '../utils/categorias';
 // Seleccionado: bg-white text-black font-semibold con brillo blanco.
 // Sin seleccionar: bg-white/[0.05] border-white/10 text-zinc-300 font-medium, ícono zinc-400.
 // `error` pinta el borde en rojo (no se eligió categoría).
-export default function ChipCategoria({ nombre, seleccionado = false, error = false, onPress }) {
+// `icono` reemplaza el que corresponde al nombre (por ejemplo, el chip "Todas").
+export default function ChipCategoria({
+  nombre,
+  icono,
+  seleccionado = false,
+  error = false,
+  onPress,
+}) {
   return (
     <Pressable
       onPress={onPress}
@@ -25,7 +32,7 @@ export default function ChipCategoria({ nombre, seleccionado = false, error = fa
       ]}
     >
       <MaterialCommunityIcons
-        name={iconoCategoria(nombre)}
+        name={icono || iconoCategoria(nombre)}
         size={15}
         color={seleccionado ? colors.onPrimary : colors.textSecondary}
       />

@@ -10,6 +10,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.billo.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -23,7 +24,37 @@
     "plugins": [
       "expo-secure-store",
       "@react-native-community/datetimepicker",
-      "expo-font"
-    ]
+      "expo-font",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Billo usa el micrófono para registrar gastos con tu voz.",
+          "speechRecognitionPermission": "Billo usa el reconocimiento de voz para convertir lo que dices en un gasto."
+        }
+      ],
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "ResumenMes",
+              "label": "Billo",
+              "description": "Total del mes (prueba del spike HU-23)",
+              "minWidth": "250dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal"
+            }
+          ]
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "f61e8d44-9e9d-4283-b057-d9d5956b6f04"
+      }
+    },
+    "owner": "joshua1020yts-team"
   }
 }
