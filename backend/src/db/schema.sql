@@ -1,5 +1,5 @@
 -- Esquema de base de datos de BILLO
--- Resultado consolidado de las migraciones (001 a 009)
+-- Resultado consolidado de las migraciones (001 a 010)
 -- Fuente de verdad para cambios de esquema: backend/migrations/
 
 CREATE TABLE IF NOT EXISTS schema_migrations (
