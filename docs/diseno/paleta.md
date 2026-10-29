@@ -38,7 +38,7 @@ igual que el `/NN` de Tailwind.
 | `surfaceChip` | `#1C1C1E` | Chips de la tarjeta de resumen |
 | `card` | `#0E0E0E` | Hojas inferiores |
 | `sheet` | `rgba(14, 14, 14, 0.95)` | Hoja de Login y Registro |
-| `sheetDeep` | `rgba(12, 12, 14, 0.95)` | Hoja de Nuevo gasto |
+| `sheetDeep` | `rgba(12, 12, 14, 0.95)` | HojaInferior (Nuevo gasto) |
 | `surfaceInput` | `rgba(31, 31, 31, 0.9)` | Campos de Login y Registro |
 | `background60` | `rgba(19, 19, 19, 0.6)` | Velo del fondo de Login y Registro |
 | `surfaceLow50` | `rgba(27, 27, 27, 0.5)` | Fila de gasto |
@@ -47,7 +47,7 @@ igual que el `/NN` de Tailwind.
 | `surfaceHigh80` | `rgba(42, 42, 42, 0.8)` | Botones de ícono, ícono de Login y Registro |
 | `surfaceBright40` | `rgba(57, 57, 57, 0.4)` | Monolito del fondo de Login y Registro |
 | `scrim` | `rgba(0, 0, 0, 0.6)` | Velo detrás de paneles |
-| `scrimSoft` | `rgba(0, 0, 0, 0.4)` | Velo detrás de la hoja de Nuevo gasto |
+| `scrimSoft` | `rgba(0, 0, 0, 0.4)` | Velo detrás de HojaInferior |
 | `navbar` | `rgba(24, 24, 27, 0.75)` | Capa de la barra flotante sobre el blur |
 
 ### Vidrio y bordes
@@ -61,11 +61,11 @@ igual que el `/NN` de Tailwind.
 | `borderPressed` | `rgba(255, 255, 255, 0.20)` | Chip presionado |
 | `borderTop` | `rgba(255, 255, 255, 0.08)` | Brillo superior de tarjetas, panel y hoja |
 | `borderTopStrong` | `rgba(255, 255, 255, 0.12)` | Brillo superior de botones de ícono |
-| `borderTopAvatar` | `rgba(255, 255, 255, 0.15)` | Brillo superior del avatar |
+| `borderTopAvatar` | `rgba(255, 255, 255, 0.15)` | Brillo superior de Avatar |
 | `outline` | `#8E9192` | outline |
 | `outlineVariant` / `handle` | `#444748` | outline-variant, jalador |
 | `outlineVariant30` | `rgba(68, 71, 72, 0.3)` | Borde del ícono de Login y Registro |
-| `handleSheet` | `rgba(255, 255, 255, 0.3)` | Jalador de la hoja de Nuevo gasto |
+| `handleSheet` | `rgba(255, 255, 255, 0.3)` | Jalador de HojaInferior |
 
 ### Texto
 
@@ -89,6 +89,7 @@ igual que el `/NN` de Tailwind.
 | --- | --- | --- |
 | `primary` | `#FFFFFF` | Botón principal, pestaña activa |
 | `primaryFixedDim` | `#C6C6C7` | primary-fixed-dim |
+| `primary40` | `rgba(255, 255, 255, 0.4)` | Punto de SelectorMes |
 | `onPrimary` | `#000000` | Texto sobre `primary` |
 | `onPrimaryMuted` | `#2F3131` | Texto del botón de Login y Registro |
 | `sombra` | `#000000` | `shadowColor` de sombras |

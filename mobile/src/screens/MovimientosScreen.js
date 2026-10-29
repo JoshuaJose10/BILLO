@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.56,
     color: colors.text,
   },
-  // p-space-md bg-surface-container-low rounded-xl shadow-[0_8px_24px_-6px_rgba(0,0,0,0.5)]
+  // p-space-md bg-surface-container-low rounded-xl shadow-[0_8px_24px_-6px] negro al 50%
   resumen: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.borderTop,
     backgroundColor: colors.surfaceLow,
-    shadowColor: '#000',
+    shadowColor: colors.sombra,
     shadowOffset: { width: 0, height: 8 },
     shadowRadius: 12,
     shadowOpacity: 0.5,

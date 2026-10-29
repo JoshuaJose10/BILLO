@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.surfaceHigh,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(255, 255, 255, 0.15)',
+    borderTopColor: colors.borderTopAvatar,
   },
   // font-headline-sm text-primary
   texto: {

@@ -15,7 +15,7 @@ export const temas = {
     surfaceBright: '#393939', // surface-bright
     card: '#0E0E0E', // hojas inferiores (surface-container-lowest)
     sheet: 'rgba(14, 14, 14, 0.95)', // surface-container-lowest/95 (hoja de Login y Registro)
-    sheetDeep: 'rgba(12, 12, 14, 0.95)', // hoja de Nuevo gasto
+    sheetDeep: 'rgba(12, 12, 14, 0.95)', // HojaInferior (Nuevo gasto)
     surfaceInput: 'rgba(31, 31, 31, 0.9)', // surface-container/90 (campos de Login y Registro)
     surfaceChip: '#1C1C1E', // chips de la tarjeta de resumen
 
@@ -49,7 +49,7 @@ export const temas = {
     outlineVariant: '#444748',
     outlineVariant30: 'rgba(68, 71, 72, 0.3)', // outline-variant/30
     handle: '#444748',
-    handleSheet: 'rgba(255, 255, 255, 0.3)', // jalador de la hoja de Nuevo gasto
+    handleSheet: 'rgba(255, 255, 255, 0.3)', // jalador de HojaInferior
 
     // Texto
     text: '#FFFFFF', // primary
@@ -67,6 +67,7 @@ export const temas = {
     // Acciones
     primary: '#FFFFFF',
     primaryFixedDim: '#C6C6C7', // primary-fixed-dim
+    primary40: 'rgba(255, 255, 255, 0.4)', // primary/40 (punto de SelectorMes)
     onPrimary: '#000000',
     onPrimaryMuted: '#2F3131', // on-primary de Obsidian (botón principal de Login y Registro)
     navbar: 'rgba(24, 24, 27, 0.75)', // #18181b/75
