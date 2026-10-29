@@ -5,6 +5,7 @@ import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '../theme/colors';
+import FondoDegradado from './FondoDegradado';
 
 const CAPAS = 10;
 const MARGEN = 20; // px-margin
@@ -153,8 +154,8 @@ function ComposicionRegistro({ width, top }) {
   );
 }
 
-// Fondo de Login y Registro: degradado de color, las figuras de cada pantalla y un velo
-// surface/60 con backdrop-blur que las difumina. `objetivoRef` es el BlurTargetView que
+// Fondo de Login y Registro: degradado de color, las figuras de cada pantalla, un velo
+// surface/60 con backdrop-blur que las difumina y el brillo de FondoDegradado encima. `objetivoRef` es el BlurTargetView que
 // también usan otros BlurView de la pantalla (Android lo necesita para difuminar).
 export default function FondoAuth({ variante = 'login', objetivoRef }) {
   const { width, height } = useWindowDimensions();
@@ -186,6 +187,8 @@ export default function FondoAuth({ variante = 'login', objetivoRef }) {
       />
       {/* bg-surface/60 */}
       <View style={[StyleSheet.absoluteFill, styles.velo]} />
+      {/* Tinte índigo/violeta de Luminal Glow encima del velo, sin tapar las figuras */}
+      <FondoDegradado />
     </View>
   );
 }

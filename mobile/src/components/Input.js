@@ -30,7 +30,7 @@ const Input = forwardRef(function Input(
           <MaterialCommunityIcons
             name={icono}
             size={20}
-            color={error ? colors.error : colors.outline}
+            color={error ? colors.alerta : colors.outline}
           />
         ) : null}
         <TextInput
@@ -103,12 +103,13 @@ const styles = StyleSheet.create({
   campoPassword: {
     paddingRight: 12,
   },
-  // focus:bg-surface-container-high
+  // focus:bg-surface-container-high con borde del acento
   campoEnfocado: {
     backgroundColor: colors.surfaceHigh,
+    borderColor: colors.acento,
   },
   campoError: {
-    borderColor: colors.error,
+    borderColor: colors.alerta,
   },
   // body-md: Inter 400 14, text-primary
   input: {
@@ -132,7 +133,7 @@ const styles = StyleSheet.create({
   },
   error: {
     fontFamily: fonts.sans,
-    color: colors.error,
+    color: colors.alerta,
     fontSize: 12,
     lineHeight: 16,
     marginTop: 6,

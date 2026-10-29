@@ -15,6 +15,7 @@ import Boton from '../components/Boton';
 import EncabezadoDia from '../components/EncabezadoDia';
 import Etiqueta from '../components/Etiqueta';
 import FiltroCategorias from '../components/FiltroCategorias';
+import FondoDegradado from '../components/FondoDegradado';
 import ItemGasto from '../components/ItemGasto';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
 import SelectorMes from '../components/SelectorMes';
@@ -208,6 +209,7 @@ export default function MovimientosScreen({ navigation }) {
 
   return (
     <View style={styles.pantalla}>
+      <FondoDegradado />
       <SectionList
         sections={listo ? secciones : []}
         keyExtractor={(g) => String(g.id)}

@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Avatar from '../components/Avatar';
 import Boton from '../components/Boton';
 import Etiqueta from '../components/Etiqueta';
+import FondoDegradado from '../components/FondoDegradado';
 import ItemGasto from '../components/ItemGasto';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
 import TarjetaResumen from '../components/TarjetaResumen';
@@ -143,6 +144,7 @@ export default function InicioScreen({ navigation }) {
   if (estado === 'cargando') {
     return (
       <View style={[styles.pantalla, styles.centro]}>
+        <FondoDegradado />
         <ActivityIndicator size="large" color={colors.text} />
       </View>
     );
@@ -156,6 +158,7 @@ export default function InicioScreen({ navigation }) {
   if (estado === 'error' && !hayDatos) {
     return (
       <View style={[styles.pantalla, styles.centro, styles.relleno]}>
+        <FondoDegradado />
         <MaterialCommunityIcons name="wifi-off" size={40} color={colors.textSecondary} />
         <Text style={styles.estadoTitulo}>{textoError}</Text>
         <View style={styles.botonEstado}>
@@ -167,6 +170,7 @@ export default function InicioScreen({ navigation }) {
 
   return (
     <View style={styles.pantalla}>
+      <FondoDegradado />
       <FlatList
         data={gastos}
         keyExtractor={(g) => String(g.id)}
@@ -363,12 +367,12 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: radios['2xl'],
     borderWidth: 1,
-    borderColor: colors.error,
+    borderColor: colors.alerta,
   },
   avisoTexto: {
     fontFamily: fonts.sans,
     flex: 1,
-    color: colors.error,
+    color: colors.alerta,
     fontSize: 14,
   },
   avisoAccion: {

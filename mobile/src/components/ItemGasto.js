@@ -1,12 +1,11 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, radios } from '../theme/colors';
 import { fonts } from '../theme/fonts';
-import { iconoCategoria } from '../utils/categorias';
 import { fechaRelativa, formatearMonto } from '../utils/formato';
+import IconoCategoria from './IconoCategoria';
 
-// Movimiento de la lista (Stitch: Inicio, panel "Movimientos"): ícono de la categoría,
+// Movimiento de la lista (Stitch: Inicio, panel "Movimientos"): ícono de la categoría en color,
 // título (nota o categoría), fecha relativa en mono y el monto con "-".
 // El backend solo guarda la fecha, sin hora, así que el subtítulo no lleva hora.
 // Con `metodoPago` (etiqueta, p. ej. "Efectivo") el subtítulo es "Categoría · Método", para
@@ -24,13 +23,7 @@ export default function ItemGasto({ gasto, nombreCategoria, metodoPago }) {
 
   return (
     <View style={styles.fila}>
-      <View style={styles.icono}>
-        <MaterialCommunityIcons
-          name={iconoCategoria(nombreCategoria)}
-          size={20}
-          color={colors.text}
-        />
-      </View>
+      <IconoCategoria nombre={nombreCategoria} />
       <View style={styles.textos}>
         <Text style={styles.titulo} numberOfLines={1}>
           {titulo}
@@ -53,17 +46,6 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: radios['2xl'],
     backgroundColor: colors.surfaceLow50,
-  },
-  // w-10 h-10 rounded-2xl bg-surface-container-high
-  icono: {
-    width: 40,
-    height: 40,
-    borderRadius: radios['2xl'],
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceHigh,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.borderTopStrong,
   },
   textos: {
     flex: 1,
