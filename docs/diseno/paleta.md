@@ -151,7 +151,13 @@ Estado financiero. Cada uno tiene una variante `Suave` al ~15% para fondos de ba
 | `alerta` | `#FF453A` | `alertaSuave` · `rgba(255, 69, 58, 0.15)` | Límite excedido |
 
 `alerta` también es el color de los errores en pantalla: textos de error de Input, Login, Registro y
-Nuevo gasto, aviso de error de Inicio y bordes de error de Input, MontoGrande y ChipCategoria.
+Nuevo gasto, aviso de error de Inicio y bordes de error de Input, MontoGrande y ChipCategoria. Es
+también el borde y el texto del botón "Eliminar gasto" de la hoja de edición (`Boton destructivo`,
+sin relleno: `alerta` sobre `alertaSuave` da 4.18:1 en claro).
+
+| Token | Valor | Uso |
+| --- | --- | --- |
+| `alertaSolido` | `#D9302A` | Fondo sólido de la acción "Eliminar" al deslizar un gasto; con texto blanco da 4.77:1 (`alerta` daría 3.41) |
 
 ## Categorías
 
@@ -371,6 +377,7 @@ figuras difuminadas de `FondoAuth`.
 | `avisoSuave` | `rgba(217, 119, 6, 0.12)` | |
 | `alerta` | `#C8281C` | Límite excedido y errores (5.56:1 sobre blanco, 4.92 sobre `background`) |
 | `alertaSuave` | `rgba(200, 40, 28, 0.12)` | |
+| `alertaSolido` | `#C8281C` | Fondo de la acción "Eliminar" al deslizar (5.56:1 con blanco) |
 
 `alerta` llega a 4.5:1 y no solo a 3:1 porque también es el color de los textos de error. El `#FF453A`
 del oscuro da 3.41:1 sobre blanco.
@@ -467,3 +474,13 @@ Contraste en la hoja clara (`#F4F2FC`): `text` 17.01, `textChip` 9.40, `outline`
 el botón de cerrar. En oscuro el tinte pleno queda en ≈ `#1E183D`: `text` 16.76, `textChip` 11.34. La
 tarjeta del importe oscura (≈ `#161023`) da 7.24 con `textSecondary` y las teclas (≈ `#1A1A1C`) 17.38
 con `text`.
+
+## Acciones al deslizar un gasto
+
+`FilaGastoDeslizable` (Inicio y Movimientos): al deslizar a la izquierda aparecen dos squircles de 56 px
+(`radios['2xl']`, 8 px de separación).
+
+| Acción | Fondo | Ícono | Etiqueta | Contraste |
+| --- | --- | --- | --- | --- |
+| Editar | `acentoSuave` | `acento` | `acentoTexto` | etiqueta 8.95 (oscuro) / 6.91 (claro); ícono 3.90 / 3.89 |
+| Eliminar | `alertaSolido` | `textoSobreColor` | `textoSobreColor` | 4.77 (oscuro) / 5.56 (claro) |

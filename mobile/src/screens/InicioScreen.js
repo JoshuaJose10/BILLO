@@ -15,8 +15,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Avatar from '../components/Avatar';
 import Boton from '../components/Boton';
 import Etiqueta from '../components/Etiqueta';
+import FilaGastoDeslizable, { useFilasDeslizables } from '../components/FilaGastoDeslizable';
 import FondoDegradado from '../components/FondoDegradado';
-import ItemGasto from '../components/ItemGasto';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
 import TarjetaResumen from '../components/TarjetaResumen';
 import { useAuth } from '../context/AuthContext';
@@ -106,6 +106,15 @@ export default function InicioScreen({ navigation }) {
 
   const abrirNuevoGasto = () => navigation.navigate('NuevoGasto');
 
+  // Filas deslizables: Editar abre la hoja en modo edición; al eliminar, la fila se quita al
+  // momento y se recargan la lista y los totales.
+  const filas = useFilasDeslizables();
+  const editarGasto = (gasto) => navigation.navigate('NuevoGasto', { gasto });
+  const gastoEliminado = (id) => {
+    setGastos((lista) => lista.filter((g) => g.id !== id));
+    cargar();
+  };
+
   const encabezado = (
     <View>
       <View style={styles.cabecera}>
@@ -179,10 +188,12 @@ export default function InicioScreen({ navigation }) {
         keyExtractor={(g) => String(g.id)}
         renderItem={({ item }) => (
           <View style={styles.panelFila}>
-            <ItemGasto
+            <FilaGastoDeslizable
               gasto={item}
               nombreCategoria={nombresCategoria[item.categoria_id]}
-              onPress={() => navigation.navigate('NuevoGasto', { gasto: item })}
+              filas={filas}
+              onEditar={editarGasto}
+              onEliminado={gastoEliminado}
             />
           </View>
         )}
@@ -215,6 +226,7 @@ export default function InicioScreen({ navigation }) {
           </View>
         }
         ItemSeparatorComponent={Separador}
+        onScrollBeginDrag={filas.cerrarAbierta}
         contentContainerStyle={[
           styles.lista,
           { paddingTop: insets.top + 8, paddingBottom: alturaNavbar + 16 },

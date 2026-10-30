@@ -15,8 +15,8 @@ import Boton from '../components/Boton';
 import EncabezadoDia from '../components/EncabezadoDia';
 import Etiqueta from '../components/Etiqueta';
 import FiltroCategorias from '../components/FiltroCategorias';
+import FilaGastoDeslizable, { useFilasDeslizables } from '../components/FilaGastoDeslizable';
 import FondoDegradado from '../components/FondoDegradado';
-import ItemGasto from '../components/ItemGasto';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
 import SelectorMes from '../components/SelectorMes';
 import { etiquetaMetodoPago, useGastosService } from '../services/gastos';
@@ -111,6 +111,15 @@ export default function MovimientosScreen({ navigation }) {
 
   const reintentar = () => {
     setEstado('cargando');
+    cargar();
+  };
+
+  // Filas deslizables: Editar abre la hoja en modo edición; al eliminar, la fila se quita al
+  // momento y se recargan la lista y el total.
+  const filas = useFilasDeslizables();
+  const editarGasto = (gasto) => navigation.navigate('NuevoGasto', { gasto });
+  const gastoEliminado = (id) => {
+    setGastos((lista) => lista.filter((g) => g.id !== id));
     cargar();
   };
 
@@ -225,15 +234,18 @@ export default function MovimientosScreen({ navigation }) {
         )}
         renderItem={({ item }) => (
           <View style={atenuado}>
-            <ItemGasto
+            <FilaGastoDeslizable
               gasto={item}
               nombreCategoria={nombresCategoria[item.categoria_id]}
               metodoPago={etiquetaMetodoPago(item.metodo_pago)}
-              onPress={() => navigation.navigate('NuevoGasto', { gasto: item })}
+              filas={filas}
+              onEditar={editarGasto}
+              onEliminado={gastoEliminado}
             />
           </View>
         )}
         ItemSeparatorComponent={Separador}
+        onScrollBeginDrag={filas.cerrarAbierta}
         ListHeaderComponent={encabezado}
         ListEmptyComponent={contenidoVacio}
         ListFooterComponent={listo && secciones.length > 0 ? <FinDeLista /> : null}

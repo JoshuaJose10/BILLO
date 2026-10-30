@@ -148,6 +148,7 @@ export const temas = {
     avisoSuave: 'rgba(255, 159, 10, 0.15)',
     alerta: '#FF453A', // límite excedido
     alertaSuave: 'rgba(255, 69, 58, 0.15)',
+    alertaSolido: '#D9302A', // fondo sólido con texto blanco (>= 4.5:1): acción Eliminar al deslizar
   },
 
   claro: {
@@ -283,6 +284,7 @@ export const temas = {
     avisoSuave: 'rgba(217, 119, 6, 0.12)',
     alerta: '#C8281C',
     alertaSuave: 'rgba(200, 40, 28, 0.12)',
+    alertaSolido: '#C8281C',
   },
 };
 

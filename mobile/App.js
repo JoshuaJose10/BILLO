@@ -15,6 +15,8 @@ import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { useMemo } from 'react';
+import { StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import PantallaCarga from './src/components/PantallaCarga';
@@ -63,21 +65,32 @@ export default function App() {
 
   // Si las fuentes fallan se sigue con las del sistema en vez de bloquear la app.
   // La pantalla de carga también sigue el tema del sistema.
+  // GestureHandlerRootView va hasta arriba: lo necesitan las filas deslizables de gastos.
   if (!fuentesCargadas && !errorFuentes) {
     return (
-      <TemaProvider>
-        <PantallaCarga />
-      </TemaProvider>
+      <GestureHandlerRootView style={styles.raiz}>
+        <TemaProvider>
+          <PantallaCarga />
+        </TemaProvider>
+      </GestureHandlerRootView>
     );
   }
 
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
-        <TemaProvider>
-          <Navegacion />
-        </TemaProvider>
-      </AuthProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={styles.raiz}>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <TemaProvider>
+            <Navegacion />
+          </TemaProvider>
+        </AuthProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  raiz: {
+    flex: 1,
+  },
+});
