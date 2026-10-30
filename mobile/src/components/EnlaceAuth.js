@@ -3,7 +3,7 @@ import { StyleSheet, Text } from 'react-native';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/fonts';
 
-// "¿No tienes cuenta? Crear cuenta": la parte enlazada en blanco, semibold y subrayada.
+// "¿No tienes cuenta? Crear cuenta": la parte enlazada en el acento, semibold y subrayada.
 export default function EnlaceAuth({ pregunta, accion, onPress }) {
   return (
     <Text style={styles.texto}>
@@ -25,10 +25,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
   },
-  // text-primary font-semibold underline
+  // font-semibold underline en el acento
   enlace: {
     fontFamily: fonts.sansSemiBold,
-    color: colors.text,
+    color: colors.acentoTexto,
     textDecorationLine: 'underline',
   },
 });

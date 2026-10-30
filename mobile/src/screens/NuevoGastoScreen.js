@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   },
   errorCampo: {
     fontFamily: fonts.sans,
-    color: colors.error,
+    color: colors.alerta,
     fontSize: 12,
     lineHeight: 16,
     marginTop: -4,
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   },
   errorApi: {
     fontFamily: fonts.sans,
-    color: colors.error,
+    color: colors.alerta,
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 10,

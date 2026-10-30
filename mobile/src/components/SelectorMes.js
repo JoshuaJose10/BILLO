@@ -75,13 +75,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.glass05,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   botonInactivo: {
     opacity: 0.3,
   },
-  // active:scale-90
+  // active:scale-90; activo con borde y fondo translúcido del acento.
   botonPresionado: {
     transform: [{ scale: 0.9 }],
+    backgroundColor: colors.acentoSuave,
+    borderColor: colors.acento,
   },
   // flex items-center gap-2
   centro: {

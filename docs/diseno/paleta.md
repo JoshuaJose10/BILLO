@@ -81,7 +81,6 @@ igual que el `/NN` de Tailwind.
 | `textSoft` | `rgba(255, 255, 255, 0.9)` | Punto del teclado |
 | `iconSoft` | `rgba(255, 255, 255, 0.8)` | Ícono de borrar del teclado |
 | `amount` | `#E2E1EB` | Montos de egresos |
-| `error` | `#FFB4AB` | Errores de formulario |
 
 ### Acciones y sombras
 
@@ -99,11 +98,31 @@ igual que el `/NN` de Tailwind.
 
 | Token | Valor | Uso |
 | --- | --- | --- |
-| `acento` | `#8B5CF6` | Color de marca (violeta). Cursor y selección del campo de nota en Nuevo gasto. |
-| `acentoTexto` | `#C4B5FD` | Acento para texto sobre fondo oscuro (violeta claro). Saludo "Hola, {nombre}" de Inicio. |
+| `acento` | `#8B5CF6` | Color de marca (violeta). Cursor y selección de la nota, borde de foco de Input, borde de ChipSelector y SelectorMes al presionar, borde y halo del chip "Todas" seleccionado. |
+| `acentoTexto` | `#C4B5FD` | Acento para texto sobre fondo oscuro (violeta claro). Saludo de Inicio, enlaces de Login y Registro (EnlaceAuth), texto e ícono del chip "Todas" seleccionado. |
+| `acentoSuave` | `rgba(139, 92, 246, 0.15)` | Fondo de chips y botones activos con acento. |
 
-El acento se usa de forma discreta: no cambia botones, la pestaña activa, el botón `+`, chips, fondos
-ni sombras.
+El acento se usa de forma discreta: no cambia Boton (blanco/negro), la pestaña activa ni el botón `+`
+de la barra flotante. Con el acento sólido de fondo ningún texto llega a 4.5:1 (blanco 4.23, `#111114`
+4.45), por eso los estados activos usan `acentoSuave` + borde `acento` + texto `acentoTexto`. El chip
+"Todas" tampoco usa un acento profundo: el que llega a 4.5:1 (`#8452F5`) es casi igual al violeta de
+Entretenimiento (`#7C3AED`) y "Todas" se leería como una categoría.
+
+## Brillo del fondo
+
+`FondoDegradado` pinta dos halos radiales (react-native-svg) en toda la pantalla, encima de
+`background`: índigo con centro en (15%, 0%) y radio del 95% del ancho, y violeta con centro en
+(90%, 5%) y radio del 90% del ancho. Se usa en Inicio, Movimientos y, sobre el velo de `FondoAuth`,
+en Login y Registro.
+
+| Token | Valor | Uso |
+| --- | --- | --- |
+| `brilloIndigo` | `rgba(79, 70, 229, 0.35)` | Halo índigo (brief) |
+| `brilloVioleta` | `rgba(124, 58, 237, 0.25)` | Halo violeta (brief) |
+
+El último stop de cada halo es el mismo color con `stopOpacity` 0: se desvanece en su propio tono (no
+pasa por gris) y llega a 0 dentro del círculo, así que no queda ningún borde visible. Las medidas van en
+píxeles (`userSpaceOnUse`) para que el círculo no se deforme con la proporción de la pantalla.
 
 ## Semánticos
 
@@ -115,26 +134,64 @@ Estado financiero. Cada uno tiene una variante `Suave` al ~15% para fondos de ba
 | `aviso` | `#FF9F0A` | `avisoSuave` · `rgba(255, 159, 10, 0.15)` | Cerca del límite |
 | `alerta` | `#FF453A` | `alertaSuave` · `rgba(255, 69, 58, 0.15)` | Límite excedido |
 
-`alerta` (estado financiero) es distinto de `error` (validación de formularios) y del coral de Comida.
+`alerta` también es el color de los errores en pantalla: textos de error de Input, Login, Registro y
+Nuevo gasto, aviso de error de Inicio y bordes de error de Input, MontoGrande y ChipCategoria.
 
 ## Categorías
 
-La clave es el nombre exacto del seed (`backend/migrations/007_seed_categorias.sql`). Una categoría
-que no esté en la tabla usa el color de Otros.
+En `theme/categorias.js`. La clave es el nombre del seed
+(`backend/migrations/007_seed_categorias.sql`); se busca sin espacios a los lados y sin distinguir
+mayúsculas (`" comida "` → Comida). Una categoría que no esté en la tabla (personalizada, renombrada,
+`null`) usa los valores de Otros.
 
-| Categoría (seed) | Color |
-| --- | --- |
-| Comida | `#FF3B69` |
-| Transporte | `#4F7FFF` |
-| Entretenimiento | `#7C3AED` |
-| Servicios | `#00C288` |
-| Salud | `#F472B6` |
-| Otros | `#8E8E93` |
+- `colorCategoria(nombre)`: color base vivo (micro-punto, halo del chip, sombra del ícono).
+- `fondoChipCategoria(nombre)`: el mismo tono más oscuro (solo baja la luminosidad HSL) hasta dar
+  ≥ 4.5:1 con texto blanco. Es el fondo del chip seleccionado.
+- `degradadoCategoria(nombre)`: `[claro, centro, oscuro]` para el degradado diagonal de
+  `IconoCategoria`. En general claro = 25% hacia blanco, centro = base y oscuro = 25% hacia negro.
 
-Regla del brief para chips: seleccionado → fondo sólido del color de la categoría con texto e ícono
-blancos; no seleccionado → superficie neutra con un micro-punto del color de la categoría.
+### Chip seleccionado (texto blanco)
 
-Aplicar los colores de categoría en pantallas corresponde a HU-33, HU-35 y HU-37.
+| Categoría (seed) | Base | Blanco sobre base | Fondo de chip | Blanco sobre fondo |
+| --- | --- | --- | --- | --- |
+| Comida | `#FF3B69` | 3.45 | `#EA0037` | 4.61 |
+| Transporte | `#4F7FFF` | 3.61 | `#2F68FF` | 4.62 |
+| Entretenimiento | `#7C3AED` | 5.70 | `#7C3AED` (igual) | 5.70 |
+| Servicios | `#00C288` | 2.31 | `#00855D` | 4.65 |
+| Salud | `#F472B6` | 2.65 | `#E0117E` | 4.61 |
+| Otros | `#8E8E93` | 3.26 | `#74747A` | 4.64 |
+
+### Ícono (glifo blanco sobre el degradado)
+
+El glifo de 20px ocupa la parte central de la diagonal del squircle de 40px: el contraste se mide en
+el 25%, 50% y 75% del degradado. La meta para íconos es 3:1. En Servicios y Salud el final ya pasaba
+(3.96 y 4.46); lo que fallaba era el centro, así que se oscurecieron el centro y el claro, sin cambiar
+el tono.
+
+| Categoría | Degradado (claro · centro · oscuro) | Glifo 25% / 50% / 75% | Glifo vs final |
+| --- | --- | --- | --- |
+| Comida | `#FF6C8F` · `#FF3B69` · `#BF2C4F` | 3.09 / 3.45 / 4.40 | 5.69 |
+| Transporte | `#7B9FFF` · `#4F7FFF` · `#3B5FBF` | 3.03 / 3.61 / 4.57 | 5.87 |
+| Entretenimiento | `#9D6BF2` · `#7C3AED` · `#5D2CB2` | 4.57 / 5.70 / 6.95 | 8.51 |
+| Servicios | `#00C288` · `#00A876` · `#009266` | 2.65 / 3.06 / 3.47 | 3.96 |
+| Salud | `#F472B6` · `#F25EAC` · `#B75689` | 2.83 / 3.01 / 3.65 | 4.46 |
+| Otros | `#AAAAAE` · `#8E8E93` · `#6B6B6E` | 2.73 / 3.26 / 4.13 | 5.31 |
+
+Antes del ajuste, Servicios daba 2.12 / 2.31 / 2.99 y Salud 2.35 / 2.65 / 3.40.
+
+### Dónde se aplican
+
+- **`IconoCategoria`** (filas de gasto de Inicio y Movimientos): squircle de 40px con el degradado,
+  reflejo blanco arriba (`brilloIcono` → `brilloIconoFin`), glifo blanco y sombra del color base.
+- **`ChipCategoria`**: seleccionado → fondo `fondoChipCategoria`, texto e ícono blancos y halo del
+  color base; no seleccionado → superficie neutra con micro-punto de 6px del color base. El chip
+  "Todas" (con `icono` propio) no lleva punto y, seleccionado, usa el acento translúcido.
+- **`TarjetaResumen`** (Inicio): micro-punto de 6px del color base en cada chip de categoría.
+
+| Token | Valor | Uso |
+| --- | --- | --- |
+| `brilloIcono` | `rgba(255, 255, 255, 0.22)` | Reflejo superior de `IconoCategoria` |
+| `brilloIconoFin` | `rgba(255, 255, 255, 0)` | Final del reflejo |
 
 ## Pendiente: tema claro
 

@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   },
   errorApi: {
     fontFamily: fonts.sans,
-    color: colors.error,
+    color: colors.alerta,
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 12,

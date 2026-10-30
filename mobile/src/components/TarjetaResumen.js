@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { colorCategoria } from '../theme/categorias';
 import { colors, radios } from '../theme/colors';
 import { fonts } from '../theme/fonts';
 import { iconoCategoria } from '../utils/categorias';
@@ -27,6 +28,7 @@ export default function TarjetaResumen({ total, principales = [] }) {
               style={styles.chip}
               accessibilityLabel={`${c.nombre}: ${formatearMontoCorto(c.total)}`}
             >
+              <View style={[styles.punto, { backgroundColor: colorCategoria(c.nombre) }]} />
               <MaterialCommunityIcons
                 name={iconoCategoria(c.nombre)}
                 size={14}
@@ -96,6 +98,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceChip,
     borderWidth: 1,
     borderColor: colors.borderStrong,
+  },
+  // Micro-punto w-1.5 h-1.5 rounded-full del color de la categoría (Stitch 07_inicio_oscuro)
+  punto: {
+    width: 6,
+    height: 6,
+    borderRadius: radios.full,
   },
   // font-financial-metric-md text-[12px] text-primary font-medium
   chipMonto: {

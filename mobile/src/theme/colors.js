@@ -62,7 +62,6 @@ export const temas = {
     textSoft: 'rgba(255, 255, 255, 0.9)', // white/90 (punto del teclado)
     iconSoft: 'rgba(255, 255, 255, 0.8)', // white/80 (borrar del teclado)
     amount: '#E2E1EB', // secondary-fixed (montos de egresos)
-    error: '#FFB4AB',
 
     // Acciones
     primary: '#FFFFFF',
@@ -79,6 +78,16 @@ export const temas = {
     // Acento de marca (Luminal Glow)
     acento: '#8B5CF6',
     acentoTexto: '#C4B5FD', // acento para texto sobre fondo oscuro (violeta claro)
+    acentoSuave: 'rgba(139, 92, 246, 0.15)', // fondo de chips y botones activos con acento
+
+    // Brillo atmosférico del fondo (FondoDegradado). El degradado radial se desvanece con
+    // stopOpacity 0 sobre el mismo color, así que no pasa por gris.
+    brilloIndigo: 'rgba(79, 70, 229, 0.35)',
+    brilloVioleta: 'rgba(124, 58, 237, 0.25)',
+
+    // Reflejo superior del ícono de categoría (IconoCategoria)
+    brilloIcono: 'rgba(255, 255, 255, 0.22)',
+    brilloIconoFin: 'rgba(255, 255, 255, 0)',
 
     // Semánticos de estado financiero; la variante Suave (~15%) es para fondos de barras y avisos
     exito: '#10B981', // en meta / ingresos

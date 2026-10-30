@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
     borderColor: colors.borderStrong,
   },
   contenedorError: {
-    borderColor: colors.error,
+    borderColor: colors.alerta,
   },
   // text-[10px] font-mono tracking-widest uppercase text-zinc-400 mb-1
   etiqueta: {
