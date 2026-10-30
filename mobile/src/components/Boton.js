@@ -10,6 +10,9 @@ import { fonts } from '../theme/fonts';
 // `grande`: variante de Login y Registro en Stitch (h-14 rounded-2xl, headline-sm en
 // on-primary, mt-3 y shadow-lg shadow-primary/5).
 // `secundario`: sin relleno, con borde y texto claro (acciones como "Cerrar sesión").
+// `destructivo`: sin relleno, con borde y texto en `alerta` (acciones como "Eliminar gasto"); al
+// presionar toma `alertaSuave`. Sin relleno porque `alerta` sobre `alertaSuave` no llega a 4.5:1
+// en tema claro.
 export default function Boton({
   titulo,
   onPress,
@@ -19,15 +22,18 @@ export default function Boton({
   compacto = false,
   grande = false,
   secundario = false,
+  destructivo = false,
 }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
   const inactivo = cargando || disabled;
-  const colorContenido = secundario
-    ? colors.text
-    : grande
-      ? colors.onPrimaryMuted
-      : colors.onPrimary;
+  const colorContenido = destructivo
+    ? colors.alerta
+    : secundario
+      ? colors.text
+      : grande
+        ? colors.onPrimaryMuted
+        : colors.onPrimary;
 
   return (
     <Pressable
@@ -40,7 +46,9 @@ export default function Boton({
         compacto ? styles.botonCompacto : null,
         grande ? styles.botonGrande : null,
         secundario ? styles.botonSecundario : null,
+        destructivo ? styles.botonDestructivo : null,
         pressed && !inactivo ? (grande ? styles.presionadoGrande : styles.presionado) : null,
+        pressed && !inactivo && destructivo ? styles.presionadoDestructivo : null,
         inactivo ? styles.inactivo : null,
       ]}
     >
@@ -54,6 +62,7 @@ export default function Boton({
               compacto ? styles.textoCompacto : null,
               grande ? styles.textoGrande : null,
               secundario ? styles.textoSecundario : null,
+              destructivo ? styles.textoDestructivo : null,
             ]}
           >
             {titulo}
@@ -104,6 +113,15 @@ const crearEstilos = (colors) =>
       borderWidth: 1,
       borderColor: colors.borderStrong,
     },
+    botonDestructivo: {
+      height: 44,
+      backgroundColor: 'transparent',
+      borderWidth: 1,
+      borderColor: colors.alerta,
+    },
+    presionadoDestructivo: {
+      backgroundColor: colors.alertaSuave,
+    },
     presionado: {
       opacity: 0.85,
     },
@@ -134,5 +152,10 @@ const crearEstilos = (colors) =>
     },
     textoSecundario: {
       color: colors.text,
+    },
+    textoDestructivo: {
+      fontFamily: fonts.sansSemiBold,
+      fontSize: 14,
+      color: colors.alerta,
     },
   });

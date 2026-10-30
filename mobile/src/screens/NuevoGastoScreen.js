@@ -3,6 +3,7 @@ import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/d
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Platform,
   Pressable,
   ScrollView,
@@ -34,7 +35,7 @@ import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
 export default function NuevoGastoScreen({ navigation, route }) {
   const gastoEditado = route.params?.gasto;
   const editando = !!gastoEditado;
-  const { listarCategorias, crearGasto, actualizarGasto } = useGastosService();
+  const { listarCategorias, crearGasto, actualizarGasto, eliminarGasto } = useGastosService();
   const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
 
@@ -56,6 +57,9 @@ export default function NuevoGastoScreen({ navigation, route }) {
   const [errores, setErrores] = useState({});
   const [errorApi, setErrorApi] = useState('');
   const [guardando, setGuardando] = useState(false);
+  const [eliminando, setEliminando] = useState(false);
+  // Guardar y eliminar comparten `enviando`: mientras uno corre, el otro no responde.
+  const ocupado = guardando || eliminando;
   const enviando = useRef(false);
   const hojaRef = useRef(null);
 
@@ -143,6 +147,31 @@ export default function NuevoGastoScreen({ navigation, route }) {
     }
   };
 
+  const eliminar = async () => {
+    if (enviando.current) return;
+    enviando.current = true;
+    setEliminando(true);
+    setErrorApi('');
+    try {
+      await eliminarGasto(gastoEditado.id);
+      enviando.current = false;
+      hojaRef.current?.cerrar();
+    } catch (error) {
+      enviando.current = false;
+      setEliminando(false);
+      setErrorApi(mensajeErrorGasto(error));
+    }
+  };
+
+  // Cancelar no hace nada; Eliminar borra el gasto y cierra la hoja.
+  const confirmarEliminar = () => {
+    if (enviando.current) return;
+    Alert.alert('¿Eliminar gasto?', 'Esta acción no se puede deshacer.', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Eliminar', style: 'destructive', onPress: eliminar },
+    ]);
+  };
+
   const metodoActual = METODOS_PAGO.find((m) => m.valor === metodo) || METODOS_PAGO[0];
   const fechaTexto = fechaRelativa(fechaLocalISO(fecha));
 
@@ -152,7 +181,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
       titulo={editando ? 'Editar gasto' : 'Nuevo gasto'}
       etiquetaFondo={editando ? 'Cerrar editar gasto' : 'Cerrar nuevo gasto'}
       onCerrada={() => navigation.goBack()}
-      bloqueada={guardando}
+      bloqueada={ocupado}
     >
       <ScrollView
         horizontal
@@ -221,7 +250,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
       {errores.categoria ? <Text style={styles.errorCampo}>{errores.categoria}</Text> : null}
 
       <View style={styles.zonaTeclado}>
-        <TecladoNumerico onTecla={alPulsarTecla} disabled={guardando} />
+        <TecladoNumerico onTecla={alPulsarTecla} disabled={ocupado} />
       </View>
 
       {errorApi ? <Text style={styles.errorApi}>{errorApi}</Text> : null}
@@ -230,8 +259,21 @@ export default function NuevoGastoScreen({ navigation, route }) {
         icono={editando ? 'check' : 'arrow-right'}
         onPress={confirmar}
         cargando={guardando}
+        disabled={eliminando}
         compacto
       />
+      {editando ? (
+        <View style={styles.zonaEliminar}>
+          <Boton
+            titulo="Eliminar gasto"
+            icono="trash-can-outline"
+            onPress={confirmarEliminar}
+            cargando={eliminando}
+            disabled={guardando}
+            destructivo
+          />
+        </View>
+      ) : null}
 
       {panel === 'metodo' ? (
         <PanelHoja titulo="Método de pago" onCerrar={() => setPanel(null)}>
@@ -359,6 +401,10 @@ const crearEstilos = (colors) =>
     // gap-2.5 entre teclado y botón
     zonaTeclado: {
       marginBottom: 10,
+    },
+    // Debajo del botón principal
+    zonaEliminar: {
+      marginTop: 10,
     },
     errorApi: {
       fontFamily: fonts.sans,
