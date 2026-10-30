@@ -82,11 +82,9 @@ export const temas = {
     acentoTexto: '#C4B5FD', // acento para texto sobre fondo oscuro (violeta claro)
     acentoSuave: 'rgba(139, 92, 246, 0.15)', // fondo de chips y botones activos con acento
 
-    // Nuevo gasto (08_nuevo_gasto_referencia): tarjeta del importe, halo de la categoría detrás
-    // del importe (opacidad del centro) y teclas
+    // Nuevo gasto (08_nuevo_gasto_referencia): tarjeta del importe y teclas
     montoFondo: 'rgba(124, 58, 237, 0.10)',
     montoBorde: 'rgba(167, 139, 250, 0.35)',
-    haloImporteOpacidad: 0.28,
     teclaFondo: 'rgba(255, 255, 255, 0.06)',
     teclaBorde: 'rgba(255, 255, 255, 0.06)',
     teclaPresionada: 'rgba(255, 255, 255, 0.12)',
@@ -232,7 +230,6 @@ export const temas = {
     // Nuevo gasto: importe en tarjeta blanca y teclas blancas con borde sutil
     montoFondo: '#FFFFFF',
     montoBorde: '#ECECF1',
-    haloImporteOpacidad: 0.18,
     teclaFondo: '#FFFFFF',
     teclaBorde: '#E7E7EC',
     teclaPresionada: '#F0F0F4',

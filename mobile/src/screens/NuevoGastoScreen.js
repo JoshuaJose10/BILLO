@@ -50,8 +50,6 @@ export default function NuevoGastoScreen({ navigation }) {
   const [guardando, setGuardando] = useState(false);
   const enviando = useRef(false);
   const hojaRef = useRef(null);
-  // Nombre de la categoría elegida, para el halo de color detrás del importe.
-  const nombreCategoria = categorias.find((c) => c.id === categoriaId)?.nombre;
 
   // Carga las categorías al abrir y cada vez que se pulsa "Reintentar" (cambia `intento`).
   useEffect(() => {
@@ -169,7 +167,7 @@ export default function NuevoGastoScreen({ navigation }) {
       </ScrollView>
 
       <View style={styles.zonaMonto}>
-        <MontoGrande texto={texto} error={!!errores.monto} categoria={nombreCategoria} />
+        <MontoGrande texto={texto} error={!!errores.monto} />
       </View>
       {errores.monto ? <Text style={styles.errorCampo}>{errores.monto}</Text> : null}
 

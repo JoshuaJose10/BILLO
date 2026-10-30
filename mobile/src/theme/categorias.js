@@ -2,8 +2,7 @@
 // nombre del seed (backend/migrations/007_seed_categorias.sql); si se renombra una categoría
 // ahí, hay que renombrarla aquí también. Se busca sin espacios a los lados y sin distinguir
 // mayúsculas. Las desconocidas (personalizadas, renombradas, null) usan los valores de Otros.
-//   base:       color vivo en tema oscuro (micro-punto, halo del chip y del importe, sombra del
-//               ícono).
+//   base:       color vivo en tema oscuro (micro-punto, halo del chip, sombra del ícono).
 //   baseClaro:  lo mismo en tema claro (menos la sombra del ícono); donde el vivo no llega a 3:1
 //               sobre los chips claros se usa un tono más profundo (tonos de Stitch claro).
 //   fondoChip:  mismo tono más oscuro, con contraste >= 4.5:1 con texto blanco (ambos temas).

@@ -160,7 +160,7 @@ En `theme/categorias.js`. La clave es el nombre del seed
 mayúsculas (`" comida "` → Comida). Una categoría que no esté en la tabla (personalizada, renombrada,
 `null`) usa los valores de Otros.
 
-- `colorCategoria(nombre, esOscuro)`: color base vivo (micro-punto, halo del chip y del importe). En tema claro devuelve `baseClaro` (ver [Categorías en tema claro](#categorías-en-tema-claro)).
+- `colorCategoria(nombre, esOscuro)`: color base vivo (micro-punto, halo del chip). En tema claro devuelve `baseClaro` (ver [Categorías en tema claro](#categorías-en-tema-claro)).
 - `fondoChipCategoria(nombre)`: el mismo tono más oscuro (solo baja la luminosidad HSL) hasta dar
   ≥ 4.5:1 con texto blanco. Es el fondo del chip seleccionado.
 - `degradadoCategoria(nombre, esOscuro)`: `[claro, centro, oscuro]` para el degradado diagonal de
@@ -450,10 +450,6 @@ funciones y no colores: selector Gasto/Ingreso, botón de micrófono y tarjeta "
   que se funde con la hoja. En oscuro es índigo; en claro, lavanda sobre una hoja lavanda clara.
 - **Tarjeta del importe** (`MontoGrande`): `montoFondo` + `montoBorde` y sombra (`sombra` al 30%,
   ≈ 4% en claro).
-- **Halo del importe**: degradado radial del color de la categoría elegida (`colorCategoria`) detrás
-  del número, con opacidad `haloImporteOpacidad` en el centro y 0 en el borde. Sin categoría no hay
-  halo. Al cambiar de categoría el color anterior se desvanece y el nuevo aparece (300 ms) con un
-  respiro de escala 1 → 1.06 → 1; con "Reducir movimiento" solo hay un fundido corto (150 ms).
 - **Teclas** (`TecladoNumerico`): `teclaFondo`, `teclaBorde` y `teclaPresionada`.
 - **Chips**: el seleccionado ya era como la referencia (fondo `fondoChipCategoria`, texto blanco). En
   claro, los no seleccionados y los de método, fecha y nota son blancos (`glass05`).
@@ -462,7 +458,6 @@ funciones y no colores: selector Gasto/Ingreso, botón de micrófono y tarjeta "
 | --- | --- | --- |
 | `montoFondo` | `rgba(124, 58, 237, 0.10)` (tinte violeta) | `#FFFFFF` |
 | `montoBorde` | `rgba(167, 139, 250, 0.35)` (borde luminoso) | `#ECECF1` |
-| `haloImporteOpacidad` | `0.28` | `0.18` |
 | `teclaFondo` | `rgba(255, 255, 255, 0.06)` | `#FFFFFF` |
 | `teclaBorde` | `rgba(255, 255, 255, 0.06)` | `#E7E7EC` |
 | `teclaPresionada` | `rgba(255, 255, 255, 0.12)` | `#F0F0F4` |
