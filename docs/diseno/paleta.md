@@ -7,17 +7,21 @@ sobre la misma base neutra.
 
 En código:
 
-- Base, acento y semánticos: `mobile/src/theme/colors.js` (`temas.oscuro`, exportado como `colors`).
-- Categorías: `mobile/src/theme/categorias.js` (`colorCategoria(nombre)`).
+- Base, acento y semánticos: `mobile/src/theme/colors.js` (`temas.oscuro` y `temas.claro`).
+- Tema activo: `useTema()` de `mobile/src/theme/TemaContext.js` (`{ colors, esOscuro }`), que sigue
+  el modo del sistema (`useColorScheme`) y se actualiza en vivo.
+- Categorías: `mobile/src/theme/categorias.js` (`colorCategoria(nombre, esOscuro)`).
 
-Ninguna pantalla ni componente debe usar un `#hex` o `rgba(` suelto; todo color sale de un token.
-Para comprobarlo:
+Ninguna pantalla ni componente debe usar un `#hex` o `rgba(` suelto; todo color sale de un token, y
+ningún archivo fuera de `theme/` importa un tema fijo. Para comprobarlo:
 
 ```sh
 git grep -nE "#[0-9A-Fa-f]{3,8}\b|rgba?\(" -- mobile/src ':!mobile/src/theme'
+git grep -n "import { colors" -- mobile/src ':!mobile/src/theme'
+npm run verificar:temas   # desde mobile/: claro y oscuro tienen las mismas claves
 ```
 
-Solo está implementado el **tema oscuro**.
+Las secciones siguientes describen el **tema oscuro**; el claro está en [Tema claro](#tema-claro).
 
 ## Base (tema oscuro)
 
@@ -81,6 +85,7 @@ igual que el `/NN` de Tailwind.
 | `textSoft` | `rgba(255, 255, 255, 0.9)` | Punto del teclado |
 | `iconSoft` | `rgba(255, 255, 255, 0.8)` | Ícono de borrar del teclado |
 | `amount` | `#E2E1EB` | Montos de egresos |
+| `textoSobreColor` | `#FFFFFF` | Glifo de `IconoCategoria` y texto del chip de categoría seleccionado (blanco en ambos temas) |
 
 ### Acciones y sombras
 
@@ -144,11 +149,15 @@ En `theme/categorias.js`. La clave es el nombre del seed
 mayúsculas (`" comida "` → Comida). Una categoría que no esté en la tabla (personalizada, renombrada,
 `null`) usa los valores de Otros.
 
-- `colorCategoria(nombre)`: color base vivo (micro-punto, halo del chip, sombra del ícono).
+- `colorCategoria(nombre, esOscuro)`: color base vivo (micro-punto, halo del chip, sombra del
+  ícono). En tema claro devuelve `baseClaro` (ver [Categorías en tema claro](#categorías-en-tema-claro)).
 - `fondoChipCategoria(nombre)`: el mismo tono más oscuro (solo baja la luminosidad HSL) hasta dar
   ≥ 4.5:1 con texto blanco. Es el fondo del chip seleccionado.
 - `degradadoCategoria(nombre)`: `[claro, centro, oscuro]` para el degradado diagonal de
   `IconoCategoria`. En general claro = 25% hacia blanco, centro = base y oscuro = 25% hacia negro.
+
+`fondoChipCategoria` y `degradadoCategoria` son iguales en ambos temas: lo que va encima (texto del
+chip, glifo del ícono) es blanco (`textoSobreColor`) en los dos.
 
 ### Chip seleccionado (texto blanco)
 
@@ -193,19 +202,185 @@ Antes del ajuste, Servicios daba 2.12 / 2.31 / 2.99 y Salud 2.35 / 2.65 / 3.40.
 | `brilloIcono` | `rgba(255, 255, 255, 0.22)` | Reflejo superior de `IconoCategoria` |
 | `brilloIconoFin` | `rgba(255, 255, 255, 0)` | Final del reflejo |
 
-## Pendiente: tema claro
+## Contraste de texto (tema oscuro)
 
-Solo documentado, **no implementado** (no existe `temas.claro` ni se usa `useColorScheme`).
-Valores del brief (*Opalescent Glow*):
+Fondos: `background`; la hoja de Nuevo gasto (`sheetDeep`); una fila de gasto dentro del panel de
+Inicio; y el pico del brillo índigo (`brilloIndigo` pleno sobre `background`, peor caso arriba a la
+izquierda).
 
-| Rol | Valor |
-| --- | --- |
-| Fondo base | `#FAF8FF` |
-| Brillo celeste | `rgba(147, 197, 253, 0.55)` |
-| Brillo lavanda | `rgba(196, 181, 253, 0.45)` |
-| Texto principal | `#111114` |
-| Texto secundario | `#5B6585` |
-| Chip no seleccionado | `#F4F4F7` |
-| Pestaña activa de la barra | `#111114` con texto e ícono invertidos |
+| Token | Valor | background | hoja | fila | pico del brillo |
+| --- | --- | --- | --- | --- | --- |
+| `text` | `#FFFFFF` | 18.58 | 19.66 | 18.26 | 13.91 |
+| `onSurface` | `#E2E2E2` | 14.34 | 15.18 | 14.10 | 10.74 |
+| `textVariant` | `#C4C7C8` | 10.93 | 11.57 | 10.74 | 8.18 |
+| `textSecondary` | `#A1A1AA` | 7.25 | 7.67 | 7.13 | 5.43 |
+| `textChip` | `#D4D4D8` | 12.57 | 13.30 | 12.36 | 9.41 |
+| `outline` | `#8E9192` | 5.85 | 6.19 | 5.75 | 4.38 |
+| `textNav` | `#A3A3A3` | 7.37 | 7.80 | 7.24 | 5.52 |
+| `amount` | `#E2E1EB` | 14.34 | 15.17 | 14.09 | 10.74 |
+| `acentoTexto` | `#C4B5FD` | 10.06 | 10.65 | 9.89 | 7.54 |
+| `alerta` | `#FF453A` | 5.45 | 5.77 | 5.36 | 4.08 |
 
-Cuando se implemente, `temas.claro` debe tener las mismas claves que `temas.oscuro`.
+`outline` y `alerta` no se usan arriba de la pantalla, donde está el pico del brillo.
+`onPrimary` sobre `primary`: 21.00; `onPrimaryMuted` sobre `primary`: 13.09.
+
+## Tema claro
+
+*Opalescent Glow* del brief. Fuentes: `stitch-paleta/07_inicio_claro_color_fondo_1`,
+`13_cartera_subs_claro_brillo`, `14_cartera_tarjetas_oscuro_gradiente_claro_fondo` y
+`project-brief-luminal-glow.md`. `temas.claro` tiene exactamente las mismas claves que
+`temas.oscuro` (`npm run verificar:temas`); cada clave cumple el mismo papel en los dos temas.
+
+Reglas:
+
+- Fondo lila muy claro, tarjetas y paneles blancos, filas internas `#F8F8FA`, pastillas `#F0F0F4` y
+  bordes `#E7E7EC`.
+- El botón principal, el `+` y la pestaña activa se invierten: `primary` es `#111114` y `onPrimary`
+  blanco.
+- El vidrio y los velos translúcidos usan negro (`rgba(17, 17, 20, …)`) de baja opacidad en vez de
+  blanco. El brillo superior (`borderTop`) sigue siendo blanco.
+- Sombras suaves: `sombra` es negro al 15% y su alfa se multiplica por el `shadowOpacity` de cada
+  estilo, así que las sombras quedan entre 1.5% y 13.5% (Stitch usa 3–4% en tarjetas). `brillo` (halo
+  de botones) pasa a ser oscuro: un halo blanco no se vería sobre fondo claro.
+- El ícono de categoría y el chip seleccionado no cambian: degradado vivo y blanco encima.
+
+### Superficies
+
+| Token | Valor | Uso |
+| --- | --- | --- |
+| `background` | `#FAF8FF` | Fondo de pantalla |
+| `surfaceLowest` | `#FFFFFF` | Tarjetas y paneles |
+| `surfaceLow` | `#F8F8FA` | Filas internas, SelectorMes |
+| `surface` | `#F4F4F7` | Panel de hoja (método, fecha, nota) |
+| `surfaceHigh` | `#F0F0F4` | Avatar, pastillas, campo enfocado |
+| `surfaceHighest` | `#E8E8EE` | Jalador del panel de Inicio |
+| `surfaceBright` | `#E2E2EA` | Barra de fuerza de contraseña apagada |
+| `surfaceChip` | `#F8F8FA` | Chips de la tarjeta de resumen |
+| `card` | `#FFFFFF` | Campo de la nota |
+| `sheet` / `sheetDeep` | `rgba(255, 255, 255, 0.95)` | Hojas de Login/Registro y HojaInferior |
+| `surfaceInput` | `rgba(240, 240, 244, 0.9)` | Campos de Login y Registro |
+| `background60` | `rgba(250, 248, 255, 0.6)` | Velo del fondo de Login y Registro |
+| `surfaceLow50` | `rgba(240, 240, 244, 0.5)` | Fila de gasto (≈ `#F8F8FA` sobre blanco) |
+| `surfaceLow70` | `rgba(255, 255, 255, 0.85)` | Tarjeta de resumen |
+| `surfaceLowest80` | `rgba(255, 255, 255, 0.85)` | Panel de Inicio |
+| `surfaceHigh80` | `rgba(255, 255, 255, 0.8)` | Ícono de Login y Registro |
+| `surfaceBright40` | `rgba(226, 226, 234, 0.4)` | Monolito del fondo de Registro |
+| `scrim` | `rgba(17, 17, 20, 0.25)` | Velo detrás de paneles |
+| `scrimSoft` | `rgba(17, 17, 20, 0.15)` | Velo detrás de HojaInferior |
+| `navbar` | `rgba(255, 255, 255, 0.85)` | Capa de la barra flotante sobre el blur |
+
+### Vidrio y bordes
+
+| Token | Valor | Uso |
+| --- | --- | --- |
+| `glass04` / `glass05` | `rgba(17, 17, 20, 0.04)` | Teclas, monto, chips |
+| `glass07` | `rgba(17, 17, 20, 0.05)` | Botón secundario, botón de cerrar, aviso de Login |
+| `glass08` | `rgba(17, 17, 20, 0.08)` | Tecla presionada |
+| `border` | `#E7E7EC` | Borde sutil |
+| `borderSoft` | `#ECECF1` | Borde de teclas |
+| `borderStrong` | `#E2E2EA` | Chips, navbar, botón secundario |
+| `borderPressed` | `#C9C9D2` | Chip presionado |
+| `borderTop` | `rgba(255, 255, 255, 0.9)` | Brillo superior de tarjetas, panel y hoja |
+| `borderTopStrong` / `borderTopAvatar` | `#FFFFFF` | Brillo superior de botones de ícono y Avatar |
+| `outline` | `#71717C` | Placeholders, íconos de Input, total del día, pista de contraseña |
+| `outlineVariant` | `#C9C9D2` | Jalador de Login y Registro |
+| `outlineVariant30` | `rgba(17, 17, 20, 0.08)` | Borde del ícono de Login y Registro |
+| `handle` | `#E7E7EC` | Jalador |
+| `handleSheet` | `rgba(17, 17, 20, 0.15)` | Jalador de HojaInferior |
+
+### Texto
+
+| Token | Valor | Uso |
+| --- | --- | --- |
+| `text` | `#111114` | Texto principal |
+| `onSurface` | `#1F1F24` | on-surface |
+| `textVariant` | `#52525E` | Subtítulos, etiquetas en mayúsculas |
+| `textSecondary` | `#6B6B76` | Texto secundario (Stitch claro) |
+| `textChip` | `#3F3F48` | Texto de chips |
+| `textMuted` | `#8E8E99` | Sin uso por ahora |
+| `textNav` | `#5E5E69` | Pestañas inactivas, lema de Login y Registro |
+| `textSoft` | `rgba(17, 17, 20, 0.9)` | Punto del teclado |
+| `iconSoft` | `rgba(17, 17, 20, 0.8)` | Ícono de borrar del teclado |
+| `amount` | `#111114` | Montos de egresos (carbón del brief) |
+| `textoSobreColor` | `#FFFFFF` | Glifo del ícono y texto del chip de categoría seleccionado |
+
+`textSecondary` reemplaza el `#5B6585` que estaba anotado antes en este documento: es el gris que usan
+todas las pantallas claras de Stitch.
+
+### Acciones, sombras y acento
+
+| Token | Valor | Uso |
+| --- | --- | --- |
+| `primary` | `#111114` | Botón principal, `+`, pestaña activa |
+| `primaryFixedDim` | `#3A3A42` | Figura decorativa del fondo de Registro |
+| `primary40` | `rgba(17, 17, 20, 0.4)` | Punto de SelectorMes |
+| `onPrimary` | `#FFFFFF` | Texto e ícono sobre `primary` |
+| `onPrimaryMuted` | `#F0F0F4` | Texto del botón de Login y Registro |
+| `sombra` | `rgba(17, 17, 20, 0.15)` | `shadowColor` de sombras |
+| `brillo` | `#111114` | `shadowColor` del halo de botones |
+| `acento` | `#8A55F0` | Bordes de foco y de estados activos (4.53:1 sobre blanco) |
+| `acentoTexto` | `#622CD6` | Saludo de Inicio, enlaces de Login y Registro, chip "Todas" |
+| `acentoSuave` | `rgba(138, 85, 240, 0.12)` | Fondo de chips y botones activos con acento |
+
+`acentoTexto` es más profundo que el `#8A55F0` de Stitch (4.30:1 sobre `background`) para pasar
+4.5:1 también encima del brillo, donde está el saludo de Inicio.
+
+### Brillo del fondo y semánticos
+
+| Token | Valor | Uso |
+| --- | --- | --- |
+| `brilloIndigo` | `rgba(147, 197, 253, 0.55)` | Halo celeste (mismo lugar que el índigo del oscuro) |
+| `brilloVioleta` | `rgba(196, 181, 253, 0.45)` | Halo lavanda (mismo lugar que el violeta del oscuro) |
+| `brilloIcono` / `brilloIconoFin` | `rgba(255, 255, 255, 0.22)` → `0` | Reflejo del ícono de categoría |
+| `exito` | `#22A866` | En meta, ingresos (3.06:1 sobre blanco) |
+| `exitoSuave` | `rgba(34, 168, 102, 0.12)` | |
+| `aviso` | `#D97706` | Cerca del límite (3.19:1 sobre blanco) |
+| `avisoSuave` | `rgba(217, 119, 6, 0.12)` | |
+| `alerta` | `#D92D20` | Límite excedido y errores (4.83:1 sobre blanco) |
+| `alertaSuave` | `rgba(217, 45, 32, 0.12)` | |
+
+`alerta` llega a 4.5:1 y no solo a 3:1 porque también es el color de los textos de error. El `#FF453A`
+del oscuro da 3.41:1 sobre blanco.
+
+### Contraste de texto (tema claro)
+
+Fondos: `background`, tarjeta blanca, fila de gasto (`surfaceLow50` sobre blanco), pastilla
+(`surfaceHigh`) y el pico del brillo (celeste y lavanda plenos encimados, peor caso).
+
+| Token | Valor | background | tarjeta | fila | pastilla | pico del brillo |
+| --- | --- | --- | --- | --- | --- | --- |
+| `text` | `#111114` | 17.89 | 18.85 | 17.77 | 16.58 | 11.82 |
+| `onSurface` | `#1F1F24` | 15.58 | 16.41 | 15.47 | 14.44 | 10.29 |
+| `textVariant` | `#52525E` | 7.31 | 7.70 | 7.26 | 6.77 | 4.83 |
+| `textSecondary` | `#6B6B76` | 5.00 | 5.26 | 4.96 | 4.63 | 3.30 |
+| `textChip` | `#3F3F48` | 9.89 | 10.42 | 9.82 | 9.16 | 6.53 |
+| `outline` | `#71717C` | 4.58 | 4.82 | 4.55 | 4.24 | 3.02 |
+| `textNav` | `#5E5E69` | 6.08 | 6.40 | 6.03 | 5.63 | 4.02 |
+| `amount` | `#111114` | 17.89 | 18.85 | 17.77 | 16.58 | 11.82 |
+| `acentoTexto` | `#622CD6` | 6.99 | 7.37 | 6.95 | 6.48 | 4.62 |
+| `alerta` | `#D92D20` | 4.59 | 4.83 | 4.56 | 4.25 | 3.03 |
+
+Arriba de la pantalla, donde está el brillo, solo hay `text`, `textVariant` (etiqueta "Bienvenido de
+nuevo") y `acentoTexto` (saludo), que pasan 4.5:1 en el peor caso. El lema de Login y Registro
+(`textNav`) queda a media altura, donde el brillo es más tenue: 5.12:1. `onPrimary` sobre `primary`:
+18.85; `onPrimaryMuted` sobre `primary`: 16.58.
+
+### Categorías en tema claro
+
+El micro-punto es un elemento gráfico: la meta es 3:1 contra el chip claro (`glass05` sobre la hoja
+blanca ≈ `#F5F5F6`) y contra el chip de la tarjeta de resumen (`#F8F8FA`). Donde el color vivo no
+llega, `baseClaro` usa un tono más profundo (los de Stitch claro). El halo del chip seleccionado y la
+sombra del ícono también usan `baseClaro`.
+
+| Categoría | `base` (oscuro) | Vivo sobre chip claro | `baseClaro` | Sobre chip claro | Sobre chip de tarjeta |
+| --- | --- | --- | --- | --- | --- |
+| Comida | `#FF3B69` | 3.17 | `#FF3B69` (igual) | 3.17 | 3.26 |
+| Transporte | `#4F7FFF` | 3.32 | `#3866F0` | 4.45 | 4.58 |
+| Entretenimiento | `#7C3AED` | 5.23 | `#7C3AED` (igual) | 5.23 | 5.37 |
+| Servicios | `#00C288` | 2.12 | `#1E9A5D` | 3.30 | 3.39 |
+| Salud | `#F472B6` | 2.43 | `#EB4778` | 3.38 | 3.47 |
+| Otros | `#8E8E93` | 2.99 | `#7C7C82` | 3.81 | 3.91 |
+
+Transporte pasaba con el vivo, pero se usa el `#3866F0` de Stitch para que el azul no se vea lavado
+sobre blanco. Servicios usa `#1E9A5D` y no el `#22A866` de Stitch porque este da 2.81:1.
+`fondoChip` y el degradado del ícono no cambian (texto y glifo blancos).

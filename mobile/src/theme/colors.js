@@ -2,7 +2,9 @@
 // configuración de Tailwind de las pantallas oscuras del export de Stitch), más el acento y los
 // semánticos de "Luminal Glow" (docs/diseno/paleta.md). Los colores de categoría viven en
 // theme/categorias.js.
-// Para el tema claro basta con agregar `claro` con las mismas claves y elegir cuál exportar.
+// `claro` (Opalescent Glow, stitch-paleta/*_claro_*) tiene exactamente las mismas claves que
+// `oscuro`: `npm run verificar:temas` falla si no coinciden. Los sufijos numéricos (background60,
+// glass04...) describen la opacidad del valor oscuro; en claro la clave conserva el mismo papel.
 export const temas = {
   oscuro: {
     // Superficies (escala surface-container de Obsidian)
@@ -62,6 +64,7 @@ export const temas = {
     textSoft: 'rgba(255, 255, 255, 0.9)', // white/90 (punto del teclado)
     iconSoft: 'rgba(255, 255, 255, 0.8)', // white/80 (borrar del teclado)
     amount: '#E2E1EB', // secondary-fixed (montos de egresos)
+    textoSobreColor: '#FFFFFF', // glifo y texto sobre un color sólido (ícono y chip de categoría)
 
     // Acciones
     primary: '#FFFFFF',
@@ -96,6 +99,101 @@ export const temas = {
     avisoSuave: 'rgba(255, 159, 10, 0.15)',
     alerta: '#FF453A', // límite excedido
     alertaSuave: 'rgba(255, 69, 58, 0.15)',
+  },
+
+  claro: {
+    // Superficies: fondo lila muy claro, tarjetas blancas, filas y pastillas en grises fríos
+    background: '#FAF8FF',
+    surfaceLowest: '#FFFFFF', // tarjetas y paneles
+    surfaceLow: '#F8F8FA', // filas internas
+    surface: '#F4F4F7', // panel de hoja (superficie neutra del brief)
+    surfaceHigh: '#F0F0F4', // avatar, pastillas, campo enfocado
+    surfaceHighest: '#E8E8EE',
+    surfaceBright: '#E2E2EA',
+    card: '#FFFFFF',
+    sheet: 'rgba(255, 255, 255, 0.95)',
+    sheetDeep: 'rgba(255, 255, 255, 0.95)',
+    surfaceInput: 'rgba(240, 240, 244, 0.9)',
+    surfaceChip: '#F8F8FA',
+
+    // Superficies translúcidas
+    background60: 'rgba(250, 248, 255, 0.6)',
+    surfaceLow50: 'rgba(240, 240, 244, 0.5)', // sobre el panel blanco queda en #F8F8FA
+    surfaceLow70: 'rgba(255, 255, 255, 0.85)',
+    surfaceLowest80: 'rgba(255, 255, 255, 0.85)',
+    surfaceHigh80: 'rgba(255, 255, 255, 0.8)',
+    surfaceBright40: 'rgba(226, 226, 234, 0.4)',
+
+    // Velos
+    scrim: 'rgba(17, 17, 20, 0.25)',
+    scrimSoft: 'rgba(17, 17, 20, 0.15)',
+
+    // Vidrio: negros translúcidos sobre fondo claro
+    glass04: 'rgba(17, 17, 20, 0.04)',
+    glass05: 'rgba(17, 17, 20, 0.04)',
+    glass07: 'rgba(17, 17, 20, 0.05)',
+    glass08: 'rgba(17, 17, 20, 0.08)',
+
+    // Bordes
+    border: '#E7E7EC',
+    borderSoft: '#ECECF1',
+    borderStrong: '#E2E2EA',
+    borderPressed: '#C9C9D2',
+    borderTop: 'rgba(255, 255, 255, 0.9)', // el brillo superior sigue siendo blanco
+    borderTopStrong: '#FFFFFF',
+    borderTopAvatar: '#FFFFFF',
+    outline: '#71717C',
+    outlineVariant: '#C9C9D2',
+    outlineVariant30: 'rgba(17, 17, 20, 0.08)',
+    handle: '#E7E7EC',
+    handleSheet: 'rgba(17, 17, 20, 0.15)',
+
+    // Texto
+    text: '#111114',
+    onSurface: '#1F1F24',
+    textVariant: '#52525E',
+    textSecondary: '#6B6B76',
+    textChip: '#3F3F48',
+    textMuted: '#8E8E99',
+    textNav: '#5E5E69', // también es el lema de Login y Registro, encima del brillo
+    textSoft: 'rgba(17, 17, 20, 0.9)',
+    iconSoft: 'rgba(17, 17, 20, 0.8)',
+    amount: '#111114',
+    textoSobreColor: '#FFFFFF',
+
+    // Acciones: el botón principal, el + y la pestaña activa se invierten (negro con blanco)
+    primary: '#111114',
+    primaryFixedDim: '#3A3A42',
+    primary40: 'rgba(17, 17, 20, 0.4)',
+    onPrimary: '#FFFFFF',
+    onPrimaryMuted: '#F0F0F4',
+    navbar: 'rgba(255, 255, 255, 0.85)',
+
+    // Sombras: el alfa del color se multiplica por shadowOpacity, así que las mismas opacidades
+    // de los estilos dan sombras de 1.5% a 13.5% (Stitch usa 3-4%).
+    sombra: 'rgba(17, 17, 20, 0.15)',
+    brillo: '#111114', // el halo de botones pasa a una sombra oscura suave
+
+    // Acento
+    acento: '#8A55F0',
+    acentoTexto: '#622CD6', // >= 4.5:1 sobre background, también encima del brillo
+    acentoSuave: 'rgba(138, 85, 240, 0.12)',
+
+    // Brillo del fondo: celeste y lavanda (mismas claves que el índigo y violeta del oscuro)
+    brilloIndigo: 'rgba(147, 197, 253, 0.55)',
+    brilloVioleta: 'rgba(196, 181, 253, 0.45)',
+
+    // Reflejo del ícono de categoría (el ícono es igual en ambos temas)
+    brilloIcono: 'rgba(255, 255, 255, 0.22)',
+    brilloIconoFin: 'rgba(255, 255, 255, 0)',
+
+    // Semánticos (>= 3:1 sobre blanco; alerta >= 4.5:1 porque también es texto de error)
+    exito: '#22A866',
+    exitoSuave: 'rgba(34, 168, 102, 0.12)',
+    aviso: '#D97706',
+    avisoSuave: 'rgba(217, 119, 6, 0.12)',
+    alerta: '#D92D20',
+    alertaSuave: 'rgba(217, 45, 32, 0.12)',
   },
 };
 
