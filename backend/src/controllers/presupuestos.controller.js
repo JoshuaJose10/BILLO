@@ -1,0 +1,296 @@
+const { pool } = require('../db');
+
+const esMesValido = (mesStr) => {
+  return typeof mesStr === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(mesStr);
+};
+
+const esMontoValido = (monto) => {
+  return (
+    typeof monto === 'number' &&
+    Number.isFinite(monto) &&
+    monto >= 0.01 &&
+    /^\d{1,10}(\.\d{1,2})?$/.test(String(monto))
+  );
+};
+
+const formatearPresupuesto = (row) => ({
+  id: row.id,
+  categoria_id: row.categoria_id,
+  mes: typeof row.mes === 'string' ? row.mes.trim() : row.mes,
+  monto_limite: Number(row.monto_limite),
+});
+
+// POST /presupuestos
+const crearPresupuesto = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+    const { categoria_id, mes, monto_limite } =
+      req.body && typeof req.body === 'object' ? req.body : {};
+
+    if (!esMontoValido(monto_limite)) {
+      return res.status(400).json({
+        error: {
+          code: 'MONTO_INVALIDO',
+          message: 'El monto límite debe ser un número mayor a 0',
+        },
+      });
+    }
+
+    if (!esMesValido(mes)) {
+      return res.status(400).json({
+        error: {
+          code: 'MES_INVALIDO',
+          message: 'El formato del mes debe ser YYYY-MM',
+        },
+      });
+    }
+
+    if (
+      typeof categoria_id !== 'number' ||
+      !Number.isInteger(categoria_id) ||
+      categoria_id <= 0 ||
+      categoria_id > 2147483647
+    ) {
+      return res.status(400).json({
+        error: {
+          code: 'CATEGORIA_INEXISTENTE',
+          message: 'La categoría seleccionada no existe',
+        },
+      });
+    }
+
+    const catResult = await pool.query(
+      'SELECT id FROM categorias WHERE id = $1',
+      [categoria_id]
+    );
+    if (catResult.rows.length === 0) {
+      return res.status(400).json({
+        error: {
+          code: 'CATEGORIA_INEXISTENTE',
+          message: 'La categoría seleccionada no existe',
+        },
+      });
+    }
+
+    const insertQuery = `
+      INSERT INTO presupuestos (usuario_id, categoria_id, monto_limite, mes)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id, categoria_id, TRIM(mes) AS mes, monto_limite
+    `;
+
+    const { rows } = await pool.query(insertQuery, [
+      usuarioId,
+      categoria_id,
+      monto_limite,
+      mes,
+    ]);
+
+    return res.status(201).json({
+      presupuesto: formatearPresupuesto(rows[0]),
+    });
+  } catch (error) {
+    if (error.code === '23505') {
+      return res.status(409).json({
+        error: {
+          code: 'PRESUPUESTO_DUPLICADO',
+          message: 'Ya existe un presupuesto para esa categoría y mes',
+        },
+      });
+    }
+    console.error('Error al crear presupuesto:', error.message);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'No se pudo registrar el presupuesto',
+      },
+    });
+  }
+};
+
+// GET /presupuestos?mes=YYYY-MM
+const listarPresupuestos = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+    const { mes } = req.query;
+
+    if (!esMesValido(mes)) {
+      return res.status(400).json({
+        error: {
+          code: 'MES_INVALIDO',
+          message: 'El formato del mes debe ser YYYY-MM',
+        },
+      });
+    }
+
+    const query = `
+      SELECT
+        p.id,
+        p.categoria_id,
+        c.nombre AS categoria,
+        TRIM(p.mes) AS mes,
+        p.monto_limite,
+        COALESCE(SUM(g.monto), 0) AS gastado,
+        ROUND((COALESCE(SUM(g.monto), 0) * 100.0) / p.monto_limite) AS porcentaje,
+        CASE
+          WHEN COALESCE(SUM(g.monto), 0) > p.monto_limite THEN 'excedido'
+          WHEN COALESCE(SUM(g.monto), 0) * 100 >= p.monto_limite * 80 THEN 'alerta'
+          ELSE 'ok'
+        END AS estado
+      FROM presupuestos p
+      INNER JOIN categorias c ON c.id = p.categoria_id
+      LEFT JOIN gastos g
+        ON g.usuario_id = p.usuario_id
+        AND g.categoria_id = p.categoria_id
+        AND TO_CHAR(g.fecha, 'YYYY-MM') = TRIM(p.mes)
+      WHERE p.usuario_id = $1 AND TRIM(p.mes) = $2
+      GROUP BY p.id, p.categoria_id, c.nombre, p.mes, p.monto_limite
+      ORDER BY p.id ASC
+    `;
+
+    const { rows } = await pool.query(query, [usuarioId, mes]);
+
+    const resultado = rows.map((row) => ({
+      id: row.id,
+      categoria_id: row.categoria_id,
+      categoria: row.categoria,
+      mes: row.mes,
+      monto_limite: Number(row.monto_limite),
+      gastado: Number(row.gastado),
+      porcentaje: Number(row.porcentaje),
+      estado: row.estado,
+    }));
+
+    return res.status(200).json(resultado);
+  } catch (error) {
+    console.error('Error al listar presupuestos:', error.message);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'No se pudieron obtener los presupuestos',
+      },
+    });
+  }
+};
+
+// PUT /presupuestos/:id
+const actualizarPresupuesto = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+    const presupuestoId = Number(req.params.id);
+
+    if (
+      !Number.isInteger(presupuestoId) ||
+      presupuestoId <= 0 ||
+      presupuestoId > 2147483647
+    ) {
+      return res.status(404).json({
+        error: {
+          code: 'PRESUPUESTO_NO_ENCONTRADO',
+          message: 'Presupuesto no encontrado',
+        },
+      });
+    }
+
+    const { monto_limite } =
+      req.body && typeof req.body === 'object' ? req.body : {};
+
+    if (!esMontoValido(monto_limite)) {
+      return res.status(400).json({
+        error: {
+          code: 'MONTO_INVALIDO',
+          message: 'El monto límite debe ser un número mayor a 0',
+        },
+      });
+    }
+
+    const updateQuery = `
+      UPDATE presupuestos
+      SET monto_limite = $3
+      WHERE id = $1 AND usuario_id = $2
+      RETURNING id, categoria_id, TRIM(mes) AS mes, monto_limite
+    `;
+
+    const { rows } = await pool.query(updateQuery, [
+      presupuestoId,
+      usuarioId,
+      monto_limite,
+    ]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        error: {
+          code: 'PRESUPUESTO_NO_ENCONTRADO',
+          message: 'Presupuesto no encontrado',
+        },
+      });
+    }
+
+    return res.status(200).json({
+      presupuesto: formatearPresupuesto(rows[0]),
+    });
+  } catch (error) {
+    console.error('Error al actualizar presupuesto:', error.message);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'No se pudo actualizar el presupuesto',
+      },
+    });
+  }
+};
+
+// DELETE /presupuestos/:id
+const eliminarPresupuesto = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+    const presupuestoId = Number(req.params.id);
+
+    if (
+      !Number.isInteger(presupuestoId) ||
+      presupuestoId <= 0 ||
+      presupuestoId > 2147483647
+    ) {
+      return res.status(404).json({
+        error: {
+          code: 'PRESUPUESTO_NO_ENCONTRADO',
+          message: 'Presupuesto no encontrado',
+        },
+      });
+    }
+
+    const deleteQuery = `
+      DELETE FROM presupuestos
+      WHERE id = $1 AND usuario_id = $2
+      RETURNING id
+    `;
+
+    const { rows } = await pool.query(deleteQuery, [presupuestoId, usuarioId]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        error: {
+          code: 'PRESUPUESTO_NO_ENCONTRADO',
+          message: 'Presupuesto no encontrado',
+        },
+      });
+    }
+
+    return res.status(200).json({ eliminado: true });
+  } catch (error) {
+    console.error('Error al eliminar presupuesto:', error.message);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'No se pudo eliminar el presupuesto',
+      },
+    });
+  }
+};
+
+module.exports = {
+  crearPresupuesto,
+  listarPresupuestos,
+  actualizarPresupuesto,
+  eliminarPresupuesto,
+};
+
