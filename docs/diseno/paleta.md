@@ -160,15 +160,17 @@ En `theme/categorias.js`. La clave es el nombre del seed
 mayúsculas (`" comida "` → Comida). Una categoría que no esté en la tabla (personalizada, renombrada,
 `null`) usa los valores de Otros.
 
-- `colorCategoria(nombre, esOscuro)`: color base vivo (micro-punto, halo del chip, sombra del
-  ícono). En tema claro devuelve `baseClaro` (ver [Categorías en tema claro](#categorías-en-tema-claro)).
+- `colorCategoria(nombre, esOscuro)`: color base vivo (micro-punto, halo del chip y del importe). En tema claro devuelve `baseClaro` (ver [Categorías en tema claro](#categorías-en-tema-claro)).
 - `fondoChipCategoria(nombre)`: el mismo tono más oscuro (solo baja la luminosidad HSL) hasta dar
   ≥ 4.5:1 con texto blanco. Es el fondo del chip seleccionado.
-- `degradadoCategoria(nombre)`: `[claro, centro, oscuro]` para el degradado diagonal de
-  `IconoCategoria`. En general claro = 25% hacia blanco, centro = base y oscuro = 25% hacia negro.
+- `degradadoCategoria(nombre, esOscuro)`: `[claro, centro, oscuro]` para el degradado diagonal de
+  `IconoCategoria`. En oscuro, en general claro = 25% hacia blanco, centro = base y oscuro = 25% hacia
+  negro. En claro devuelve `degradadoClaro` (ver [Ícono en tema claro](#ícono-en-tema-claro)).
+- `sombraCategoria(nombre, esOscuro)`: color de la sombra del ícono (la base en oscuro, el centro de
+  `degradadoClaro` en claro).
 
-`fondoChipCategoria` y `degradadoCategoria` son iguales en ambos temas: lo que va encima (texto del
-chip, glifo del ícono) es blanco (`textoSobreColor`) en los dos.
+`fondoChipCategoria` es igual en ambos temas. El texto del chip y el glifo del ícono son blancos
+(`textoSobreColor`) en los dos.
 
 ### Chip seleccionado (texto blanco)
 
@@ -181,7 +183,7 @@ chip, glifo del ícono) es blanco (`textoSobreColor`) en los dos.
 | Salud | `#F472B6` | 2.65 | `#E0117E` | 4.61 |
 | Otros | `#8E8E93` | 3.26 | `#74747A` | 4.64 |
 
-### Ícono (glifo blanco sobre el degradado)
+### Ícono (glifo blanco sobre el degradado, tema oscuro)
 
 El glifo de 20px ocupa la parte central de la diagonal del squircle de 40px: el contraste se mide en
 el 25%, 50% y 75% del degradado. La meta para íconos es 3:1. En Servicios y Salud el final ya pasaba
@@ -202,7 +204,8 @@ Antes del ajuste, Servicios daba 2.12 / 2.31 / 2.99 y Salud 2.35 / 2.65 / 3.40.
 ### Dónde se aplican
 
 - **`IconoCategoria`** (filas de gasto de Inicio y Movimientos): squircle de 40px con el degradado,
-  reflejo blanco arriba (`brilloIcono` → `brilloIconoFin`), glifo blanco y sombra del color base.
+  reflejo blanco arriba (`brilloIcono` → `brilloIconoFin`), glifo blanco y sombra del color de la
+  categoría (`sombraCategoria`) con `iconoSombraOpacidad`, `iconoSombraRadio` e `iconoSombraY`.
 - **`ChipCategoria`**: seleccionado → fondo `fondoChipCategoria`, texto e ícono blancos y halo del
   color base; no seleccionado → superficie neutra con micro-punto de 6px del color base. El chip
   "Todas" (con `icono` propio) no lleva punto y, seleccionado, usa el acento translúcido.
@@ -212,6 +215,7 @@ Antes del ajuste, Servicios daba 2.12 / 2.31 / 2.99 y Salud 2.35 / 2.65 / 3.40.
 | --- | --- | --- |
 | `brilloIcono` | `rgba(255, 255, 255, 0.22)` | Reflejo superior de `IconoCategoria` |
 | `brilloIconoFin` | `rgba(255, 255, 255, 0)` | Final del reflejo |
+| `iconoSombraOpacidad` / `iconoSombraRadio` / `iconoSombraY` | `0.35` / `8` / `4` | Sombra del ícono |
 
 ## Contraste de texto (tema oscuro)
 
@@ -257,7 +261,8 @@ Reglas:
 - Sombras suaves: `sombra` es negro al 15% y su alfa se multiplica por el `shadowOpacity` de cada
   estilo, así que las sombras quedan entre 1.5% y 13.5% (Stitch usa 3–4% en tarjetas). `brillo` (halo
   de botones) pasa a ser oscuro: un halo blanco no se vería sobre fondo claro.
-- El ícono de categoría y el chip seleccionado no cambian: degradado vivo y blanco encima.
+- El chip seleccionado no cambia. El ícono de categoría tiene su propio degradado, más luminoso, y
+  una sombra más suave; el glifo sigue blanco.
 
 ### Superficies
 
@@ -358,7 +363,8 @@ figuras difuminadas de `FondoAuth`.
 
 | Token | Valor | Uso |
 | --- | --- | --- |
-| `brilloIcono` / `brilloIconoFin` | `rgba(255, 255, 255, 0.22)` → `0` | Reflejo del ícono de categoría |
+| `brilloIcono` / `brilloIconoFin` | `rgba(255, 255, 255, 0.32)` → `0` | Reflejo del ícono, más marcado (vidrio) |
+| `iconoSombraOpacidad` / `iconoSombraRadio` / `iconoSombraY` | `0.2` / `10` / `6` | Sombra del ícono: más suave, amplia y baja |
 | `exito` | `#22A866` | En meta, ingresos (3.06:1 sobre blanco) |
 | `exitoSuave` | `rgba(34, 168, 102, 0.12)` | |
 | `aviso` | `#D97706` | Cerca del límite (3.19:1 sobre blanco) |
@@ -415,7 +421,25 @@ sombra del ícono también usan `baseClaro`.
 Transporte pasaba con el vivo, pero se usa el `#3866F0` de Stitch para que el azul no se vea lavado
 sobre blanco. Servicios usa `#1E9A5D` y no el `#22A866` de Stitch porque este da 2.89:1 sobre el
 chip de la tarjeta de resumen.
-`fondoChip` y el degradado del ícono no cambian (texto y glifo blancos).
+`fondoChip` no cambia (texto blanco).
+
+### Ícono en tema claro
+
+El degradado oscuro termina 25% hacia negro (Comida `#BF2C4F`) y sobre fondo claro se veía sucio.
+`degradadoClaro` sigue los íconos de `07_inicio_claro_color_fondo_1`: 22% hacia blanco, la base viva al
+centro y apenas 10% hacia negro al final. La sombra usa el centro (la base viva) en vez de `baseClaro`.
+
+| Categoría | `degradadoClaro` (claro · centro · final) | Glifo 25% / 50% / 75% | Glifo vs final |
+| --- | --- | --- | --- |
+| Comida | `#FF668A` · `#FF3B69` · `#E6355F` | 3.13 / 3.45 / 3.78 | 4.17 |
+| Transporte | `#769BFF` · `#4F7FFF` · `#4772E6` | 3.10 / 3.61 / 3.94 | 4.36 |
+| Entretenimiento | `#9965F1` · `#7C3AED` · `#7034D5` | 4.68 / 5.70 / 6.17 | 6.69 |
+| Servicios | `#38CFA2` · `#00C288` · `#00AF7A` | 2.13 / 2.31 / 2.54 | 2.83 |
+| Salud | `#F691C6` · `#F472B6` · `#DC67A4` | 2.38 / 2.65 / 2.91 | 3.22 |
+| Otros | `#A7A7AB` · `#8E8E93` · `#808084` | 2.77 / 3.26 / 3.57 | 3.93 |
+
+Servicios y Salud quedan por debajo de 3:1 en el centro, igual que el color base. Se acepta porque el
+ícono es decorativo y siempre va junto al nombre o la nota del gasto.
 
 ## Hoja de Nuevo gasto
 

@@ -2,22 +2,22 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, View } from 'react-native';
 
-import { colorCategoria, degradadoCategoria } from '../theme/categorias';
+import { degradadoCategoria, sombraCategoria } from '../theme/categorias';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { iconoCategoria } from '../utils/categorias';
 
-// Ícono de categoría (Luminal Glow, 07_inicio_oscuro): squircle w-10 h-10 rounded-2xl con
-// degradado diagonal del color de la categoría, reflejo blanco arriba, glifo blanco y sombra
-// suave del mismo color. La sombra va en el contenedor exterior: con overflow hidden iOS la
+// Ícono de categoría (Luminal Glow, 07_inicio_oscuro y 07_inicio_claro): squircle w-10 h-10
+// rounded-2xl con degradado diagonal del color de la categoría (uno por tema), reflejo blanco
+// arriba, glifo blanco y sombra suave del mismo color (intensidad por tema). La sombra va en el contenedor exterior: con overflow hidden iOS la
 // recortaría.
 export default function IconoCategoria({ nombre }) {
   const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
   return (
-    <View style={[styles.sombra, { shadowColor: colorCategoria(nombre, esOscuro) }]}>
+    <View style={[styles.sombra, { shadowColor: sombraCategoria(nombre, esOscuro) }]}>
       <LinearGradient
-        colors={degradadoCategoria(nombre)}
+        colors={degradadoCategoria(nombre, esOscuro)}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.icono}
@@ -40,9 +40,9 @@ const crearEstilos = (colors) =>
   StyleSheet.create({
     sombra: {
       borderRadius: radios['2xl'],
-      shadowOffset: { width: 0, height: 4 },
-      shadowRadius: 8,
-      shadowOpacity: 0.35,
+      shadowOffset: { width: 0, height: colors.iconoSombraY },
+      shadowRadius: colors.iconoSombraRadio,
+      shadowOpacity: colors.iconoSombraOpacidad,
     },
     icono: {
       width: 40,

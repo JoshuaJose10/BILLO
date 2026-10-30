@@ -135,9 +135,13 @@ export const temas = {
       },
     ],
 
-    // Reflejo superior del ícono de categoría (IconoCategoria)
+    // Reflejo superior y sombra del ícono de categoría (IconoCategoria); el color de la sombra
+    // es el de la categoría (sombraCategoria)
     brilloIcono: 'rgba(255, 255, 255, 0.22)',
     brilloIconoFin: 'rgba(255, 255, 255, 0)',
+    iconoSombraOpacidad: 0.35,
+    iconoSombraRadio: 8,
+    iconoSombraY: 4,
 
     // Semánticos de estado financiero; la variante Suave (~15%) es para fondos de barras y avisos
     exito: '#10B981', // en meta / ingresos
@@ -267,9 +271,13 @@ export const temas = {
       },
     ],
 
-    // Reflejo del ícono de categoría (el ícono es igual en ambos temas)
-    brilloIcono: 'rgba(255, 255, 255, 0.22)',
+    // Ícono de categoría: reflejo más marcado (efecto vidrio) y sombra más suave, amplia y baja,
+    // como la de Stitch claro (rgba(color, 0.28) 0 3px 8px)
+    brilloIcono: 'rgba(255, 255, 255, 0.32)',
     brilloIconoFin: 'rgba(255, 255, 255, 0)',
+    iconoSombraOpacidad: 0.2,
+    iconoSombraRadio: 10,
+    iconoSombraY: 6,
 
     // Semánticos (>= 3:1 sobre blanco; alerta >= 4.5:1 porque también es texto de error)
     exito: '#22A866',
