@@ -20,7 +20,7 @@ import MontoGrande from '../components/MontoGrande';
 import PanelHoja from '../components/PanelHoja';
 import TecladoNumerico from '../components/TecladoNumerico';
 import { METODO_PAGO_DEFECTO, METODOS_PAGO, NOTA_MAX, useGastosService } from '../services/gastos';
-import { colors } from '../theme/colors';
+import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { mensajeError } from '../utils/errores';
 import { fechaLocalISO } from '../utils/fechas';
@@ -31,6 +31,8 @@ import { aplicarTecla, montoDesdeTexto } from '../utils/monto';
 // El alto lo da el contenido (~65% de la pantalla en un iPhone de 6.1").
 export default function NuevoGastoScreen({ navigation }) {
   const { listarCategorias, crearGasto } = useGastosService();
+  const { colors, esOscuro } = useTema();
+  const styles = useEstilos(crearEstilos);
 
   const [texto, setTexto] = useState('');
   const [categoriaId, setCategoriaId] = useState(null);
@@ -245,7 +247,7 @@ export default function NuevoGastoScreen({ navigation }) {
             value={fecha}
             mode="date"
             display="inline"
-            themeVariant="dark"
+            themeVariant={esOscuro ? 'dark' : 'light'}
             accentColor={colors.text}
             maximumDate={new Date()}
             locale={LOCALE}
@@ -266,6 +268,7 @@ export default function NuevoGastoScreen({ navigation }) {
             placeholderTextColor={colors.textSecondary}
             cursorColor={colors.acento}
             selectionColor={colors.acento}
+            keyboardAppearance={esOscuro ? 'dark' : 'light'}
             maxLength={NOTA_MAX}
             autoFocus
             returnKeyType="done"
@@ -282,99 +285,100 @@ export default function NuevoGastoScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  // Filas con scroll horizontal hasta el borde de la hoja (px-5)
-  filaScroll: {
-    marginHorizontal: -20,
-    flexGrow: 0,
-    marginTop: 10,
-  },
-  // Chips de método/fecha/nota: gap-2
-  filaChips: {
-    gap: 8,
-    paddingHorizontal: 20,
-  },
-  // Chips de categoría: gap-1.5 py-0.5
-  filaCategorias: {
-    gap: 6,
-    paddingHorizontal: 20,
-    paddingVertical: 2,
-  },
-  // my-2
-  zonaMonto: {
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  // mb-2
-  zonaCategorias: {
-    minHeight: 32,
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  estadoCategorias: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  textoEstado: {
-    fontFamily: fonts.sans,
-    color: colors.textSecondary,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  errorCampo: {
-    fontFamily: fonts.sans,
-    color: colors.error,
-    fontSize: 12,
-    lineHeight: 16,
-    marginTop: -4,
-    marginBottom: 8,
-  },
-  // gap-2.5 entre teclado y botón
-  zonaTeclado: {
-    marginBottom: 10,
-  },
-  errorApi: {
-    fontFamily: fonts.sans,
-    color: colors.error,
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  opcion: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderRadius: 12,
-  },
-  opcionPresionada: {
-    backgroundColor: colors.border,
-  },
-  opcionTexto: {
-    fontFamily: fonts.sans,
-    flex: 1,
-    color: colors.text,
-    fontSize: 16,
-  },
-  inputNota: {
-    fontFamily: fonts.sans,
-    height: 48,
-    paddingHorizontal: 14,
-    borderRadius: 14,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    color: colors.text,
-    fontSize: 16,
-  },
-  contador: {
-    fontFamily: fonts.sans,
-    color: colors.textSecondary,
-    fontSize: 12,
-    textAlign: 'right',
-    marginTop: 6,
-    marginBottom: 14,
-  },
-});
+const crearEstilos = (colors) =>
+  StyleSheet.create({
+    // Filas con scroll horizontal hasta el borde de la hoja (px-5)
+    filaScroll: {
+      marginHorizontal: -20,
+      flexGrow: 0,
+      marginTop: 10,
+    },
+    // Chips de método/fecha/nota: gap-2
+    filaChips: {
+      gap: 8,
+      paddingHorizontal: 20,
+    },
+    // Chips de categoría: gap-1.5 py-0.5
+    filaCategorias: {
+      gap: 6,
+      paddingHorizontal: 20,
+      paddingVertical: 2,
+    },
+    // my-2
+    zonaMonto: {
+      marginTop: 8,
+      marginBottom: 8,
+    },
+    // mb-2
+    zonaCategorias: {
+      minHeight: 32,
+      justifyContent: 'center',
+      marginBottom: 8,
+    },
+    estadoCategorias: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    textoEstado: {
+      fontFamily: fonts.sans,
+      color: colors.textSecondary,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+    errorCampo: {
+      fontFamily: fonts.sans,
+      color: colors.alerta,
+      fontSize: 12,
+      lineHeight: 16,
+      marginTop: -4,
+      marginBottom: 8,
+    },
+    // gap-2.5 entre teclado y botón
+    zonaTeclado: {
+      marginBottom: 10,
+    },
+    errorApi: {
+      fontFamily: fonts.sans,
+      color: colors.alerta,
+      fontSize: 14,
+      textAlign: 'center',
+      marginBottom: 10,
+    },
+    opcion: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 14,
+      paddingVertical: 12,
+      paddingHorizontal: 8,
+      borderRadius: 12,
+    },
+    opcionPresionada: {
+      backgroundColor: colors.border,
+    },
+    opcionTexto: {
+      fontFamily: fonts.sans,
+      flex: 1,
+      color: colors.text,
+      fontSize: 16,
+    },
+    inputNota: {
+      fontFamily: fonts.sans,
+      height: 48,
+      paddingHorizontal: 14,
+      borderRadius: 14,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      color: colors.text,
+      fontSize: 16,
+    },
+    contador: {
+      fontFamily: fonts.sans,
+      color: colors.textSecondary,
+      fontSize: 12,
+      textAlign: 'right',
+      marginTop: 6,
+      marginBottom: 14,
+    },
+  });

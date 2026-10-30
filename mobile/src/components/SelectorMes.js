@@ -1,7 +1,8 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radios } from '../theme/colors';
+import { radios } from '../theme/colors';
+import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { mesActual, sumarMeses } from '../utils/fechas';
 import { MONEDA, nombreMesAnio } from '../utils/formato';
@@ -12,6 +13,7 @@ import { MONEDA, nombreMesAnio } from '../utils/formato';
 export default function SelectorMes({ mes, onCambiar, mesMaximo = mesActual() }) {
   const haySiguiente = mes < mesMaximo;
   const titulo = nombreMesAnio(mes);
+  const styles = useEstilos(crearEstilos);
 
   return (
     <View style={styles.barra}>
@@ -37,6 +39,8 @@ export default function SelectorMes({ mes, onCambiar, mesMaximo = mesActual() })
 }
 
 function BotonMes({ icono, etiqueta, activo, onPress }) {
+  const { colors } = useTema();
+  const styles = useEstilos(crearEstilos);
   return (
     <Pressable
       onPress={onPress}
@@ -56,60 +60,65 @@ function BotonMes({ icono, etiqueta, activo, onPress }) {
   );
 }
 
-const styles = StyleSheet.create({
-  // flex items-center justify-between bg-surface-container-low px-space-sm py-1.5 rounded-full
-  barra: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: radios.full,
-    backgroundColor: colors.surfaceLow,
-  },
-  // w-8 h-8 rounded-full (con fondo para que se lea como botón circular)
-  boton: {
-    width: 32,
-    height: 32,
-    borderRadius: radios.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.glass05,
-  },
-  botonInactivo: {
-    opacity: 0.3,
-  },
-  // active:scale-90
-  botonPresionado: {
-    transform: [{ scale: 0.9 }],
-  },
-  // flex items-center gap-2
-  centro: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  // font-headline-sm text-headline-sm text-primary tracking-tight
-  titulo: {
-    fontFamily: fonts.sansSemiBold,
-    fontSize: 18,
-    lineHeight: 24,
-    letterSpacing: -0.18,
-    color: colors.text,
-  },
-  // w-1.5 h-1.5 rounded-full bg-primary/40
-  punto: {
-    width: 6,
-    height: 6,
-    borderRadius: radios.full,
-    backgroundColor: colors.primary40,
-  },
-  // font-label-caps text-label-caps text-on-surface-variant
-  moneda: {
-    fontFamily: fonts.monoMedium,
-    fontSize: 11,
-    lineHeight: 14,
-    letterSpacing: 0.88,
-    color: colors.textVariant,
-  },
-});
+const crearEstilos = (colors) =>
+  StyleSheet.create({
+    // flex items-center justify-between bg-surface-container-low px-space-sm py-1.5 rounded-full
+    barra: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 8,
+      paddingVertical: 6,
+      borderRadius: radios.full,
+      backgroundColor: colors.surfaceLow,
+    },
+    // w-8 h-8 rounded-full (con fondo para que se lea como botón circular)
+    boton: {
+      width: 32,
+      height: 32,
+      borderRadius: radios.full,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.glass05,
+      borderWidth: 1,
+      borderColor: 'transparent',
+    },
+    botonInactivo: {
+      opacity: 0.3,
+    },
+    // active:scale-90; activo con borde y fondo translúcido del acento.
+    botonPresionado: {
+      transform: [{ scale: 0.9 }],
+      backgroundColor: colors.acentoSuave,
+      borderColor: colors.acento,
+    },
+    // flex items-center gap-2
+    centro: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    // font-headline-sm text-headline-sm text-primary tracking-tight
+    titulo: {
+      fontFamily: fonts.sansSemiBold,
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.18,
+      color: colors.text,
+    },
+    // w-1.5 h-1.5 rounded-full bg-primary/40
+    punto: {
+      width: 6,
+      height: 6,
+      borderRadius: radios.full,
+      backgroundColor: colors.primary40,
+    },
+    // font-label-caps text-label-caps text-on-surface-variant
+    moneda: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 11,
+      lineHeight: 14,
+      letterSpacing: 0.88,
+      color: colors.textVariant,
+    },
+  });
