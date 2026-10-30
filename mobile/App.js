@@ -19,6 +19,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import PantallaCarga from './src/components/PantallaCarga';
 import { AuthProvider } from './src/context/AuthContext';
 import RootNavigator from './src/navigation/RootNavigator';
+import { TemaProvider } from './src/theme/TemaContext';
 
 export default function App() {
   const [fuentesCargadas, errorFuentes] = useFonts({
@@ -35,18 +36,25 @@ export default function App() {
   });
 
   // Si las fuentes fallan se sigue con las del sistema en vez de bloquear la app.
+  // La pantalla de carga también sigue el tema del sistema.
   if (!fuentesCargadas && !errorFuentes) {
-    return <PantallaCarga />;
+    return (
+      <TemaProvider>
+        <PantallaCarga />
+      </TemaProvider>
+    );
   }
 
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <NavigationContainer>
-          <RootNavigator />
-          {/* Toda la app usa tema oscuro. */}
-          <StatusBar style="light" />
-        </NavigationContainer>
+        <TemaProvider>
+          <NavigationContainer>
+            <RootNavigator />
+            {/* Toda la app usa tema oscuro. */}
+            <StatusBar style="light" />
+          </NavigationContainer>
+        </TemaProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );

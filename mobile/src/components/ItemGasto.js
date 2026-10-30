@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, radios } from '../theme/colors';
+import { radios } from '../theme/colors';
+import { useEstilos } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { fechaRelativa, formatearMonto } from '../utils/formato';
 import IconoCategoria from './IconoCategoria';
@@ -11,6 +12,7 @@ import IconoCategoria from './IconoCategoria';
 // Con `metodoPago` (etiqueta, p. ej. "Efectivo") el subtítulo es "Categoría · Método", para
 // listas donde la fecha ya va en el encabezado del día (Movimientos).
 export default function ItemGasto({ gasto, nombreCategoria, metodoPago }) {
+  const styles = useEstilos(crearEstilos);
   const categoria = nombreCategoria || 'Sin categoría';
   const nota = gasto.nota?.trim();
   const titulo = nota || categoria;
@@ -37,40 +39,41 @@ export default function ItemGasto({ gasto, nombreCategoria, metodoPago }) {
   );
 }
 
-const styles = StyleSheet.create({
-  // flex items-center justify-between p-2.5 rounded-2xl bg-surface-container-low/50; gap-3
-  fila: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 10,
-    borderRadius: radios['2xl'],
-    backgroundColor: colors.surfaceLow50,
-  },
-  textos: {
-    flex: 1,
-  },
-  // font-body-md text-body-md text-primary font-medium tracking-tight
-  titulo: {
-    fontFamily: fonts.sansMedium,
-    fontSize: 14,
-    lineHeight: 20,
-    letterSpacing: -0.35,
-    color: colors.text,
-  },
-  // font-label-caps text-[10px] text-on-surface-variant
-  subtitulo: {
-    fontFamily: fonts.monoMedium,
-    fontSize: 10,
-    lineHeight: 14,
-    letterSpacing: 0.8,
-    color: colors.textVariant,
-  },
-  // font-financial-metric-md text-body-lg text-secondary-fixed font-semibold
-  monto: {
-    fontFamily: fonts.monoSemiBold,
-    fontSize: 16,
-    letterSpacing: -0.16,
-    color: colors.amount,
-  },
-});
+const crearEstilos = (colors) =>
+  StyleSheet.create({
+    // flex items-center justify-between p-2.5 rounded-2xl bg-surface-container-low/50; gap-3
+    fila: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      padding: 10,
+      borderRadius: radios['2xl'],
+      backgroundColor: colors.surfaceLow50,
+    },
+    textos: {
+      flex: 1,
+    },
+    // font-body-md text-body-md text-primary font-medium tracking-tight
+    titulo: {
+      fontFamily: fonts.sansMedium,
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: -0.35,
+      color: colors.text,
+    },
+    // font-label-caps text-[10px] text-on-surface-variant
+    subtitulo: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 10,
+      lineHeight: 14,
+      letterSpacing: 0.8,
+      color: colors.textVariant,
+    },
+    // font-financial-metric-md text-body-lg text-secondary-fixed font-semibold
+    monto: {
+      fontFamily: fonts.monoSemiBold,
+      fontSize: 16,
+      letterSpacing: -0.16,
+      color: colors.amount,
+    },
+  });

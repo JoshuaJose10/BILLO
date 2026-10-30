@@ -2,7 +2,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { colorCategoria } from '../theme/categorias';
-import { colors, radios } from '../theme/colors';
+import { radios } from '../theme/colors';
+import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { iconoCategoria } from '../utils/categorias';
 import { formatearMonto, formatearMontoCorto } from '../utils/formato';
@@ -11,6 +12,8 @@ import { formatearMonto, formatearMontoCorto } from '../utils/formato';
 // texto a la izquierda y total a la derecha; debajo, chips con las categorías de mayor
 // gasto (`principales` = [{ id, nombre, total }]). Sin meta ni barra de progreso.
 export default function TarjetaResumen({ total, principales = [] }) {
+  const { colors, esOscuro } = useTema();
+  const styles = useEstilos(crearEstilos);
   return (
     <View style={styles.tarjeta}>
       <View style={styles.fila}>
@@ -28,7 +31,9 @@ export default function TarjetaResumen({ total, principales = [] }) {
               style={styles.chip}
               accessibilityLabel={`${c.nombre}: ${formatearMontoCorto(c.total)}`}
             >
-              <View style={[styles.punto, { backgroundColor: colorCategoria(c.nombre) }]} />
+              <View
+                style={[styles.punto, { backgroundColor: colorCategoria(c.nombre, esOscuro) }]}
+              />
               <MaterialCommunityIcons
                 name={iconoCategoria(c.nombre)}
                 size={14}
@@ -43,72 +48,73 @@ export default function TarjetaResumen({ total, principales = [] }) {
   );
 }
 
-const styles = StyleSheet.create({
-  // rounded-[22px] bg-surface-container-low/70 p-3.5 shadow-[0_8px_28px] negro al 35%
-  // El brillo superior del diseño es el borde de arriba, en todo el ancho y con el radio.
-  tarjeta: {
-    padding: 14,
-    borderRadius: radios.tarjeta,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderTop,
-    backgroundColor: colors.surfaceLow70,
-    shadowColor: colors.sombra,
-    shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 14,
-    shadowOpacity: 0.35,
-    elevation: 6,
-  },
-  // flex items-center justify-between
-  fila: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  // font-body-md text-body-md text-on-surface font-medium
-  texto: {
-    fontFamily: fonts.sansMedium,
-    fontSize: 14,
-    lineHeight: 20,
-    color: colors.onSurface,
-  },
-  // font-financial-metric-md text-[15px] text-primary font-semibold
-  total: {
-    fontFamily: fonts.monoSemiBold,
-    flexShrink: 1,
-    fontSize: 15,
-    letterSpacing: -0.15,
-    color: colors.text,
-  },
-  // Solo espacio entre el total y los chips (sin línea divisoria).
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 14,
-  },
-  // px-2.5 py-1 rounded-full bg-surfaceChip border border-white/10 gap-1.5
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: radios.full,
-    backgroundColor: colors.surfaceChip,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-  },
-  // Micro-punto w-1.5 h-1.5 rounded-full del color de la categoría (Stitch 07_inicio_oscuro)
-  punto: {
-    width: 6,
-    height: 6,
-    borderRadius: radios.full,
-  },
-  // font-financial-metric-md text-[12px] text-primary font-medium
-  chipMonto: {
-    fontFamily: fonts.monoMedium,
-    fontSize: 12,
-    color: colors.text,
-  },
-});
+const crearEstilos = (colors) =>
+  StyleSheet.create({
+    // rounded-[22px] bg-surface-container-low/70 p-3.5 shadow-[0_8px_28px] negro al 35%
+    // El brillo superior del diseño es el borde de arriba, en todo el ancho y con el radio.
+    tarjeta: {
+      padding: 14,
+      borderRadius: radios.tarjeta,
+      borderTopWidth: 1,
+      borderTopColor: colors.borderTop,
+      backgroundColor: colors.surfaceLow70,
+      shadowColor: colors.sombra,
+      shadowOffset: { width: 0, height: 8 },
+      shadowRadius: 14,
+      shadowOpacity: 0.35,
+      elevation: 6,
+    },
+    // flex items-center justify-between
+    fila: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+    },
+    // font-body-md text-body-md text-on-surface font-medium
+    texto: {
+      fontFamily: fonts.sansMedium,
+      fontSize: 14,
+      lineHeight: 20,
+      color: colors.onSurface,
+    },
+    // font-financial-metric-md text-[15px] text-primary font-semibold
+    total: {
+      fontFamily: fonts.monoSemiBold,
+      flexShrink: 1,
+      fontSize: 15,
+      letterSpacing: -0.15,
+      color: colors.text,
+    },
+    // Solo espacio entre el total y los chips (sin línea divisoria).
+    chips: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginTop: 14,
+    },
+    // px-2.5 py-1 rounded-full bg-surfaceChip border border-white/10 gap-1.5
+    chip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: radios.full,
+      backgroundColor: colors.surfaceChip,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+    },
+    // Micro-punto w-1.5 h-1.5 rounded-full del color de la categoría (Stitch 07_inicio_oscuro)
+    punto: {
+      width: 6,
+      height: 6,
+      borderRadius: radios.full,
+    },
+    // font-financial-metric-md text-[12px] text-primary font-medium
+    chipMonto: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 12,
+      color: colors.text,
+    },
+  });

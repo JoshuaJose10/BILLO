@@ -1,7 +1,7 @@
 import { StyleSheet, useWindowDimensions } from 'react-native';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
-import { colors } from '../theme/colors';
+import { useTema } from '../theme/TemaContext';
 
 // Brillo atmosférico de Luminal Glow (07_inicio_oscuro_gradiente_fondo): halo índigo desde la
 // esquina superior izquierda y violeta desde la derecha, que se desvanecen sobre el fondo de la
@@ -11,6 +11,7 @@ import { colors } from '../theme/colors';
 // mantienen el círculo redondo en cualquier proporción de pantalla.
 export default function FondoDegradado() {
   const { width, height } = useWindowDimensions();
+  const { colors } = useTema();
 
   return (
     <Svg style={StyleSheet.absoluteFill} width={width} height={height} pointerEvents="none">

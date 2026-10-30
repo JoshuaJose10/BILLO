@@ -21,7 +21,8 @@ import { useAlturaNavbar } from '../components/NavbarFlotante';
 import TarjetaResumen from '../components/TarjetaResumen';
 import { useAuth } from '../context/AuthContext';
 import { useGastosService } from '../services/gastos';
-import { colors, radios } from '../theme/colors';
+import { radios } from '../theme/colors';
+import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { mensajeError } from '../utils/errores';
 import { mesActual } from '../utils/fechas';
@@ -47,6 +48,8 @@ export default function InicioScreen({ navigation }) {
   const alturaNavbar = useAlturaNavbar();
   const { usuario } = useAuth();
   const { listarCategorias, listarGastos } = useGastosService();
+  const { colors } = useTema();
+  const styles = useEstilos(crearEstilos);
 
   const [gastos, setGastos] = useState([]);
   const [gastosMes, setGastosMes] = useState([]);
@@ -221,163 +224,165 @@ export default function InicioScreen({ navigation }) {
 }
 
 function Separador() {
+  const styles = useEstilos(crearEstilos);
   return <View style={styles.separador} />;
 }
 
-const styles = StyleSheet.create({
-  pantalla: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  centro: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  relleno: {
-    paddingHorizontal: 32,
-  },
-  // px-margin (20)
-  lista: {
-    paddingHorizontal: 20,
-  },
-  // Greeting bar: pt-2 pb-3, gap-space-sm entre avatar y textos
-  cabecera: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingBottom: 12,
-    marginBottom: 8,
-  },
-  avatarPresionado: {
-    opacity: 0.7,
-  },
-  saludoTextos: {
-    flex: 1,
-  },
-  // font-label-caps text-[10px] uppercase tracking-widest text-on-surface-variant
-  bienvenida: {
-    fontFamily: fonts.monoMedium,
-    fontSize: 10,
-    letterSpacing: 1,
-    color: colors.textVariant,
-  },
-  // font-headline-md text-headline-md tracking-tight, en el acento (Luminal Glow)
-  saludo: {
-    fontFamily: fonts.sansSemiBold,
-    fontSize: 22,
-    lineHeight: 28,
-    letterSpacing: -0.55,
-    color: colors.acentoTexto,
-  },
-  // Panel: rounded-[28px] bg-surface-container-lowest/80 p-space-md pt-4; mt-1 + gap-3.5
-  // El brillo superior del diseño es el borde de arriba, en todo el ancho y con el radio.
-  panelInicio: {
-    borderTopWidth: 1,
-    borderTopColor: colors.borderTop,
-    marginTop: 18,
-    paddingTop: 16,
-    paddingHorizontal: 16,
-    borderTopLeftRadius: radios.panel,
-    borderTopRightRadius: radios.panel,
-    backgroundColor: colors.surfaceLowest80,
-  },
-  panelFila: {
-    paddingHorizontal: 16,
-    backgroundColor: colors.surfaceLowest80,
-  },
-  panelPie: {
-    height: 16,
-    borderBottomLeftRadius: radios.panel,
-    borderBottomRightRadius: radios.panel,
-    backgroundColor: colors.surfaceLowest80,
-  },
-  // w-8 h-1 rounded-full bg-surface-container-highest mx-auto mb-3 opacity-60
-  panelJalador: {
-    alignSelf: 'center',
-    width: 32,
-    height: 4,
-    borderRadius: radios.full,
-    backgroundColor: colors.surfaceHighest,
-    opacity: 0.6,
-    marginBottom: 12,
-  },
-  // flex items-center gap-2 mb-3.5
-  seccion: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 14,
-  },
-  // font-headline-sm text-headline-sm text-primary tracking-tight
-  seccionTitulo: {
-    fontFamily: fonts.sansSemiBold,
-    fontSize: 18,
-    lineHeight: 24,
-    letterSpacing: -0.45,
-    color: colors.text,
-  },
-  // px-2 py-0.5 rounded-full bg-surface-container-high text-primary font-label-caps text-[10px]
-  pastilla: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: radios.full,
-    backgroundColor: colors.surfaceHigh,
-  },
-  pastillaTexto: {
-    fontFamily: fonts.monoMedium,
-    fontSize: 10,
-    lineHeight: 14,
-    letterSpacing: 0.8,
-    color: colors.text,
-  },
-  // gap-2.5 entre movimientos (mismo fondo que el panel)
-  separador: {
-    height: 10,
-    backgroundColor: colors.surfaceLowest80,
-  },
-  vacio: {
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 32,
-  },
-  estadoTitulo: {
-    fontFamily: fonts.sansSemiBold,
-    color: colors.text,
-    fontSize: 18,
-    lineHeight: 24,
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  enlace: {
-    fontFamily: fonts.sansMedium,
-    color: colors.text,
-    fontSize: 14,
-    textDecorationLine: 'underline',
-  },
-  botonEstado: {
-    alignSelf: 'stretch',
-    marginTop: 20,
-  },
-  avisoError: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginTop: 12,
-    padding: 12,
-    borderRadius: radios['2xl'],
-    borderWidth: 1,
-    borderColor: colors.alerta,
-  },
-  avisoTexto: {
-    fontFamily: fonts.sans,
-    flex: 1,
-    color: colors.alerta,
-    fontSize: 14,
-  },
-  avisoAccion: {
-    fontFamily: fonts.sansBold,
-    color: colors.text,
-    fontSize: 14,
-  },
-});
+const crearEstilos = (colors) =>
+  StyleSheet.create({
+    pantalla: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    centro: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    relleno: {
+      paddingHorizontal: 32,
+    },
+    // px-margin (20)
+    lista: {
+      paddingHorizontal: 20,
+    },
+    // Greeting bar: pt-2 pb-3, gap-space-sm entre avatar y textos
+    cabecera: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingBottom: 12,
+      marginBottom: 8,
+    },
+    avatarPresionado: {
+      opacity: 0.7,
+    },
+    saludoTextos: {
+      flex: 1,
+    },
+    // font-label-caps text-[10px] uppercase tracking-widest text-on-surface-variant
+    bienvenida: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 10,
+      letterSpacing: 1,
+      color: colors.textVariant,
+    },
+    // font-headline-md text-headline-md tracking-tight, en el acento (Luminal Glow)
+    saludo: {
+      fontFamily: fonts.sansSemiBold,
+      fontSize: 22,
+      lineHeight: 28,
+      letterSpacing: -0.55,
+      color: colors.acentoTexto,
+    },
+    // Panel: rounded-[28px] bg-surface-container-lowest/80 p-space-md pt-4; mt-1 + gap-3.5
+    // El brillo superior del diseño es el borde de arriba, en todo el ancho y con el radio.
+    panelInicio: {
+      borderTopWidth: 1,
+      borderTopColor: colors.borderTop,
+      marginTop: 18,
+      paddingTop: 16,
+      paddingHorizontal: 16,
+      borderTopLeftRadius: radios.panel,
+      borderTopRightRadius: radios.panel,
+      backgroundColor: colors.surfaceLowest80,
+    },
+    panelFila: {
+      paddingHorizontal: 16,
+      backgroundColor: colors.surfaceLowest80,
+    },
+    panelPie: {
+      height: 16,
+      borderBottomLeftRadius: radios.panel,
+      borderBottomRightRadius: radios.panel,
+      backgroundColor: colors.surfaceLowest80,
+    },
+    // w-8 h-1 rounded-full bg-surface-container-highest mx-auto mb-3 opacity-60
+    panelJalador: {
+      alignSelf: 'center',
+      width: 32,
+      height: 4,
+      borderRadius: radios.full,
+      backgroundColor: colors.surfaceHighest,
+      opacity: 0.6,
+      marginBottom: 12,
+    },
+    // flex items-center gap-2 mb-3.5
+    seccion: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 14,
+    },
+    // font-headline-sm text-headline-sm text-primary tracking-tight
+    seccionTitulo: {
+      fontFamily: fonts.sansSemiBold,
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.45,
+      color: colors.text,
+    },
+    // px-2 py-0.5 rounded-full bg-surface-container-high text-primary font-label-caps text-[10px]
+    pastilla: {
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: radios.full,
+      backgroundColor: colors.surfaceHigh,
+    },
+    pastillaTexto: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 10,
+      lineHeight: 14,
+      letterSpacing: 0.8,
+      color: colors.text,
+    },
+    // gap-2.5 entre movimientos (mismo fondo que el panel)
+    separador: {
+      height: 10,
+      backgroundColor: colors.surfaceLowest80,
+    },
+    vacio: {
+      alignItems: 'center',
+      gap: 10,
+      paddingVertical: 32,
+    },
+    estadoTitulo: {
+      fontFamily: fonts.sansSemiBold,
+      color: colors.text,
+      fontSize: 18,
+      lineHeight: 24,
+      textAlign: 'center',
+      marginTop: 8,
+    },
+    enlace: {
+      fontFamily: fonts.sansMedium,
+      color: colors.text,
+      fontSize: 14,
+      textDecorationLine: 'underline',
+    },
+    botonEstado: {
+      alignSelf: 'stretch',
+      marginTop: 20,
+    },
+    avisoError: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+      marginTop: 12,
+      padding: 12,
+      borderRadius: radios['2xl'],
+      borderWidth: 1,
+      borderColor: colors.alerta,
+    },
+    avisoTexto: {
+      fontFamily: fonts.sans,
+      flex: 1,
+      color: colors.alerta,
+      fontSize: 14,
+    },
+    avisoAccion: {
+      fontFamily: fonts.sansBold,
+      color: colors.text,
+      fontSize: 14,
+    },
+  });

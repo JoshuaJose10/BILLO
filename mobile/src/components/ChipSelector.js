@@ -1,7 +1,8 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors, radios } from '../theme/colors';
+import { radios } from '../theme/colors';
+import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 
 // Píldora compacta que abre un selector: método de pago, fecha o nota.
@@ -14,6 +15,8 @@ export default function ChipSelector({
   onPress,
   accessibilityLabel,
 }) {
+  const { colors } = useTema();
+  const styles = useEstilos(crearEstilos);
   return (
     <Pressable
       onPress={onPress}
@@ -35,28 +38,29 @@ export default function ChipSelector({
   );
 }
 
-const styles = StyleSheet.create({
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: radios.full,
-    backgroundColor: colors.glass05,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-  },
-  // Activo (al presionar): borde y fondo translúcido del acento.
-  presionado: {
-    backgroundColor: colors.acentoSuave,
-    borderColor: colors.acento,
-  },
-  texto: {
-    fontFamily: fonts.sansMedium,
-    fontSize: 11,
-    lineHeight: 16,
-    color: colors.textChip,
-    maxWidth: 140,
-  },
-});
+const crearEstilos = (colors) =>
+  StyleSheet.create({
+    chip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: radios.full,
+      backgroundColor: colors.glass05,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+    },
+    // Activo (al presionar): borde y fondo translúcido del acento.
+    presionado: {
+      backgroundColor: colors.acentoSuave,
+      borderColor: colors.acento,
+    },
+    texto: {
+      fontFamily: fonts.sansMedium,
+      fontSize: 11,
+      lineHeight: 16,
+      color: colors.textChip,
+      maxWidth: 140,
+    },
+  });

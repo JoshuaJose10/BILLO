@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, radios } from '../theme/colors';
+import { radios } from '../theme/colors';
+import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 
 const DURACION_ENTRADA = 280;
@@ -33,6 +34,8 @@ export default function HojaInferior({
   children,
 }) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTema();
+  const styles = useEstilos(crearEstilos);
   const { height } = useWindowDimensions();
   const cerrando = useRef(false);
 
@@ -110,63 +113,64 @@ export default function HojaInferior({
   );
 }
 
-const styles = StyleSheet.create({
-  pantalla: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  // bg-black/40 + backdrop-blur-sm
-  velo: {
-    backgroundColor: colors.scrimSoft,
-  },
-  // rounded-t-[32px] bg-sheetDeep px-5 pt-2 pb-5. El borde superior hace de brillo,
-  // en todo el ancho y siguiendo el radio.
-  // shadow-[0_-20px_50px] negro al 90%
-  hoja: {
-    backgroundColor: colors.sheetDeep,
-    borderTopLeftRadius: radios.hoja,
-    borderTopRightRadius: radios.hoja,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderTop,
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    shadowColor: colors.sombra,
-    shadowOffset: { width: 0, height: -20 },
-    shadowRadius: 25,
-    shadowOpacity: 0.9,
-  },
-  // w-12 h-1 bg-white/30 rounded-full mt-1.5 mb-3
-  jalador: {
-    alignSelf: 'center',
-    width: 48,
-    height: 4,
-    borderRadius: radios.full,
-    backgroundColor: colors.handleSheet,
-    marginTop: 6,
-    marginBottom: 12,
-  },
-  cabecera: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  // headline-md (Obsidian): Inter 22/28 semibold, -0.015em
-  titulo: {
-    fontFamily: fonts.sansSemiBold,
-    fontSize: 22,
-    lineHeight: 28,
-    letterSpacing: -0.33,
-    color: colors.text,
-  },
-  // w-9 h-9 rounded-full bg-white/[0.07] border border-white/10, ícono 18 zinc-300
-  botonCerrar: {
-    width: 36,
-    height: 36,
-    borderRadius: radios.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.glass07,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-  },
-});
+const crearEstilos = (colors) =>
+  StyleSheet.create({
+    pantalla: {
+      flex: 1,
+      justifyContent: 'flex-end',
+    },
+    // bg-black/40 + backdrop-blur-sm
+    velo: {
+      backgroundColor: colors.scrimSoft,
+    },
+    // rounded-t-[32px] bg-sheetDeep px-5 pt-2 pb-5. El borde superior hace de brillo,
+    // en todo el ancho y siguiendo el radio.
+    // shadow-[0_-20px_50px] negro al 90%
+    hoja: {
+      backgroundColor: colors.sheetDeep,
+      borderTopLeftRadius: radios.hoja,
+      borderTopRightRadius: radios.hoja,
+      borderTopWidth: 1,
+      borderTopColor: colors.borderTop,
+      paddingHorizontal: 20,
+      paddingTop: 8,
+      shadowColor: colors.sombra,
+      shadowOffset: { width: 0, height: -20 },
+      shadowRadius: 25,
+      shadowOpacity: 0.9,
+    },
+    // w-12 h-1 bg-white/30 rounded-full mt-1.5 mb-3
+    jalador: {
+      alignSelf: 'center',
+      width: 48,
+      height: 4,
+      borderRadius: radios.full,
+      backgroundColor: colors.handleSheet,
+      marginTop: 6,
+      marginBottom: 12,
+    },
+    cabecera: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    // headline-md (Obsidian): Inter 22/28 semibold, -0.015em
+    titulo: {
+      fontFamily: fonts.sansSemiBold,
+      fontSize: 22,
+      lineHeight: 28,
+      letterSpacing: -0.33,
+      color: colors.text,
+    },
+    // w-9 h-9 rounded-full bg-white/[0.07] border border-white/10, ícono 18 zinc-300
+    botonCerrar: {
+      width: 36,
+      height: 36,
+      borderRadius: radios.full,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.glass07,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+    },
+  });

@@ -2,7 +2,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colorCategoria, fondoChipCategoria } from '../theme/categorias';
-import { colors, radios } from '../theme/colors';
+import { radios } from '../theme/colors';
+import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { iconoCategoria } from '../utils/categorias';
 
@@ -23,14 +24,16 @@ export default function ChipCategoria({
   error = false,
   onPress,
 }) {
+  const { colors, esOscuro } = useTema();
+  const styles = useEstilos(crearEstilos);
   const esCategoria = !icono;
-  const color = colorCategoria(nombre);
+  const color = colorCategoria(nombre, esOscuro);
   let estiloSeleccionado = null;
   let colorContenido = colors.textSecondary;
   if (seleccionado && esCategoria) {
     const fondo = fondoChipCategoria(nombre);
     estiloSeleccionado = { backgroundColor: fondo, borderColor: fondo, shadowColor: color };
-    colorContenido = colors.text;
+    colorContenido = colors.textoSobreColor;
   } else if (seleccionado) {
     estiloSeleccionado = styles.seleccionadoAcento;
     colorContenido = colors.acentoTexto;
@@ -73,49 +76,50 @@ export default function ChipCategoria({
   );
 }
 
-const styles = StyleSheet.create({
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: radios.xl,
-    backgroundColor: colors.glass05,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-  },
-  // Halo shadow-[0_0_12px] al 35% del color del chip; el borde conserva el mismo tamaño.
-  seleccionado: {
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 6,
-    shadowOpacity: 0.35,
-  },
-  seleccionadoAcento: {
-    backgroundColor: colors.acentoSuave,
-    borderColor: colors.acento,
-    shadowColor: colors.acento,
-  },
-  error: {
-    borderColor: colors.alerta,
-  },
-  // hover:border-white/20
-  presionado: {
-    borderColor: colors.borderPressed,
-  },
-  // Micro-punto w-1.5 h-1.5 rounded-full
-  punto: {
-    width: 6,
-    height: 6,
-    borderRadius: radios.full,
-  },
-  texto: {
-    fontFamily: fonts.sansMedium,
-    fontSize: 12,
-    lineHeight: 16,
-    color: colors.textChip,
-  },
-  textoSeleccionado: {
-    fontFamily: fonts.sansSemiBold,
-  },
-});
+const crearEstilos = (colors) =>
+  StyleSheet.create({
+    chip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: radios.xl,
+      backgroundColor: colors.glass05,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+    },
+    // Halo shadow-[0_0_12px] al 35% del color del chip; el borde conserva el mismo tamaño.
+    seleccionado: {
+      shadowOffset: { width: 0, height: 0 },
+      shadowRadius: 6,
+      shadowOpacity: 0.35,
+    },
+    seleccionadoAcento: {
+      backgroundColor: colors.acentoSuave,
+      borderColor: colors.acento,
+      shadowColor: colors.acento,
+    },
+    error: {
+      borderColor: colors.alerta,
+    },
+    // hover:border-white/20
+    presionado: {
+      borderColor: colors.borderPressed,
+    },
+    // Micro-punto w-1.5 h-1.5 rounded-full
+    punto: {
+      width: 6,
+      height: 6,
+      borderRadius: radios.full,
+    },
+    texto: {
+      fontFamily: fonts.sansMedium,
+      fontSize: 12,
+      lineHeight: 16,
+      color: colors.textChip,
+    },
+    textoSeleccionado: {
+      fontFamily: fonts.sansSemiBold,
+    },
+  });

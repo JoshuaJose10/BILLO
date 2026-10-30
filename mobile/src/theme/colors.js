@@ -197,8 +197,6 @@ export const temas = {
   },
 };
 
-export const colors = temas.oscuro;
-
 // Radios del export (Tailwind: DEFAULT 4, lg 8, xl 12, 2xl 16, 3xl 24, full).
 export const radios = {
   sm: 4,
