@@ -31,7 +31,7 @@ import { aplicarTecla, montoDesdeTexto } from '../utils/monto';
 // El alto lo da el contenido (~65% de la pantalla en un iPhone de 6.1").
 export default function NuevoGastoScreen({ navigation }) {
   const { listarCategorias, crearGasto } = useGastosService();
-  const { colors } = useTema();
+  const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
 
   const [texto, setTexto] = useState('');
@@ -247,7 +247,7 @@ export default function NuevoGastoScreen({ navigation }) {
             value={fecha}
             mode="date"
             display="inline"
-            themeVariant="dark"
+            themeVariant={esOscuro ? 'dark' : 'light'}
             accentColor={colors.text}
             maximumDate={new Date()}
             locale={LOCALE}
@@ -268,6 +268,7 @@ export default function NuevoGastoScreen({ navigation }) {
             placeholderTextColor={colors.textSecondary}
             cursorColor={colors.acento}
             selectionColor={colors.acento}
+            keyboardAppearance={esOscuro ? 'dark' : 'light'}
             maxLength={NOTA_MAX}
             autoFocus
             returnKeyType="done"

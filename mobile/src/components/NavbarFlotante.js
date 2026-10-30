@@ -74,6 +74,7 @@ function useRebote(reducirMovimiento) {
 export default function NavbarFlotante({ state, descriptors, navigation, accionCentral }) {
   const insets = useSafeAreaInsets();
   const reducirMovimiento = useReducedMotion();
+  const { esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
   const posicionCentral = Math.ceil(state.routes.length / 2);
   const claveActiva = state.routes[state.index]?.key;
@@ -154,7 +155,11 @@ export default function NavbarFlotante({ state, descriptors, navigation, accionC
       {/* La sombra va en un contenedor externo porque la barra usa overflow: hidden (blur). */}
       <View style={styles.sombra}>
         <View style={styles.barra}>
-          <BlurView tint="dark" intensity={60} style={StyleSheet.absoluteFill} />
+          <BlurView
+            tint={esOscuro ? 'dark' : 'light'}
+            intensity={60}
+            style={StyleSheet.absoluteFill}
+          />
           <View style={[StyleSheet.absoluteFill, styles.capa]} />
           <Animated.View pointerEvents="none" style={[styles.indicador, estiloIndicador]} />
           {pestanas.map((pestana, index) => (

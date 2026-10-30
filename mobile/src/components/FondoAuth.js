@@ -165,7 +165,7 @@ export default function FondoAuth({ variante = 'login', objetivoRef }) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const esRegistro = variante === 'registro';
-  const { colors } = useTema();
+  const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
 
   return (
@@ -185,7 +185,7 @@ export default function FondoAuth({ variante = 'login', objetivoRef }) {
       </BlurTargetView>
       {/* backdrop-blur-xl (Registro suma el blur-[18px] de la composición) */}
       <BlurView
-        tint="dark"
+        tint={esOscuro ? 'dark' : 'light'}
         intensity={esRegistro ? 70 : 40}
         blurTarget={objetivoRef}
         blurMethod="dimezisBlurView"

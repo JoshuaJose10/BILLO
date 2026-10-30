@@ -34,7 +34,7 @@ export default function HojaInferior({
   children,
 }) {
   const insets = useSafeAreaInsets();
-  const { colors } = useTema();
+  const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
   const { height } = useWindowDimensions();
   const cerrando = useRef(false);
@@ -73,7 +73,11 @@ export default function HojaInferior({
   return (
     <View style={styles.pantalla}>
       <Animated.View style={[StyleSheet.absoluteFill, { opacity: progreso }]}>
-        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+        <BlurView
+          intensity={20}
+          tint={esOscuro ? 'dark' : 'light'}
+          style={StyleSheet.absoluteFill}
+        />
         <Pressable
           style={[StyleSheet.absoluteFill, styles.velo]}
           onPress={cerrarPorUsuario}

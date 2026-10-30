@@ -31,7 +31,7 @@ export default function AuthLayout({
   children,
 }) {
   const insets = useSafeAreaInsets();
-  const { colors } = useTema();
+  const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
   const scrollRef = useRef(null);
   const fondoRef = useRef(null);
@@ -60,7 +60,7 @@ export default function AuthLayout({
       behavior={Platform.OS === 'android' ? 'height' : undefined}
       enabled={Platform.OS === 'android'}
     >
-      <StatusBar style="light" />
+      <StatusBar style={esOscuro ? 'light' : 'dark'} />
       <FondoAuth variante={fondo} objetivoRef={fondoRef} />
       <ScrollView
         ref={scrollRef}
@@ -78,7 +78,7 @@ export default function AuthLayout({
             <View style={styles.iconoSombra}>
               <View style={styles.icono}>
                 <BlurView
-                  tint="dark"
+                  tint={esOscuro ? 'dark' : 'light'}
                   intensity={30}
                   blurTarget={fondoRef}
                   blurMethod="dimezisBlurView"

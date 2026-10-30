@@ -11,15 +11,41 @@ import {
   JetBrainsMono_600SemiBold,
   JetBrainsMono_700Bold,
 } from '@expo-google-fonts/jetbrains-mono';
-import { NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
+import { useMemo } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import PantallaCarga from './src/components/PantallaCarga';
 import { AuthProvider } from './src/context/AuthContext';
 import RootNavigator from './src/navigation/RootNavigator';
-import { TemaProvider } from './src/theme/TemaContext';
+import { TemaProvider, useTema } from './src/theme/TemaContext';
+
+// NavigationContainer con el fondo, la tarjeta y el texto del tema activo, para que al navegar no
+// aparezcan destellos blancos o negros. La barra de estado va clara en oscuro y oscura en claro.
+function Navegacion() {
+  const { colors, esOscuro } = useTema();
+  const temaNavegacion = useMemo(() => {
+    const base = esOscuro ? DarkTheme : DefaultTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        background: colors.background,
+        card: colors.background,
+        text: colors.text,
+      },
+    };
+  }, [colors, esOscuro]);
+
+  return (
+    <NavigationContainer theme={temaNavegacion}>
+      <RootNavigator />
+      <StatusBar style={esOscuro ? 'light' : 'dark'} />
+    </NavigationContainer>
+  );
+}
 
 export default function App() {
   const [fuentesCargadas, errorFuentes] = useFonts({
@@ -49,11 +75,7 @@ export default function App() {
     <SafeAreaProvider>
       <AuthProvider>
         <TemaProvider>
-          <NavigationContainer>
-            <RootNavigator />
-            {/* Toda la app usa tema oscuro. */}
-            <StatusBar style="light" />
-          </NavigationContainer>
+          <Navegacion />
         </TemaProvider>
       </AuthProvider>
     </SafeAreaProvider>

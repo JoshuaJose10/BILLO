@@ -14,7 +14,7 @@ const Input = forwardRef(function Input(
 ) {
   const [oculto, setOculto] = useState(true);
   const [enfocado, setEnfocado] = useState(false);
-  const { colors } = useTema();
+  const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
 
   return (
@@ -40,6 +40,7 @@ const Input = forwardRef(function Input(
           style={[styles.input, password ? styles.inputPassword : null]}
           placeholderTextColor={colors.outline}
           selectionColor={colors.text}
+          keyboardAppearance={esOscuro ? 'dark' : 'light'}
           secureTextEntry={password ? oculto : false}
           autoCorrect={false}
           onFocus={(e) => {
