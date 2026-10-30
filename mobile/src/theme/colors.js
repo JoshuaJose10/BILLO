@@ -83,10 +83,49 @@ export const temas = {
     acentoTexto: '#C4B5FD', // acento para texto sobre fondo oscuro (violeta claro)
     acentoSuave: 'rgba(139, 92, 246, 0.15)', // fondo de chips y botones activos con acento
 
-    // Brillo atmosférico del fondo (FondoDegradado). El degradado radial se desvanece con
-    // stopOpacity 0 sobre el mismo color, así que no pasa por gris.
-    brilloIndigo: 'rgba(79, 70, 229, 0.35)',
-    brilloVioleta: 'rgba(124, 58, 237, 0.25)',
+    // Saludo de Inicio ("Hola, Fer") y su etiqueta "Bienvenido de nuevo", encima del brillo
+    saludo: '#C4B5FD',
+    saludoEtiqueta: '#C4C7C8',
+    // Lema de Login y Registro, encima del brillo
+    lema: '#A3A3A3',
+
+    // Brillo del fondo (FondoDegradado): capas radiales de 07_inicio_oscuro_gradiente_fondo_1,
+    // de abajo hacia arriba (en CSS van al revés). Cada capa: centro (x, y) en fracción del ancho
+    // y del alto; radios rx/ry en px o como { ancho } / { alto } (fracción); stops con offset,
+    // color y opacity opcional. "transparent" de CSS = el mismo color con opacity 0, para que no
+    // pase por gris.
+    fondoCapas: [
+      {
+        x: 0.15,
+        y: 0.15,
+        rx: 260,
+        ry: 260,
+        stops: [
+          { offset: 0, color: 'rgba(45, 95, 255, 0.20)' },
+          { offset: 0.7, color: 'rgba(45, 95, 255, 0.20)', opacity: 0 },
+        ],
+      },
+      {
+        x: 0.85,
+        y: 0.1,
+        rx: 300,
+        ry: 300,
+        stops: [
+          { offset: 0, color: 'rgba(130, 60, 255, 0.22)' },
+          { offset: 0.7, color: 'rgba(130, 60, 255, 0.22)', opacity: 0 },
+        ],
+      },
+      {
+        x: 0.5,
+        y: 0,
+        rx: 420,
+        ry: 420,
+        stops: [
+          { offset: 0, color: 'rgba(76, 53, 222, 0.28)' },
+          { offset: 0.75, color: 'rgba(76, 53, 222, 0.28)', opacity: 0 },
+        ],
+      },
+    ],
 
     // Reflejo superior del ícono de categoría (IconoCategoria)
     brilloIcono: 'rgba(255, 255, 255, 0.22)',
@@ -103,7 +142,7 @@ export const temas = {
 
   claro: {
     // Superficies: fondo lila muy claro, tarjetas blancas, filas y pastillas en grises fríos
-    background: '#FAF8FF',
+    background: '#F1F0FA',
     surfaceLowest: '#FFFFFF', // tarjetas y paneles
     surfaceLow: '#F8F8FA', // filas internas
     surface: '#F4F4F7', // panel de hoja (superficie neutra del brief)
@@ -117,7 +156,7 @@ export const temas = {
     surfaceChip: '#F8F8FA',
 
     // Superficies translúcidas
-    background60: 'rgba(250, 248, 255, 0.6)',
+    background60: 'rgba(241, 240, 250, 0.6)',
     surfaceLow50: 'rgba(240, 240, 244, 0.5)', // sobre el panel blanco queda en #F8F8FA
     surfaceLow70: 'rgba(255, 255, 255, 0.85)',
     surfaceLowest80: 'rgba(255, 255, 255, 0.85)',
@@ -142,7 +181,7 @@ export const temas = {
     borderTop: 'rgba(255, 255, 255, 0.9)', // el brillo superior sigue siendo blanco
     borderTopStrong: '#FFFFFF',
     borderTopAvatar: '#FFFFFF',
-    outline: '#71717C',
+    outline: '#666671',
     outlineVariant: '#C9C9D2',
     outlineVariant30: 'rgba(17, 17, 20, 0.08)',
     handle: '#E7E7EC',
@@ -155,7 +194,7 @@ export const temas = {
     textSecondary: '#6B6B76',
     textChip: '#3F3F48',
     textMuted: '#8E8E99',
-    textNav: '#5E5E69', // también es el lema de Login y Registro, encima del brillo
+    textNav: '#6B6B76',
     textSoft: 'rgba(17, 17, 20, 0.9)',
     iconSoft: 'rgba(17, 17, 20, 0.8)',
     amount: '#111114',
@@ -176,12 +215,42 @@ export const temas = {
 
     // Acento
     acento: '#8A55F0',
-    acentoTexto: '#622CD6', // >= 4.5:1 sobre background, también encima del brillo
+    acentoTexto: '#5B25CF', // >= 4.5:1 sobre background y sobre el brillo (chip "Todas")
     acentoSuave: 'rgba(138, 85, 240, 0.12)',
 
-    // Brillo del fondo: celeste y lavanda (mismas claves que el índigo y violeta del oscuro)
-    brilloIndigo: 'rgba(147, 197, 253, 0.55)',
-    brilloVioleta: 'rgba(196, 181, 253, 0.45)',
+    // Encima del brillo; en Stitch el saludo es carbón. La etiqueta y el lema son más oscuros
+    // que el #6B6B76 de Stitch (2.46:1 sobre #8FB0FF) para llegar a 4.5:1.
+    saludo: '#111114',
+    saludoEtiqueta: '#3F3F48',
+    lema: '#3F3F48',
+
+    // Brillo del fondo de 07_inicio_claro_color_fondo_1 (mismo formato que en oscuro). La capa
+    // de arriba termina en el color de fondo opaco, como en Stitch, así que tapa la de abajo
+    // fuera de su elipse.
+    fondoCapas: [
+      {
+        x: 0.9,
+        y: 0.9,
+        rx: { ancho: 0.7 },
+        ry: { alto: 0.5 },
+        stops: [
+          { offset: 0, color: '#E3C8FF' },
+          { offset: 0.7, color: '#E3C8FF', opacity: 0 },
+        ],
+      },
+      {
+        x: 0.5,
+        y: 0,
+        rx: { ancho: 1.1 },
+        ry: { alto: 0.55 },
+        stops: [
+          { offset: 0, color: '#8FB0FF' },
+          { offset: 0.38, color: '#B9A6FF' },
+          { offset: 0.72, color: 'rgba(241, 240, 250, 0.92)' },
+          { offset: 1, color: '#F1F0FA' },
+        ],
+      },
+    ],
 
     // Reflejo del ícono de categoría (el ícono es igual en ambos temas)
     brilloIcono: 'rgba(255, 255, 255, 0.22)',
@@ -192,8 +261,8 @@ export const temas = {
     exitoSuave: 'rgba(34, 168, 102, 0.12)',
     aviso: '#D97706',
     avisoSuave: 'rgba(217, 119, 6, 0.12)',
-    alerta: '#D92D20',
-    alertaSuave: 'rgba(217, 45, 32, 0.12)',
+    alerta: '#C8281C',
+    alertaSuave: 'rgba(200, 40, 28, 0.12)',
   },
 };
 

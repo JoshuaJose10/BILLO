@@ -264,15 +264,15 @@ const crearEstilos = (colors) =>
       fontFamily: fonts.monoMedium,
       fontSize: 10,
       letterSpacing: 1,
-      color: colors.textVariant,
+      color: colors.saludoEtiqueta,
     },
-    // font-headline-md text-headline-md tracking-tight, en el acento (Luminal Glow)
+    // font-headline-md text-headline-md tracking-tight (acento en oscuro, carbón en claro)
     saludo: {
       fontFamily: fonts.sansSemiBold,
       fontSize: 22,
       lineHeight: 28,
       letterSpacing: -0.55,
-      color: colors.acentoTexto,
+      color: colors.saludo,
     },
     // Panel: rounded-[28px] bg-surface-container-lowest/80 p-space-md pt-4; mt-1 + gap-3.5
     // El brillo superior del diseño es el borde de arriba, en todo el ancho y con el radio.

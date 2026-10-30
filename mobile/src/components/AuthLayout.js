@@ -155,7 +155,7 @@ const crearEstilos = (colors) =>
     // text-sm text-neutral-400 mt-2
     lema: {
       fontFamily: fonts.sans,
-      color: colors.textNav,
+      color: colors.lema,
       fontSize: 14,
       lineHeight: 20,
       marginTop: 8,

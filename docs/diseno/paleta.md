@@ -104,7 +104,7 @@ igual que el `/NN` de Tailwind.
 | Token | Valor | Uso |
 | --- | --- | --- |
 | `acento` | `#8B5CF6` | Color de marca (violeta). Cursor y selección de la nota, borde de foco de Input, borde de ChipSelector y SelectorMes al presionar, borde y halo del chip "Todas" seleccionado. |
-| `acentoTexto` | `#C4B5FD` | Acento para texto sobre fondo oscuro (violeta claro). Saludo de Inicio, enlaces de Login y Registro (EnlaceAuth), texto e ícono del chip "Todas" seleccionado. |
+| `acentoTexto` | `#C4B5FD` | Acento para texto sobre fondo oscuro (violeta claro). Enlaces de Login y Registro (EnlaceAuth), texto e ícono del chip "Todas" seleccionado. |
 | `acentoSuave` | `rgba(139, 92, 246, 0.15)` | Fondo de chips y botones activos con acento. |
 
 El acento se usa de forma discreta: no cambia Boton (blanco/negro), la pestaña activa ni el botón `+`
@@ -115,19 +115,30 @@ Entretenimiento (`#7C3AED`) y "Todas" se leería como una categoría.
 
 ## Brillo del fondo
 
-`FondoDegradado` pinta dos halos radiales (react-native-svg) en toda la pantalla, encima de
-`background`: índigo con centro en (15%, 0%) y radio del 95% del ancho, y violeta con centro en
-(90%, 5%) y radio del 90% del ancho. Se usa en Inicio, Movimientos y, sobre el velo de `FondoAuth`,
-en Login y Registro.
+`FondoDegradado` traduce a react-native-svg los `radial-gradient` del fondo de Inicio en Stitch
+(`07_inicio_oscuro_gradiente_fondo_1/code.html`). Las capas viven en el token `fondoCapas` de cada
+tema, de abajo hacia arriba (en CSS se escriben al revés). Se usa en Inicio, Movimientos y, sobre el
+velo de `FondoAuth`, en Login y Registro.
+
+| Capa (CSS) | Centro | Radio | Color → transparente |
+| --- | --- | --- | --- |
+| `circle 420px at 50% 0%` | (50%, 0%) | 420 px | `rgba(76, 53, 222, 0.28)` → 0 en 75% |
+| `circle 300px at 85% 10%` | (85%, 10%) | 300 px | `rgba(130, 60, 255, 0.22)` → 0 en 70% |
+| `circle 260px at 15% 15%` | (15%, 15%) | 260 px | `rgba(45, 95, 255, 0.20)` → 0 en 70% |
+
+Formato de cada capa: `x`/`y` en fracción del ancho y del alto; `rx`/`ry` en px o como `{ ancho }` /
+`{ alto }` (los porcentajes de CSS); `stops` con `offset`, `color` y `opacity` opcional. El
+`transparent` de CSS se escribe como el mismo color con `opacity: 0`: así se desvanece en su propio
+tono (CSS interpola premultiplicado; SVG no) y no pasa por gris. Las medidas van en píxeles
+(`userSpaceOnUse`) para que el círculo no se deforme.
+
+Encima del brillo van el saludo de Inicio y el lema de Login y Registro, con tokens propios:
 
 | Token | Valor | Uso |
 | --- | --- | --- |
-| `brilloIndigo` | `rgba(79, 70, 229, 0.35)` | Halo índigo (brief) |
-| `brilloVioleta` | `rgba(124, 58, 237, 0.25)` | Halo violeta (brief) |
-
-El último stop de cada halo es el mismo color con `stopOpacity` 0: se desvanece en su propio tono (no
-pasa por gris) y llega a 0 dentro del círculo, así que no queda ningún borde visible. Las medidas van en
-píxeles (`userSpaceOnUse`) para que el círculo no se deforme con la proporción de la pantalla.
+| `saludo` | `#C4B5FD` (= `acentoTexto`) | "Hola, Fer" en Inicio |
+| `saludoEtiqueta` | `#C4C7C8` (= `textVariant`) | "Bienvenido de nuevo" |
+| `lema` | `#A3A3A3` (= `textNav`) | Lema de Login y Registro |
 
 ## Semánticos
 
@@ -205,23 +216,27 @@ Antes del ajuste, Servicios daba 2.12 / 2.31 / 2.99 y Salud 2.35 / 2.65 / 3.40.
 ## Contraste de texto (tema oscuro)
 
 Fondos: `background`; la hoja de Nuevo gasto (`sheetDeep`); una fila de gasto dentro del panel de
-Inicio; y el pico del brillo índigo (`brilloIndigo` pleno sobre `background`, peor caso arriba a la
-izquierda).
+Inicio; y el pico del brillo (las tres capas plenas encimadas sobre `background` = `#372C8C`, peor
+caso; en la pantalla real nunca coinciden los tres centros).
 
 | Token | Valor | background | hoja | fila | pico del brillo |
 | --- | --- | --- | --- | --- | --- |
-| `text` | `#FFFFFF` | 18.58 | 19.66 | 18.26 | 13.91 |
-| `onSurface` | `#E2E2E2` | 14.34 | 15.18 | 14.10 | 10.74 |
-| `textVariant` | `#C4C7C8` | 10.93 | 11.57 | 10.74 | 8.18 |
-| `textSecondary` | `#A1A1AA` | 7.25 | 7.67 | 7.13 | 5.43 |
-| `textChip` | `#D4D4D8` | 12.57 | 13.30 | 12.36 | 9.41 |
-| `outline` | `#8E9192` | 5.85 | 6.19 | 5.75 | 4.38 |
-| `textNav` | `#A3A3A3` | 7.37 | 7.80 | 7.24 | 5.52 |
-| `amount` | `#E2E1EB` | 14.34 | 15.17 | 14.09 | 10.74 |
-| `acentoTexto` | `#C4B5FD` | 10.06 | 10.65 | 9.89 | 7.54 |
-| `alerta` | `#FF453A` | 5.45 | 5.77 | 5.36 | 4.08 |
+| `text` | `#FFFFFF` | 18.58 | 19.66 | 18.26 | 11.04 |
+| `saludo` | `#C4B5FD` | 10.06 | 10.65 | 9.89 | 5.98 |
+| `saludoEtiqueta` | `#C4C7C8` | 10.93 | 11.57 | 10.74 | 6.50 |
+| `lema` | `#A3A3A3` | 7.37 | 7.80 | 7.24 | 4.38 |
+| `onSurface` | `#E2E2E2` | 14.34 | 15.18 | 14.10 | 8.53 |
+| `textVariant` | `#C4C7C8` | 10.93 | 11.57 | 10.74 | 6.50 |
+| `textSecondary` | `#A1A1AA` | 7.25 | 7.67 | 7.13 | 4.31 |
+| `textChip` | `#D4D4D8` | 12.57 | 13.30 | 12.36 | 7.47 |
+| `outline` | `#8E9192` | 5.85 | 6.19 | 5.75 | 3.48 |
+| `textNav` | `#A3A3A3` | 7.37 | 7.80 | 7.24 | 4.38 |
+| `amount` | `#E2E1EB` | 14.34 | 15.17 | 14.09 | 8.52 |
+| `acentoTexto` | `#C4B5FD` | 10.06 | 10.65 | 9.89 | 5.98 |
+| `alerta` | `#FF453A` | 5.45 | 5.77 | 5.36 | 3.24 |
 
-`outline` y `alerta` no se usan arriba de la pantalla, donde está el pico del brillo.
+`outline`, `textSecondary` y `alerta` no se usan arriba de la pantalla. El lema de Login queda a
+media altura (~200 px), donde la capa de 420 px ya bajó a ~10% de opacidad, no en el pico.
 `onPrimary` sobre `primary`: 21.00; `onPrimaryMuted` sobre `primary`: 13.09.
 
 ## Tema claro
@@ -233,7 +248,7 @@ izquierda).
 
 Reglas:
 
-- Fondo lila muy claro, tarjetas y paneles blancos, filas internas `#F8F8FA`, pastillas `#F0F0F4` y
+- Fondo `#F1F0FA` (el de Stitch), tarjetas y paneles blancos, filas internas `#F8F8FA`, pastillas `#F0F0F4` y
   bordes `#E7E7EC`.
 - El botón principal, el `+` y la pestaña activa se invierten: `primary` es `#111114` y `onPrimary`
   blanco.
@@ -248,7 +263,7 @@ Reglas:
 
 | Token | Valor | Uso |
 | --- | --- | --- |
-| `background` | `#FAF8FF` | Fondo de pantalla |
+| `background` | `#F1F0FA` | Fondo de pantalla (Stitch claro) |
 | `surfaceLowest` | `#FFFFFF` | Tarjetas y paneles |
 | `surfaceLow` | `#F8F8FA` | Filas internas, SelectorMes |
 | `surface` | `#F4F4F7` | Panel de hoja (método, fecha, nota) |
@@ -259,7 +274,7 @@ Reglas:
 | `card` | `#FFFFFF` | Campo de la nota |
 | `sheet` / `sheetDeep` | `rgba(255, 255, 255, 0.95)` | Hojas de Login/Registro y HojaInferior |
 | `surfaceInput` | `rgba(240, 240, 244, 0.9)` | Campos de Login y Registro |
-| `background60` | `rgba(250, 248, 255, 0.6)` | Velo del fondo de Login y Registro |
+| `background60` | `rgba(241, 240, 250, 0.6)` | Velo del fondo de Login y Registro |
 | `surfaceLow50` | `rgba(240, 240, 244, 0.5)` | Fila de gasto (≈ `#F8F8FA` sobre blanco) |
 | `surfaceLow70` | `rgba(255, 255, 255, 0.85)` | Tarjeta de resumen |
 | `surfaceLowest80` | `rgba(255, 255, 255, 0.85)` | Panel de Inicio |
@@ -282,7 +297,7 @@ Reglas:
 | `borderPressed` | `#C9C9D2` | Chip presionado |
 | `borderTop` | `rgba(255, 255, 255, 0.9)` | Brillo superior de tarjetas, panel y hoja |
 | `borderTopStrong` / `borderTopAvatar` | `#FFFFFF` | Brillo superior de botones de ícono y Avatar |
-| `outline` | `#71717C` | Placeholders, íconos de Input, total del día, pista de contraseña |
+| `outline` | `#666671` | Placeholders, íconos de Input, total del día, pista de contraseña |
 | `outlineVariant` | `#C9C9D2` | Jalador de Login y Registro |
 | `outlineVariant30` | `rgba(17, 17, 20, 0.08)` | Borde del ícono de Login y Registro |
 | `handle` | `#E7E7EC` | Jalador |
@@ -298,7 +313,10 @@ Reglas:
 | `textSecondary` | `#6B6B76` | Texto secundario (Stitch claro) |
 | `textChip` | `#3F3F48` | Texto de chips |
 | `textMuted` | `#8E8E99` | Sin uso por ahora |
-| `textNav` | `#5E5E69` | Pestañas inactivas, lema de Login y Registro |
+| `textNav` | `#6B6B76` | Pestañas inactivas (Stitch claro) |
+| `saludo` | `#111114` | "Hola, Fer" en Inicio (carbón, como en Stitch) |
+| `saludoEtiqueta` | `#3F3F48` | "Bienvenido de nuevo", encima del brillo |
+| `lema` | `#3F3F48` | Lema de Login y Registro, encima del brillo |
 | `textSoft` | `rgba(17, 17, 20, 0.9)` | Punto del teclado |
 | `iconSoft` | `rgba(17, 17, 20, 0.8)` | Ícono de borrar del teclado |
 | `amount` | `#111114` | Montos de egresos (carbón del brief) |
@@ -319,25 +337,34 @@ todas las pantallas claras de Stitch.
 | `sombra` | `rgba(17, 17, 20, 0.15)` | `shadowColor` de sombras |
 | `brillo` | `#111114` | `shadowColor` del halo de botones |
 | `acento` | `#8A55F0` | Bordes de foco y de estados activos (4.53:1 sobre blanco) |
-| `acentoTexto` | `#622CD6` | Saludo de Inicio, enlaces de Login y Registro, chip "Todas" |
+| `acentoTexto` | `#5B25CF` | Enlaces de Login y Registro, chip "Todas" |
 | `acentoSuave` | `rgba(138, 85, 240, 0.12)` | Fondo de chips y botones activos con acento |
 
-`acentoTexto` es más profundo que el `#8A55F0` de Stitch (4.30:1 sobre `background`) para pasar
-4.5:1 también encima del brillo, donde está el saludo de Inicio.
+`acentoTexto` es más profundo que el `#8A55F0` de Stitch para pasar 4.5:1 en el chip "Todas" de
+Movimientos, que queda encima del brillo (4.78:1).
 
 ### Brillo del fondo y semánticos
 
+`fondoCapas` del claro son los de `07_inicio_claro_color_fondo_1/code.html`:
+
+| Capa (CSS, de arriba hacia abajo) | Centro | Radios | Stops |
+| --- | --- | --- | --- |
+| `110% 55% at 50% 0%` | (50%, 0%) | 110% del ancho × 55% del alto | `#8FB0FF` 0% · `#B9A6FF` 38% · `rgba(241, 240, 250, 0.92)` 72% · `#F1F0FA` 100% |
+| `70% 50% at 90% 90%` | (90%, 90%) | 70% del ancho × 50% del alto | `#E3C8FF` 0% → transparente en 70% |
+
+La capa de arriba termina en `#F1F0FA` opaco, como en Stitch: fuera de su elipse pinta el color de
+fondo y tapa a la de abajo (en Stitch tampoco se ve). En Login y Registro eso también tapa las
+figuras difuminadas de `FondoAuth`.
+
 | Token | Valor | Uso |
 | --- | --- | --- |
-| `brilloIndigo` | `rgba(147, 197, 253, 0.55)` | Halo celeste (mismo lugar que el índigo del oscuro) |
-| `brilloVioleta` | `rgba(196, 181, 253, 0.45)` | Halo lavanda (mismo lugar que el violeta del oscuro) |
 | `brilloIcono` / `brilloIconoFin` | `rgba(255, 255, 255, 0.22)` → `0` | Reflejo del ícono de categoría |
 | `exito` | `#22A866` | En meta, ingresos (3.06:1 sobre blanco) |
 | `exitoSuave` | `rgba(34, 168, 102, 0.12)` | |
 | `aviso` | `#D97706` | Cerca del límite (3.19:1 sobre blanco) |
 | `avisoSuave` | `rgba(217, 119, 6, 0.12)` | |
-| `alerta` | `#D92D20` | Límite excedido y errores (4.83:1 sobre blanco) |
-| `alertaSuave` | `rgba(217, 45, 32, 0.12)` | |
+| `alerta` | `#C8281C` | Límite excedido y errores (5.56:1 sobre blanco, 4.92 sobre `background`) |
+| `alertaSuave` | `rgba(200, 40, 28, 0.12)` | |
 
 `alerta` llega a 4.5:1 y no solo a 3:1 porque también es el color de los textos de error. El `#FF453A`
 del oscuro da 3.41:1 sobre blanco.
@@ -345,25 +372,30 @@ del oscuro da 3.41:1 sobre blanco.
 ### Contraste de texto (tema claro)
 
 Fondos: `background`, tarjeta blanca, fila de gasto (`surfaceLow50` sobre blanco), pastilla
-(`surfaceHigh`) y el pico del brillo (celeste y lavanda plenos encimados, peor caso).
+(`surfaceHigh`) y el pico del brillo (`#8FB0FF`, el centro de la capa de arriba).
 
-| Token | Valor | background | tarjeta | fila | pastilla | pico del brillo |
+| Token | Valor | background | tarjeta | fila | pastilla | pico `#8FB0FF` |
 | --- | --- | --- | --- | --- | --- | --- |
-| `text` | `#111114` | 17.89 | 18.85 | 17.77 | 16.58 | 11.82 |
-| `onSurface` | `#1F1F24` | 15.58 | 16.41 | 15.47 | 14.44 | 10.29 |
-| `textVariant` | `#52525E` | 7.31 | 7.70 | 7.26 | 6.77 | 4.83 |
-| `textSecondary` | `#6B6B76` | 5.00 | 5.26 | 4.96 | 4.63 | 3.30 |
-| `textChip` | `#3F3F48` | 9.89 | 10.42 | 9.82 | 9.16 | 6.53 |
-| `outline` | `#71717C` | 4.58 | 4.82 | 4.55 | 4.24 | 3.02 |
-| `textNav` | `#5E5E69` | 6.08 | 6.40 | 6.03 | 5.63 | 4.02 |
-| `amount` | `#111114` | 17.89 | 18.85 | 17.77 | 16.58 | 11.82 |
-| `acentoTexto` | `#622CD6` | 6.99 | 7.37 | 6.95 | 6.48 | 4.62 |
-| `alerta` | `#D92D20` | 4.59 | 4.83 | 4.56 | 4.25 | 3.03 |
+| `text` | `#111114` | 16.68 | 18.85 | 17.77 | 16.58 | 8.82 |
+| `saludo` | `#111114` | 16.68 | 18.85 | 17.77 | 16.58 | 8.82 |
+| `saludoEtiqueta` | `#3F3F48` | 9.22 | 10.42 | 9.82 | 9.16 | 4.87 |
+| `lema` | `#3F3F48` | 9.22 | 10.42 | 9.82 | 9.16 | 4.87 |
+| `onSurface` | `#1F1F24` | 14.52 | 16.41 | 15.47 | 14.44 | 7.68 |
+| `textVariant` | `#52525E` | 6.81 | 7.70 | 7.26 | 6.77 | 3.60 |
+| `textSecondary` | `#6B6B76` | 4.66 | 5.26 | 4.96 | 4.63 | 2.46 |
+| `textChip` | `#3F3F48` | 9.22 | 10.42 | 9.82 | 9.16 | 4.87 |
+| `outline` | `#666671` | 5.02 | 5.67 | 5.35 | 4.99 | 2.65 |
+| `textNav` | `#6B6B76` | 4.66 | 5.26 | 4.96 | 4.63 | 2.46 |
+| `amount` | `#111114` | 16.68 | 18.85 | 17.77 | 16.58 | 8.82 |
+| `acentoTexto` | `#5B25CF` | 7.12 | 8.04 | 7.58 | 7.08 | 3.76 |
+| `alerta` | `#C8281C` | 4.92 | 5.56 | 5.24 | 4.89 | 2.60 |
 
-Arriba de la pantalla, donde está el brillo, solo hay `text`, `textVariant` (etiqueta "Bienvenido de
-nuevo") y `acentoTexto` (saludo), que pasan 4.5:1 en el peor caso. El lema de Login y Registro
-(`textNav`) queda a media altura, donde el brillo es más tenue: 5.12:1. `onPrimary` sobre `primary`:
-18.85; `onPrimaryMuted` sobre `primary`: 16.58.
+En la zona del brillo solo hay texto en `text`, `saludo`, `saludoEtiqueta`, `lema` y `textChip`
+(chips de Movimientos), y todos pasan 4.5:1 incluso en el pico. El chip "Todas" seleccionado
+(`acentoTexto` sobre `acentoSuave`) queda más abajo, donde el fondo es ≈ `#D7CDFC`: 4.78:1. Los demás
+tokens solo aparecen sobre tarjetas, hojas o la parte baja de la pantalla. `outline` y `alerta`
+bajaron de tono porque con el fondo `#F1F0FA` quedaban en 4.27 y 4.28. `onPrimary` sobre
+`primary`: 18.85; `onPrimaryMuted` sobre `primary`: 16.58.
 
 ### Categorías en tema claro
 
