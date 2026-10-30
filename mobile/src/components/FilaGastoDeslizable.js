@@ -8,11 +8,9 @@ import Animated, {
   FadeOut,
   interpolate,
   LinearTransition,
-  useAnimatedReaction,
   useAnimatedStyle,
   useReducedMotion,
 } from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
 
 import { useGastosService } from '../services/gastos';
 import { radios } from '../theme/colors';
@@ -25,9 +23,6 @@ const TAMANO_ACCION = 56;
 const SEPARACION = 8;
 // Ancho total de las acciones: margen izquierdo + dos botones + separación.
 const ANCHO_ACCIONES = SEPARACION + TAMANO_ACCION + SEPARACION + TAMANO_ACCION;
-// Progreso (0 cerrada, 1 abierta) a partir del cual la fila se queda abierta al soltar: es el
-// rightThreshold por defecto de ReanimatedSwipeable (la mitad del ancho de las acciones).
-const UMBRAL = 0.5;
 // Estiramiento máximo de los botones al pasarse de abierta.
 const ESCALA_MAXIMA = 1.06;
 // Resorte de apertura y cierre: casi crítico (un rebote apenas perceptible) para que al cerrar la
@@ -35,7 +30,6 @@ const ESCALA_MAXIMA = 1.06;
 const RESORTE = { mass: 1, damping: 26, stiffness: 220, overshootClamping: false };
 
 const vibrar = (estilo) => Haptics.impactAsync(estilo).catch(() => {});
-const vibrarUmbral = () => vibrar(Haptics.ImpactFeedbackStyle.Medium);
 
 // Coordina las filas de una lista: solo una abierta a la vez y se cierra al hacer scroll.
 //   const filas = useFilasDeslizables();
@@ -94,14 +88,6 @@ function AccionesGasto({ progreso, onEditar, onEliminar, deshabilitadas }) {
   const styles = useEstilos(crearEstilos);
   const reducirMovimiento = useReducedMotion();
 
-  // Haptic al cruzar el umbral mientras se arrastra; se rearma al volver por debajo.
-  useAnimatedReaction(
-    () => progreso.value >= UMBRAL,
-    (pasa, antes) => {
-      if (pasa && antes === false) scheduleOnRN(vibrarUmbral);
-    },
-  );
-
   const tocar = (accion) => () => {
     vibrar(Haptics.ImpactFeedbackStyle.Light);
     accion();
@@ -142,7 +128,8 @@ function AccionesGasto({ progreso, onEditar, onEliminar, deshabilitadas }) {
 }
 
 // Fila de gasto que se desliza a la izquierda para mostrar Editar y Eliminar (no hay "deslizar
-// hasta el fondo para eliminar"). Tocar la fila no hace nada. `filas` viene de
+// hasta el fondo para eliminar"). Tocar la fila (cerrada) abre la edición; si está abierta, solo
+// la cierra. Al empezar a deslizarla para abrir vibra una vez ("desenganche"). `filas` viene de
 // useFilasDeslizables de la lista; `onEditar(gasto)` abre la edición y `onEliminado(id)` avisa a
 // la lista para quitar la fila y recargar. Al eliminarse, la fila se desvanece y las de abajo
 // suben con una transición de layout.
@@ -158,6 +145,11 @@ export default function FilaGastoDeslizable({
   const styles = useEstilos(crearEstilos);
   const swipeRef = useRef(null);
   const enviando = useRef(false);
+  // `abierta`: la fila está (o va hacia) abierta. `arrastrando`: hay un gesto o su animación de
+  // asentamiento en curso; mientras tanto el toque se ignora, para que soltar un deslizamiento no
+  // cuente como tap.
+  const abierta = useRef(false);
+  const arrastrando = useRef(false);
   const [eliminando, setEliminando] = useState(false);
 
   const cerrar = () => swipeRef.current?.close();
@@ -201,6 +193,24 @@ export default function FilaGastoDeslizable({
     );
   };
 
+  const tocarFila = () => {
+    if (arrastrando.current) return;
+    if (abierta.current) {
+      cerrar();
+      return;
+    }
+    vibrar(Haptics.ImpactFeedbackStyle.Light);
+    onEditar(gasto);
+  };
+
+  // Una sola vibración por gesto: el callback corre una vez al empezar a arrastrar. Solo al
+  // abrir hacia la izquierda; arrastrar para cerrar no vibra.
+  const empezarAbrir = (direccion) => {
+    arrastrando.current = true;
+    filas.abrir(swipeRef.current);
+    if (direccion === 'left') vibrar(Haptics.ImpactFeedbackStyle.Rigid);
+  };
+
   const accionAccesible = ({ nativeEvent }) => {
     if (nativeEvent.actionName === 'editar') editar();
     if (nativeEvent.actionName === 'eliminar') confirmarEliminar();
@@ -225,19 +235,40 @@ export default function FilaGastoDeslizable({
             deshabilitadas={eliminando}
           />
         )}
-        onSwipeableOpenStartDrag={() => filas.abrir(swipeRef.current)}
-        onSwipeableWillOpen={() => filas.abrir(swipeRef.current)}
-        onSwipeableClose={() => filas.cerrada(swipeRef.current)}
+        onSwipeableOpenStartDrag={empezarAbrir}
+        onSwipeableCloseStartDrag={() => {
+          arrastrando.current = true;
+        }}
+        onSwipeableWillOpen={() => {
+          abierta.current = true;
+          filas.abrir(swipeRef.current);
+        }}
+        onSwipeableWillClose={() => {
+          abierta.current = false;
+        }}
+        onSwipeableOpen={() => {
+          arrastrando.current = false;
+        }}
+        onSwipeableClose={() => {
+          abierta.current = false;
+          arrastrando.current = false;
+          filas.cerrada(swipeRef.current);
+        }}
       >
-        <View
-          accessible
-          accessibilityHint="Desliza a la izquierda para editar o eliminar"
+        <Pressable
+          onPress={tocarFila}
+          disabled={eliminando}
+          accessibilityRole="button"
+          accessibilityHint="Toca para editar. Desliza a la izquierda para más opciones."
           accessibilityActions={[
             { name: 'editar', label: 'Editar' },
             { name: 'eliminar', label: 'Eliminar' },
           ]}
           onAccessibilityAction={accionAccesible}
-          style={eliminando ? styles.eliminando : null}
+          style={({ pressed }) => [
+            pressed ? styles.filaPresionada : null,
+            eliminando ? styles.eliminando : null,
+          ]}
         >
           <ItemGasto
             gasto={gasto}
@@ -245,7 +276,7 @@ export default function FilaGastoDeslizable({
             metodoPago={metodoPago}
             opaca
           />
-        </View>
+        </Pressable>
       </ReanimatedSwipeable>
     </Animated.View>
   );
@@ -297,6 +328,10 @@ const crearEstilos = (colors) =>
     },
     etiquetaEliminar: {
       color: colors.textoSobreColor,
+    },
+    // Feedback al presionar la fila
+    filaPresionada: {
+      transform: [{ scale: 0.98 }],
     },
     eliminando: {
       opacity: 0.5,
