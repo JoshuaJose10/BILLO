@@ -25,7 +25,7 @@ Las secciones siguientes describen el **tema oscuro**; el claro está en [Tema c
 
 ## Base (tema oscuro)
 
-Neutros de Obsidian Luminescence. Los sufijos numéricos (`surfaceHigh80`, `glass04`…) son la opacidad,
+Neutros de Obsidian Luminescence. Los sufijos numéricos (`surfaceHigh80`, `glass05`…) son la opacidad,
 igual que el `/NN` de Tailwind.
 
 ### Superficies
@@ -42,7 +42,8 @@ igual que el `/NN` de Tailwind.
 | `surfaceChip` | `#1C1C1E` | Chips de la tarjeta de resumen |
 | `card` | `#0E0E0E` | Hojas inferiores |
 | `sheet` | `rgba(14, 14, 14, 0.95)` | Hoja de Login y Registro |
-| `sheetDeep` | `rgba(12, 12, 14, 0.95)` | HojaInferior (Nuevo gasto) |
+| `sheetDeep` | `rgba(12, 12, 14, 0.95)` | HojaInferior (Nuevo gasto, Perfil) |
+| `tinteHoja` → `tinteHojaFin` | `rgba(99, 70, 229, 0.22)` → `0` | Tinte índigo arriba de HojaInferior, 180 px |
 | `surfaceInput` | `rgba(31, 31, 31, 0.9)` | Campos de Login y Registro |
 | `background60` | `rgba(19, 19, 19, 0.6)` | Velo del fondo de Login y Registro |
 | `surfaceLow50` | `rgba(27, 27, 27, 0.5)` | Fila de gasto |
@@ -58,9 +59,8 @@ igual que el `/NN` de Tailwind.
 
 | Token | Valor | Uso |
 | --- | --- | --- |
-| `glass04` / `glass05` / `glass07` / `glass08` | `rgba(255, 255, 255, 0.04…0.08)` | Superficies de vidrio |
+| `glass05` / `glass07` | `rgba(255, 255, 255, 0.05 / 0.07)` | Superficies de vidrio (chips, botones) |
 | `border` | `rgba(255, 255, 255, 0.08)` | Borde sutil |
-| `borderSoft` | `rgba(255, 255, 255, 0.05)` | white/5 |
 | `borderStrong` | `rgba(255, 255, 255, 0.10)` | white/10 |
 | `borderPressed` | `rgba(255, 255, 255, 0.20)` | Chip presionado |
 | `borderTop` | `rgba(255, 255, 255, 0.08)` | Brillo superior de tarjetas, panel y hoja |
@@ -272,7 +272,9 @@ Reglas:
 | `surfaceBright` | `#E2E2EA` | Barra de fuerza de contraseña apagada |
 | `surfaceChip` | `#F8F8FA` | Chips de la tarjeta de resumen |
 | `card` | `#FFFFFF` | Campo de la nota |
-| `sheet` / `sheetDeep` | `rgba(255, 255, 255, 0.95)` | Hojas de Login/Registro y HojaInferior |
+| `sheet` | `rgba(255, 255, 255, 0.95)` | Hoja de Login y Registro |
+| `sheetDeep` | `#F4F2FC` | HojaInferior: lavanda claro, no blanco (08_nuevo_gasto) |
+| `tinteHoja` → `tinteHojaFin` | `rgba(196, 181, 253, 0.55)` → `0` | Tinte lavanda arriba de HojaInferior |
 | `surfaceInput` | `rgba(240, 240, 244, 0.9)` | Campos de Login y Registro |
 | `background60` | `rgba(241, 240, 250, 0.6)` | Velo del fondo de Login y Registro |
 | `surfaceLow50` | `rgba(240, 240, 244, 0.5)` | Fila de gasto (≈ `#F8F8FA` sobre blanco) |
@@ -288,11 +290,9 @@ Reglas:
 
 | Token | Valor | Uso |
 | --- | --- | --- |
-| `glass04` / `glass05` | `rgba(17, 17, 20, 0.04)` | Teclas, monto, chips |
+| `glass05` | `#FFFFFF` | Chips y botones pequeños: blancos sobre la hoja lavanda |
 | `glass07` | `rgba(17, 17, 20, 0.05)` | Botón secundario, botón de cerrar, aviso de Login |
-| `glass08` | `rgba(17, 17, 20, 0.08)` | Tecla presionada |
 | `border` | `#E7E7EC` | Borde sutil |
-| `borderSoft` | `#ECECF1` | Borde de teclas |
 | `borderStrong` | `#E2E2EA` | Chips, navbar, botón secundario |
 | `borderPressed` | `#C9C9D2` | Chip presionado |
 | `borderTop` | `rgba(255, 255, 255, 0.9)` | Brillo superior de tarjetas, panel y hoja |
@@ -399,20 +399,51 @@ bajaron de tono porque con el fondo `#F1F0FA` quedaban en 4.27 y 4.28. `onPrimar
 
 ### Categorías en tema claro
 
-El micro-punto es un elemento gráfico: la meta es 3:1 contra el chip claro (`glass05` sobre la hoja
-blanca ≈ `#F5F5F6`) y contra el chip de la tarjeta de resumen (`#F8F8FA`). Donde el color vivo no
+El micro-punto es un elemento gráfico: la meta es 3:1 contra el chip claro (`glass05`, blanco) y contra el chip de la tarjeta de resumen (`#F8F8FA`). Donde el color vivo no
 llega, `baseClaro` usa un tono más profundo (los de Stitch claro). El halo del chip seleccionado y la
 sombra del ícono también usan `baseClaro`.
 
-| Categoría | `base` (oscuro) | Vivo sobre chip claro | `baseClaro` | Sobre chip claro | Sobre chip de tarjeta |
+| Categoría | `base` (oscuro) | Vivo sobre chip blanco | `baseClaro` | Sobre chip blanco | Sobre chip de tarjeta |
 | --- | --- | --- | --- | --- | --- |
-| Comida | `#FF3B69` | 3.17 | `#FF3B69` (igual) | 3.17 | 3.26 |
-| Transporte | `#4F7FFF` | 3.32 | `#3866F0` | 4.45 | 4.58 |
-| Entretenimiento | `#7C3AED` | 5.23 | `#7C3AED` (igual) | 5.23 | 5.37 |
-| Servicios | `#00C288` | 2.12 | `#1E9A5D` | 3.30 | 3.39 |
-| Salud | `#F472B6` | 2.43 | `#EB4778` | 3.38 | 3.47 |
-| Otros | `#8E8E93` | 2.99 | `#7C7C82` | 3.81 | 3.91 |
+| Comida | `#FF3B69` | 3.45 | `#FF3B69` (igual) | 3.45 | 3.26 |
+| Transporte | `#4F7FFF` | 3.61 | `#3866F0` | 4.85 | 4.58 |
+| Entretenimiento | `#7C3AED` | 5.70 | `#7C3AED` (igual) | 5.70 | 5.37 |
+| Servicios | `#00C288` | 2.31 | `#1E9A5D` | 3.60 | 3.39 |
+| Salud | `#F472B6` | 2.65 | `#EB4778` | 3.68 | 3.47 |
+| Otros | `#8E8E93` | 3.26 | `#7C7C82` | 4.15 | 3.91 |
 
 Transporte pasaba con el vivo, pero se usa el `#3866F0` de Stitch para que el azul no se vea lavado
-sobre blanco. Servicios usa `#1E9A5D` y no el `#22A866` de Stitch porque este da 2.81:1.
+sobre blanco. Servicios usa `#1E9A5D` y no el `#22A866` de Stitch porque este da 2.89:1 sobre el
+chip de la tarjeta de resumen.
 `fondoChip` y el degradado del ícono no cambian (texto y glifo blancos).
+
+## Hoja de Nuevo gasto
+
+Referencia: `stitch-paleta/08_nuevo_gasto_referencia.png` (ambos temas). Fuera de alcance por ser
+funciones y no colores: selector Gasto/Ingreso, botón de micrófono y tarjeta "Visa".
+
+- **HojaInferior**: fondo `sheetDeep` con un tinte de 180 px arriba (`tinteHoja` → `tinteHojaFin`)
+  que se funde con la hoja. En oscuro es índigo; en claro, lavanda sobre una hoja lavanda clara.
+- **Tarjeta del importe** (`MontoGrande`): `montoFondo` + `montoBorde` y sombra (`sombra` al 30%,
+  ≈ 4% en claro).
+- **Halo del importe**: degradado radial del color de la categoría elegida (`colorCategoria`) detrás
+  del número, con opacidad `haloImporteOpacidad` en el centro y 0 en el borde. Sin categoría no hay
+  halo.
+- **Teclas** (`TecladoNumerico`): `teclaFondo`, `teclaBorde` y `teclaPresionada`.
+- **Chips**: el seleccionado ya era como la referencia (fondo `fondoChipCategoria`, texto blanco). En
+  claro, los no seleccionados y los de método, fecha y nota son blancos (`glass05`).
+
+| Token | Oscuro | Claro |
+| --- | --- | --- |
+| `montoFondo` | `rgba(124, 58, 237, 0.10)` (tinte violeta) | `#FFFFFF` |
+| `montoBorde` | `rgba(167, 139, 250, 0.35)` (borde luminoso) | `#ECECF1` |
+| `haloImporteOpacidad` | `0.28` | `0.18` |
+| `teclaFondo` | `rgba(255, 255, 255, 0.06)` | `#FFFFFF` |
+| `teclaBorde` | `rgba(255, 255, 255, 0.06)` | `#E7E7EC` |
+| `teclaPresionada` | `rgba(255, 255, 255, 0.12)` | `#F0F0F4` |
+
+Contraste en la hoja clara (`#F4F2FC`): `text` 17.01, `textChip` 9.40, `outline` 5.12, `alerta` 5.02,
+`textSecondary` 4.75. Arriba, con el tinte pleno (≈ `#DAD0FD`), solo están el título (`text`, 12.94) y
+el botón de cerrar. En oscuro el tinte pleno queda en ≈ `#1E183D`: `text` 16.76, `textChip` 11.34. La
+tarjeta del importe oscura (≈ `#161023`) da 7.24 con `textSecondary` y las teclas (≈ `#1A1A1C`) 17.38
+con `text`.

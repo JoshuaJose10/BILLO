@@ -1,20 +1,47 @@
 import { StyleSheet, Text, View } from 'react-native';
+import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
+import { colorCategoria } from '../theme/categorias';
 import { radios } from '../theme/colors';
-import { useEstilos } from '../theme/TemaContext';
+import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { formatearMontoEnCaptura, partesMontoCaptura } from '../utils/formato';
 import Etiqueta from './Etiqueta';
 
-// Contenedor "IMPORTE" (Stitch: nuevo_gasto_bottom_sheet). rounded-2xl bg-white/[0.04]
-// border-white/10 p-3.5. Línea con items-baseline: "$" 30 mono zinc-400, entero 48 bold
-// tracking-tighter blanco y decimales 30 mono medium zinc-400. Vacío: "$0.00" todo en gris.
-export default function MontoGrande({ texto, error = false }) {
+// Radio interior de la tarjeta (el borde de 1px queda por fuera del halo).
+const RADIO_HALO = radios['2xl'] - 1;
+
+// Contenedor "IMPORTE" (Stitch: nuevo_gasto_bottom_sheet y 08_nuevo_gasto_referencia):
+// rounded-2xl p-3.5, en oscuro tinte violeta translúcido con borde luminoso y en claro tarjeta
+// blanca con sombra suave. Línea con items-baseline: "$" 30 mono, entero 48 bold tracking-tighter
+// y decimales 30 mono medium. Vacío: "$0.00" todo en gris.
+// `categoria` (nombre): halo radial de su color detrás del importe; sin categoría no hay halo.
+export default function MontoGrande({ texto, error = false, categoria }) {
+  const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
   const { entero, decimales } = partesMontoCaptura(texto);
+  const colorHalo = categoria ? colorCategoria(categoria, esOscuro) : null;
 
   return (
     <View style={[styles.contenedor, error ? styles.contenedorError : null]}>
+      {colorHalo ? (
+        // Unidades relativas a la tarjeta: el círculo se estira a una elipse del ancho del importe.
+        <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" pointerEvents="none">
+          <Defs>
+            <RadialGradient id="haloImporte" cx="0.5" cy="0.6" r="0.5">
+              <Stop offset="0" stopColor={colorHalo} stopOpacity={colors.haloImporteOpacidad} />
+              <Stop offset="1" stopColor={colorHalo} stopOpacity="0" />
+            </RadialGradient>
+          </Defs>
+          <Rect
+            width="100%"
+            height="100%"
+            rx={RADIO_HALO}
+            ry={RADIO_HALO}
+            fill="url(#haloImporte)"
+          />
+        </Svg>
+      ) : null}
       <Etiqueta style={styles.etiqueta}>Importe</Etiqueta>
       <Text
         style={styles.linea}
@@ -37,9 +64,14 @@ const crearEstilos = (colors) =>
       alignItems: 'center',
       padding: 14,
       borderRadius: radios['2xl'],
-      backgroundColor: colors.glass04,
+      backgroundColor: colors.montoFondo,
       borderWidth: 1,
-      borderColor: colors.borderStrong,
+      borderColor: colors.montoBorde,
+      // En claro queda en ~4% (el alfa de `sombra` se multiplica); en oscuro casi no se ve.
+      shadowColor: colors.sombra,
+      shadowOffset: { width: 0, height: 4 },
+      shadowRadius: 12,
+      shadowOpacity: 0.3,
     },
     contenedorError: {
       borderColor: colors.alerta,

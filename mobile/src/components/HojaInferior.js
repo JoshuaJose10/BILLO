@@ -1,5 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import {
   Animated,
@@ -96,6 +97,12 @@ export default function HojaInferior({
           },
         ]}
       >
+        {/* Tinte de color arriba que se funde con la hoja (08_nuevo_gasto_referencia) */}
+        <LinearGradient
+          colors={[colors.tinteHoja, colors.tinteHojaFin]}
+          style={styles.tinte}
+          pointerEvents="none"
+        />
         <View style={styles.jalador} />
 
         <View style={styles.cabecera}>
@@ -142,6 +149,18 @@ const crearEstilos = (colors) =>
       shadowOffset: { width: 0, height: -20 },
       shadowRadius: 25,
       shadowOpacity: 0.9,
+    },
+    // Dentro del borde superior, con el mismo radio; overflow solo en esta capa para no
+    // recortar la sombra de la hoja.
+    tinte: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 180,
+      borderTopLeftRadius: radios.hoja - 1,
+      borderTopRightRadius: radios.hoja - 1,
+      overflow: 'hidden',
     },
     // w-12 h-1 bg-white/30 rounded-full mt-1.5 mb-3
     jalador: {

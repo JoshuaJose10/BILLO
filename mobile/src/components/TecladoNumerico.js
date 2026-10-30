@@ -13,9 +13,9 @@ const FILAS = [
   [TECLA_PUNTO, '0', TECLA_BORRAR],
 ];
 
-// Teclado 4x3 de vidrio (Stitch: nuevo_gasto_bottom_sheet): grid gap-1.5, teclas h-11
-// rounded-xl bg-white/[0.04] border-white/5, texto 18 medium; al presionar bg-white/[0.08] y
-// scale-95. Las reglas del monto viven en utils/monto.js.
+// Teclado 4x3 (Stitch: nuevo_gasto_bottom_sheet y 08_nuevo_gasto_referencia): grid gap-1.5,
+// teclas h-11 rounded-xl con borde sutil (vidrio en oscuro, blancas sobre la hoja lavanda en
+// claro), texto 18 medium; al presionar se aclaran u oscurecen y scale-95. Las reglas del monto viven en utils/monto.js.
 export default function TecladoNumerico({ onTecla, disabled = false }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
@@ -66,12 +66,12 @@ const crearEstilos = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
       borderRadius: radios.xl,
-      backgroundColor: colors.glass04,
+      backgroundColor: colors.teclaFondo,
       borderWidth: 1,
-      borderColor: colors.borderSoft,
+      borderColor: colors.teclaBorde,
     },
     presionada: {
-      backgroundColor: colors.glass08,
+      backgroundColor: colors.teclaPresionada,
       transform: [{ scale: 0.95 }],
     },
     // text-lg font-medium text-white

@@ -4,7 +4,7 @@
 // theme/categorias.js.
 // `claro` (Opalescent Glow, stitch-paleta/*_claro_*) tiene exactamente las mismas claves que
 // `oscuro`: `npm run verificar:temas` falla si no coinciden. Los sufijos numéricos (background60,
-// glass04...) describen la opacidad del valor oscuro; en claro la clave conserva el mismo papel.
+// glass05...) describen la opacidad del valor oscuro; en claro la clave conserva el mismo papel.
 export const temas = {
   oscuro: {
     // Superficies (escala surface-container de Obsidian)
@@ -18,6 +18,8 @@ export const temas = {
     card: '#0E0E0E', // hojas inferiores (surface-container-lowest)
     sheet: 'rgba(14, 14, 14, 0.95)', // surface-container-lowest/95 (hoja de Login y Registro)
     sheetDeep: 'rgba(12, 12, 14, 0.95)', // HojaInferior (Nuevo gasto)
+    tinteHoja: 'rgba(99, 70, 229, 0.22)', // tinte superior de HojaInferior (08_nuevo_gasto)
+    tinteHojaFin: 'rgba(99, 70, 229, 0)',
     surfaceInput: 'rgba(31, 31, 31, 0.9)', // surface-container/90 (campos de Login y Registro)
     surfaceChip: '#1C1C1E', // chips de la tarjeta de resumen
 
@@ -34,14 +36,11 @@ export const temas = {
     scrimSoft: 'rgba(0, 0, 0, 0.4)',
 
     // Vidrio: blancos translúcidos sobre fondo oscuro
-    glass04: 'rgba(255, 255, 255, 0.04)',
     glass05: 'rgba(255, 255, 255, 0.05)',
     glass07: 'rgba(255, 255, 255, 0.07)',
-    glass08: 'rgba(255, 255, 255, 0.08)',
 
     // Bordes
     border: 'rgba(255, 255, 255, 0.08)', // Border Subtle
-    borderSoft: 'rgba(255, 255, 255, 0.05)', // white/5
     borderStrong: 'rgba(255, 255, 255, 0.10)', // white/10
     borderPressed: 'rgba(255, 255, 255, 0.20)', // white/20 (chip presionado)
     borderTop: 'rgba(255, 255, 255, 0.08)', // brillo superior de tarjetas, panel y hoja
@@ -82,6 +81,15 @@ export const temas = {
     acento: '#8B5CF6',
     acentoTexto: '#C4B5FD', // acento para texto sobre fondo oscuro (violeta claro)
     acentoSuave: 'rgba(139, 92, 246, 0.15)', // fondo de chips y botones activos con acento
+
+    // Nuevo gasto (08_nuevo_gasto_referencia): tarjeta del importe, halo de la categoría detrás
+    // del importe (opacidad del centro) y teclas
+    montoFondo: 'rgba(124, 58, 237, 0.10)',
+    montoBorde: 'rgba(167, 139, 250, 0.35)',
+    haloImporteOpacidad: 0.28,
+    teclaFondo: 'rgba(255, 255, 255, 0.06)',
+    teclaBorde: 'rgba(255, 255, 255, 0.06)',
+    teclaPresionada: 'rgba(255, 255, 255, 0.12)',
 
     // Saludo de Inicio ("Hola, Fer") y su etiqueta "Bienvenido de nuevo", encima del brillo
     saludo: '#C4B5FD',
@@ -151,7 +159,9 @@ export const temas = {
     surfaceBright: '#E2E2EA',
     card: '#FFFFFF',
     sheet: 'rgba(255, 255, 255, 0.95)',
-    sheetDeep: 'rgba(255, 255, 255, 0.95)',
+    sheetDeep: '#F4F2FC', // hoja lavanda clara
+    tinteHoja: 'rgba(196, 181, 253, 0.55)',
+    tinteHojaFin: 'rgba(196, 181, 253, 0)',
     surfaceInput: 'rgba(240, 240, 244, 0.9)',
     surfaceChip: '#F8F8FA',
 
@@ -168,14 +178,11 @@ export const temas = {
     scrimSoft: 'rgba(17, 17, 20, 0.15)',
 
     // Vidrio: negros translúcidos sobre fondo claro
-    glass04: 'rgba(17, 17, 20, 0.04)',
-    glass05: 'rgba(17, 17, 20, 0.04)',
+    glass05: '#FFFFFF', // chips y botones blancos sobre la hoja lavanda (08_nuevo_gasto)
     glass07: 'rgba(17, 17, 20, 0.05)',
-    glass08: 'rgba(17, 17, 20, 0.08)',
 
     // Bordes
     border: '#E7E7EC',
-    borderSoft: '#ECECF1',
     borderStrong: '#E2E2EA',
     borderPressed: '#C9C9D2',
     borderTop: 'rgba(255, 255, 255, 0.9)', // el brillo superior sigue siendo blanco
@@ -217,6 +224,14 @@ export const temas = {
     acento: '#8A55F0',
     acentoTexto: '#5B25CF', // >= 4.5:1 sobre background y sobre el brillo (chip "Todas")
     acentoSuave: 'rgba(138, 85, 240, 0.12)',
+
+    // Nuevo gasto: importe en tarjeta blanca y teclas blancas con borde sutil
+    montoFondo: '#FFFFFF',
+    montoBorde: '#ECECF1',
+    haloImporteOpacidad: 0.18,
+    teclaFondo: '#FFFFFF',
+    teclaBorde: '#E7E7EC',
+    teclaPresionada: '#F0F0F4',
 
     // Encima del brillo; en Stitch el saludo es carbón. La etiqueta y el lema son más oscuros
     // que el #6B6B76 de Stitch (2.46:1 sobre #8FB0FF) para llegar a 4.5:1.
