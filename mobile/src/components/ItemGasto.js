@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { radios } from '../theme/colors';
 import { useEstilos } from '../theme/TemaContext';
@@ -11,7 +11,9 @@ import IconoCategoria from './IconoCategoria';
 // El backend solo guarda la fecha, sin hora, así que el subtítulo no lleva hora.
 // Con `metodoPago` (etiqueta, p. ej. "Efectivo") el subtítulo es "Categoría · Método", para
 // listas donde la fecha ya va en el encabezado del día (Movimientos).
-export default function ItemGasto({ gasto, nombreCategoria, metodoPago }) {
+// Con `onPress` la fila se puede tocar (para editar el gasto); sin él se ve y se comporta igual
+// que una fila fija.
+export default function ItemGasto({ gasto, nombreCategoria, metodoPago, onPress }) {
   const styles = useEstilos(crearEstilos);
   const categoria = nombreCategoria || 'Sin categoría';
   const nota = gasto.nota?.trim();
@@ -23,8 +25,8 @@ export default function ItemGasto({ gasto, nombreCategoria, metodoPago }) {
       ? `${categoria} · ${fecha}`
       : fecha;
 
-  return (
-    <View style={styles.fila}>
+  const contenido = (
+    <>
       <IconoCategoria nombre={nombreCategoria} />
       <View style={styles.textos}>
         <Text style={styles.titulo} numberOfLines={1}>
@@ -35,7 +37,20 @@ export default function ItemGasto({ gasto, nombreCategoria, metodoPago }) {
         </Text>
       </View>
       <Text style={styles.monto}>-{formatearMonto(gasto.monto)}</Text>
-    </View>
+    </>
+  );
+
+  if (!onPress) return <View style={styles.fila}>{contenido}</View>;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityHint="Editar gasto"
+      style={({ pressed }) => [styles.fila, pressed ? styles.presionada : null]}
+    >
+      {contenido}
+    </Pressable>
   );
 }
 
@@ -49,6 +64,10 @@ const crearEstilos = (colors) =>
       padding: 10,
       borderRadius: radios['2xl'],
       backgroundColor: colors.surfaceLow50,
+    },
+    // Feedback sutil al tocar
+    presionada: {
+      opacity: 0.7,
     },
     textos: {
       flex: 1,

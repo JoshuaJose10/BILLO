@@ -229,6 +229,7 @@ export default function MovimientosScreen({ navigation }) {
               gasto={item}
               nombreCategoria={nombresCategoria[item.categoria_id]}
               metodoPago={etiquetaMetodoPago(item.metodo_pago)}
+              onPress={() => navigation.navigate('NuevoGasto', { gasto: item })}
             />
           </View>
         )}

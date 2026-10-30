@@ -179,7 +179,11 @@ export default function InicioScreen({ navigation }) {
         keyExtractor={(g) => String(g.id)}
         renderItem={({ item }) => (
           <View style={styles.panelFila}>
-            <ItemGasto gasto={item} nombreCategoria={nombresCategoria[item.categoria_id]} />
+            <ItemGasto
+              gasto={item}
+              nombreCategoria={nombresCategoria[item.categoria_id]}
+              onPress={() => navigation.navigate('NuevoGasto', { gasto: item })}
+            />
           </View>
         )}
         ListHeaderComponent={

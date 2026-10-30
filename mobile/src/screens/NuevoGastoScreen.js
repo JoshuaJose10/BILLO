@@ -23,22 +23,30 @@ import { METODO_PAGO_DEFECTO, METODOS_PAGO, NOTA_MAX, useGastosService } from '.
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { mensajeError } from '../utils/errores';
-import { fechaLocalISO } from '../utils/fechas';
+import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
 import { fechaRelativa, LOCALE, resumirTexto } from '../utils/formato';
-import { aplicarTecla, montoDesdeTexto } from '../utils/monto';
+import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
 
 // Hoja inferior sobre Inicio y las tabs (ruta NuevoGasto con presentation: 'transparentModal').
 // El alto lo da el contenido (~65% de la pantalla en un iPhone de 6.1").
-export default function NuevoGastoScreen({ navigation }) {
-  const { listarCategorias, crearGasto } = useGastosService();
+// Con `route.params.gasto` (al tocar un movimiento) edita ese gasto: llega completo porque no
+// existe GET /gastos/:id. Sin él registra uno nuevo.
+export default function NuevoGastoScreen({ navigation, route }) {
+  const gastoEditado = route.params?.gasto;
+  const editando = !!gastoEditado;
+  const { listarCategorias, crearGasto, actualizarGasto } = useGastosService();
   const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
 
-  const [texto, setTexto] = useState('');
-  const [categoriaId, setCategoriaId] = useState(null);
-  const [metodo, setMetodo] = useState(METODO_PAGO_DEFECTO);
-  const [fecha, setFecha] = useState(() => new Date());
-  const [nota, setNota] = useState('');
+  // Al editar se precargan los datos del gasto; la fecha con parsearFechaLocal (new Date("YYYY-MM-DD")
+  // la toma en UTC y en México la recorre un día).
+  const [texto, setTexto] = useState(() => (editando ? textoDesdeMonto(gastoEditado.monto) : ''));
+  const [categoriaId, setCategoriaId] = useState(gastoEditado?.categoria_id ?? null);
+  const [metodo, setMetodo] = useState(gastoEditado?.metodo_pago || METODO_PAGO_DEFECTO);
+  const [fecha, setFecha] = useState(() =>
+    editando ? parsearFechaLocal(gastoEditado.fecha) : new Date(),
+  );
+  const [nota, setNota] = useState(gastoEditado?.nota ?? '');
   const [panel, setPanel] = useState(null); // 'metodo' | 'fecha' | 'nota'
 
   const [categorias, setCategorias] = useState([]);
@@ -59,6 +67,8 @@ export default function NuevoGastoScreen({ navigation }) {
         if (!activo) return;
         setCategorias(lista || []);
         setEstadoCategorias('listo');
+        // Si la categoría del gasto editado ya no existe, queda sin elegir y la validación la pide.
+        setCategoriaId((id) => ((lista || []).some((c) => c.id === id) ? id : null));
       })
       .catch(() => {
         if (activo) setEstadoCategorias('error');
@@ -111,20 +121,25 @@ export default function NuevoGastoScreen({ navigation }) {
 
     enviando.current = true;
     setGuardando(true);
+    const datos = {
+      monto,
+      categoria_id: categoriaId,
+      fecha: fechaLocalISO(fecha),
+      metodo_pago: metodo,
+      nota: nota.trim() || null,
+    };
     try {
-      await crearGasto({
-        monto,
-        categoria_id: categoriaId,
-        fecha: fechaLocalISO(fecha),
-        metodo_pago: metodo,
-        nota: nota.trim() || null,
-      });
+      if (editando) {
+        await actualizarGasto(gastoEditado.id, datos);
+      } else {
+        await crearGasto(datos);
+      }
       enviando.current = false;
       hojaRef.current?.cerrar();
     } catch (error) {
       enviando.current = false;
       setGuardando(false);
-      setErrorApi(mensajeError(error?.code, error?.message));
+      setErrorApi(mensajeErrorGasto(error));
     }
   };
 
@@ -134,8 +149,8 @@ export default function NuevoGastoScreen({ navigation }) {
   return (
     <HojaInferior
       ref={hojaRef}
-      titulo="Nuevo gasto"
-      etiquetaFondo="Cerrar nuevo gasto"
+      titulo={editando ? 'Editar gasto' : 'Nuevo gasto'}
+      etiquetaFondo={editando ? 'Cerrar editar gasto' : 'Cerrar nuevo gasto'}
       onCerrada={() => navigation.goBack()}
       bloqueada={guardando}
     >
@@ -211,8 +226,8 @@ export default function NuevoGastoScreen({ navigation }) {
 
       {errorApi ? <Text style={styles.errorApi}>{errorApi}</Text> : null}
       <Boton
-        titulo="Confirmar gasto"
-        icono="arrow-right"
+        titulo={editando ? 'Guardar cambios' : 'Confirmar gasto'}
+        icono={editando ? 'check' : 'arrow-right'}
         onPress={confirmar}
         cargando={guardando}
         compacto
@@ -284,6 +299,13 @@ export default function NuevoGastoScreen({ navigation }) {
     </HojaInferior>
   );
 }
+
+// El gasto que se edita ya no existe (otro dispositivo lo borró): al cerrar la hoja, Inicio y
+// Movimientos recargan la lista con useFocusEffect.
+const mensajeErrorGasto = (error) =>
+  error?.code === 'GASTO_NO_ENCONTRADO'
+    ? 'Este gasto ya no existe. Cierra para actualizar la lista.'
+    : mensajeError(error?.code, error?.message);
 
 const crearEstilos = (colors) =>
   StyleSheet.create({
