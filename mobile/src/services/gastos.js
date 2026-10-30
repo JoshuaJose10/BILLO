@@ -23,7 +23,8 @@ export const NOTA_MAX = 200;
 const normalizarGasto = (gasto) => ({ ...gasto, monto: aNumero(gasto.monto) });
 
 // Servicio de gastos con el token de la sesión (un 401 cierra la sesión vía useApi):
-//   const { listarCategorias, crearGasto, listarGastos } = useGastosService();
+//   const { listarCategorias, crearGasto, listarGastos, actualizarGasto, eliminarGasto } =
+//     useGastosService();
 export function useGastosService() {
   const api = useApi();
 
@@ -48,6 +49,19 @@ export function useGastosService() {
         const gastos = await api(`/gastos${params.length ? `?${params.join('&')}` : ''}`);
         return (gastos || []).map(normalizarGasto);
       },
+
+      // PUT /gastos/:id con el mismo body que POST (se reemplazan todos los campos)
+      // → 200 { gasto }. 400: los mismos que crearGasto. 404: GASTO_NO_ENCONTRADO.
+      actualizarGasto: async (id, datos) => {
+        const { gasto } = await api(`/gastos/${encodeURIComponent(id)}`, {
+          method: 'PUT',
+          body: datos,
+        });
+        return normalizarGasto(gasto);
+      },
+
+      // DELETE /gastos/:id → 200 { eliminado: true }. 404: GASTO_NO_ENCONTRADO.
+      eliminarGasto: (id) => api(`/gastos/${encodeURIComponent(id)}`, { method: 'DELETE' }),
     }),
     [api],
   );
