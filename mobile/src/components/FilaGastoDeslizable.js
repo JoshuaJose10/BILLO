@@ -4,16 +4,10 @@ import { useMemo, useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import Animated, {
-  Extrapolation,
   FadeOut,
-  interpolate,
   LinearTransition,
   useAnimatedReaction,
   useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withSequence,
-  withTiming,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
@@ -26,13 +20,14 @@ import ItemGasto from './ItemGasto';
 
 const TAMANO_ACCION = 56;
 const SEPARACION = 8;
+// Ancho total de las acciones: margen izquierdo + dos botones + separación.
+const ANCHO_ACCIONES = SEPARACION + TAMANO_ACCION + SEPARACION + TAMANO_ACCION;
 // Progreso (0 cerrada, 1 abierta) a partir del cual la fila se queda abierta al soltar: es el
 // rightThreshold por defecto de ReanimatedSwipeable (la mitad del ancho de las acciones).
 const UMBRAL = 0.5;
-// Resorte de apertura y cierre: un rebote corto al abrir y un cierre suave.
-const RESORTE = { mass: 1, damping: 20, stiffness: 220, overshootClamping: false };
-// Golpe del ícono al quedar abierta.
-const GOLPE = { duration: 140 };
+// Resorte de apertura y cierre: casi crítico (un rebote apenas perceptible) para que al cerrar la
+// fila no se pase hacia la derecha.
+const RESORTE = { mass: 1, damping: 26, stiffness: 220, overshootClamping: false };
 
 const vibrar = (estilo) => Haptics.impactAsync(estilo).catch(() => {});
 const vibrarUmbral = () => vibrar(Haptics.ImpactFeedbackStyle.Medium);
@@ -60,15 +55,14 @@ export function useFilasDeslizables() {
   );
 }
 
-// Acciones que aparecen a la derecha al deslizar: Editar (vidrio con tinte del acento) y Eliminar
-// (rojo sólido). Entran con escala y fundido según el arrastre, Eliminar un poco después; al
-// quedar abierta, los íconos dan un golpe corto. Todo corre en el hilo de UI con `progreso`.
-// Con "Reducir movimiento" solo hay fundido.
-function AccionesGasto({ progreso, onEditar, onEliminar, deshabilitadas }) {
+// Acciones fijas a la derecha, detrás de la fila: Editar (vidrio con tinte del acento) y Eliminar
+// (rojo sólido). No se animan; la fila se desliza y las va destapando. Como la fila es
+// translúcida, las acciones van en una ventana recortada que solo cubre la franja ya destapada
+// (`traslado`), así nunca se ven a través de la fila. Ventana y contenido se mueven con
+// transform en sentidos opuestos: los botones quedan quietos y todo corre en el hilo de UI.
+function AccionesGasto({ progreso, traslado, onEditar, onEliminar, deshabilitadas }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
-  const reducirMovimiento = useReducedMotion();
-  const golpe = useSharedValue(0);
 
   // Haptic al cruzar el umbral mientras se arrastra; se rearma al volver por debajo.
   useAnimatedReaction(
@@ -78,29 +72,12 @@ function AccionesGasto({ progreso, onEditar, onEliminar, deshabilitadas }) {
     },
   );
 
-  // Golpe de los íconos al llegar a abierta (una vez por apertura).
-  useAnimatedReaction(
-    () => progreso.value >= 0.98,
-    (abierta, antes) => {
-      if (abierta && antes === false && !reducirMovimiento) {
-        golpe.set(withSequence(withTiming(1, GOLPE), withTiming(0, GOLPE)));
-      }
-    },
-  );
-
-  const entrada = (desde, hasta) => {
+  const oculto = () => {
     'worklet';
-    const t = interpolate(progreso.value, [desde, hasta], [0, 1], Extrapolation.CLAMP);
-    return {
-      opacity: t,
-      transform: [{ scale: reducirMovimiento ? 1 : 0.6 + 0.4 * t }],
-    };
+    return ANCHO_ACCIONES - Math.min(Math.max(-traslado.value, 0), ANCHO_ACCIONES);
   };
-  const estiloEditar = useAnimatedStyle(() => entrada(0.1, 0.7));
-  const estiloEliminar = useAnimatedStyle(() => entrada(0.3, 0.9));
-  const estiloIcono = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${-12 * golpe.value}deg` }, { scale: 1 + 0.12 * golpe.value }],
-  }));
+  const estiloVentana = useAnimatedStyle(() => ({ transform: [{ translateX: oculto() }] }));
+  const estiloContenido = useAnimatedStyle(() => ({ transform: [{ translateX: -oculto() }] }));
 
   const tocar = (accion) => () => {
     vibrar(Haptics.ImpactFeedbackStyle.Light);
@@ -109,45 +86,41 @@ function AccionesGasto({ progreso, onEditar, onEliminar, deshabilitadas }) {
 
   return (
     <View style={styles.acciones}>
-      <Animated.View style={estiloEditar}>
-        <Pressable
-          onPress={tocar(onEditar)}
-          disabled={deshabilitadas}
-          accessibilityRole="button"
-          accessibilityLabel="Editar"
-          style={({ pressed }) => [
-            styles.accion,
-            styles.editar,
-            pressed ? styles.presionada : null,
-          ]}
-        >
-          <Animated.View style={estiloIcono}>
+      <Animated.View style={[styles.ventana, estiloVentana]}>
+        <Animated.View style={[styles.botones, estiloContenido]}>
+          <Pressable
+            onPress={tocar(onEditar)}
+            disabled={deshabilitadas}
+            accessibilityRole="button"
+            accessibilityLabel="Editar"
+            style={({ pressed }) => [
+              styles.accion,
+              styles.editar,
+              pressed ? styles.presionada : null,
+            ]}
+          >
             <MaterialCommunityIcons name="pencil-outline" size={20} color={colors.acento} />
-          </Animated.View>
-          <Text style={[styles.etiqueta, styles.etiquetaEditar]}>Editar</Text>
-        </Pressable>
-      </Animated.View>
-      <Animated.View style={estiloEliminar}>
-        <Pressable
-          onPress={tocar(onEliminar)}
-          disabled={deshabilitadas}
-          accessibilityRole="button"
-          accessibilityLabel="Eliminar"
-          style={({ pressed }) => [
-            styles.accion,
-            styles.eliminar,
-            pressed ? styles.presionada : null,
-          ]}
-        >
-          <Animated.View style={estiloIcono}>
+            <Text style={[styles.etiqueta, styles.etiquetaEditar]}>Editar</Text>
+          </Pressable>
+          <Pressable
+            onPress={tocar(onEliminar)}
+            disabled={deshabilitadas}
+            accessibilityRole="button"
+            accessibilityLabel="Eliminar"
+            style={({ pressed }) => [
+              styles.accion,
+              styles.eliminar,
+              pressed ? styles.presionada : null,
+            ]}
+          >
             <MaterialCommunityIcons
               name="trash-can-outline"
               size={20}
               color={colors.textoSobreColor}
             />
-          </Animated.View>
-          <Text style={[styles.etiqueta, styles.etiquetaEliminar]}>Eliminar</Text>
-        </Pressable>
+            <Text style={[styles.etiqueta, styles.etiquetaEliminar]}>Eliminar</Text>
+          </Pressable>
+        </Animated.View>
       </Animated.View>
     </View>
   );
@@ -227,10 +200,13 @@ export default function FilaGastoDeslizable({
         // El gesto se activa con 20 px horizontales; un arrastre vertical lo toma el scroll.
         dragOffsetFromRightEdge={20}
         enabled={!eliminando}
+        // Recorta la fila con el mismo radio al deslizarla.
+        containerStyle={styles.contenedor}
         animationOptions={RESORTE}
-        renderRightActions={(progreso) => (
+        renderRightActions={(progreso, traslado) => (
           <AccionesGasto
             progreso={progreso}
+            traslado={traslado}
             onEditar={editar}
             onEliminar={confirmarEliminar}
             deshabilitadas={eliminando}
@@ -259,8 +235,21 @@ export default function FilaGastoDeslizable({
 
 const crearEstilos = (colors) =>
   StyleSheet.create({
-    // Separación y margen como entre filas (gap-2)
+    contenedor: {
+      borderRadius: radios['2xl'],
+    },
+    // Ancho fijo para que ReanimatedSwipeable mida cuánto abrir; alto de la fila.
     acciones: {
+      width: ANCHO_ACCIONES,
+    },
+    // Ventana que solo muestra la franja destapada por la fila.
+    ventana: {
+      ...StyleSheet.absoluteFillObject,
+      overflow: 'hidden',
+    },
+    // Separación y margen como entre filas (gap-2)
+    botones: {
+      ...StyleSheet.absoluteFillObject,
       flexDirection: 'row',
       alignItems: 'center',
       gap: SEPARACION,
