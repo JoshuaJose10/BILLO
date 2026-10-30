@@ -26,6 +26,7 @@ export const temas = {
     // Superficies translúcidas (sufijo = opacidad, como el /NN de Tailwind)
     background60: 'rgba(19, 19, 19, 0.6)', // velo del fondo de Login y Registro
     surfaceLow50: 'rgba(27, 27, 27, 0.5)', // fila de gasto
+    filaOpaca: '#151515', // fila de gasto deslizable: surfaceLow50 compuesto sobre el panel de Inicio
     surfaceLow70: 'rgba(27, 27, 27, 0.7)', // tarjeta de resumen
     surfaceLowest80: 'rgba(14, 14, 14, 0.8)', // panel de Inicio
     surfaceHigh80: 'rgba(42, 42, 42, 0.8)', // botones de ícono e ícono de Login y Registro
@@ -171,6 +172,7 @@ export const temas = {
     // Superficies translúcidas
     background60: 'rgba(241, 240, 250, 0.6)',
     surfaceLow50: 'rgba(240, 240, 244, 0.5)', // sobre el panel blanco queda en #F8F8FA
+    filaOpaca: '#F7F7F9',
     surfaceLow70: 'rgba(255, 255, 255, 0.85)',
     surfaceLowest80: 'rgba(255, 255, 255, 0.85)',
     surfaceHigh80: 'rgba(255, 255, 255, 0.8)',

@@ -47,6 +47,7 @@ igual que el `/NN` de Tailwind.
 | `surfaceInput` | `rgba(31, 31, 31, 0.9)` | Campos de Login y Registro |
 | `background60` | `rgba(19, 19, 19, 0.6)` | Velo del fondo de Login y Registro |
 | `surfaceLow50` | `rgba(27, 27, 27, 0.5)` | Fila de gasto |
+| `filaOpaca` | `#151515` | Fila de gasto deslizable: `surfaceLow50` compuesto sobre el panel de Inicio, opaca para tapar las acciones |
 | `surfaceLow70` | `rgba(27, 27, 27, 0.7)` | Tarjeta de resumen |
 | `surfaceLowest80` | `rgba(14, 14, 14, 0.8)` | Panel de Inicio |
 | `surfaceHigh80` | `rgba(42, 42, 42, 0.8)` | Botones de ícono, ícono de Login y Registro |
@@ -289,6 +290,7 @@ Reglas:
 | `surfaceInput` | `rgba(240, 240, 244, 0.9)` | Campos de Login y Registro |
 | `background60` | `rgba(241, 240, 250, 0.6)` | Velo del fondo de Login y Registro |
 | `surfaceLow50` | `rgba(240, 240, 244, 0.5)` | Fila de gasto (≈ `#F8F8FA` sobre blanco) |
+| `filaOpaca` | `#F7F7F9` | Fila de gasto deslizable (opaca) |
 | `surfaceLow70` | `rgba(255, 255, 255, 0.85)` | Tarjeta de resumen |
 | `surfaceLowest80` | `rgba(255, 255, 255, 0.85)` | Panel de Inicio |
 | `surfaceHigh80` | `rgba(255, 255, 255, 0.8)` | Ícono de Login y Registro |
@@ -478,7 +480,8 @@ con `text`.
 ## Acciones al deslizar un gasto
 
 `FilaGastoDeslizable` (Inicio y Movimientos): al deslizar a la izquierda aparecen dos squircles de 56 px
-(`radios['2xl']`, 8 px de separación).
+(`radios['2xl']`, 8 px de separación) que están detrás de la fila. La fila usa `filaOpaca` para no
+dejarlos ver; en reposo los botones tienen opacidad 0.
 
 | Acción | Fondo | Ícono | Etiqueta | Contraste |
 | --- | --- | --- | --- | --- |

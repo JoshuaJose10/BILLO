@@ -11,7 +11,9 @@ import IconoCategoria from './IconoCategoria';
 // El backend solo guarda la fecha, sin hora, así que el subtítulo no lleva hora.
 // Con `metodoPago` (etiqueta, p. ej. "Efectivo") el subtítulo es "Categoría · Método", para
 // listas donde la fecha ya va en el encabezado del día (Movimientos).
-export default function ItemGasto({ gasto, nombreCategoria, metodoPago }) {
+// `opaca`: fondo sólido (`filaOpaca`) en vez del translúcido, para FilaGastoDeslizable: así las
+// acciones que van detrás no se ven a través de la fila.
+export default function ItemGasto({ gasto, nombreCategoria, metodoPago, opaca = false }) {
   const styles = useEstilos(crearEstilos);
   const categoria = nombreCategoria || 'Sin categoría';
   const nota = gasto.nota?.trim();
@@ -24,7 +26,7 @@ export default function ItemGasto({ gasto, nombreCategoria, metodoPago }) {
       : fecha;
 
   return (
-    <View style={styles.fila}>
+    <View style={[styles.fila, opaca ? styles.filaOpaca : null]}>
       <IconoCategoria nombre={nombreCategoria} />
       <View style={styles.textos}>
         <Text style={styles.titulo} numberOfLines={1}>
@@ -49,6 +51,9 @@ const crearEstilos = (colors) =>
       padding: 10,
       borderRadius: radios['2xl'],
       backgroundColor: colors.surfaceLow50,
+    },
+    filaOpaca: {
+      backgroundColor: colors.filaOpaca,
     },
     textos: {
       flex: 1,
