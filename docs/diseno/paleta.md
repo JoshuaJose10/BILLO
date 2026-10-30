@@ -111,8 +111,8 @@ Entretenimiento (`#7C3AED`) y "Todas" se leería como una categoría.
 ## Brillo del fondo
 
 `FondoDegradado` pinta dos halos radiales (react-native-svg) en toda la pantalla, encima de
-`background`: índigo con centro en (15%, 0%) y radio del 75% del ancho, y violeta con centro en
-(90%, 5%) y radio del 70% del ancho. Se usa en Inicio, Movimientos y, sobre el velo de `FondoAuth`,
+`background`: índigo con centro en (15%, 0%) y radio del 95% del ancho, y violeta con centro en
+(90%, 5%) y radio del 90% del ancho. Se usa en Inicio, Movimientos y, sobre el velo de `FondoAuth`,
 en Login y Registro.
 
 | Token | Valor | Uso |

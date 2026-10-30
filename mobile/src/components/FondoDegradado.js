@@ -19,7 +19,7 @@ export default function FondoDegradado() {
           id="brilloIndigo"
           cx={width * 0.15}
           cy={0}
-          r={width * 0.75}
+          r={width * 0.95}
           gradientUnits="userSpaceOnUse"
         >
           <Stop offset="0" stopColor={colors.brilloIndigo} />
@@ -29,7 +29,7 @@ export default function FondoDegradado() {
           id="brilloVioleta"
           cx={width * 0.9}
           cy={height * 0.05}
-          r={width * 0.7}
+          r={width * 0.9}
           gradientUnits="userSpaceOnUse"
         >
           <Stop offset="0" stopColor={colors.brilloVioleta} />
