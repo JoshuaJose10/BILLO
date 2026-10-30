@@ -5,7 +5,7 @@ import CarteraScreen from '../screens/CarteraScreen';
 import InicioScreen from '../screens/InicioScreen';
 import MovimientosScreen from '../screens/MovimientosScreen';
 import ReportesScreen from '../screens/ReportesScreen';
-import { colors } from '../theme/colors';
+import { useTema } from '../theme/TemaContext';
 
 const Tab = createBottomTabNavigator();
 
@@ -28,6 +28,7 @@ function renderNavbar(props) {
 }
 
 export default function MainTabs() {
+  const { colors } = useTema();
   return (
     <Tab.Navigator
       initialRouteName="Inicio"

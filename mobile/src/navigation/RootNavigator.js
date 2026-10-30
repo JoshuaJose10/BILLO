@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import NuevoGastoScreen from '../screens/NuevoGastoScreen';
 import PerfilScreen from '../screens/PerfilScreen';
 import LaboratorioScreen from '../spike/LaboratorioScreen';
-import { colors } from '../theme/colors';
+import { useTema } from '../theme/TemaContext';
 import AuthStack from './AuthStack';
 import MainTabs from './MainTabs';
 
@@ -21,17 +21,18 @@ const opcionesHoja = {
   contentStyle: { backgroundColor: 'transparent' },
 };
 
-// HU-23 (spike): pantalla de pruebas de voz y widget, solo en desarrollo.
-const opcionesLaboratorio = {
-  title: 'Laboratorio (spike)',
-  headerStyle: { backgroundColor: colors.background },
-  headerTintColor: colors.text,
-};
-
 // Con token se muestran Main y las hojas (NuevoGasto, Perfil); sin token, Auth. Al cambiar
 // el token React Navigation cambia de navegador solo, sin navigation.reset.
 export default function RootNavigator() {
   const { token, cargando } = useAuth();
+  const { colors } = useTema();
+
+  // HU-23 (spike): pantalla de pruebas de voz y widget, solo en desarrollo.
+  const opcionesLaboratorio = {
+    title: 'Laboratorio (spike)',
+    headerStyle: { backgroundColor: colors.background },
+    headerTintColor: colors.text,
+  };
 
   if (cargando) return <PantallaCarga />;
 

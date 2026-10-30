@@ -4,7 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors } from '../theme/colors';
+import { useEstilos, useTema } from '../theme/TemaContext';
+import FondoDegradado from './FondoDegradado';
 
 const CAPAS = 10;
 const MARGEN = 20; // px-margin
@@ -14,6 +15,7 @@ const MARGEN = 20; // px-margin
 // `difuminado` imita el radio de blur-xl/2xl/3xl: agranda la mancha y la hace caer hacia afuera.
 // `top`/`left` son los de la mancha sin difuminar, como en el HTML.
 function Resplandor({ tamano, difuminado, color, opacidad, top, left }) {
+  const styles = useEstilos(crearEstilos);
   const total = tamano + difuminado;
   // Opacidad por capa para que el centro acumule `opacidad`.
   const opacidadCapa = 1 - Math.pow(1 - opacidad, 1 / CAPAS);
@@ -46,6 +48,7 @@ function Resplandor({ tamano, difuminado, color, opacidad, top, left }) {
 
 // Login (05_login_oscuro): tres manchas de luz sobre surface.
 function ManchasLogin({ width, height }) {
+  const { colors } = useTema();
   return (
     <>
       {/* -top-12 -left-12 w-64 h-64 bg-surface-bright/20 blur-3xl */}
@@ -82,6 +85,8 @@ function ManchasLogin({ width, height }) {
 // Registro (registro_bottom_sheet_modo_oscuro): composición "Bienvenida" falsa (cabecera,
 // tarjeta con figuras 3D y accesos rápidos) con opacity-35, difuminada detrás de la hoja.
 function ComposicionRegistro({ width, top }) {
+  const { colors } = useTema();
+  const styles = useEstilos(crearEstilos);
   const anchoTarjeta = width - MARGEN * 2;
   return (
     <View style={[styles.composicion, { top }]}>
@@ -153,13 +158,15 @@ function ComposicionRegistro({ width, top }) {
   );
 }
 
-// Fondo de Login y Registro: degradado de color, las figuras de cada pantalla y un velo
-// surface/60 con backdrop-blur que las difumina. `objetivoRef` es el BlurTargetView que
+// Fondo de Login y Registro: degradado de color, las figuras de cada pantalla, un velo
+// surface/60 con backdrop-blur que las difumina y el brillo de FondoDegradado encima. `objetivoRef` es el BlurTargetView que
 // también usan otros BlurView de la pantalla (Android lo necesita para difuminar).
 export default function FondoAuth({ variante = 'login', objetivoRef }) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const esRegistro = variante === 'registro';
+  const { colors, esOscuro } = useTema();
+  const styles = useEstilos(crearEstilos);
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
@@ -178,7 +185,7 @@ export default function FondoAuth({ variante = 'login', objetivoRef }) {
       </BlurTargetView>
       {/* backdrop-blur-xl (Registro suma el blur-[18px] de la composición) */}
       <BlurView
-        tint="dark"
+        tint={esOscuro ? 'dark' : 'light'}
         intensity={esRegistro ? 70 : 40}
         blurTarget={objetivoRef}
         blurMethod="dimezisBlurView"
@@ -186,129 +193,132 @@ export default function FondoAuth({ variante = 'login', objetivoRef }) {
       />
       {/* bg-surface/60 */}
       <View style={[StyleSheet.absoluteFill, styles.velo]} />
+      {/* Tinte índigo/violeta de Luminal Glow encima del velo, sin tapar las figuras */}
+      <FondoDegradado />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  resplandor: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  velo: {
-    backgroundColor: colors.background60,
-  },
-  // px-margin gap-6 opacity-35
-  composicion: {
-    position: 'absolute',
-    left: MARGEN,
-    right: MARGEN,
-    gap: 24,
-    opacity: 0.35,
-  },
-  filaCabecera: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 8,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.surfaceHigh,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pastilla: {
-    width: 80,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: colors.surfaceHighest,
-  },
-  tarjeta: {
-    height: 224,
-    borderRadius: 12,
-    backgroundColor: colors.surfaceLowest,
-    padding: 16,
-    justifyContent: 'space-between',
-    overflow: 'hidden',
-  },
-  filaTarjeta: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  filaInferior: {
-    alignItems: 'flex-end',
-  },
-  columnaSaldo: {
-    gap: 4,
-  },
-  linea: {
-    height: 12,
-    borderRadius: 6,
-  },
-  saldo: {
-    width: 128,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: colors.primary,
-  },
-  chip: {
-    width: 48,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: colors.surfaceHighest,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  centroTarjeta: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-  },
-  monolito: {
-    width: 96,
-    height: 96,
-    borderRadius: 16,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    transform: [{ rotate: '12deg' }],
-  },
-  monolitoInterior: {
-    width: 64,
-    height: 64,
-    borderRadius: 12,
-    backgroundColor: colors.surfaceBright40, // surface-bright/40
-    alignItems: 'center',
-    justifyContent: 'center',
-    transform: [{ rotate: '-6deg' }],
-  },
-  etiquetaMonto: {
-    width: 48,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: colors.primaryFixedDim,
-  },
-  accesos: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  acceso: {
-    flex: 1,
-    height: 80,
-    borderRadius: 12,
-    backgroundColor: colors.surfaceLow,
-    padding: 16,
-    justifyContent: 'space-between',
-  },
-  accesoIcono: {
-    width: 24,
-    height: 24,
-    borderRadius: 8,
-    backgroundColor: colors.surfaceHighest,
-  },
-});
+const crearEstilos = (colors) =>
+  StyleSheet.create({
+    resplandor: {
+      position: 'absolute',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    velo: {
+      backgroundColor: colors.background60,
+    },
+    // px-margin gap-6 opacity-35
+    composicion: {
+      position: 'absolute',
+      left: MARGEN,
+      right: MARGEN,
+      gap: 24,
+      opacity: 0.35,
+    },
+    filaCabecera: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingTop: 8,
+    },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.surfaceHigh,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    pastilla: {
+      width: 80,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: colors.surfaceHighest,
+    },
+    tarjeta: {
+      height: 224,
+      borderRadius: 12,
+      backgroundColor: colors.surfaceLowest,
+      padding: 16,
+      justifyContent: 'space-between',
+      overflow: 'hidden',
+    },
+    filaTarjeta: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+    },
+    filaInferior: {
+      alignItems: 'flex-end',
+    },
+    columnaSaldo: {
+      gap: 4,
+    },
+    linea: {
+      height: 12,
+      borderRadius: 6,
+    },
+    saldo: {
+      width: 128,
+      height: 28,
+      borderRadius: 8,
+      backgroundColor: colors.primary,
+    },
+    chip: {
+      width: 48,
+      height: 32,
+      borderRadius: 8,
+      backgroundColor: colors.surfaceHighest,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    centroTarjeta: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 16,
+    },
+    monolito: {
+      width: 96,
+      height: 96,
+      borderRadius: 16,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      transform: [{ rotate: '12deg' }],
+    },
+    monolitoInterior: {
+      width: 64,
+      height: 64,
+      borderRadius: 12,
+      backgroundColor: colors.surfaceBright40, // surface-bright/40
+      alignItems: 'center',
+      justifyContent: 'center',
+      transform: [{ rotate: '-6deg' }],
+    },
+    etiquetaMonto: {
+      width: 48,
+      height: 16,
+      borderRadius: 8,
+      backgroundColor: colors.primaryFixedDim,
+    },
+    accesos: {
+      flexDirection: 'row',
+      gap: 16,
+    },
+    acceso: {
+      flex: 1,
+      height: 80,
+      borderRadius: 12,
+      backgroundColor: colors.surfaceLow,
+      padding: 16,
+      justifyContent: 'space-between',
+    },
+    accesoIcono: {
+      width: 24,
+      height: 24,
+      borderRadius: 8,
+      backgroundColor: colors.surfaceHighest,
+    },
+  });

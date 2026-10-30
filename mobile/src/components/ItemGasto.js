@@ -1,17 +1,20 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, radios } from '../theme/colors';
+import { radios } from '../theme/colors';
+import { useEstilos } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
-import { iconoCategoria } from '../utils/categorias';
 import { fechaRelativa, formatearMonto } from '../utils/formato';
+import IconoCategoria from './IconoCategoria';
 
-// Movimiento de la lista (Stitch: Inicio, panel "Movimientos"): ícono de la categoría,
+// Movimiento de la lista (Stitch: Inicio, panel "Movimientos"): ícono de la categoría en color,
 // título (nota o categoría), fecha relativa en mono y el monto con "-".
 // El backend solo guarda la fecha, sin hora, así que el subtítulo no lleva hora.
 // Con `metodoPago` (etiqueta, p. ej. "Efectivo") el subtítulo es "Categoría · Método", para
 // listas donde la fecha ya va en el encabezado del día (Movimientos).
-export default function ItemGasto({ gasto, nombreCategoria, metodoPago }) {
+// `opaca`: fondo sólido (`filaOpaca`) en vez del translúcido, para FilaGastoDeslizable: así las
+// acciones que van detrás no se ven a través de la fila.
+export default function ItemGasto({ gasto, nombreCategoria, metodoPago, opaca = false }) {
+  const styles = useEstilos(crearEstilos);
   const categoria = nombreCategoria || 'Sin categoría';
   const nota = gasto.nota?.trim();
   const titulo = nota || categoria;
@@ -23,14 +26,8 @@ export default function ItemGasto({ gasto, nombreCategoria, metodoPago }) {
       : fecha;
 
   return (
-    <View style={styles.fila}>
-      <View style={styles.icono}>
-        <MaterialCommunityIcons
-          name={iconoCategoria(nombreCategoria)}
-          size={20}
-          color={colors.text}
-        />
-      </View>
+    <View style={[styles.fila, opaca ? styles.filaOpaca : null]}>
+      <IconoCategoria nombre={nombreCategoria} />
       <View style={styles.textos}>
         <Text style={styles.titulo} numberOfLines={1}>
           {titulo}
@@ -44,51 +41,44 @@ export default function ItemGasto({ gasto, nombreCategoria, metodoPago }) {
   );
 }
 
-const styles = StyleSheet.create({
-  // flex items-center justify-between p-2.5 rounded-2xl bg-surface-container-low/50; gap-3
-  fila: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 10,
-    borderRadius: radios['2xl'],
-    backgroundColor: colors.surfaceLow50,
-  },
-  // w-10 h-10 rounded-2xl bg-surface-container-high
-  icono: {
-    width: 40,
-    height: 40,
-    borderRadius: radios['2xl'],
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceHigh,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.borderTopStrong,
-  },
-  textos: {
-    flex: 1,
-  },
-  // font-body-md text-body-md text-primary font-medium tracking-tight
-  titulo: {
-    fontFamily: fonts.sansMedium,
-    fontSize: 14,
-    lineHeight: 20,
-    letterSpacing: -0.35,
-    color: colors.text,
-  },
-  // font-label-caps text-[10px] text-on-surface-variant
-  subtitulo: {
-    fontFamily: fonts.monoMedium,
-    fontSize: 10,
-    lineHeight: 14,
-    letterSpacing: 0.8,
-    color: colors.textVariant,
-  },
-  // font-financial-metric-md text-body-lg text-secondary-fixed font-semibold
-  monto: {
-    fontFamily: fonts.monoSemiBold,
-    fontSize: 16,
-    letterSpacing: -0.16,
-    color: colors.amount,
-  },
-});
+const crearEstilos = (colors) =>
+  StyleSheet.create({
+    // flex items-center justify-between p-2.5 rounded-2xl bg-surface-container-low/50; gap-3
+    fila: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      padding: 10,
+      borderRadius: radios['2xl'],
+      backgroundColor: colors.surfaceLow50,
+    },
+    filaOpaca: {
+      backgroundColor: colors.filaOpaca,
+    },
+    textos: {
+      flex: 1,
+    },
+    // font-body-md text-body-md text-primary font-medium tracking-tight
+    titulo: {
+      fontFamily: fonts.sansMedium,
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: -0.35,
+      color: colors.text,
+    },
+    // font-label-caps text-[10px] text-on-surface-variant
+    subtitulo: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 10,
+      lineHeight: 14,
+      letterSpacing: 0.8,
+      color: colors.textVariant,
+    },
+    // font-financial-metric-md text-body-lg text-secondary-fixed font-semibold
+    monto: {
+      fontFamily: fonts.monoSemiBold,
+      fontSize: 16,
+      letterSpacing: -0.16,
+      color: colors.amount,
+    },
+  });
