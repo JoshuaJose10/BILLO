@@ -452,7 +452,8 @@ funciones y no colores: selector Gasto/Ingreso, botón de micrófono y tarjeta "
   ≈ 4% en claro).
 - **Halo del importe**: degradado radial del color de la categoría elegida (`colorCategoria`) detrás
   del número, con opacidad `haloImporteOpacidad` en el centro y 0 en el borde. Sin categoría no hay
-  halo.
+  halo. Al cambiar de categoría el color anterior se desvanece y el nuevo aparece (300 ms) con un
+  respiro de escala 1 → 1.06 → 1; con "Reducir movimiento" solo hay un fundido corto (150 ms).
 - **Teclas** (`TecladoNumerico`): `teclaFondo`, `teclaBorde` y `teclaPresionada`.
 - **Chips**: el seleccionado ya era como la referencia (fondo `fondoChipCategoria`, texto blanco). En
   claro, los no seleccionados y los de método, fecha y nota son blancos (`glass05`).
