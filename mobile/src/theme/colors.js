@@ -80,12 +80,10 @@ export const temas = {
     acentoTexto: '#C4B5FD', // acento para texto sobre fondo oscuro (violeta claro)
     acentoSuave: 'rgba(139, 92, 246, 0.15)', // fondo de chips y botones activos con acento
 
-    // Brillo atmosférico del fondo (FondoDegradado). Cada color tiene su versión al 0% para que
-    // el degradado se desvanezca en el mismo tono y no pase por gris.
+    // Brillo atmosférico del fondo (FondoDegradado). El degradado radial se desvanece con
+    // stopOpacity 0 sobre el mismo color, así que no pasa por gris.
     brilloIndigo: 'rgba(79, 70, 229, 0.35)',
-    brilloIndigoFin: 'rgba(79, 70, 229, 0)',
     brilloVioleta: 'rgba(124, 58, 237, 0.25)',
-    brilloVioletaFin: 'rgba(124, 58, 237, 0)',
 
     // Reflejo superior del ícono de categoría (IconoCategoria)
     brilloIcono: 'rgba(255, 255, 255, 0.22)',

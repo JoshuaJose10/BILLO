@@ -110,18 +110,19 @@ Entretenimiento (`#7C3AED`) y "Todas" se leería como una categoría.
 
 ## Brillo del fondo
 
-`FondoDegradado` pinta dos halos sobre el 60% superior de la pantalla, encima de `background`: índigo
-desde la esquina superior izquierda y violeta desde la derecha. Se usa en Inicio, Movimientos y, sobre
-el velo de `FondoAuth`, en Login y Registro.
+`FondoDegradado` pinta dos halos radiales (react-native-svg) en toda la pantalla, encima de
+`background`: índigo con centro en (15%, 0%) y radio del 75% del ancho, y violeta con centro en
+(90%, 5%) y radio del 70% del ancho. Se usa en Inicio, Movimientos y, sobre el velo de `FondoAuth`,
+en Login y Registro.
 
 | Token | Valor | Uso |
 | --- | --- | --- |
 | `brilloIndigo` | `rgba(79, 70, 229, 0.35)` | Halo índigo (brief) |
-| `brilloIndigoFin` | `rgba(79, 70, 229, 0)` | Final del halo índigo |
 | `brilloVioleta` | `rgba(124, 58, 237, 0.25)` | Halo violeta (brief) |
-| `brilloVioletaFin` | `rgba(124, 58, 237, 0)` | Final del halo violeta |
 
-Los finales al 0% conservan el tono: degradar a `transparent` haría que iOS pase por gris.
+El último stop de cada halo es el mismo color con `stopOpacity` 0: se desvanece en su propio tono (no
+pasa por gris) y llega a 0 dentro del círculo, así que no queda ningún borde visible. Las medidas van en
+píxeles (`userSpaceOnUse`) para que el círculo no se deforme con la proporción de la pantalla.
 
 ## Semánticos
 
