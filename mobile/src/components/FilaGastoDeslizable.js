@@ -4,12 +4,17 @@ import { useMemo, useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import Animated, {
+  Easing,
   Extrapolation,
   FadeOut,
   interpolate,
   LinearTransition,
+  ReduceMotion,
   useAnimatedStyle,
   useReducedMotion,
+  useSharedValue,
+  withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 
 import { useGastosService } from '../services/gastos';
@@ -30,6 +35,37 @@ const ESCALA_MAXIMA = 1.06;
 const RESORTE = { mass: 1, damping: 26, stiffness: 220, overshootClamping: false };
 
 const vibrar = (estilo) => Haptics.impactAsync(estilo).catch(() => {});
+
+// Feedback al presionar (fila y botones): se hunde rápido y regresa con un resorte casi sin
+// rebote. ReduceMotion.Never para que con "Reducir movimiento" la opacidad siga la misma curva
+// (solo se quita la escala).
+const HUNDIR = {
+  duration: 120,
+  easing: Easing.out(Easing.quad),
+  reduceMotion: ReduceMotion.Never,
+};
+const SOLTAR = { damping: 18, stiffness: 260, mass: 0.6, reduceMotion: ReduceMotion.Never };
+
+// `presion` (0 → 1) animada en el hilo de UI: escala 1 → 0.97 y opacidad 1 → 0.88.
+// `hundir` va en onPressIn y `soltar` en onPressOut (también si el toque se cancela porque
+// empezó un scroll o un deslizamiento).
+function usePresion() {
+  const reducirMovimiento = useReducedMotion();
+  const presion = useSharedValue(0);
+  const estilo = useAnimatedStyle(() => {
+    const opacity = interpolate(presion.value, [0, 1], [1, 0.88]);
+    if (reducirMovimiento) return { opacity };
+    return { opacity, transform: [{ scale: interpolate(presion.value, [0, 1], [1, 0.97]) }] };
+  });
+  return useMemo(
+    () => ({
+      estilo,
+      hundir: () => presion.set(withTiming(1, HUNDIR)),
+      soltar: () => presion.set(withSpring(0, SOLTAR)),
+    }),
+    [estilo, presion],
+  );
+}
 
 // Coordina las filas de una lista: solo una abierta a la vez y se cierra al hacer scroll.
 //   const filas = useFilasDeslizables();
@@ -59,6 +95,7 @@ export function useFilasDeslizables() {
 // derecha (parallax). Al pasarse se estira apenas, hasta 1.06. Con "Reducir movimiento" solo
 // hay fundido. Corre en el hilo de UI.
 function BotonAccion({ progreso, desplazamiento, reducirMovimiento, style, children, ...props }) {
+  const presion = usePresion();
   const estilo = useAnimatedStyle(() => {
     const p = progreso.value;
     const opacity = interpolate(p, [0, 0.35], [0, 1], Extrapolation.CLAMP);
@@ -73,9 +110,18 @@ function BotonAccion({ progreso, desplazamiento, reducirMovimiento, style, child
 
   return (
     <Animated.View style={estilo}>
-      <Pressable accessibilityRole="button" style={style} {...props}>
-        {children}
-      </Pressable>
+      <Animated.View style={presion.estilo}>
+        <Pressable
+          accessibilityRole="button"
+          unstable_pressDelay={0}
+          onPressIn={presion.hundir}
+          onPressOut={presion.soltar}
+          style={style}
+          {...props}
+        >
+          {children}
+        </Pressable>
+      </Animated.View>
     </Animated.View>
   );
 }
@@ -102,7 +148,7 @@ function AccionesGasto({ progreso, onEditar, onEliminar, deshabilitadas }) {
         onPress={tocar(onEditar)}
         disabled={deshabilitadas}
         accessibilityLabel="Editar"
-        style={({ pressed }) => [styles.accion, styles.editar, pressed ? styles.presionada : null]}
+        style={[styles.accion, styles.editar]}
       >
         <MaterialCommunityIcons name="pencil-outline" size={20} color={colors.acento} />
         <Text style={[styles.etiqueta, styles.etiquetaEditar]}>Editar</Text>
@@ -114,11 +160,7 @@ function AccionesGasto({ progreso, onEditar, onEliminar, deshabilitadas }) {
         onPress={tocar(onEliminar)}
         disabled={deshabilitadas}
         accessibilityLabel="Eliminar"
-        style={({ pressed }) => [
-          styles.accion,
-          styles.eliminar,
-          pressed ? styles.presionada : null,
-        ]}
+        style={[styles.accion, styles.eliminar]}
       >
         <MaterialCommunityIcons name="trash-can-outline" size={20} color={colors.textoSobreColor} />
         <Text style={[styles.etiqueta, styles.etiquetaEliminar]}>Eliminar</Text>
@@ -150,6 +192,7 @@ export default function FilaGastoDeslizable({
   // cuente como tap.
   const abierta = useRef(false);
   const arrastrando = useRef(false);
+  const presion = usePresion();
   const [eliminando, setEliminando] = useState(false);
 
   const cerrar = () => swipeRef.current?.close();
@@ -207,6 +250,7 @@ export default function FilaGastoDeslizable({
   // abrir hacia la izquierda; arrastrar para cerrar no vibra.
   const empezarAbrir = (direccion) => {
     arrastrando.current = true;
+    presion.soltar();
     filas.abrir(swipeRef.current);
     if (direccion === 'left') vibrar(Haptics.ImpactFeedbackStyle.Rigid);
   };
@@ -238,6 +282,7 @@ export default function FilaGastoDeslizable({
         onSwipeableOpenStartDrag={empezarAbrir}
         onSwipeableCloseStartDrag={() => {
           arrastrando.current = true;
+          presion.soltar();
         }}
         onSwipeableWillOpen={() => {
           abierta.current = true;
@@ -257,6 +302,11 @@ export default function FilaGastoDeslizable({
       >
         <Pressable
           onPress={tocarFila}
+          // Sin retraso: el hundimiento empieza al tocar. Si el toque se vuelve scroll o
+          // deslizamiento, el Pressable recibe onPressOut y la fila regresa.
+          unstable_pressDelay={0}
+          onPressIn={presion.hundir}
+          onPressOut={presion.soltar}
           disabled={eliminando}
           accessibilityRole="button"
           accessibilityHint="Toca para editar. Desliza a la izquierda para más opciones."
@@ -265,17 +315,16 @@ export default function FilaGastoDeslizable({
             { name: 'eliminar', label: 'Eliminar' },
           ]}
           onAccessibilityAction={accionAccesible}
-          style={({ pressed }) => [
-            pressed ? styles.filaPresionada : null,
-            eliminando ? styles.eliminando : null,
-          ]}
+          style={eliminando ? styles.eliminando : null}
         >
-          <ItemGasto
-            gasto={gasto}
-            nombreCategoria={nombreCategoria}
-            metodoPago={metodoPago}
-            opaca
-          />
+          <Animated.View style={presion.estilo}>
+            <ItemGasto
+              gasto={gasto}
+              nombreCategoria={nombreCategoria}
+              metodoPago={metodoPago}
+              opaca
+            />
+          </Animated.View>
         </Pressable>
       </ReanimatedSwipeable>
     </Animated.View>
@@ -315,9 +364,6 @@ const crearEstilos = (colors) =>
     eliminar: {
       backgroundColor: colors.alertaSolido,
     },
-    presionada: {
-      opacity: 0.8,
-    },
     etiqueta: {
       fontFamily: fonts.sansSemiBold,
       fontSize: 10,
@@ -328,10 +374,6 @@ const crearEstilos = (colors) =>
     },
     etiquetaEliminar: {
       color: colors.textoSobreColor,
-    },
-    // Feedback al presionar la fila
-    filaPresionada: {
-      transform: [{ scale: 0.98 }],
     },
     eliminando: {
       opacity: 0.5,
