@@ -1,0 +1,15 @@
+// Copiar a test/suites/<modulo>.cjs y registrar en integration.test.cjs.
+// Ejemplo para el endpoint ya implementado GET /presupuestos.
+const { describe, it, beforeEach } = require('node:test');
+const assert = require('node:assert/strict');
+
+module.exports = getContext => describe('Presupuestos', () => {
+  let ctx;
+  beforeEach(async () => { ctx = getContext(); await ctx.reset(); });
+
+  it('GET /presupuestos sin datos devuelve []', async () => {
+    const { body } = await ctx.api.get('/presupuestos').query({ mes: '2026-10' })
+      .auth(ctx.a.token, { type: 'bearer' }).expect(200);
+    assert.deepEqual(body, []);
+  });
+});

@@ -2,7 +2,6 @@ name: CI
 
 on:
   pull_request:
-    branches: [develop, main]
   push:
     branches: [develop]
 
@@ -21,7 +20,7 @@ jobs:
       run:
         working-directory: backend
 
-    # Base de datos de prueba para cuando HU-28 agregue las pruebas
+    # npm test crea y elimina su propia base temporal en este servicio.
     services:
       postgres:
         image: postgres:16
@@ -57,8 +56,7 @@ jobs:
 
       - run: npm run lint
 
-      # Se activa cuando HU-28 entregue las pruebas
-      # - run: npm test
+      - run: npm test
 
   mobile:
     # El nombre se usa como check obligatorio en las reglas de rama: no cambiarlo
