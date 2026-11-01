@@ -1,0 +1,183 @@
+{
+  "date": "2026-11-01",
+  "scope": "API real + PostgreSQL temporal; no verifica UI móvil ni PR remoto",
+  "databaseDropped": true,
+  "total": 43,
+  "passed": 42,
+  "failed": 1,
+  "results": [
+    {
+      "name": "CP-RF5-01: alta personalizada y consulta",
+      "passed": true
+    },
+    {
+      "name": "CP-RF5-02: actualización del costo",
+      "passed": true
+    },
+    {
+      "name": "POST: CP-RF5-03: nombre vacío",
+      "passed": true
+    },
+    {
+      "name": "PUT: CP-RF5-03: nombre vacío",
+      "passed": true
+    },
+    {
+      "name": "POST: nombre con espacios",
+      "passed": true
+    },
+    {
+      "name": "PUT: nombre con espacios",
+      "passed": true
+    },
+    {
+      "name": "POST: CP-RF5-04: costo abc",
+      "passed": true
+    },
+    {
+      "name": "PUT: CP-RF5-04: costo abc",
+      "passed": true
+    },
+    {
+      "name": "POST: costo cero",
+      "passed": true
+    },
+    {
+      "name": "PUT: costo cero",
+      "passed": true
+    },
+    {
+      "name": "POST: costo negativo",
+      "passed": true
+    },
+    {
+      "name": "PUT: costo negativo",
+      "passed": true
+    },
+    {
+      "name": "POST: costo con tres decimales",
+      "passed": true
+    },
+    {
+      "name": "PUT: costo con tres decimales",
+      "passed": true
+    },
+    {
+      "name": "POST: frecuencia semanal",
+      "passed": true
+    },
+    {
+      "name": "PUT: frecuencia semanal",
+      "passed": true
+    },
+    {
+      "name": "POST: fecha imposible",
+      "passed": true
+    },
+    {
+      "name": "PUT: fecha imposible",
+      "passed": true
+    },
+    {
+      "name": "POST: fecha con formato inválido",
+      "passed": true
+    },
+    {
+      "name": "PUT: fecha con formato inválido",
+      "passed": true
+    },
+    {
+      "name": "POST: servicio inexistente",
+      "passed": true
+    },
+    {
+      "name": "PUT: servicio inexistente",
+      "passed": true
+    },
+    {
+      "name": "POST: nombre obligatorio sin servicio",
+      "passed": true
+    },
+    {
+      "name": "PUT: nombre obligatorio sin servicio",
+      "passed": true
+    },
+    {
+      "name": "POST: costo obligatorio sin servicio",
+      "passed": true
+    },
+    {
+      "name": "PUT: costo obligatorio sin servicio",
+      "passed": true
+    },
+    {
+      "name": "Validaciones inválidas no crean ni modifican membresías",
+      "passed": true
+    },
+    {
+      "name": "POST: nombre y costo heredados del catálogo; frecuencia anual",
+      "passed": true
+    },
+    {
+      "name": "PUT: valores heredados del catálogo",
+      "passed": true
+    },
+    {
+      "name": "Catálogo permite nombre y costo personalizados",
+      "passed": true
+    },
+    {
+      "name": "GET: orden ascendente y dias_para_cobro calculados",
+      "passed": true
+    },
+    {
+      "name": "Aislamiento: B no lista las membresías de A",
+      "passed": true
+    },
+    {
+      "name": "Aislamiento: PUT ajeno devuelve 404",
+      "passed": true
+    },
+    {
+      "name": "PUT: ID inexistente devuelve 404",
+      "passed": true
+    },
+    {
+      "name": "Aislamiento: DELETE ajeno devuelve 404",
+      "passed": true
+    },
+    {
+      "name": "DELETE: ID inexistente devuelve 404",
+      "passed": true
+    },
+    {
+      "name": "Aislamiento: PUT ajeno con cuerpo inválido devuelve 404",
+      "passed": false,
+      "detail": "Respuesta real: {\"status\":400,\"body\":{\"error\":{\"code\":\"NOMBRE_INVALIDO\",\"message\":\"El nombre de la membresía debe ser un texto válido\"}}}\n\n400 !== 404\n"
+    },
+    {
+      "name": "Aislamiento: intentos de B no alteran el registro de A",
+      "passed": true
+    },
+    {
+      "name": "POST: requiere autenticación",
+      "passed": true
+    },
+    {
+      "name": "GET: requiere autenticación",
+      "passed": true
+    },
+    {
+      "name": "PUT: requiere autenticación",
+      "passed": true
+    },
+    {
+      "name": "DELETE: requiere autenticación",
+      "passed": true
+    },
+    {
+      "name": "CP-RF5-02: eliminación y ausencia en listado",
+      "passed": true
+    }
+  ]
+}
