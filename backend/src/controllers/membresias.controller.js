@@ -1,0 +1,377 @@
+const { pool } = require('../db');
+
+const esFechaValida = (fechaStr) => {
+  if (typeof fechaStr !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(fechaStr)) {
+    return false;
+  }
+  const [anio, mes, dia] = fechaStr.split('-').map(Number);
+  const fecha = new Date(Date.UTC(anio, mes - 1, dia));
+  return (
+    fecha.getUTCFullYear() === anio &&
+    fecha.getUTCMonth() === mes - 1 &&
+    fecha.getUTCDate() === dia
+  );
+};
+
+const esCostoValido = (costo) => {
+  return (
+    typeof costo === 'number' &&
+    Number.isFinite(costo) &&
+    costo >= 0.01 &&
+    costo <= 9999999999.99 &&
+    /^\d+(\.\d{1,2})?$/.test(String(costo))
+  );
+};
+
+const formatearMembresia = (row) => ({
+  id: row.id,
+  servicio_id: row.servicio_id === null ? null : Number(row.servicio_id),
+  nombre: row.nombre,
+  costo: Number(row.costo),
+  frecuencia: row.frecuencia,
+  fecha_cobro: row.fecha_cobro,
+});
+
+const formatearMembresiaConDias = (row) => ({
+  id: row.id,
+  servicio_id: row.servicio_id === null ? null : Number(row.servicio_id),
+  nombre: row.nombre,
+  costo: Number(row.costo),
+  frecuencia: row.frecuencia,
+  fecha_cobro: row.fecha_cobro,
+  dias_para_cobro: Number(row.dias_para_cobro),
+});
+
+const validarDatosMembresia = async (body) => {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return {
+      error: {
+        code: 'NOMBRE_INVALIDO',
+        message: 'Los datos de la membresía son inválidos',
+      },
+    };
+  }
+
+  const { servicio_id, frecuencia, fecha_cobro } = body;
+  let { nombre, costo } = body;
+
+  let servicioIdFinal = null;
+  let servicioCatalogo = null;
+
+  if (servicio_id !== undefined && servicio_id !== null) {
+    if (
+      typeof servicio_id !== 'number' ||
+      !Number.isInteger(servicio_id) ||
+      servicio_id <= 0 ||
+      servicio_id > 2147483647
+    ) {
+      return {
+        error: {
+          code: 'SERVICIO_INEXISTENTE',
+          message: 'El servicio seleccionado no existe',
+        },
+      };
+    }
+
+    const sResult = await pool.query(
+      'SELECT id, nombre, costo_sugerido FROM catalogo_servicios WHERE id = $1',
+      [servicio_id]
+    );
+
+    if (sResult.rows.length === 0) {
+      return {
+        error: {
+          code: 'SERVICIO_INEXISTENTE',
+          message: 'El servicio seleccionado no existe',
+        },
+      };
+    }
+
+    servicioIdFinal = servicio_id;
+    servicioCatalogo = sResult.rows[0];
+  }
+
+  if (nombre === undefined || nombre === null) {
+    if (servicioCatalogo) {
+      nombre = servicioCatalogo.nombre;
+    } else {
+      return {
+        error: {
+          code: 'NOMBRE_INVALIDO',
+          message: 'El nombre de la membresía es obligatorio',
+        },
+      };
+    }
+  } else {
+    if (
+      typeof nombre !== 'string' ||
+      nombre.trim().length === 0 ||
+      nombre.trim().length > 255
+    ) {
+      return {
+        error: {
+          code: 'NOMBRE_INVALIDO',
+          message: 'El nombre de la membresía debe ser un texto válido',
+        },
+      };
+    }
+    nombre = nombre.trim();
+  }
+
+  if (costo === undefined || costo === null) {
+    if (servicioCatalogo) {
+      costo = Number(servicioCatalogo.costo_sugerido);
+    } else {
+      return {
+        error: {
+          code: 'COSTO_INVALIDO',
+          message:
+            'El costo debe ser un número mayor a 0 con máximo 2 decimales',
+        },
+      };
+    }
+  } else {
+    if (!esCostoValido(costo)) {
+      return {
+        error: {
+          code: 'COSTO_INVALIDO',
+          message:
+            'El costo debe ser un número mayor a 0 con máximo 2 decimales',
+        },
+      };
+    }
+    costo = Number(costo);
+  }
+
+  if (
+    typeof frecuencia !== 'string' ||
+    !['mensual', 'anual'].includes(frecuencia)
+  ) {
+    return {
+      error: {
+        code: 'FRECUENCIA_INVALIDA',
+        message: "La frecuencia debe ser 'mensual' o 'anual'",
+      },
+    };
+  }
+
+  if (!esFechaValida(fecha_cobro)) {
+    return {
+      error: {
+        code: 'FECHA_INVALIDA',
+        message: 'La fecha de cobro no es válida (formato esperado: YYYY-MM-DD)',
+      },
+    };
+  }
+
+  return {
+    datos: {
+      servicio_id: servicioIdFinal,
+      nombre,
+      costo,
+      frecuencia,
+      fecha_cobro,
+    },
+  };
+};
+
+// POST /membresias
+const crearMembresia = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+    const validacion = await validarDatosMembresia(req.body);
+
+    if (validacion.error) {
+      return res.status(400).json({ error: validacion.error });
+    }
+
+    const { servicio_id, nombre, costo, frecuencia, fecha_cobro } =
+      validacion.datos;
+
+    const insertQuery = `
+      INSERT INTO membresias (usuario_id, servicio_id, nombre, costo, frecuencia, fecha_cobro)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id, servicio_id, nombre, costo, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro
+    `;
+
+    const { rows } = await pool.query(insertQuery, [
+      usuarioId,
+      servicio_id,
+      nombre,
+      costo,
+      frecuencia,
+      fecha_cobro,
+    ]);
+
+    return res
+      .status(201)
+      .json({ membresia: formatearMembresia(rows[0]) });
+  } catch (error) {
+    console.error('Error al crear membresía:', error.message);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'No se pudo registrar la membresía',
+      },
+    });
+  }
+};
+
+// GET /membresias
+const listarMembresias = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+
+    const query = `
+      SELECT 
+        id,
+        servicio_id,
+        nombre,
+        costo,
+        frecuencia,
+        TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro,
+        (fecha_cobro - CURRENT_DATE)::integer AS dias_para_cobro
+      FROM membresias
+      WHERE usuario_id = $1
+      ORDER BY fecha_cobro ASC, id ASC
+    `;
+
+    const { rows } = await pool.query(query, [usuarioId]);
+    return res.status(200).json(rows.map(formatearMembresiaConDias));
+  } catch (error) {
+    console.error('Error al listar membresías:', error.message);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'No se pudieron obtener las membresías',
+      },
+    });
+  }
+};
+
+// PUT /membresias/:id
+const actualizarMembresia = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+    const membresiaId = Number(req.params.id);
+
+    if (
+      !Number.isInteger(membresiaId) ||
+      membresiaId <= 0 ||
+      membresiaId > 2147483647
+    ) {
+      return res.status(404).json({
+        error: {
+          code: 'MEMBRESIA_NO_ENCONTRADA',
+          message: 'Membresía no encontrada',
+        },
+      });
+    }
+
+    const validacion = await validarDatosMembresia(req.body);
+    if (validacion.error) {
+      return res.status(400).json({ error: validacion.error });
+    }
+
+    const { servicio_id, nombre, costo, frecuencia, fecha_cobro } =
+      validacion.datos;
+
+    const updateQuery = `
+      UPDATE membresias
+      SET servicio_id = $3,
+          nombre = $4,
+          costo = $5,
+          frecuencia = $6,
+          fecha_cobro = $7
+      WHERE id = $1 AND usuario_id = $2
+      RETURNING id, servicio_id, nombre, costo, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro
+    `;
+
+    const { rows } = await pool.query(updateQuery, [
+      membresiaId,
+      usuarioId,
+      servicio_id,
+      nombre,
+      costo,
+      frecuencia,
+      fecha_cobro,
+    ]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        error: {
+          code: 'MEMBRESIA_NO_ENCONTRADA',
+          message: 'Membresía no encontrada',
+        },
+      });
+    }
+
+    return res
+      .status(200)
+      .json({ membresia: formatearMembresia(rows[0]) });
+  } catch (error) {
+    console.error('Error al actualizar membresía:', error.message);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'No se pudo actualizar la membresía',
+      },
+    });
+  }
+};
+
+// DELETE /membresias/:id
+const eliminarMembresia = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+    const membresiaId = Number(req.params.id);
+
+    if (
+      !Number.isInteger(membresiaId) ||
+      membresiaId <= 0 ||
+      membresiaId > 2147483647
+    ) {
+      return res.status(404).json({
+        error: {
+          code: 'MEMBRESIA_NO_ENCONTRADA',
+          message: 'Membresía no encontrada',
+        },
+      });
+    }
+
+    const deleteQuery = `
+      DELETE FROM membresias
+      WHERE id = $1 AND usuario_id = $2
+      RETURNING id
+    `;
+
+    const { rows } = await pool.query(deleteQuery, [membresiaId, usuarioId]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        error: {
+          code: 'MEMBRESIA_NO_ENCONTRADA',
+          message: 'Membresía no encontrada',
+        },
+      });
+    }
+
+    return res.status(200).json({ eliminado: true });
+  } catch (error) {
+    console.error('Error al eliminar membresía:', error.message);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'No se pudo eliminar la membresía',
+      },
+    });
+  }
+};
+
+module.exports = {
+  crearMembresia,
+  listarMembresias,
+  actualizarMembresia,
+  eliminarMembresia,
+};
+
