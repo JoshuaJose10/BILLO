@@ -11,14 +11,43 @@ import {
   JetBrainsMono_600SemiBold,
   JetBrainsMono_700Bold,
 } from '@expo-google-fonts/jetbrains-mono';
-import { NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
+import { useMemo } from 'react';
+import { StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import PantallaCarga from './src/components/PantallaCarga';
 import { AuthProvider } from './src/context/AuthContext';
 import RootNavigator from './src/navigation/RootNavigator';
+import { TemaProvider, useTema } from './src/theme/TemaContext';
+
+// NavigationContainer con el fondo, la tarjeta y el texto del tema activo, para que al navegar no
+// aparezcan destellos blancos o negros. La barra de estado va clara en oscuro y oscura en claro.
+function Navegacion() {
+  const { colors, esOscuro } = useTema();
+  const temaNavegacion = useMemo(() => {
+    const base = esOscuro ? DarkTheme : DefaultTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        background: colors.background,
+        card: colors.background,
+        text: colors.text,
+      },
+    };
+  }, [colors, esOscuro]);
+
+  return (
+    <NavigationContainer theme={temaNavegacion}>
+      <RootNavigator />
+      <StatusBar style={esOscuro ? 'light' : 'dark'} />
+    </NavigationContainer>
+  );
+}
 
 export default function App() {
   const [fuentesCargadas, errorFuentes] = useFonts({
@@ -35,19 +64,33 @@ export default function App() {
   });
 
   // Si las fuentes fallan se sigue con las del sistema en vez de bloquear la app.
+  // La pantalla de carga también sigue el tema del sistema.
+  // GestureHandlerRootView va hasta arriba: lo necesitan las filas deslizables de gastos.
   if (!fuentesCargadas && !errorFuentes) {
-    return <PantallaCarga />;
+    return (
+      <GestureHandlerRootView style={styles.raiz}>
+        <TemaProvider>
+          <PantallaCarga />
+        </TemaProvider>
+      </GestureHandlerRootView>
+    );
   }
 
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
-        <NavigationContainer>
-          <RootNavigator />
-          {/* Toda la app usa tema oscuro. */}
-          <StatusBar style="light" />
-        </NavigationContainer>
-      </AuthProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={styles.raiz}>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <TemaProvider>
+            <Navegacion />
+          </TemaProvider>
+        </AuthProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  raiz: {
+    flex: 1,
+  },
+});

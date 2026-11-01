@@ -15,11 +15,13 @@ import Boton from '../components/Boton';
 import EncabezadoDia from '../components/EncabezadoDia';
 import Etiqueta from '../components/Etiqueta';
 import FiltroCategorias from '../components/FiltroCategorias';
-import ItemGasto from '../components/ItemGasto';
+import FilaGastoDeslizable, { useFilasDeslizables } from '../components/FilaGastoDeslizable';
+import FondoDegradado from '../components/FondoDegradado';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
 import SelectorMes from '../components/SelectorMes';
 import { etiquetaMetodoPago, useGastosService } from '../services/gastos';
-import { colors, radios } from '../theme/colors';
+import { radios } from '../theme/colors';
+import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { mensajeError } from '../utils/errores';
 import { mesActual } from '../utils/fechas';
@@ -49,6 +51,8 @@ export default function MovimientosScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
   const { listarCategorias, listarGastos } = useGastosService();
+  const { colors } = useTema();
+  const styles = useEstilos(crearEstilos);
 
   // Filtro elegido en pantalla.
   const [mes, setMes] = useState(mesActual);
@@ -107,6 +111,15 @@ export default function MovimientosScreen({ navigation }) {
 
   const reintentar = () => {
     setEstado('cargando');
+    cargar();
+  };
+
+  // Filas deslizables: Editar abre la hoja en modo edición; al eliminar, la fila se quita al
+  // momento y se recargan la lista y el total.
+  const filas = useFilasDeslizables();
+  const editarGasto = (gasto) => navigation.navigate('NuevoGasto', { gasto });
+  const gastoEliminado = (id) => {
+    setGastos((lista) => lista.filter((g) => g.id !== id));
     cargar();
   };
 
@@ -208,6 +221,7 @@ export default function MovimientosScreen({ navigation }) {
 
   return (
     <View style={styles.pantalla}>
+      <FondoDegradado />
       <SectionList
         sections={listo ? secciones : []}
         keyExtractor={(g) => String(g.id)}
@@ -220,14 +234,18 @@ export default function MovimientosScreen({ navigation }) {
         )}
         renderItem={({ item }) => (
           <View style={atenuado}>
-            <ItemGasto
+            <FilaGastoDeslizable
               gasto={item}
               nombreCategoria={nombresCategoria[item.categoria_id]}
               metodoPago={etiquetaMetodoPago(item.metodo_pago)}
+              filas={filas}
+              onEditar={editarGasto}
+              onEliminado={gastoEliminado}
             />
           </View>
         )}
         ItemSeparatorComponent={Separador}
+        onScrollBeginDrag={filas.cerrarAbierta}
         ListHeaderComponent={encabezado}
         ListEmptyComponent={contenidoVacio}
         ListFooterComponent={listo && secciones.length > 0 ? <FinDeLista /> : null}
@@ -245,10 +263,12 @@ export default function MovimientosScreen({ navigation }) {
 }
 
 function Separador() {
+  const styles = useEstilos(crearEstilos);
   return <View style={styles.separador} />;
 }
 
 function FinDeLista() {
+  const styles = useEstilos(crearEstilos);
   return (
     <View style={styles.fin}>
       <View style={styles.finBarra} />
@@ -257,121 +277,122 @@ function FinDeLista() {
   );
 }
 
-const styles = StyleSheet.create({
-  pantalla: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  // px-margin (20)
-  lista: {
-    paddingHorizontal: 20,
-  },
-  // flex flex-col gap-space-sm pt-space-xs
-  encabezado: {
-    gap: 12,
-    paddingTop: 4,
-  },
-  // headline-lg (28/34, -0.02em) en bold
-  titulo: {
-    fontFamily: fonts.sansBold,
-    fontSize: 28,
-    lineHeight: 34,
-    letterSpacing: -0.56,
-    color: colors.text,
-  },
-  // p-space-md bg-surface-container-low rounded-xl shadow-[0_8px_24px_-6px] negro al 50%
-  resumen: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 16,
-    borderRadius: radios.xl,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderTop,
-    backgroundColor: colors.surfaceLow,
-    shadowColor: colors.sombra,
-    shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 12,
-    shadowOpacity: 0.5,
-    elevation: 6,
-  },
-  resumenTextos: {
-    flex: 1,
-  },
-  // font-label-caps text-outline uppercase tracking-wider
-  resumenEtiqueta: {
-    color: colors.outline,
-  },
-  // financial-metric-lg: JetBrains Mono 600 32/36, -0.02em
-  resumenTotal: {
-    fontFamily: fonts.monoSemiBold,
-    fontSize: 32,
-    lineHeight: 36,
-    letterSpacing: -0.64,
-    color: colors.text,
-    marginTop: 6,
-  },
-  // body-sm text-on-surface-variant
-  resumenConteo: {
-    fontFamily: fonts.sans,
-    fontSize: 12,
-    lineHeight: 16,
-    letterSpacing: 0.12,
-    color: colors.textVariant,
-    marginTop: 4,
-  },
-  // mt-space-lg entre grupos, gap-space-sm entre encabezado y gastos
-  encabezadoDia: {
-    marginTop: 24,
-    marginBottom: 8,
-  },
-  // gap-2 entre gastos
-  separador: {
-    height: 8,
-  },
-  atenuado: {
-    opacity: 0.45,
-  },
-  estado: {
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 48,
-    paddingHorizontal: 12,
-  },
-  estadoTitulo: {
-    fontFamily: fonts.sansSemiBold,
-    color: colors.text,
-    fontSize: 18,
-    lineHeight: 24,
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  estadoBoton: {
-    alignSelf: 'stretch',
-    marginTop: 12,
-  },
-  // mt-space-xl flex flex-col items-center py-4
-  fin: {
-    alignItems: 'center',
-    marginTop: 32,
-    paddingVertical: 16,
-  },
-  // w-8 h-1 rounded-full bg-surface-container-high mb-2
-  finBarra: {
-    width: 32,
-    height: 4,
-    borderRadius: radios.full,
-    backgroundColor: colors.surfaceHigh,
-    marginBottom: 8,
-  },
-  // font-label-caps text-outline uppercase tracking-widest
-  finTexto: {
-    fontFamily: fonts.monoMedium,
-    fontSize: 10,
-    lineHeight: 14,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    textAlign: 'center',
-    color: colors.outline,
-  },
-});
+const crearEstilos = (colors) =>
+  StyleSheet.create({
+    pantalla: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    // px-margin (20)
+    lista: {
+      paddingHorizontal: 20,
+    },
+    // flex flex-col gap-space-sm pt-space-xs
+    encabezado: {
+      gap: 12,
+      paddingTop: 4,
+    },
+    // headline-lg (28/34, -0.02em) en bold
+    titulo: {
+      fontFamily: fonts.sansBold,
+      fontSize: 28,
+      lineHeight: 34,
+      letterSpacing: -0.56,
+      color: colors.text,
+    },
+    // p-space-md bg-surface-container-low rounded-xl shadow-[0_8px_24px_-6px] negro al 50%
+    resumen: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      padding: 16,
+      borderRadius: radios.xl,
+      borderTopWidth: 1,
+      borderTopColor: colors.borderTop,
+      backgroundColor: colors.surfaceLow,
+      shadowColor: colors.sombra,
+      shadowOffset: { width: 0, height: 8 },
+      shadowRadius: 12,
+      shadowOpacity: 0.5,
+      elevation: 6,
+    },
+    resumenTextos: {
+      flex: 1,
+    },
+    // font-label-caps text-outline uppercase tracking-wider
+    resumenEtiqueta: {
+      color: colors.outline,
+    },
+    // financial-metric-lg: JetBrains Mono 600 32/36, -0.02em
+    resumenTotal: {
+      fontFamily: fonts.monoSemiBold,
+      fontSize: 32,
+      lineHeight: 36,
+      letterSpacing: -0.64,
+      color: colors.text,
+      marginTop: 6,
+    },
+    // body-sm text-on-surface-variant
+    resumenConteo: {
+      fontFamily: fonts.sans,
+      fontSize: 12,
+      lineHeight: 16,
+      letterSpacing: 0.12,
+      color: colors.textVariant,
+      marginTop: 4,
+    },
+    // mt-space-lg entre grupos, gap-space-sm entre encabezado y gastos
+    encabezadoDia: {
+      marginTop: 24,
+      marginBottom: 8,
+    },
+    // gap-2 entre gastos
+    separador: {
+      height: 8,
+    },
+    atenuado: {
+      opacity: 0.45,
+    },
+    estado: {
+      alignItems: 'center',
+      gap: 10,
+      paddingVertical: 48,
+      paddingHorizontal: 12,
+    },
+    estadoTitulo: {
+      fontFamily: fonts.sansSemiBold,
+      color: colors.text,
+      fontSize: 18,
+      lineHeight: 24,
+      textAlign: 'center',
+      marginTop: 8,
+    },
+    estadoBoton: {
+      alignSelf: 'stretch',
+      marginTop: 12,
+    },
+    // mt-space-xl flex flex-col items-center py-4
+    fin: {
+      alignItems: 'center',
+      marginTop: 32,
+      paddingVertical: 16,
+    },
+    // w-8 h-1 rounded-full bg-surface-container-high mb-2
+    finBarra: {
+      width: 32,
+      height: 4,
+      borderRadius: radios.full,
+      backgroundColor: colors.surfaceHigh,
+      marginBottom: 8,
+    },
+    // font-label-caps text-outline uppercase tracking-widest
+    finTexto: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 10,
+      lineHeight: 14,
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+      textAlign: 'center',
+      color: colors.outline,
+    },
+  });

@@ -3,10 +3,13 @@ import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Boton from '../components/Boton';
-import { colors, radios } from '../theme/colors';
+import { radios, temas } from '../theme/colors';
 import { fonts } from '../theme/fonts';
 import { cargarVoz, cargarWidget } from './modulosNativos';
 import { guardarDatoWidget, leerDatoWidget } from './widget/datoWidget';
+
+// HU-44: el spike conserva el tema oscuro fijo; no forma parte de la app.
+const colors = temas.oscuro;
 
 // HU-23 (spike RF11-RF13): pantalla de pruebas técnicas. Solo se registra en __DEV__ y no
 // forma parte del flujo de la app. En Expo Go los módulos nativos no existen y cada sección

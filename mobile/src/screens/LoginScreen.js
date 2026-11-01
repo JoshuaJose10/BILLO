@@ -7,7 +7,8 @@ import Boton from '../components/Boton';
 import EnlaceAuth from '../components/EnlaceAuth';
 import Input from '../components/Input';
 import { SESION_VENCIDA, useAuth } from '../context/AuthContext';
-import { colors, radios } from '../theme/colors';
+import { radios } from '../theme/colors';
+import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { mensajeError } from '../utils/errores';
 import { esEmailValido } from '../utils/validacion';
@@ -22,6 +23,8 @@ function validar({ email, password }) {
 
 export default function LoginScreen({ navigation }) {
   const { iniciarSesion, motivoCierre, limpiarMotivoCierre } = useAuth();
+  const { colors } = useTema();
+  const styles = useEstilos(crearEstilos);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errores, setErrores] = useState({});
@@ -126,31 +129,32 @@ export default function LoginScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  aviso: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: radios['2xl'],
-    backgroundColor: colors.glass07,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-  },
-  avisoTexto: {
-    fontFamily: fonts.sansMedium,
-    flex: 1,
-    color: colors.text,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  errorApi: {
-    fontFamily: fonts.sans,
-    color: colors.error,
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-});
+const crearEstilos = (colors) =>
+  StyleSheet.create({
+    aviso: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 16,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      borderRadius: radios['2xl'],
+      backgroundColor: colors.glass07,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+    },
+    avisoTexto: {
+      fontFamily: fonts.sansMedium,
+      flex: 1,
+      color: colors.text,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+    errorApi: {
+      fontFamily: fonts.sans,
+      color: colors.alerta,
+      fontSize: 14,
+      textAlign: 'center',
+      marginBottom: 12,
+    },
+  });

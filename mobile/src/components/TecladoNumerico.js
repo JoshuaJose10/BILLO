@@ -1,7 +1,8 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radios } from '../theme/colors';
+import { radios } from '../theme/colors';
+import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { TECLA_BORRAR, TECLA_PUNTO } from '../utils/monto';
 
@@ -12,10 +13,12 @@ const FILAS = [
   [TECLA_PUNTO, '0', TECLA_BORRAR],
 ];
 
-// Teclado 4x3 de vidrio (Stitch: nuevo_gasto_bottom_sheet): grid gap-1.5, teclas h-11
-// rounded-xl bg-white/[0.04] border-white/5, texto 18 medium; al presionar bg-white/[0.08] y
-// scale-95. Las reglas del monto viven en utils/monto.js.
+// Teclado 4x3 (Stitch: nuevo_gasto_bottom_sheet y 08_nuevo_gasto_referencia): grid gap-1.5,
+// teclas h-11 rounded-xl con borde sutil (vidrio en oscuro, blancas sobre la hoja lavanda en
+// claro), texto 18 medium; al presionar se aclaran u oscurecen y scale-95. Las reglas del monto viven en utils/monto.js.
 export default function TecladoNumerico({ onTecla, disabled = false }) {
+  const { colors } = useTema();
+  const styles = useEstilos(crearEstilos);
   return (
     <View style={styles.teclado}>
       {FILAS.map((fila) => (
@@ -48,38 +51,39 @@ export default function TecladoNumerico({ onTecla, disabled = false }) {
   );
 }
 
-const styles = StyleSheet.create({
-  teclado: {
-    gap: 6,
-  },
-  fila: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  tecla: {
-    flex: 1,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radios.xl,
-    backgroundColor: colors.glass04,
-    borderWidth: 1,
-    borderColor: colors.borderSoft,
-  },
-  presionada: {
-    backgroundColor: colors.glass08,
-    transform: [{ scale: 0.95 }],
-  },
-  // text-lg font-medium text-white
-  texto: {
-    fontFamily: fonts.sansMedium,
-    fontSize: 18,
-    lineHeight: 28,
-    color: colors.text,
-  },
-  // "." font-semibold text-white/90
-  punto: {
-    fontFamily: fonts.sansSemiBold,
-    color: colors.textSoft,
-  },
-});
+const crearEstilos = (colors) =>
+  StyleSheet.create({
+    teclado: {
+      gap: 6,
+    },
+    fila: {
+      flexDirection: 'row',
+      gap: 6,
+    },
+    tecla: {
+      flex: 1,
+      height: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: radios.xl,
+      backgroundColor: colors.teclaFondo,
+      borderWidth: 1,
+      borderColor: colors.teclaBorde,
+    },
+    presionada: {
+      backgroundColor: colors.teclaPresionada,
+      transform: [{ scale: 0.95 }],
+    },
+    // text-lg font-medium text-white
+    texto: {
+      fontFamily: fonts.sansMedium,
+      fontSize: 18,
+      lineHeight: 28,
+      color: colors.text,
+    },
+    // "." font-semibold text-white/90
+    punto: {
+      fontFamily: fonts.sansSemiBold,
+      color: colors.textSoft,
+    },
+  });

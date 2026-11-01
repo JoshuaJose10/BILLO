@@ -33,3 +33,12 @@ export function montoDesdeTexto(texto) {
   const n = Number(texto);
   return Number.isFinite(n) ? n : 0;
 }
+
+// Inverso de montoDesdeTexto, para precargar el teclado al editar un gasto:
+// 85 → "85", 85.5 → "85.5", 85.55 → "85.55", 0.5 → "0.5". Redondea a 2 decimales y quita los
+// ceros finales. Un monto no válido o <= 0 da "" (el teclado vacío, como al crear).
+export function textoDesdeMonto(monto) {
+  const n = Number(monto);
+  if (!Number.isFinite(n) || n <= 0) return '';
+  return String(Number(n.toFixed(MAX_DECIMALES)));
+}

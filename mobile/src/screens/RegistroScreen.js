@@ -6,13 +6,10 @@ import Boton from '../components/Boton';
 import EnlaceAuth from '../components/EnlaceAuth';
 import Input from '../components/Input';
 import { useAuth } from '../context/AuthContext';
-import { colors } from '../theme/colors';
+import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { mensajeError } from '../utils/errores';
 import { esEmailValido, fuerzaPassword, MIN_PASSWORD } from '../utils/validacion';
-
-// Color de cada barrita encendida (Stitch: bg-outline, bg-on-surface-variant, bg-primary).
-const COLOR_BARRA = [colors.outline, colors.textVariant, colors.primary];
 
 function validar({ nombre, email, password }) {
   const errores = {};
@@ -27,6 +24,10 @@ function validar({ nombre, email, password }) {
 
 function FuerzaPassword({ password }) {
   const fuerza = fuerzaPassword(password);
+  const { colors } = useTema();
+  const styles = useEstilos(crearEstilos);
+  // Color de cada barrita encendida (Stitch: bg-outline, bg-on-surface-variant, bg-primary).
+  const colorBarra = [colors.outline, colors.textVariant, colors.primary];
   return (
     <View style={styles.pistaFila}>
       <Text style={styles.pista}>Mínimo {MIN_PASSWORD} caracteres</Text>
@@ -36,7 +37,7 @@ function FuerzaPassword({ password }) {
             key={n}
             style={[
               styles.barra,
-              { backgroundColor: n <= fuerza ? COLOR_BARRA[n - 1] : colors.surfaceBright },
+              { backgroundColor: n <= fuerza ? colorBarra[n - 1] : colors.surfaceBright },
             ]}
           />
         ))}
@@ -47,6 +48,7 @@ function FuerzaPassword({ password }) {
 
 export default function RegistroScreen({ navigation }) {
   const { registrarse } = useAuth();
+  const styles = useEstilos(crearEstilos);
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -167,54 +169,55 @@ export default function RegistroScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  // mt-1 px-1
-  pistaFila: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 4,
-    paddingHorizontal: 4,
-  },
-  // body-sm: Inter 400 12/16, tracking 0.01em, text-outline
-  pista: {
-    fontFamily: fonts.sans,
-    color: colors.outline,
-    fontSize: 12,
-    lineHeight: 16,
-    letterSpacing: 0.12,
-  },
-  // gap-1
-  barras: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  // w-5 h-1 rounded-full
-  barra: {
-    width: 20,
-    height: 4,
-    borderRadius: 2,
-  },
-  errorApi: {
-    fontFamily: fonts.sans,
-    color: colors.error,
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  // body-sm text-outline text-center mt-4 px-2 leading-relaxed
-  terminos: {
-    fontFamily: fonts.sans,
-    color: colors.outline,
-    fontSize: 12,
-    lineHeight: 19.5,
-    letterSpacing: 0.12,
-    textAlign: 'center',
-    marginTop: 16,
-    paddingHorizontal: 8,
-  },
-  // text-on-surface (solo texto, sin enlace)
-  terminosDestacado: {
-    color: colors.onSurface,
-  },
-});
+const crearEstilos = (colors) =>
+  StyleSheet.create({
+    // mt-1 px-1
+    pistaFila: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 4,
+      paddingHorizontal: 4,
+    },
+    // body-sm: Inter 400 12/16, tracking 0.01em, text-outline
+    pista: {
+      fontFamily: fonts.sans,
+      color: colors.outline,
+      fontSize: 12,
+      lineHeight: 16,
+      letterSpacing: 0.12,
+    },
+    // gap-1
+    barras: {
+      flexDirection: 'row',
+      gap: 4,
+    },
+    // w-5 h-1 rounded-full
+    barra: {
+      width: 20,
+      height: 4,
+      borderRadius: 2,
+    },
+    errorApi: {
+      fontFamily: fonts.sans,
+      color: colors.alerta,
+      fontSize: 14,
+      textAlign: 'center',
+      marginBottom: 12,
+    },
+    // body-sm text-outline text-center mt-4 px-2 leading-relaxed
+    terminos: {
+      fontFamily: fonts.sans,
+      color: colors.outline,
+      fontSize: 12,
+      lineHeight: 19.5,
+      letterSpacing: 0.12,
+      textAlign: 'center',
+      marginTop: 16,
+      paddingHorizontal: 8,
+    },
+    // text-on-surface (solo texto, sin enlace)
+    terminosDestacado: {
+      color: colors.onSurface,
+    },
+  });

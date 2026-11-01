@@ -1,6 +1,9 @@
 import { FlexWidget, TextWidget } from 'react-native-android-widget';
 
-import { colors } from '../../theme/colors';
+import { temas } from '../../theme/colors';
+
+// HU-44: el widget se dibuja fuera del árbol de React (sin TemaProvider) y conserva el tema oscuro.
+const colors = temas.oscuro;
 
 // HU-23 (spike RF13): widget mínimo de Android. Muestra un texto fijo y el dato que la app
 // guardó en datoWidget. Usa la fuente del sistema: las de la app requieren declararlas en
