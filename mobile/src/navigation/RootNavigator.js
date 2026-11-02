@@ -4,6 +4,7 @@ import PantallaCarga from '../components/PantallaCarga';
 import { useAuth } from '../context/AuthContext';
 import NuevoGastoScreen from '../screens/NuevoGastoScreen';
 import PerfilScreen from '../screens/PerfilScreen';
+import PresupuestoScreen from '../screens/PresupuestoScreen';
 import LaboratorioScreen from '../spike/LaboratorioScreen';
 import { useTema } from '../theme/TemaContext';
 import AuthStack from './AuthStack';
@@ -21,7 +22,7 @@ const opcionesHoja = {
   contentStyle: { backgroundColor: 'transparent' },
 };
 
-// Con token se muestran Main y las hojas (NuevoGasto, Perfil); sin token, Auth. Al cambiar
+// Con token se muestran Main y las hojas (NuevoGasto, Perfil, Presupuesto); sin token, Auth. Al cambiar
 // el token React Navigation cambia de navegador solo, sin navigation.reset.
 export default function RootNavigator() {
   const { token, cargando } = useAuth();
@@ -43,6 +44,7 @@ export default function RootNavigator() {
           <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
           <Stack.Screen name="NuevoGasto" component={NuevoGastoScreen} options={opcionesHoja} />
           <Stack.Screen name="Perfil" component={PerfilScreen} options={opcionesHoja} />
+          <Stack.Screen name="Presupuesto" component={PresupuestoScreen} options={opcionesHoja} />
           {__DEV__ ? (
             <Stack.Screen
               name="Laboratorio"

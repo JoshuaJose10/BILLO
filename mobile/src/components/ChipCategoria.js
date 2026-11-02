@@ -17,11 +17,13 @@ import { iconoCategoria } from '../utils/categorias';
 // `icono` reemplaza el que corresponde al nombre y marca un chip que no es categoría (por
 // ejemplo "Todas"): sin micro-punto y, seleccionado, con el acento translúcido. No usa acento
 // sólido porque su versión profunda se confunde con el violeta de Entretenimiento.
+// `nota`: texto corto después del nombre, más tenue (p. ej. "Ya tiene" en la hoja Presupuesto).
 export default function ChipCategoria({
   nombre,
   icono,
   seleccionado = false,
   error = false,
+  nota,
   onPress,
 }) {
   const { colors, esOscuro } = useTema();
@@ -43,7 +45,7 @@ export default function ChipCategoria({
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={nombre}
+      accessibilityLabel={nota ? `${nombre}, ${nota}` : nombre}
       accessibilityState={{ selected: seleccionado }}
       hitSlop={4}
       style={({ pressed }) => [
@@ -72,6 +74,7 @@ export default function ChipCategoria({
       >
         {nombre}
       </Text>
+      {nota ? <Text style={styles.nota}>{nota}</Text> : null}
     </Pressable>
   );
 }
@@ -118,6 +121,13 @@ const crearEstilos = (colors) =>
       fontSize: 12,
       lineHeight: 16,
       color: colors.textChip,
+    },
+    // Más chica y tenue que el nombre
+    nota: {
+      fontFamily: fonts.sansMedium,
+      fontSize: 10,
+      lineHeight: 14,
+      color: colors.textSecondary,
     },
     textoSeleccionado: {
       fontFamily: fonts.sansSemiBold,

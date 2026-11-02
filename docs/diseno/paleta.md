@@ -144,6 +144,9 @@ Encima del brillo van el saludo de Inicio y el lema de Login y Registro, con tok
 ## Semánticos
 
 Estado financiero. Cada uno tiene una variante `Suave` al ~15% para fondos de barras de progreso y avisos.
+En Cartera, la barra de cada presupuesto (`BarraPresupuesto`) se pinta según el `estado` que calcula la
+API: `ok` → `exito`, `alerta` → `aviso`, `excedido` → `alerta`, sobre una pista `surfaceHighest`. El
+resumen del mes usa el estado más grave de la lista.
 
 | Token | Valor | Variante suave | Uso |
 | --- | --- | --- | --- |
