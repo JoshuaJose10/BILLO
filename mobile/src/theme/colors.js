@@ -147,6 +147,7 @@ export const temas = {
     exitoSuave: 'rgba(16, 185, 129, 0.15)',
     aviso: '#FF9F0A', // cerca del límite
     avisoSuave: 'rgba(255, 159, 10, 0.15)',
+    avisoTexto: '#FF9F0A', // aviso como texto (porcentaje de la tarjeta de Inicio)
     alerta: '#FF453A', // límite excedido
     alertaSuave: 'rgba(255, 69, 58, 0.15)',
     alertaSolido: '#D9302A', // fondo sólido con texto blanco (>= 4.5:1): acción Eliminar al deslizar
@@ -284,6 +285,7 @@ export const temas = {
     exitoSuave: 'rgba(34, 168, 102, 0.12)',
     aviso: '#D97706',
     avisoSuave: 'rgba(217, 119, 6, 0.12)',
+    avisoTexto: '#B45309', // aviso como texto: >= 4.5:1 sobre blanco (aviso da 3.19)
     alerta: '#C8281C',
     alertaSuave: 'rgba(200, 40, 28, 0.12)',
     alertaSolido: '#C8281C',

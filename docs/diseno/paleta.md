@@ -148,10 +148,15 @@ En Cartera, la barra de cada presupuesto (`BarraPresupuesto`) se pinta según el
 API: `ok` → `exito`, `alerta` → `aviso`, `excedido` → `alerta`, sobre una pista `surfaceHighest`. El
 resumen del mes usa el estado más grave de la lista.
 
+En Inicio, la tarjeta "Gastado este mes" muestra `$gastado / $presupuesto` (el presupuesto en
+`textSecondary`) y `BarraCategorias`: un tramo por categoría con su `colorCategoria`, de mayor a menor,
+sobre la misma pista `surfaceHighest`. El porcentaje va en `textSecondary` (< 80%), `avisoTexto`
+(80–100%) o `alerta` (> 100%). Sin presupuestos, el enlace "Define un presupuesto" va en `acentoTexto`.
+
 | Token | Valor | Variante suave | Uso |
 | --- | --- | --- | --- |
 | `exito` | `#10B981` | `exitoSuave` · `rgba(16, 185, 129, 0.15)` | En meta, ingresos |
-| `aviso` | `#FF9F0A` | `avisoSuave` · `rgba(255, 159, 10, 0.15)` | Cerca del límite |
+| `aviso` | `#FF9F0A` | `avisoSuave` · `rgba(255, 159, 10, 0.15)` | Cerca del límite. Como texto: `avisoTexto` (`#FF9F0A`, igual) |
 | `alerta` | `#FF453A` | `alertaSuave` · `rgba(255, 69, 58, 0.15)` | Límite excedido |
 
 `alerta` también es el color de los errores en pantalla: textos de error de Input, Login, Registro y
@@ -380,6 +385,7 @@ figuras difuminadas de `FondoAuth`.
 | `exitoSuave` | `rgba(34, 168, 102, 0.12)` | |
 | `aviso` | `#D97706` | Cerca del límite (3.19:1 sobre blanco) |
 | `avisoSuave` | `rgba(217, 119, 6, 0.12)` | |
+| `avisoTexto` | `#B45309` | Aviso como texto chico (porcentaje de Inicio): 5.02:1 sobre blanco |
 | `alerta` | `#C8281C` | Límite excedido y errores (5.56:1 sobre blanco, 4.92 sobre `background`) |
 | `alertaSuave` | `rgba(200, 40, 28, 0.12)` | |
 | `alertaSolido` | `#C8281C` | Fondo de la acción "Eliminar" al deslizar (5.56:1 con blanco) |
