@@ -8,6 +8,22 @@ Proyecto de Tópicos Selectos de Ingeniería de Software — Infinite Labs.
 - `backend/` — API Node.js + Express
 - `docs/` — Esquema de BD, contrato de API, plan de pruebas, actas y métricas
 
+## Pruebas automáticas del backend
+
+Con PostgreSQL activo y las credenciales de `backend/.env` configuradas:
+
+```bash
+cd backend
+npm ci
+npm test
+```
+
+La suite usa Node Test Runner y Supertest, crea una base temporal desde cero,
+aplica las migraciones y la elimina al terminar. El usuario PostgreSQL necesita
+permiso `CREATEDB`. Consulta requisitos, cobertura y cómo agregar endpoints en
+[backend/README.md](backend/README.md#pruebas-automáticas-hu-28).
+El CI ejecuta lint y pruebas en cada pull request.
+
 ## Equipo
 | Nombre | Rol |
 |---|---|

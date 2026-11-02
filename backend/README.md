@@ -51,6 +51,87 @@ en `docs/postman/ejecucion-sprint2.json` y `docs/qa/gastos-resultados.json`.
 Consulta [la guía de QA](../docs/postman/README.md) y el
 [reporte de línea base](../docs/qa/sprint2-linea-base.md).
 
+## Pruebas automáticas (HU-28)
+
+Requieren **Node.js 20 o superior**, PostgreSQL 14 o superior activo y un usuario
+con permiso `CREATEDB`. No hace falta crear una base de pruebas ni iniciar el
+servidor. Se usan las credenciales `DB_HOST`, `DB_PORT`, `DB_USER` y `DB_PASSWORD`
+de `.env` o del entorno (el entorno tiene prioridad).
+
+```bash
+cd backend
+npm ci
+npm test
+```
+
+`npm test` ejecuta el runner integrado de Node con Supertest contra la app y
+PostgreSQL reales. Crea una base aleatoria `billo_test_<fecha>_<aleatorio>` desde
+`template0`, comprueba que no tenga tablas y aplica todas las migraciones. Nunca
+usa `DB_NAME` como destino de las pruebas. La conexión administrativa usa
+`postgres`; se puede cambiar con `TEST_ADMIN_DATABASE`. El JWT de pruebas se
+genera en memoria: no requiere modificar `JWT_SECRET` del `.env`.
+
+Cada caso reinicia los datos de usuarios y sus tablas dependientes y prepara dos
+cuentas independientes A/B. Las categorías se conservan del seed y se consultan
+sin asumir IDs. Al finalizar se cierran las conexiones y se elimina la base,
+también cuando falla una aserción. Una terminación forzada del proceso puede
+impedir que se ejecute la limpieza. La suite tiene un límite de 55 segundos.
+
+### Cobertura y regresiones
+
+Hay **103 pruebas ejecutables**, sin casos omitidos: 27 de autenticación y 76 de
+gastos. Se convirtieron los casos de las carpetas 01 y 03 de
+`docs/postman/billo-api.postman_collection.json`, con casos adicionales de límites,
+tipos y persistencia. La limpieza de Postman queda reemplazada por hooks de la
+suite. No se incluyen aquí las carpetas de categorías y errores HTTP globales,
+cuyos pendientes se documentan en `docs/qa/sprint2-linea-base.md`.
+
+| Regresión | Pruebas |
+|---|---|
+| AUTH-QA-01 | Registro con `{ usuario, token }`, JWT utilizable, hash y datos públicos |
+| AUTH-QA-02 | Errores con `error.code` y `error.message` |
+| AUTH-QA-03 | Ruta oficial `/auth/perfil`, usuarios A/B y alias `/auth/profile` |
+| BUG-RF2-01 | POST y PUT rechazan más de dos decimales y subcentavos |
+| BUG-RF2-02 | POST y PUT rechazan montos como cadena numérica |
+| BUG-RF2-03 | POST y PUT rechazan categoría booleana |
+| BUG-RF2-04 | Validación común de la forma JSON de los errores |
+| BUG-RF2-05 | GET, POST, PUT y DELETE con token ausente e inválido dan `NO_AUTORIZADO` |
+| BUG-RF2-06 | POST y PUT sin cuerpo responden 400, sin cambiar datos |
+
+También se verifican login, correo normalizado y duplicado, token vencido/firma
+incorrecta, CRUD persistido, filtros, orden y aislamiento bidireccional A/B.
+Las credenciales de las fixtures son ficticias y exclusivas de la base temporal.
+
+### Agregar presupuestos, membresías y reportes
+
+1. Copia `test/templates/endpoint.cjs.example` a `test/suites/presupuestos.cjs`,
+   `membresias.cjs` o `reportes.cjs`. La plantilla trae un ejemplo ejecutable para
+   `GET /presupuestos`.
+2. Registra el módulo en `test/integration.test.cjs` con
+   `require('./suites/presupuestos.cjs')(() => context);` (ajusta el nombre).
+3. Agrega como mínimo un `it` por endpoint nuevo, verificando HTTP, cuerpo y,
+   cuando haya escritura, persistencia. Añade validaciones y privacidad A/B
+   según el contrato. Usa `ctx.api`, `ctx.a`, `ctx.b`, `ctx.pool` y
+   `expectError` de las helpers; el `beforeEach` debe llamar `ctx.reset()`.
+4. Ejecuta `npm test` y `npm run lint`. Los casos se ejecutan en serie porque
+   comparten la base y el reinicio de fixtures.
+
+### CI y revisión de Oscar
+
+`.github/workflows/ci.yml` ejecuta `npm ci`, lint y `npm test` en cada PR con
+PostgreSQL 16 y Node 20. Se conserva el nombre del check `Backend (lint)` para
+respetar las reglas de rama existentes. Un fallo de la suite hace fallar el job.
+
+Para comprobar que las pruebas detectan una validación rota:
+
+1. En `src/controllers/gastos.controller.js`, cambia temporalmente
+   `nota.length > 200` por `nota.length > 201`.
+2. Ejecuta `npm test`: deben fallar los dos casos de nota de más de 200 caracteres
+   (POST y PUT) y el comando debe devolver código 1.
+3. Restaura `nota.length > 200` y ejecuta `npm test`: deben pasar las 103 pruebas.
+
+La confirmación de Oscar en el PR sigue siendo necesaria para completar QA.
+
 ## Comandos del servidor
 
 - **Modo desarrollo (con recarga automática):**
