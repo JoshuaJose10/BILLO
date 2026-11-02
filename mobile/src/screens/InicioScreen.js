@@ -15,8 +15,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Avatar from '../components/Avatar';
 import Boton from '../components/Boton';
 import Etiqueta from '../components/Etiqueta';
-import FilaGastoDeslizable, { useFilasDeslizables } from '../components/FilaGastoDeslizable';
+import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizable';
 import FondoDegradado from '../components/FondoDegradado';
+import ItemGasto from '../components/ItemGasto';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
 import TarjetaResumen from '../components/TarjetaResumen';
 import { useAuth } from '../context/AuthContext';
@@ -47,7 +48,7 @@ export default function InicioScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
   const { usuario } = useAuth();
-  const { listarCategorias, listarGastos } = useGastosService();
+  const { listarCategorias, listarGastos, eliminarGasto } = useGastosService();
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
@@ -188,13 +189,17 @@ export default function InicioScreen({ navigation }) {
         keyExtractor={(g) => String(g.id)}
         renderItem={({ item }) => (
           <View style={styles.panelFila}>
-            <FilaGastoDeslizable
-              gasto={item}
-              nombreCategoria={nombresCategoria[item.categoria_id]}
+            <FilaDeslizable
               filas={filas}
-              onEditar={editarGasto}
-              onEliminado={gastoEliminado}
-            />
+              onEditar={() => editarGasto(item)}
+              eliminar={() => eliminarGasto(item.id)}
+              onEliminado={() => gastoEliminado(item.id)}
+              tituloEliminar="¿Eliminar gasto?"
+              codigoNoExiste="GASTO_NO_ENCONTRADO"
+              mensajeNoExiste="Este gasto ya no existe"
+            >
+              <ItemGasto gasto={item} nombreCategoria={nombresCategoria[item.categoria_id]} opaca />
+            </FilaDeslizable>
           </View>
         )}
         ListHeaderComponent={

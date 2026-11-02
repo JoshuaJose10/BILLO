@@ -477,9 +477,9 @@ el botón de cerrar. En oscuro el tinte pleno queda en ≈ `#1E183D`: `text` 16.
 tarjeta del importe oscura (≈ `#161023`) da 7.24 con `textSecondary` y las teclas (≈ `#1A1A1C`) 17.38
 con `text`.
 
-## Acciones al deslizar un gasto
+## Acciones al deslizar una fila
 
-`FilaGastoDeslizable` (Inicio y Movimientos): al deslizar a la izquierda aparecen dos squircles de 56 px
+`FilaDeslizable` (gastos en Inicio y Movimientos, presupuestos en Cartera): al deslizar a la izquierda aparecen dos squircles de 56 px
 (`radios['2xl']`, 8 px de separación) que están detrás de la fila. La fila usa `filaOpaca` para no
 dejarlos ver; en reposo los botones tienen opacidad 0.
 

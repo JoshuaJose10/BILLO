@@ -15,8 +15,9 @@ import Boton from '../components/Boton';
 import EncabezadoDia from '../components/EncabezadoDia';
 import Etiqueta from '../components/Etiqueta';
 import FiltroCategorias from '../components/FiltroCategorias';
-import FilaGastoDeslizable, { useFilasDeslizables } from '../components/FilaGastoDeslizable';
+import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizable';
 import FondoDegradado from '../components/FondoDegradado';
+import ItemGasto from '../components/ItemGasto';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
 import SelectorMes from '../components/SelectorMes';
 import { etiquetaMetodoPago, useGastosService } from '../services/gastos';
@@ -50,7 +51,7 @@ const agruparPorDia = (gastos) => {
 export default function MovimientosScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
-  const { listarCategorias, listarGastos } = useGastosService();
+  const { listarCategorias, listarGastos, eliminarGasto } = useGastosService();
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
@@ -234,14 +235,22 @@ export default function MovimientosScreen({ navigation }) {
         )}
         renderItem={({ item }) => (
           <View style={atenuado}>
-            <FilaGastoDeslizable
-              gasto={item}
-              nombreCategoria={nombresCategoria[item.categoria_id]}
-              metodoPago={etiquetaMetodoPago(item.metodo_pago)}
+            <FilaDeslizable
               filas={filas}
-              onEditar={editarGasto}
-              onEliminado={gastoEliminado}
-            />
+              onEditar={() => editarGasto(item)}
+              eliminar={() => eliminarGasto(item.id)}
+              onEliminado={() => gastoEliminado(item.id)}
+              tituloEliminar="¿Eliminar gasto?"
+              codigoNoExiste="GASTO_NO_ENCONTRADO"
+              mensajeNoExiste="Este gasto ya no existe"
+            >
+              <ItemGasto
+                gasto={item}
+                nombreCategoria={nombresCategoria[item.categoria_id]}
+                metodoPago={etiquetaMetodoPago(item.metodo_pago)}
+                opaca
+              />
+            </FilaDeslizable>
           </View>
         )}
         ItemSeparatorComponent={Separador}
