@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import BarraPresupuesto from '../components/BarraPresupuesto';
@@ -10,7 +11,9 @@ import Etiqueta from '../components/Etiqueta';
 import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizable';
 import FondoDegradado from '../components/FondoDegradado';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
+import PantallaProximamente from '../components/PantallaProximamente';
 import SelectorMes from '../components/SelectorMes';
+import SelectorSegmentado from '../components/SelectorSegmentado';
 import TarjetaPresupuesto, { NOMBRE_ESTADO } from '../components/TarjetaPresupuesto';
 import { usePresupuestosService } from '../services/presupuestos';
 import { radios } from '../theme/colors';
@@ -21,9 +24,34 @@ import { mesActual } from '../utils/fechas';
 import { formatearMonto, nombreMes } from '../utils/formato';
 import { avanceBarra, resumenPresupuestos } from '../utils/presupuestos';
 
-// Cartera (RF3): presupuestos del mes por categoría con su avance. El estado y el porcentaje de
-// cada uno los calcula la API. Tocar un presupuesto lo edita; deslizarlo muestra Editar y
-// Eliminar. Crear y editar abren la hoja Presupuesto.
+// Secciones de Cartera. Suscripciones y Tarjetas aún no existen (badge "Pronto").
+const SECCIONES = [
+  { valor: 'presupuestos', etiqueta: 'Presupuestos' },
+  { valor: 'suscripciones', etiqueta: 'Suscripciones', insignia: 'Pronto' },
+  { valor: 'tarjetas', etiqueta: 'Tarjetas', insignia: 'Pronto' },
+];
+
+const PROXIMAMENTE = {
+  suscripciones: {
+    icono: 'calendar-sync-outline',
+    titulo: 'Suscripciones',
+    mensaje: 'Pronto podrás ver tus suscripciones y su próximo cobro.',
+  },
+  tarjetas: {
+    icono: 'credit-card-outline',
+    titulo: 'Tarjetas',
+    mensaje: 'Pronto podrás registrar tus tarjetas y ver en qué las usas.',
+  },
+};
+
+// Fundido corto al cambiar de sección y al aparecer las filas.
+const APARECER = FadeIn.duration(180);
+
+// Cartera: selector de secciones (Presupuestos, Suscripciones, Tarjetas; empieza en Presupuestos y
+// no se recuerda entre sesiones).
+// Presupuestos (RF3): los del mes por categoría con su avance. El estado y el porcentaje de cada
+// uno los calcula la API. Tocar un presupuesto lo edita; deslizarlo muestra Editar y Eliminar.
+// Crear y editar abren la hoja Presupuesto.
 export default function CarteraScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
@@ -31,6 +59,8 @@ export default function CarteraScreen({ navigation }) {
   const styles = useEstilos(crearEstilos);
   const { listarPresupuestos, eliminarPresupuesto } = usePresupuestosService();
 
+  const [seccion, setSeccion] = useState('presupuestos');
+  const enPresupuestos = seccion === 'presupuestos';
   const [mes, setMes] = useState(mesActual);
   // Datos de la última respuesta válida y el mes con el que se pidieron.
   const [presupuestos, setPresupuestos] = useState([]);
@@ -105,45 +135,70 @@ export default function CarteraScreen({ navigation }) {
       <Text style={styles.titulo} accessibilityRole="header">
         Cartera
       </Text>
-      <Text style={styles.seccion} accessibilityRole="header">
-        Presupuestos
-      </Text>
 
-      <SelectorMes mes={mes} onCambiar={cambiarMes} />
+      <SelectorSegmentado
+        opciones={SECCIONES}
+        valor={seccion}
+        onCambiar={setSeccion}
+        accessibilityLabel="Secciones de Cartera"
+        style={styles.selectorSecciones}
+      />
 
-      {hayPresupuestos ? (
-        <View style={[styles.resumen, atenuado]}>
-          <View style={styles.resumenFila}>
-            <Etiqueta style={styles.resumenEtiqueta}>Gastado en {nombreDelMes}</Etiqueta>
-            {cambiandoMes ? <ActivityIndicator size="small" color={colors.textSecondary} /> : null}
-          </View>
-          <View style={styles.resumenMontos}>
-            <Text style={styles.resumenGastado} numberOfLines={1} adjustsFontSizeToFit>
-              {formatearMonto(resumen.gastado)}
-            </Text>
-            <Text style={styles.resumenLimite} numberOfLines={1}>
-              de {formatearMonto(resumen.limite)}
-            </Text>
-          </View>
-          <BarraPresupuesto
-            fraccion={avanceBarra(resumen.porcentaje)}
-            porcentaje={resumen.porcentaje}
-            estado={resumen.estado}
-            etiqueta={`Total: ${resumen.porcentaje}% del presupuesto, ${NOMBRE_ESTADO[resumen.estado]}`}
-            style={styles.resumenBarra}
-          />
-          <Text style={styles.resumenPorcentaje}>{resumen.porcentaje}% de lo presupuestado</Text>
-        </View>
-      ) : null}
+      {enPresupuestos ? (
+        <Animated.View entering={APARECER} style={styles.seccionPresupuestos}>
+          <SelectorMes mes={mes} onCambiar={cambiarMes} />
 
-      {hayPresupuestos ? (
-        <Boton titulo="Agregar presupuesto" icono="plus" onPress={crearPresupuesto} compacto />
+          {hayPresupuestos ? (
+            <View style={[styles.resumen, atenuado]}>
+              <View style={styles.resumenFila}>
+                <Etiqueta style={styles.resumenEtiqueta}>Gastado en {nombreDelMes}</Etiqueta>
+                {cambiandoMes ? (
+                  <ActivityIndicator size="small" color={colors.textSecondary} />
+                ) : null}
+              </View>
+              <View style={styles.resumenMontos}>
+                <Text style={styles.resumenGastado} numberOfLines={1} adjustsFontSizeToFit>
+                  {formatearMonto(resumen.gastado)}
+                </Text>
+                <Text style={styles.resumenLimite} numberOfLines={1}>
+                  de {formatearMonto(resumen.limite)}
+                </Text>
+              </View>
+              <BarraPresupuesto
+                fraccion={avanceBarra(resumen.porcentaje)}
+                porcentaje={resumen.porcentaje}
+                estado={resumen.estado}
+                etiqueta={`Total: ${resumen.porcentaje}% del presupuesto, ${NOMBRE_ESTADO[resumen.estado]}`}
+                style={styles.resumenBarra}
+              />
+              <Text style={styles.resumenPorcentaje}>
+                {resumen.porcentaje}% de lo presupuestado
+              </Text>
+            </View>
+          ) : null}
+
+          {hayPresupuestos ? (
+            <Boton titulo="Agregar presupuesto" icono="plus" onPress={crearPresupuesto} compacto />
+          ) : null}
+        </Animated.View>
       ) : null}
     </View>
   );
 
   let contenidoVacio;
-  if (estado === 'cargando') {
+  if (!enPresupuestos) {
+    const proximamente = PROXIMAMENTE[seccion];
+    contenidoVacio = (
+      <Animated.View key={seccion} entering={APARECER}>
+        <PantallaProximamente
+          icono={proximamente.icono}
+          titulo={proximamente.titulo}
+          mensaje={proximamente.mensaje}
+          incrustada
+        />
+      </Animated.View>
+    );
+  } else if (estado === 'cargando') {
     contenidoVacio = (
       <View style={styles.estado}>
         <ActivityIndicator size="large" color={colors.text} />
@@ -178,10 +233,10 @@ export default function CarteraScreen({ navigation }) {
     <View style={styles.pantalla}>
       <FondoDegradado />
       <FlatList
-        data={listo ? presupuestos : []}
+        data={enPresupuestos && listo ? presupuestos : []}
         keyExtractor={(p) => String(p.id)}
         renderItem={({ item }) => (
-          <View style={atenuado}>
+          <Animated.View entering={APARECER} style={atenuado}>
             <FilaDeslizable
               filas={filas}
               onEditar={() => editarPresupuesto(item)}
@@ -193,7 +248,7 @@ export default function CarteraScreen({ navigation }) {
             >
               <TarjetaPresupuesto presupuesto={item} />
             </FilaDeslizable>
-          </View>
+          </Animated.View>
         )}
         ItemSeparatorComponent={Separador}
         onScrollBeginDrag={filas.cerrarAbierta}
@@ -204,7 +259,13 @@ export default function CarteraScreen({ navigation }) {
           { paddingTop: insets.top + 4, paddingBottom: alturaNavbar + 16 },
         ]}
         refreshControl={
-          <RefreshControl refreshing={refrescando} onRefresh={refrescar} tintColor={colors.text} />
+          enPresupuestos ? (
+            <RefreshControl
+              refreshing={refrescando}
+              onRefresh={refrescar}
+              tintColor={colors.text}
+            />
+          ) : undefined
         }
       />
     </View>
@@ -240,13 +301,13 @@ const crearEstilos = (colors) =>
       letterSpacing: -0.56,
       color: colors.text,
     },
-    // headline-sm
-    seccion: {
-      fontFamily: fonts.sansSemiBold,
-      fontSize: 18,
-      lineHeight: 24,
-      letterSpacing: -0.18,
-      color: colors.text,
+    // Espacio para las insignias "Pronto", que sobresalen 10 px por arriba
+    selectorSecciones: {
+      marginTop: 8,
+    },
+    // Selector de mes, resumen y botón de agregar (mismo espaciado que el encabezado)
+    seccionPresupuestos: {
+      gap: 12,
     },
     // Como el resumen de Movimientos: p-space-md bg-surface-container-low rounded-xl
     resumen: {
