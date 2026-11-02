@@ -5,7 +5,7 @@ import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } f
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import BarraPresupuesto from '../components/BarraPresupuesto';
+import BarraCategorias from '../components/BarraCategorias';
 import Boton from '../components/Boton';
 import Etiqueta from '../components/Etiqueta';
 import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizable';
@@ -14,7 +14,7 @@ import { useAlturaNavbar } from '../components/NavbarFlotante';
 import PantallaProximamente from '../components/PantallaProximamente';
 import SelectorMes from '../components/SelectorMes';
 import SelectorSegmentado from '../components/SelectorSegmentado';
-import TarjetaPresupuesto, { NOMBRE_ESTADO } from '../components/TarjetaPresupuesto';
+import TarjetaPresupuesto from '../components/TarjetaPresupuesto';
 import { usePresupuestosService } from '../services/presupuestos';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
@@ -22,7 +22,8 @@ import { fonts } from '../theme/fonts';
 import { mensajeError } from '../utils/errores';
 import { mesActual } from '../utils/fechas';
 import { formatearMonto, nombreMes } from '../utils/formato';
-import { avanceBarra, resumenPresupuestos } from '../utils/presupuestos';
+import { gastoPorCategoriaDePresupuestos, resumenPresupuestos } from '../utils/presupuestos';
+import { etiquetaBarraMes, nivelPorcentaje, resumenGastoMes } from '../utils/resumenMes';
 
 // Secciones de Cartera. Suscripciones y Tarjetas aún no existen (badge "Pronto").
 const SECCIONES = [
@@ -120,7 +121,23 @@ export default function CarteraScreen({ navigation }) {
     cargar();
   };
 
-  const resumen = useMemo(() => resumenPresupuestos(presupuestos), [presupuestos]);
+  // Mismo resumen que la tarjeta de Inicio: lo gastado en cada categoría con presupuesto sobre el
+  // total presupuestado.
+  const resumen = useMemo(
+    () =>
+      resumenGastoMes(
+        gastoPorCategoriaDePresupuestos(presupuestos),
+        resumenPresupuestos(presupuestos).limite,
+      ),
+    [presupuestos],
+  );
+  const nivel = nivelPorcentaje(resumen.porcentaje);
+  const colorPorcentaje =
+    nivel === 'alerta'
+      ? colors.alerta
+      : nivel === 'aviso'
+        ? colors.avisoTexto
+        : colors.textSecondary;
 
   const listo = estado === 'listo';
   // Se eligió otro mes y la respuesta aún no llega: la lista anterior se atenúa.
@@ -161,19 +178,26 @@ export default function CarteraScreen({ navigation }) {
                   {formatearMonto(resumen.gastado)}
                 </Text>
                 <Text style={styles.resumenLimite} numberOfLines={1}>
-                  de {formatearMonto(resumen.limite)}
+                  de {formatearMonto(resumen.presupuesto)}
                 </Text>
               </View>
-              <BarraPresupuesto
-                fraccion={avanceBarra(resumen.porcentaje)}
-                porcentaje={resumen.porcentaje}
-                estado={resumen.estado}
-                etiqueta={`Total: ${resumen.porcentaje}% del presupuesto, ${NOMBRE_ESTADO[resumen.estado]}`}
-                style={styles.resumenBarra}
-              />
-              <Text style={styles.resumenPorcentaje}>
-                {resumen.porcentaje}% de lo presupuestado
-              </Text>
+              <View style={styles.resumenBarra}>
+                <View style={styles.resumenPista}>
+                  <BarraCategorias
+                    tramos={resumen.tramos}
+                    porcentaje={resumen.porcentaje}
+                    etiqueta={etiquetaBarraMes(resumen)}
+                  />
+                </View>
+                <Text style={[styles.resumenPorcentaje, { color: colorPorcentaje }]}>
+                  {resumen.porcentaje}%
+                </Text>
+              </View>
+              {resumen.excedente > 0 ? (
+                <Text style={styles.resumenExcedido}>
+                  Te pasaste por {formatearMonto(resumen.excedente)}
+                </Text>
+              ) : null}
             </View>
           ) : null}
 
@@ -351,16 +375,27 @@ const crearEstilos = (colors) =>
       fontSize: 14,
       color: colors.textVariant,
     },
+    // Barra por categorías con el porcentaje a la derecha (como en Inicio)
     resumenBarra: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
       marginTop: 14,
     },
-    // body-sm text-on-surface-variant
+    resumenPista: {
+      flex: 1,
+    },
     resumenPorcentaje: {
-      fontFamily: fonts.sans,
+      fontFamily: fonts.monoMedium,
+      fontSize: 12,
+      minWidth: 32,
+      textAlign: 'right',
+    },
+    resumenExcedido: {
+      fontFamily: fonts.sansMedium,
       fontSize: 12,
       lineHeight: 16,
-      letterSpacing: 0.12,
-      color: colors.textVariant,
+      color: colors.alerta,
       marginTop: 8,
     },
     // gap-2 entre presupuestos

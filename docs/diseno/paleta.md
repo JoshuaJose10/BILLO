@@ -145,19 +145,27 @@ Encima del brillo van el saludo de Inicio y el lema de Login y Registro, con tok
 
 Estado financiero. Cada uno tiene una variante `Suave` al ~15% para fondos de barras de progreso y avisos.
 En Cartera, la barra de cada presupuesto (`BarraPresupuesto`) se pinta según el `estado` que calcula la
-API: `ok` → `exito`, `alerta` → `aviso`, `excedido` → `alerta`, sobre una pista `surfaceHighest`. El
-resumen del mes usa el estado más grave de la lista.
+API, sobre una pista `surfaceHighest`: `ok` → `colorCategoria` de la categoría, `alerta` → `aviso`,
+`excedido` → `alerta` (el color cambia con un fundido de 220 ms). Junto al porcentaje va una pastilla de
+estado: "En meta" (`exitoSuave` + `exitoTexto`), "Cerca del límite" (`avisoSuave` + `avisoTexto`) y
+"Excedido" (`alertaSuave` + `alertaTexto`). El resumen del mes usa `BarraCategorias`, igual que Inicio.
+
+| Pastilla | Oscuro | Claro |
+| --- | --- | --- |
+| En meta | `#10B981` sobre `exitoSuave`: 5.72 | `#137343` sobre `exitoSuave`: 4.90 (`exito` daba 2.54) |
+| Cerca del límite | `#FF9F0A` sobre `avisoSuave`: 6.77 | `#A3470A` sobre `avisoSuave`: 5.02 (`aviso` daba 2.8) |
+| Excedido | `#FF453A` sobre `alertaSuave`: 4.57 | `#B42318` sobre `alertaSuave`: 5.09 (`alerta` daba 4.30) |
 
 En Inicio, la tarjeta "Gastado este mes" muestra `$gastado / $presupuesto` (el presupuesto en
 `textSecondary`) y `BarraCategorias`: un tramo por categoría con su `colorCategoria`, de mayor a menor,
 sobre la misma pista `surfaceHighest`. El porcentaje va en `textSecondary` (< 80%), `avisoTexto`
-(80–100%) o `alerta` (> 100%). Sin presupuestos, el enlace "Define un presupuesto" va en `acentoTexto`.
+(80–100%) o `alerta` (> 100%); en Cartera, el resumen sigue la misma regla. Sin presupuestos, el enlace "Define un presupuesto" va en `acentoTexto`.
 
 | Token | Valor | Variante suave | Uso |
 | --- | --- | --- | --- |
-| `exito` | `#10B981` | `exitoSuave` · `rgba(16, 185, 129, 0.15)` | En meta, ingresos |
+| `exito` | `#10B981` | `exitoSuave` · `rgba(16, 185, 129, 0.15)` | En meta, ingresos. Como texto: `exitoTexto` (`#10B981`, igual) |
 | `aviso` | `#FF9F0A` | `avisoSuave` · `rgba(255, 159, 10, 0.15)` | Cerca del límite. Como texto: `avisoTexto` (`#FF9F0A`, igual) |
-| `alerta` | `#FF453A` | `alertaSuave` · `rgba(255, 69, 58, 0.15)` | Límite excedido |
+| `alerta` | `#FF453A` | `alertaSuave` · `rgba(255, 69, 58, 0.15)` | Límite excedido. Texto sobre `alertaSuave`: `alertaTexto` (`#FF453A`, igual) |
 
 `alerta` también es el color de los errores en pantalla: textos de error de Input, Login, Registro y
 Nuevo gasto, aviso de error de Inicio y bordes de error de Input, MontoGrande y ChipCategoria. Es
@@ -383,11 +391,13 @@ figuras difuminadas de `FondoAuth`.
 | `iconoSombraOpacidad` / `iconoSombraRadio` / `iconoSombraY` | `0.2` / `10` / `6` | Sombra del ícono: más suave, amplia y baja |
 | `exito` | `#22A866` | En meta, ingresos (3.06:1 sobre blanco) |
 | `exitoSuave` | `rgba(34, 168, 102, 0.12)` | |
+| `exitoTexto` | `#137343` | Texto "En meta" sobre `exitoSuave` (4.90:1) |
 | `aviso` | `#D97706` | Cerca del límite (3.19:1 sobre blanco) |
 | `avisoSuave` | `rgba(217, 119, 6, 0.12)` | |
-| `avisoTexto` | `#B45309` | Aviso como texto chico (porcentaje de Inicio): 5.02:1 sobre blanco |
+| `avisoTexto` | `#A3470A` | Aviso como texto chico: porcentaje de Inicio y Cartera, pastilla "Cerca del límite" (5.02:1 sobre `avisoSuave`) |
 | `alerta` | `#C8281C` | Límite excedido y errores (5.56:1 sobre blanco, 4.92 sobre `background`) |
 | `alertaSuave` | `rgba(200, 40, 28, 0.12)` | |
+| `alertaTexto` | `#B42318` | Texto "Excedido" sobre `alertaSuave` (5.09:1) |
 | `alertaSolido` | `#C8281C` | Fondo de la acción "Eliminar" al deslizar (5.56:1 con blanco) |
 
 `alerta` llega a 4.5:1 y no solo a 3:1 porque también es el color de los textos de error. El `#FF453A`

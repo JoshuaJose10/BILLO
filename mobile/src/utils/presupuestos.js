@@ -39,6 +39,15 @@ export function excedente({ gastado, monto_limite }) {
   return Math.max(redondear2(numero(gastado) - numero(monto_limite)), 0);
 }
 
+// Lo gastado en cada categoría con presupuesto, en el formato de gastoPorCategoria
+// (utils/resumenMes.js) para dibujar la barra por categorías del resumen de Cartera:
+// [{ id, nombre, total }] de mayor a menor.
+export function gastoPorCategoriaDePresupuestos(presupuestos) {
+  return (presupuestos || [])
+    .map((p) => ({ id: String(p.categoria_id), nombre: p.categoria, total: numero(p.gastado) }))
+    .sort((a, b) => b.total - a.total);
+}
+
 // El estado más grave de la lista (para el color del resumen): excedido > alerta > ok.
 export function estadoMasGrave(presupuestos) {
   return (presupuestos || []).reduce(

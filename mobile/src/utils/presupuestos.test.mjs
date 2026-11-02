@@ -7,6 +7,7 @@ import {
   categoriasDeGasto,
   estadoMasGrave,
   excedente,
+  gastoPorCategoriaDePresupuestos,
   normalizarPresupuesto,
   resumenPresupuestos,
 } from './presupuestos.js';
@@ -70,6 +71,27 @@ describe('excedente', () => {
 
   it('no arrastra errores de coma flotante', () => {
     assert.equal(excedente({ gastado: 0.3, monto_limite: 0.1 }), 0.2);
+  });
+});
+
+describe('gastoPorCategoriaDePresupuestos', () => {
+  it('toma lo gastado de cada presupuesto, de mayor a menor', () => {
+    assert.deepEqual(
+      gastoPorCategoriaDePresupuestos([
+        { categoria_id: 1, categoria: 'Comida', gastado: 560 },
+        { categoria_id: 2, categoria: 'Servicios', gastado: '1200.50' },
+        { categoria_id: 3, categoria: 'Salud', gastado: 0 },
+      ]),
+      [
+        { id: '2', nombre: 'Servicios', total: 1200.5 },
+        { id: '1', nombre: 'Comida', total: 560 },
+        { id: '3', nombre: 'Salud', total: 0 },
+      ],
+    );
+  });
+
+  it('tolera null', () => {
+    assert.deepEqual(gastoPorCategoriaDePresupuestos(null), []);
   });
 });
 

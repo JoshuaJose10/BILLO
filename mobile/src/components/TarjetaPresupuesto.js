@@ -15,8 +15,16 @@ export const NOMBRE_ESTADO = {
   excedido: 'excedido',
 };
 
-// Presupuesto de una categoría en Cartera: ícono, nombre, "gastado / límite", porcentaje y barra
-// coloreada por `estado`. En excedido, "Te pasaste por $X". Fondo opaco para FilaDeslizable.
+// Texto de la pastilla de estado.
+const PASTILLA = {
+  ok: 'En meta',
+  alerta: 'Cerca del límite',
+  excedido: 'Excedido',
+};
+
+// Presupuesto de una categoría en Cartera: ícono, nombre, pastilla de estado, porcentaje,
+// "gastado / límite" y barra (color de la categoría en meta, aviso o alerta según el `estado` de
+// la API). En excedido, "Te pasaste por $X". Fondo opaco para FilaDeslizable.
 export default function TarjetaPresupuesto({ presupuesto }) {
   const styles = useEstilos(crearEstilos);
   const { categoria, gastado, monto_limite: limite, porcentaje, estado } = presupuesto;
@@ -30,7 +38,14 @@ export default function TarjetaPresupuesto({ presupuesto }) {
           <Text style={styles.nombre} numberOfLines={1}>
             {categoria}
           </Text>
-          <Text style={styles.porcentaje}>{porcentaje}%</Text>
+          <View style={styles.estado}>
+            <View style={[styles.pastilla, styles[`pastilla_${estado}`]]}>
+              <Text style={[styles.pastillaTexto, styles[`pastillaTexto_${estado}`]]}>
+                {PASTILLA[estado]}
+              </Text>
+            </View>
+            <Text style={styles.porcentaje}>{porcentaje}%</Text>
+          </View>
         </View>
         <Text style={styles.montos} numberOfLines={1}>
           {formatearMonto(gastado)} / {formatearMonto(limite)}
@@ -39,6 +54,7 @@ export default function TarjetaPresupuesto({ presupuesto }) {
           fraccion={avanceBarra(porcentaje)}
           porcentaje={porcentaje}
           estado={estado}
+          categoria={categoria}
           etiqueta={`${categoria}: ${porcentaje}% del presupuesto, ${NOMBRE_ESTADO[estado]}`}
           style={styles.barra}
         />
@@ -69,7 +85,7 @@ const crearEstilos = (colors) =>
     },
     cabecera: {
       flexDirection: 'row',
-      alignItems: 'baseline',
+      alignItems: 'center',
       justifyContent: 'space-between',
       gap: 8,
     },
@@ -81,6 +97,41 @@ const crearEstilos = (colors) =>
       lineHeight: 20,
       letterSpacing: -0.35,
       color: colors.text,
+    },
+    // Pastilla y porcentaje a la derecha del nombre
+    estado: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    // px-2 py-0.5 rounded-full: fondo suave del estado y texto en su tono (>= 4.5:1)
+    pastilla: {
+      paddingHorizontal: 7,
+      paddingVertical: 2,
+      borderRadius: radios.full,
+    },
+    pastilla_ok: {
+      backgroundColor: colors.exitoSuave,
+    },
+    pastilla_alerta: {
+      backgroundColor: colors.avisoSuave,
+    },
+    pastilla_excedido: {
+      backgroundColor: colors.alertaSuave,
+    },
+    pastillaTexto: {
+      fontFamily: fonts.sansSemiBold,
+      fontSize: 10,
+      lineHeight: 14,
+    },
+    pastillaTexto_ok: {
+      color: colors.exitoTexto,
+    },
+    pastillaTexto_alerta: {
+      color: colors.avisoTexto,
+    },
+    pastillaTexto_excedido: {
+      color: colors.alertaTexto,
     },
     porcentaje: {
       fontFamily: fonts.monoSemiBold,
