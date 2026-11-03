@@ -20,6 +20,90 @@ const formatearPresupuesto = (row) => ({
   monto_limite: Number(row.monto_limite),
 });
 
+// Consulta compartida entre GET /presupuestos (HU-24) y el cálculo de alerta en gastos (HU-25)
+const consultarEstadoPresupuestos = async (
+  usuarioId,
+  mes,
+  categoriaId = null
+) => {
+  const query = `
+    SELECT
+      p.id,
+      p.categoria_id,
+      c.nombre AS categoria,
+      TRIM(p.mes) AS mes,
+      p.monto_limite,
+      GREATEST(COALESCE(SUM(g.monto), 0), 0) AS gastado,
+      GREATEST(ROUND((COALESCE(SUM(g.monto), 0) * 100.0) / p.monto_limite), 0) AS porcentaje,
+      CASE
+        WHEN COALESCE(SUM(g.monto), 0) > p.monto_limite THEN 'excedido'
+        WHEN COALESCE(SUM(g.monto), 0) * 100 >= p.monto_limite * 80 THEN 'alerta'
+        ELSE 'ok'
+      END AS estado
+    FROM presupuestos p
+    INNER JOIN categorias c ON c.id = p.categoria_id
+    LEFT JOIN gastos g
+      ON g.usuario_id = p.usuario_id
+      AND g.categoria_id = p.categoria_id
+      AND TO_CHAR(g.fecha, 'YYYY-MM') = TRIM(p.mes)
+    WHERE p.usuario_id = $1
+      AND TRIM(p.mes) = $2
+      AND ($3::int IS NULL OR p.categoria_id = $3)
+    GROUP BY p.id, p.categoria_id, c.nombre, p.mes, p.monto_limite
+    ORDER BY p.id ASC
+  `;
+
+  const { rows } = await pool.query(query, [usuarioId, mes, categoriaId]);
+
+  return rows.map((row) => {
+    const gastado = Math.max(0, Number(row.gastado) || 0);
+    const porcentaje = Math.max(0, Number(row.porcentaje) || 0);
+    return {
+      id: row.id,
+      categoria_id: row.categoria_id,
+      categoria: row.categoria,
+      mes: row.mes,
+      monto_limite: Number(row.monto_limite),
+      gastado,
+      porcentaje,
+      estado: row.estado,
+    };
+  });
+};
+
+// Calcula la alerta de presupuesto tras crear o actualizar un gasto; nunca lanza excepción para no impedir que el gasto se guarde
+const calcularAlertaPresupuesto = async (usuarioId, categoriaId, fecha) => {
+  try {
+    const mes = typeof fecha === 'string' ? fecha.slice(0, 7) : '';
+    if (!esMesValido(mes)) {
+      return null;
+    }
+
+    const presupuestos = await consultarEstadoPresupuestos(
+      usuarioId,
+      mes,
+      categoriaId
+    );
+    if (presupuestos.length === 0) {
+      return null;
+    }
+
+    const { categoria_id, porcentaje, estado } = presupuestos[0];
+    if (estado === 'alerta' || estado === 'excedido') {
+      return {
+        categoria_id,
+        porcentaje,
+        estado,
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error al calcular alerta de presupuesto:', error.message);
+    return null;
+  }
+};
+
 // POST /presupuestos
 const crearPresupuesto = async (req, res) => {
   try {
@@ -122,44 +206,7 @@ const listarPresupuestos = async (req, res) => {
       });
     }
 
-    const query = `
-      SELECT
-        p.id,
-        p.categoria_id,
-        c.nombre AS categoria,
-        TRIM(p.mes) AS mes,
-        p.monto_limite,
-        COALESCE(SUM(g.monto), 0) AS gastado,
-        ROUND((COALESCE(SUM(g.monto), 0) * 100.0) / p.monto_limite) AS porcentaje,
-        CASE
-          WHEN COALESCE(SUM(g.monto), 0) > p.monto_limite THEN 'excedido'
-          WHEN COALESCE(SUM(g.monto), 0) * 100 >= p.monto_limite * 80 THEN 'alerta'
-          ELSE 'ok'
-        END AS estado
-      FROM presupuestos p
-      INNER JOIN categorias c ON c.id = p.categoria_id
-      LEFT JOIN gastos g
-        ON g.usuario_id = p.usuario_id
-        AND g.categoria_id = p.categoria_id
-        AND TO_CHAR(g.fecha, 'YYYY-MM') = TRIM(p.mes)
-      WHERE p.usuario_id = $1 AND TRIM(p.mes) = $2
-      GROUP BY p.id, p.categoria_id, c.nombre, p.mes, p.monto_limite
-      ORDER BY p.id ASC
-    `;
-
-    const { rows } = await pool.query(query, [usuarioId, mes]);
-
-    const resultado = rows.map((row) => ({
-      id: row.id,
-      categoria_id: row.categoria_id,
-      categoria: row.categoria,
-      mes: row.mes,
-      monto_limite: Number(row.monto_limite),
-      gastado: Number(row.gastado),
-      porcentaje: Number(row.porcentaje),
-      estado: row.estado,
-    }));
-
+    const resultado = await consultarEstadoPresupuestos(usuarioId, mes);
     return res.status(200).json(resultado);
   } catch (error) {
     console.error('Error al listar presupuestos:', error.message);
@@ -292,5 +339,6 @@ module.exports = {
   listarPresupuestos,
   actualizarPresupuesto,
   eliminarPresupuesto,
+  consultarEstadoPresupuestos,
+  calcularAlertaPresupuesto,
 };
-
