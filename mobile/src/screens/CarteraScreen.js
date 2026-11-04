@@ -53,7 +53,9 @@ const APARECER = FadeIn.duration(180);
 // Presupuestos (RF3): los del mes por categoría con su avance. El estado y el porcentaje de cada
 // uno los calcula la API. Tocar un presupuesto lo edita; deslizarlo muestra Editar y Eliminar.
 // Crear y editar abren la hoja Presupuesto.
-export default function CarteraScreen({ navigation }) {
+// Parámetros opcionales (los manda el aviso de presupuesto, HU-35): `seccion`, `mes` y `solicitud`
+// (marca de tiempo para volver a aplicarlos aunque Cartera ya esté abierta).
+export default function CarteraScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
   const { colors } = useTema();
@@ -69,6 +71,19 @@ export default function CarteraScreen({ navigation }) {
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
   const [textoError, setTextoError] = useState('');
   const [refrescando, setRefrescando] = useState(false);
+
+  // Aplica los parámetros una vez por `solicitud`, durante el render (sin efecto) como recomienda
+  // React para ajustar estado a partir de props.
+  const { solicitud, seccion: seccionPedida, mes: mesPedido } = route.params ?? {};
+  const [solicitudAplicada, setSolicitudAplicada] = useState(null);
+  if (solicitud && solicitud !== solicitudAplicada) {
+    setSolicitudAplicada(solicitud);
+    if (SECCIONES.some((s) => s.valor === seccionPedida)) setSeccion(seccionPedida);
+    if (/^\d{4}-\d{2}$/.test(mesPedido ?? '') && mesPedido !== mes) {
+      setMes(mesPedido);
+      if (estado === 'error') setEstado('cargando');
+    }
+  }
 
   // Cada petición recibe un número; si al responder ya hay una más nueva, se descarta.
   const ultimaPeticion = useRef(0);
