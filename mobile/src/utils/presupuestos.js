@@ -56,6 +56,18 @@ export function estadoMasGrave(presupuestos) {
   );
 }
 
+// Presupuestos en riesgo para Inicio: solo 'alerta' y 'excedido', primero los excedidos y luego
+// de mayor a menor porcentaje.
+export function presupuestosEnRiesgo(presupuestos) {
+  return (presupuestos || [])
+    .filter((p) => p.estado === 'alerta' || p.estado === 'excedido')
+    .sort(
+      (a, b) =>
+        ESTADOS.indexOf(b.estado) - ESTADOS.indexOf(a.estado) ||
+        numero(b.porcentaje) - numero(a.porcentaje),
+    );
+}
+
 // Totales del mes: suma de límites y de gastado, y el porcentaje redondeado.
 export function resumenPresupuestos(presupuestos) {
   const lista = presupuestos || [];
