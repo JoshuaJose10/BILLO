@@ -9,6 +9,21 @@ const reportesRoutes = require('./routes/reportes.routes');
 const tipoCambioRoutes = require('./routes/tipoCambio.routes');
 
 const app = express();
+
+// Soporte CORS para clientes web (Expo Web / navegadores)
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+  );
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/categorias', categoriasRoutes);
