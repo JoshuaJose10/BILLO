@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { Platform } from 'react-native';
 
 import { apiFetch, setAlNoAutorizado } from '../services/api';
 import * as authService from '../services/auth';
@@ -34,27 +35,58 @@ export function AuthProvider({ children }) {
 
   // Al abrir la app recupera la sesión guardada.
   useEffect(() => {
+    let activo = true;
+    const timer = setTimeout(() => {
+      if (activo) setCargando(false);
+    }, 1500);
+
     (async () => {
       try {
-        const [tokenGuardado, usuarioGuardado] = await Promise.all([
-          SecureStore.getItemAsync(CLAVE_TOKEN),
-          SecureStore.getItemAsync(CLAVE_USUARIO),
-        ]);
-        if (tokenGuardado) {
+        let tokenGuardado = null;
+        let usuarioGuardado = null;
+
+        if (Platform.OS === 'web') {
+          if (typeof localStorage !== 'undefined') {
+            tokenGuardado = localStorage.getItem(CLAVE_TOKEN);
+            usuarioGuardado = localStorage.getItem(CLAVE_USUARIO);
+          }
+        } else {
+          [tokenGuardado, usuarioGuardado] = await Promise.all([
+            SecureStore.getItemAsync(CLAVE_TOKEN),
+            SecureStore.getItemAsync(CLAVE_USUARIO),
+          ]);
+        }
+
+        if (activo && tokenGuardado) {
           setToken(tokenGuardado);
           setUsuario(usuarioGuardado ? JSON.parse(usuarioGuardado) : null);
         }
       } catch {
         // Si no se puede leer, se arranca sin sesión.
       } finally {
-        setCargando(false);
+        if (activo) {
+          clearTimeout(timer);
+          setCargando(false);
+        }
       }
     })();
+
+    return () => {
+      activo = false;
+      clearTimeout(timer);
+    };
   }, []);
 
   const guardarSesion = useCallback(async (nuevoToken, nuevoUsuario) => {
-    await SecureStore.setItemAsync(CLAVE_TOKEN, nuevoToken);
-    await SecureStore.setItemAsync(CLAVE_USUARIO, JSON.stringify(nuevoUsuario ?? null));
+    if (Platform.OS === 'web') {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(CLAVE_TOKEN, nuevoToken);
+        localStorage.setItem(CLAVE_USUARIO, JSON.stringify(nuevoUsuario ?? null));
+      }
+    } else {
+      await SecureStore.setItemAsync(CLAVE_TOKEN, nuevoToken);
+      await SecureStore.setItemAsync(CLAVE_USUARIO, JSON.stringify(nuevoUsuario ?? null));
+    }
     setMotivoCierre(null);
     setUsuario(nuevoUsuario ?? null);
     setToken(nuevoToken);
@@ -65,8 +97,15 @@ export function AuthProvider({ children }) {
     setToken(null);
     setUsuario(null);
     try {
-      await SecureStore.deleteItemAsync(CLAVE_TOKEN);
-      await SecureStore.deleteItemAsync(CLAVE_USUARIO);
+      if (Platform.OS === 'web') {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem(CLAVE_TOKEN);
+          localStorage.removeItem(CLAVE_USUARIO);
+        }
+      } else {
+        await SecureStore.deleteItemAsync(CLAVE_TOKEN);
+        await SecureStore.deleteItemAsync(CLAVE_USUARIO);
+      }
     } catch {
       // El estado en memoria ya quedó limpio.
     }
@@ -98,11 +137,12 @@ export function AuthProvider({ children }) {
     [guardarSesion, iniciarSesion],
   );
 
-  // Un 401 con el token de la sesión actual la cierra con el aviso de sesión vencida.
-  // Si la petición usó un token anterior (el usuario ya salió o volvió a entrar), se ignora.
+  // Registro del hook global para 401: si un endpoint con token responde 401, se cierra la sesión
+  // solo si la petición se hizo con el token que sigue activo (evita que una petición vieja cierre
+  // una sesión recién iniciada).
   useEffect(() => {
-    setAlNoAutorizado((tokenUsado) => {
-      if (tokenUsado === tokenRef.current) {
+    setAlNoAutorizado((tokenPeticion) => {
+      if (tokenPeticion && tokenPeticion === tokenRef.current) {
         terminarSesion(SESION_VENCIDA);
       }
     });
@@ -136,18 +176,18 @@ export function AuthProvider({ children }) {
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error('useAuth debe usarse dentro de <AuthProvider>');
+  const contexto = useContext(AuthContext);
+  if (!contexto) {
+    throw new Error('useAuth debe usarse dentro de un AuthProvider');
   }
-  return ctx;
+  return contexto;
 }
 
-// Helper para las llamadas autenticadas de las siguientes HU:
-//   const api = useApi();
-//   const categorias = await api('/categorias?tipo=gasto');
-// Envía el token y, si la API responde 401, cierra la sesión automáticamente.
+// Hook de ayuda para servicios: apiFetch con el token de la sesión inyectado.
 export function useApi() {
   const { token } = useAuth();
-  return useCallback((ruta, opciones = {}) => apiFetch(ruta, { ...opciones, token }), [token]);
+  return useCallback(
+    (ruta, opciones = {}) => apiFetch(ruta, { ...opciones, token: token ?? undefined }),
+    [token],
+  );
 }
