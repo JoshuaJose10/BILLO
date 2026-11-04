@@ -133,6 +133,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
       nota: nota.trim() || null,
     };
     try {
+      // { gasto, alerta }: la alerta se usa para el aviso de presupuesto (HU-35).
       if (editando) {
         await actualizarGasto(gastoEditado.id, datos);
       } else {
