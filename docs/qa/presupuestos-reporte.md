@@ -1,9 +1,3 @@
-# QA presupuestos
-
-Fecha local: **2026-11-03**, America/Mexico_City. Prioridad: Alta. Revisa: **Joshua**.
-
-**Resultado general: NO APROBADO para cierre.** Los cálculos, los umbrales y el aislamiento de la API pasan. El móvil pierde el aviso al guardar un gasto: [PRES-QA-01](bugs/PRES-QA-01-aviso-mobile.md), severidad Alta, responsable Fernando Villafuerte. La ejecución visual en Android y la repetición propia de Joshua están pendientes.
-
 ## Dictamen por historia
 
 Se usa la asociación de esta tarea: HU-24 / RF3 y HU-29 / RF4. El código del aviso también lo referencia como HU-25; conservar esa referencia técnica no cambia las dependencias solicitadas.
@@ -74,14 +68,6 @@ El test móvil de límites verifica que normalizar el presupuesto, elegir el est
 - Para A, noviembre con 799.99/1000 permanece `ok` aunque B tenga 1000 en noviembre, A tenga 1000 en diciembre y otra categoría tenga 5000. Diciembre y el usuario B conservan sus propios totales; un mes sin datos devuelve `[]`.
 - La unicidad solo aplica a usuario + categoría + mes. Cambiar límite recalcula el porcentaje; editar un gasto reemplaza su importe sin duplicarlo; moverlo de mes o categoría y borrarlo actualiza el presupuesto original. Eliminar un presupuesto no elimina sus gastos.
 - Se prueban montos inválidos, mes obligatorio/inválido, categoría inexistente, duplicados, ausencia de token y token inválido. Los rechazos no persisten cambios.
-
-## Bugs y tareas
-
-| Bug | Tarea local | Severidad | Responsable | Estado |
-|---|---|---|---|---|
-| [PRES-QA-01: se pierde el aviso en el móvil](bugs/PRES-QA-01-aviso-mobile.md) | [QA-PRES-01](presupuestos-tareas.md#qa-pres-01--conservar-y-mostrar-el-aviso-de-presupuesto) | Alta | Fernando Villafuerte, confirmado por el solicitante | Abierto |
-
-El seguimiento local cumple la opción de archivo de seguimiento de la plantilla del proyecto. No se creó una tarea externa ni se inventó un enlace de ClickUp. La fecha de corrección queda por acordar.
 
 ## Validaciones y límites de esta entrega
 
