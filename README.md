@@ -111,7 +111,7 @@ Guía completa (requisitos, cómo correr, mapa de pantallas y lint): [mobile/REA
 
 ### Requisitos
 
-- [Node.js](https://nodejs.org/) 20 LTS o superior
+- [Node.js](https://nodejs.org/) 22.13 o superior (lo exige Expo SDK 58)
 - [Git](https://git-scm.com/)
 - Una de estas opciones para correr la app en Android:
   - La app **Expo Go** instalada en un teléfono Android, o

@@ -271,7 +271,7 @@ export default function FilaDeslizable({
         friction={2}
         overshootFriction={8}
         // El gesto se activa con 20 px horizontales; un arrastre vertical lo toma el scroll.
-        dragOffsetFromRightEdge={20}
+        dragOffsetFromRight={-20}
         enabled={!eliminando}
         containerStyle={styles.contenedor}
         animationOptions={RESORTE}
