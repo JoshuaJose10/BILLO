@@ -10,13 +10,14 @@ import Etiqueta from './Etiqueta';
 // rounded-2xl p-3.5, en oscuro tinte violeta translúcido con borde luminoso y en claro tarjeta
 // blanca con sombra suave. Línea con items-baseline: "$" 30 mono, entero 48 bold tracking-tighter
 // y decimales 30 mono medium. Vacío: "$0.00" todo en gris.
-export default function MontoGrande({ texto, error = false }) {
+// `etiqueta`: el título de arriba ("Importe" en gastos, "Límite" en presupuestos).
+export default function MontoGrande({ texto, error = false, etiqueta = 'Importe' }) {
   const styles = useEstilos(crearEstilos);
   const { entero, decimales } = partesMontoCaptura(texto);
 
   return (
     <View style={[styles.contenedor, error ? styles.contenedorError : null]}>
-      <Etiqueta style={styles.etiqueta}>Importe</Etiqueta>
+      <Etiqueta style={styles.etiqueta}>{etiqueta}</Etiqueta>
       <Text
         style={styles.linea}
         numberOfLines={1}

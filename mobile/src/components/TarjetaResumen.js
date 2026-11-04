@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colorCategoria } from '../theme/categorias';
 import { radios } from '../theme/colors';
@@ -7,21 +7,83 @@ import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { iconoCategoria } from '../utils/categorias';
 import { formatearMonto, formatearMontoCorto } from '../utils/formato';
+import { etiquetaBarraMes, nivelPorcentaje } from '../utils/resumenMes';
+import BarraCategorias from './BarraCategorias';
 
 // Tarjeta de vidrio "Gastado este mes" (Stitch: Inicio, "Glass Card: Gasto Mensual"):
-// texto a la izquierda y total a la derecha; debajo, chips con las categorías de mayor
-// gasto (`principales` = [{ id, nombre, total }]). Sin meta ni barra de progreso.
-export default function TarjetaResumen({ total, principales = [] }) {
+// "$gastado / $presupuesto", la barra dividida por categoría con el porcentaje del presupuesto y
+// los chips de las categorías de mayor gasto (`principales` = [{ id, nombre, total }]), que sirven
+// de leyenda de la barra.
+// - `resumen`: de resumenGastoMes ({ gastado, presupuesto, porcentaje, excedente, tramos }).
+//   Sin presupuesto solo se muestra "$gastado" y la barra reparte el 100% entre categorías.
+// - `conPresupuestos`: false si no se pudieron cargar los presupuestos; entonces no se ofrece
+//   "Define un presupuesto" (Inicio no muestra error por eso).
+// - `onDefinirPresupuesto`: abre Cartera.
+export default function TarjetaResumen({
+  resumen,
+  principales = [],
+  conPresupuestos = true,
+  onDefinirPresupuesto,
+}) {
   const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
+  const { gastado, presupuesto, porcentaje, excedente, tramos } = resumen;
+  const conLimite = presupuesto > 0;
+  const nivel = conLimite ? nivelPorcentaje(porcentaje) : null;
+  const colorPorcentaje =
+    nivel === 'alerta'
+      ? colors.alerta
+      : nivel === 'aviso'
+        ? colors.avisoTexto
+        : colors.textSecondary;
+  const mostrarBarra = conLimite || gastado > 0;
+
   return (
     <View style={styles.tarjeta}>
       <View style={styles.fila}>
         <Text style={styles.texto}>Gastado este mes</Text>
-        <Text style={styles.total} numberOfLines={1} adjustsFontSizeToFit>
-          {formatearMonto(total)}
+        <Text style={styles.montos} numberOfLines={1} adjustsFontSizeToFit>
+          <Text style={styles.total}>{formatearMonto(gastado)}</Text>
+          {conLimite ? (
+            <Text style={styles.limite}> / {formatearMontoCorto(presupuesto)}</Text>
+          ) : null}
         </Text>
       </View>
+
+      {mostrarBarra ? (
+        <View style={styles.filaBarra}>
+          <View style={styles.barra}>
+            <BarraCategorias
+              tramos={tramos}
+              porcentaje={porcentaje}
+              etiqueta={etiquetaBarraMes(resumen)}
+            />
+          </View>
+          {conLimite ? (
+            <Text style={[styles.porcentaje, { color: colorPorcentaje }]}>{porcentaje}%</Text>
+          ) : null}
+        </View>
+      ) : null}
+
+      {excedente > 0 ? (
+        <Text style={styles.excedido}>Te pasaste por {formatearMonto(excedente)}</Text>
+      ) : null}
+
+      {!conLimite && conPresupuestos && onDefinirPresupuesto ? (
+        <Pressable
+          onPress={onDefinirPresupuesto}
+          hitSlop={8}
+          accessibilityRole="link"
+          accessibilityHint="Abre Cartera"
+          style={styles.enlace}
+        >
+          {({ pressed }) => (
+            <Text style={[styles.enlaceTexto, pressed ? styles.enlacePresionado : null]}>
+              Define un presupuesto
+            </Text>
+          )}
+        </Pressable>
+      ) : null}
 
       {principales.length > 0 ? (
         <View style={styles.chips}>
@@ -78,13 +140,58 @@ const crearEstilos = (colors) =>
       lineHeight: 20,
       color: colors.onSurface,
     },
+    montos: {
+      flexShrink: 1,
+    },
     // font-financial-metric-md text-[15px] text-primary font-semibold
     total: {
       fontFamily: fonts.monoSemiBold,
-      flexShrink: 1,
       fontSize: 15,
       letterSpacing: -0.15,
       color: colors.text,
+    },
+    // "/ $5,000": font-label-caps text-[11px] text-secondary (Stitch)
+    limite: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    // flex items-center gap-2 mb-2.5
+    filaBarra: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 12,
+    },
+    barra: {
+      flex: 1,
+    },
+    // font-label-caps text-[10px]
+    porcentaje: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 11,
+      minWidth: 30,
+      textAlign: 'right',
+    },
+    excedido: {
+      fontFamily: fonts.sansMedium,
+      fontSize: 12,
+      lineHeight: 16,
+      color: colors.alerta,
+      marginTop: 6,
+    },
+    enlace: {
+      alignSelf: 'flex-start',
+      marginTop: 10,
+    },
+    enlaceTexto: {
+      fontFamily: fonts.sansMedium,
+      fontSize: 13,
+      lineHeight: 18,
+      color: colors.acentoTexto,
+    },
+    enlacePresionado: {
+      opacity: 0.6,
     },
     // Solo espacio entre el total y los chips (sin línea divisoria).
     chips: {

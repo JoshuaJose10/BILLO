@@ -7,14 +7,26 @@ import { fonts } from '../theme/fonts';
 import { useAlturaNavbar } from './NavbarFlotante';
 
 // Placeholder de las pestañas que aún no se implementan.
-export default function PantallaProximamente({ titulo, mensaje, icono }) {
+// `incrustada`: dentro de una sección de otra pantalla (Cartera): sin fondo, sin márgenes de la
+// barra de estado ni de la navbar y sin ocupar todo el alto.
+export default function PantallaProximamente({ titulo, mensaje, icono, incrustada = false }) {
   const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
   return (
-    <View style={[styles.pantalla, { paddingTop: insets.top, paddingBottom: alturaNavbar }]}>
+    <View
+      style={
+        incrustada
+          ? [styles.contenido, styles.incrustada]
+          : [
+              styles.contenido,
+              styles.pantalla,
+              { paddingTop: insets.top, paddingBottom: alturaNavbar },
+            ]
+      }
+    >
       {icono ? (
         <MaterialCommunityIcons name={icono} size={40} color={colors.textSecondary} />
       ) : null}
@@ -26,13 +38,18 @@ export default function PantallaProximamente({ titulo, mensaje, icono }) {
 
 const crearEstilos = (colors) =>
   StyleSheet.create({
-    pantalla: {
-      flex: 1,
+    contenido: {
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
       paddingHorizontal: 32,
+    },
+    pantalla: {
+      flex: 1,
       backgroundColor: colors.background,
+    },
+    incrustada: {
+      paddingVertical: 48,
     },
     titulo: {
       fontFamily: fonts.sansBold,

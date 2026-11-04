@@ -17,12 +17,10 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { useGastosService } from '../services/gastos';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { mensajeError } from '../utils/errores';
-import ItemGasto from './ItemGasto';
 
 const TAMANO_ACCION = 56;
 const SEPARACION = 8;
@@ -129,7 +127,7 @@ function BotonAccion({ progreso, desplazamiento, reducirMovimiento, style, child
 // Acciones detrás de la fila, a la derecha: Editar (vidrio con tinte del acento) y Eliminar (rojo
 // sólido). Ya están renderizadas; la fila (opaca) las destapa al deslizar. Eliminar, el de más
 // afuera, llega desde más lejos que Editar.
-function AccionesGasto({ progreso, onEditar, onEliminar, deshabilitadas }) {
+function AccionesFila({ progreso, onEditar, onEliminar, deshabilitadas }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
   const reducirMovimiento = useReducedMotion();
@@ -169,21 +167,27 @@ function AccionesGasto({ progreso, onEditar, onEliminar, deshabilitadas }) {
   );
 }
 
-// Fila de gasto que se desliza a la izquierda para mostrar Editar y Eliminar (no hay "deslizar
-// hasta el fondo para eliminar"). Tocar la fila (cerrada) abre la edición; si está abierta, solo
-// la cierra. Al empezar a deslizarla para abrir vibra una vez ("desenganche"). `filas` viene de
-// useFilasDeslizables de la lista; `onEditar(gasto)` abre la edición y `onEliminado(id)` avisa a
-// la lista para quitar la fila y recargar. Al eliminarse, la fila se desvanece y las de abajo
-// suben con una transición de layout.
-export default function FilaGastoDeslizable({
-  gasto,
-  nombreCategoria,
-  metodoPago,
+// Fila que se desliza a la izquierda para mostrar Editar y Eliminar (no hay "deslizar hasta el
+// fondo para eliminar"); sirve para gastos y presupuestos. Tocar la fila (cerrada) edita; si está
+// abierta, solo la cierra. Al empezar a deslizarla para abrir vibra una vez ("desenganche").
+// - `children`: el contenido de la fila; debe ser opaco para tapar las acciones de atrás.
+// - `filas`: de useFilasDeslizables de la lista (una sola abierta, cierre al hacer scroll).
+// - `onEditar()`: abre la edición.
+// - `eliminar()`: la llamada a la API; si lanza el error `codigoNoExiste`, se trata como ya
+//   eliminado (`mensajeNoExiste`).
+// - `onEliminado()`: avisa a la lista para quitar la fila y recargar. Al eliminarse, la fila se
+//   desvanece y las de abajo suben con una transición de layout.
+// - `tituloEliminar`: pregunta de la confirmación (p. ej. "¿Eliminar gasto?").
+export default function FilaDeslizable({
   filas,
   onEditar,
+  eliminar: eliminarEnApi,
   onEliminado,
+  tituloEliminar,
+  codigoNoExiste,
+  mensajeNoExiste,
+  children,
 }) {
-  const { eliminarGasto } = useGastosService();
   const styles = useEstilos(crearEstilos);
   const swipeRef = useRef(null);
   const enviando = useRef(false);
@@ -199,7 +203,7 @@ export default function FilaGastoDeslizable({
 
   const editar = () => {
     cerrar();
-    onEditar(gasto);
+    onEditar();
   };
 
   const eliminar = async () => {
@@ -207,15 +211,15 @@ export default function FilaGastoDeslizable({
     enviando.current = true;
     setEliminando(true);
     try {
-      await eliminarGasto(gasto.id);
-      onEliminado(gasto.id);
+      await eliminarEnApi();
+      onEliminado();
     } catch (error) {
       enviando.current = false;
       setEliminando(false);
       cerrar();
-      if (error?.code === 'GASTO_NO_ENCONTRADO') {
-        Alert.alert('Este gasto ya no existe', 'Actualizamos la lista.');
-        onEliminado(gasto.id);
+      if (codigoNoExiste && error?.code === codigoNoExiste) {
+        Alert.alert(mensajeNoExiste, 'Actualizamos la lista.');
+        onEliminado();
       } else {
         Alert.alert('No se pudo eliminar', mensajeError(error?.code, error?.message));
       }
@@ -226,7 +230,7 @@ export default function FilaGastoDeslizable({
   const confirmarEliminar = () => {
     if (enviando.current) return;
     Alert.alert(
-      '¿Eliminar gasto?',
+      tituloEliminar,
       'Esta acción no se puede deshacer.',
       [
         { text: 'Cancelar', style: 'cancel', onPress: cerrar },
@@ -243,7 +247,7 @@ export default function FilaGastoDeslizable({
       return;
     }
     vibrar(Haptics.ImpactFeedbackStyle.Light);
-    onEditar(gasto);
+    onEditar();
   };
 
   // Una sola vibración por gesto: el callback corre una vez al empezar a arrastrar. Solo al
@@ -272,7 +276,7 @@ export default function FilaGastoDeslizable({
         containerStyle={styles.contenedor}
         animationOptions={RESORTE}
         renderRightActions={(progreso) => (
-          <AccionesGasto
+          <AccionesFila
             progreso={progreso}
             onEditar={editar}
             onEliminar={confirmarEliminar}
@@ -317,14 +321,7 @@ export default function FilaGastoDeslizable({
           onAccessibilityAction={accionAccesible}
           style={eliminando ? styles.eliminando : null}
         >
-          <Animated.View style={presion.estilo}>
-            <ItemGasto
-              gasto={gasto}
-              nombreCategoria={nombreCategoria}
-              metodoPago={metodoPago}
-              opaca
-            />
-          </Animated.View>
+          <Animated.View style={presion.estilo}>{children}</Animated.View>
         </Pressable>
       </ReanimatedSwipeable>
     </Animated.View>

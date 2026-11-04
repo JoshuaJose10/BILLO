@@ -11,7 +11,7 @@ import IconoCategoria from './IconoCategoria';
 // El backend solo guarda la fecha, sin hora, así que el subtítulo no lleva hora.
 // Con `metodoPago` (etiqueta, p. ej. "Efectivo") el subtítulo es "Categoría · Método", para
 // listas donde la fecha ya va en el encabezado del día (Movimientos).
-// `opaca`: fondo sólido (`filaOpaca`) en vez del translúcido, para FilaGastoDeslizable: así las
+// `opaca`: fondo sólido (`filaOpaca`) en vez del translúcido, para FilaDeslizable: así las
 // acciones que van detrás no se ven a través de la fila.
 export default function ItemGasto({ gasto, nombreCategoria, metodoPago, opaca = false }) {
   const styles = useEstilos(crearEstilos);

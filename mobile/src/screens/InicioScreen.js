@@ -15,29 +15,24 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Avatar from '../components/Avatar';
 import Boton from '../components/Boton';
 import Etiqueta from '../components/Etiqueta';
-import FilaGastoDeslizable, { useFilasDeslizables } from '../components/FilaGastoDeslizable';
+import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizable';
 import FondoDegradado from '../components/FondoDegradado';
+import ItemGasto from '../components/ItemGasto';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
 import TarjetaResumen from '../components/TarjetaResumen';
 import { useAuth } from '../context/AuthContext';
 import { useGastosService } from '../services/gastos';
+import { usePresupuestosService } from '../services/presupuestos';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { mensajeError } from '../utils/errores';
 import { mesActual } from '../utils/fechas';
+import { resumenPresupuestos } from '../utils/presupuestos';
+import { gastoPorCategoria, resumenGastoMes } from '../utils/resumenMes';
 
-// Las N categorías con más gasto: [{ id, nombre, total }] de mayor a menor.
-const categoriasPrincipales = (gastos, nombres, n = 3) => {
-  const totales = {};
-  gastos.forEach((g) => {
-    totales[g.categoria_id] = (totales[g.categoria_id] || 0) + g.monto;
-  });
-  return Object.entries(totales)
-    .map(([id, total]) => ({ id, nombre: nombres[id], total }))
-    .sort((a, b) => b.total - a.total)
-    .slice(0, n);
-};
+// Categorías con chip en la tarjeta del mes (las de más gasto).
+const CHIPS_CATEGORIA = 3;
 
 // Del más reciente al más antiguo (fecha y luego id, igual que el backend).
 const ordenarGastos = (gastos) =>
@@ -47,7 +42,8 @@ export default function InicioScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
   const { usuario } = useAuth();
-  const { listarCategorias, listarGastos } = useGastosService();
+  const { listarCategorias, listarGastos, eliminarGasto } = useGastosService();
+  const { listarPresupuestos } = usePresupuestosService();
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
@@ -58,16 +54,23 @@ export default function InicioScreen({ navigation }) {
   const [textoError, setTextoError] = useState('');
   const [refrescando, setRefrescando] = useState(false);
   const [hayDatos, setHayDatos] = useState(false);
+  // Suma de los límites del mes; null si no se pudieron cargar los presupuestos.
+  const [presupuestoTotal, setPresupuestoTotal] = useState(null);
 
   const cargar = useCallback(async () => {
     // Recarga en silencio: el indicador de pantalla completa solo aparece en la primera carga
     // (estado inicial) o al reintentar desde la pantalla de error.
+    // Los presupuestos van en paralelo y aparte: si fallan, Inicio sigue sin el total.
+    const presupuestos = listarPresupuestos(mesActual())
+      .then((lista) => resumenPresupuestos(lista).limite)
+      .catch(() => null);
     try {
       const [lista, delMes, cats] = await Promise.all([
         listarGastos(),
         listarGastos({ mes: mesActual() }),
         listarCategorias(),
       ]);
+      setPresupuestoTotal(await presupuestos);
       setGastos(ordenarGastos(lista));
       setGastosMes(delMes);
       setCategorias(cats || []);
@@ -77,7 +80,7 @@ export default function InicioScreen({ navigation }) {
       setTextoError(mensajeError(error?.code, error?.message));
       setEstado('error');
     }
-  }, [listarCategorias, listarGastos]);
+  }, [listarCategorias, listarGastos, listarPresupuestos]);
 
   // Recarga cada vez que Inicio gana foco (por ejemplo al cerrar la hoja de Nuevo gasto).
   useFocusEffect(
@@ -97,10 +100,14 @@ export default function InicioScreen({ navigation }) {
     [categorias],
   );
 
-  const totalMes = useMemo(() => gastosMes.reduce((suma, g) => suma + g.monto, 0), [gastosMes]);
-  const principales = useMemo(
-    () => categoriasPrincipales(gastosMes, nombresCategoria),
+  const porCategoria = useMemo(
+    () => gastoPorCategoria(gastosMes, nombresCategoria),
     [gastosMes, nombresCategoria],
+  );
+  const principales = useMemo(() => porCategoria.slice(0, CHIPS_CATEGORIA), [porCategoria]);
+  const resumenMes = useMemo(
+    () => resumenGastoMes(porCategoria, presupuestoTotal),
+    [porCategoria, presupuestoTotal],
   );
   const primerNombre = (usuario?.nombre || '').trim().split(' ')[0];
 
@@ -135,7 +142,12 @@ export default function InicioScreen({ navigation }) {
         </View>
       </View>
 
-      <TarjetaResumen total={totalMes} principales={principales} />
+      <TarjetaResumen
+        resumen={resumenMes}
+        principales={principales}
+        conPresupuestos={presupuestoTotal != null}
+        onDefinirPresupuesto={() => navigation.navigate('Cartera')}
+      />
     </View>
   );
 
@@ -188,13 +200,17 @@ export default function InicioScreen({ navigation }) {
         keyExtractor={(g) => String(g.id)}
         renderItem={({ item }) => (
           <View style={styles.panelFila}>
-            <FilaGastoDeslizable
-              gasto={item}
-              nombreCategoria={nombresCategoria[item.categoria_id]}
+            <FilaDeslizable
               filas={filas}
-              onEditar={editarGasto}
-              onEliminado={gastoEliminado}
-            />
+              onEditar={() => editarGasto(item)}
+              eliminar={() => eliminarGasto(item.id)}
+              onEliminado={() => gastoEliminado(item.id)}
+              tituloEliminar="¿Eliminar gasto?"
+              codigoNoExiste="GASTO_NO_ENCONTRADO"
+              mensajeNoExiste="Este gasto ya no existe"
+            >
+              <ItemGasto gasto={item} nombreCategoria={nombresCategoria[item.categoria_id]} opaca />
+            </FilaDeslizable>
           </View>
         )}
         ListHeaderComponent={

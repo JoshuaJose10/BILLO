@@ -145,10 +145,13 @@ export const temas = {
     // Semánticos de estado financiero; la variante Suave (~15%) es para fondos de barras y avisos
     exito: '#10B981', // en meta / ingresos
     exitoSuave: 'rgba(16, 185, 129, 0.15)',
+    exitoTexto: '#10B981', // texto de estado sobre exitoSuave (pastilla "En meta")
     aviso: '#FF9F0A', // cerca del límite
     avisoSuave: 'rgba(255, 159, 10, 0.15)',
+    avisoTexto: '#FF9F0A', // aviso como texto (porcentaje de Inicio, pastilla "Cerca del límite")
     alerta: '#FF453A', // límite excedido
     alertaSuave: 'rgba(255, 69, 58, 0.15)',
+    alertaTexto: '#FF453A', // texto de estado sobre alertaSuave (pastilla "Excedido")
     alertaSolido: '#D9302A', // fondo sólido con texto blanco (>= 4.5:1): acción Eliminar al deslizar
   },
 
@@ -282,10 +285,13 @@ export const temas = {
     // Semánticos (>= 3:1 sobre blanco; alerta >= 4.5:1 porque también es texto de error)
     exito: '#22A866',
     exitoSuave: 'rgba(34, 168, 102, 0.12)',
+    exitoTexto: '#137343', // >= 4.5:1 sobre exitoSuave (exito da 2.54)
     aviso: '#D97706',
     avisoSuave: 'rgba(217, 119, 6, 0.12)',
+    avisoTexto: '#A3470A', // >= 4.5:1 sobre avisoSuave y sobre blanco (aviso da 3.19)
     alerta: '#C8281C',
     alertaSuave: 'rgba(200, 40, 28, 0.12)',
+    alertaTexto: '#B42318', // >= 4.5:1 sobre alertaSuave (alerta da 4.30)
     alertaSolido: '#C8281C',
   },
 };
