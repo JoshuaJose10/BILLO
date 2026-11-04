@@ -153,6 +153,9 @@ export const temas = {
     alertaSuave: 'rgba(255, 69, 58, 0.15)',
     alertaTexto: '#FF453A', // texto de estado sobre alertaSuave (pastilla "Excedido")
     alertaSolido: '#D9302A', // fondo sólido con texto blanco (>= 4.5:1): acción Eliminar al deslizar
+    // Vidrio del aviso de presupuesto (AvisoPresupuesto) encima del blur, debajo de avisoSuave o
+    // alertaSuave. Más opaco que `navbar` para que el texto pase 4.5:1 con cualquier contenido detrás.
+    avisoVidrio: 'rgba(24, 24, 27, 0.88)',
   },
 
   claro: {
@@ -293,6 +296,7 @@ export const temas = {
     alertaSuave: 'rgba(200, 40, 28, 0.12)',
     alertaTexto: '#B42318', // >= 4.5:1 sobre alertaSuave (alerta da 4.30)
     alertaSolido: '#C8281C',
+    avisoVidrio: 'rgba(255, 255, 255, 0.92)',
   },
 };
 
