@@ -1,0 +1,966 @@
+﻿
+> backend@1.0.0 test
+> node --test test/integration.test.cjs
+
+TAP version 13
+# ◇ injected env (0) from .env
+# OK 001_usuarios.sql
+# OK 002_categorias.sql
+# OK 003_gastos.sql
+# OK 004_presupuestos.sql
+# OK 005_catalogo_servicios.sql
+# OK 006_membresias.sql
+# OK 007_seed_categorias.sql
+# OK 008_usuarios_email_minusculas.sql
+# OK 009_indices_y_restricciones.sql
+# OK 010_seed_catalogo_servicios.sql
+# Migraciones completadas: 10 archivo(s) aplicado(s).
+# Subtest: API real + PostgreSQL temporal
+    # Subtest: Autenticación (Postman 01 / RF1)
+        # Subtest: AUTH-QA-01 / CP-RF1-01: registro devuelve usuario y JWT utilizable
+        ok 1 - AUTH-QA-01 / CP-RF1-01: registro devuelve usuario y JWT utilizable
+          ---
+          duration_ms: 446.4483
+          type: 'test'
+          ...
+        # Subtest: registro normaliza correo y permite login con mayúsculas y espacios
+        ok 2 - registro normaliza correo y permite login con mayúsculas y espacios
+          ---
+          duration_ms: 341.1221
+          type: 'test'
+          ...
+        # Subtest: CP-RF1-03: correo duplicado ignora mayúsculas
+        ok 3 - CP-RF1-03: correo duplicado ignora mayúsculas
+          ---
+          duration_ms: 81.2685
+          type: 'test'
+          ...
+        # Subtest: AUTH-QA-02: registro rechaza nombre vacío sin insertar usuario
+        ok 4 - AUTH-QA-02: registro rechaza nombre vacío sin insertar usuario
+          ---
+          duration_ms: 73.201
+          type: 'test'
+          ...
+        # Subtest: AUTH-QA-02: registro rechaza nombre con espacios sin insertar usuario
+        ok 5 - AUTH-QA-02: registro rechaza nombre con espacios sin insertar usuario
+          ---
+          duration_ms: 72.4465
+          type: 'test'
+          ...
+        # Subtest: AUTH-QA-02: registro rechaza nombre no textual sin insertar usuario
+        ok 6 - AUTH-QA-02: registro rechaza nombre no textual sin insertar usuario
+          ---
+          duration_ms: 73.1892
+          type: 'test'
+          ...
+        # Subtest: AUTH-QA-02: registro rechaza correo inválido sin insertar usuario
+        ok 7 - AUTH-QA-02: registro rechaza correo inválido sin insertar usuario
+          ---
+          duration_ms: 72.4133
+          type: 'test'
+          ...
+        # Subtest: AUTH-QA-02: registro rechaza correo ausente sin insertar usuario
+        ok 8 - AUTH-QA-02: registro rechaza correo ausente sin insertar usuario
+          ---
+          duration_ms: 75.1635
+          type: 'test'
+          ...
+        # Subtest: AUTH-QA-02: registro rechaza contraseña corta sin insertar usuario
+        ok 9 - AUTH-QA-02: registro rechaza contraseña corta sin insertar usuario
+          ---
+          duration_ms: 75.0431
+          type: 'test'
+          ...
+        # Subtest: AUTH-QA-02: registro rechaza contraseña no textual sin insertar usuario
+        ok 10 - AUTH-QA-02: registro rechaza contraseña no textual sin insertar usuario
+          ---
+          duration_ms: 78.5197
+          type: 'test'
+          ...
+        # Subtest: registro sin cuerpo responde 400 estructurado
+        ok 11 - registro sin cuerpo responde 400 estructurado
+          ---
+          duration_ms: 78.7878
+          type: 'test'
+          ...
+        # Subtest: contraseña de exactamente ocho caracteres es válida
+        ok 12 - contraseña de exactamente ocho caracteres es válida
+          ---
+          duration_ms: 200.4966
+          type: 'test'
+          ...
+        # Subtest: CP-RF1-02: login devuelve solo datos públicos y token válido
+        ok 13 - CP-RF1-02: login devuelve solo datos públicos y token válido
+          ---
+          duration_ms: 207.2672
+          type: 'test'
+          ...
+        # Subtest: CP-RF1-04: correo inexistente y contraseña incorrecta dan el mismo error
+        ok 14 - CP-RF1-04: correo inexistente y contraseña incorrecta dan el mismo error
+          ---
+          duration_ms: 255.2555
+          type: 'test'
+          ...
+        # Subtest: login sin cuerpo responde 400
+        ok 15 - login sin cuerpo responde 400
+          ---
+          duration_ms: 84.6091
+          type: 'test'
+          ...
+        # Subtest: login sin email responde 400
+        ok 16 - login sin email responde 400
+          ---
+          duration_ms: 83.4316
+          type: 'test'
+          ...
+        # Subtest: login sin contraseña responde 400
+        ok 17 - login sin contraseña responde 400
+          ---
+          duration_ms: 92.008
+          type: 'test'
+          ...
+        # Subtest: login campos de tipo incorrecto responde 400
+        ok 18 - login campos de tipo incorrecto responde 400
+          ---
+          duration_ms: 79.8147
+          type: 'test'
+          ...
+        # Subtest: AUTH-QA-03: /auth/perfil identifica únicamente al usuario A
+        ok 19 - AUTH-QA-03: /auth/perfil identifica únicamente al usuario A
+          ---
+          duration_ms: 87.9732
+          type: 'test'
+          ...
+        # Subtest: AUTH-QA-03: /auth/perfil identifica únicamente al usuario B
+        ok 20 - AUTH-QA-03: /auth/perfil identifica únicamente al usuario B
+          ---
+          duration_ms: 93.4543
+          type: 'test'
+          ...
+        # Subtest: /auth/profile conserva el alias temporal
+        ok 21 - /auth/profile conserva el alias temporal
+          ---
+          duration_ms: 87.1393
+          type: 'test'
+          ...
+        # Subtest: perfil con token ausente devuelve NO_AUTORIZADO
+        ok 22 - perfil con token ausente devuelve NO_AUTORIZADO
+          ---
+          duration_ms: 92.2042
+          type: 'test'
+          ...
+        # Subtest: perfil con token inválido devuelve NO_AUTORIZADO
+        ok 23 - perfil con token inválido devuelve NO_AUTORIZADO
+          ---
+          duration_ms: 81.0824
+          type: 'test'
+          ...
+        # Subtest: perfil con token vencido devuelve NO_AUTORIZADO
+        ok 24 - perfil con token vencido devuelve NO_AUTORIZADO
+          ---
+          duration_ms: 87.2115
+          type: 'test'
+          ...
+        # Subtest: perfil con token firma ajena devuelve NO_AUTORIZADO
+        ok 25 - perfil con token firma ajena devuelve NO_AUTORIZADO
+          ---
+          duration_ms: 95.1062
+          type: 'test'
+          ...
+        # Subtest: perfil con token sin Bearer devuelve NO_AUTORIZADO
+        ok 26 - perfil con token sin Bearer devuelve NO_AUTORIZADO
+          ---
+          duration_ms: 71.9265
+          type: 'test'
+          ...
+        # Subtest: perfil de usuario eliminado devuelve 404
+        ok 27 - perfil de usuario eliminado devuelve 404
+          ---
+          duration_ms: 89.1683
+          type: 'test'
+          ...
+        1..27
+    ok 1 - Autenticación (Postman 01 / RF1)
+      ---
+      duration_ms: 3261.4869
+      type: 'suite'
+      ...
+    # Subtest: Gastos (Postman 03 / RF2)
+        # Subtest: crea un gasto con la forma y los tipos del contrato
+        ok 1 - crea un gasto con la forma y los tipos del contrato
+          ---
+          duration_ms: 115.1095
+          type: 'test'
+          ...
+        # Subtest: sin gastos devuelve un arreglo vacío
+        ok 2 - sin gastos devuelve un arreglo vacío
+          ---
+          duration_ms: 83.1858
+          type: 'test'
+          ...
+        # Subtest: nota omitida se persiste como null
+        ok 3 - nota omitida se persiste como null
+          ---
+          duration_ms: 99.9131
+          type: 'test'
+          ...
+        # Subtest: acepta nota de 200 caracteres y el monto mínimo 0.01
+        ok 4 - acepta nota de 200 caracteres y el monto mínimo 0.01
+          ---
+          duration_ms: 103.548
+          type: 'test'
+          ...
+        # Subtest: acepta método de pago tarjeta
+        ok 5 - acepta método de pago tarjeta
+          ---
+          duration_ms: 89.3706
+          type: 'test'
+          ...
+        # Subtest: acepta método de pago transferencia
+        ok 6 - acepta método de pago transferencia
+          ---
+          duration_ms: 94.9605
+          type: 'test'
+          ...
+        # Subtest: acepta método de pago otro
+        ok 7 - acepta método de pago otro
+          ---
+          duration_ms: 94.9006
+          type: 'test'
+          ...
+        # Subtest: POST rechaza monto de texto (BUG-RF2-04: error estructurado)
+        ok 8 - POST rechaza monto de texto (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 104.8037
+          type: 'test'
+          ...
+        # Subtest: POST rechaza monto cero (BUG-RF2-04: error estructurado)
+        ok 9 - POST rechaza monto cero (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 113.6366
+          type: 'test'
+          ...
+        # Subtest: POST rechaza monto negativo (BUG-RF2-04: error estructurado)
+        ok 10 - POST rechaza monto negativo (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 97.5666
+          type: 'test'
+          ...
+        # Subtest: POST rechaza BUG-RF2-01: más de dos decimales (BUG-RF2-04: error estructurado)
+        ok 11 - POST rechaza BUG-RF2-01: más de dos decimales (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 114.4817
+          type: 'test'
+          ...
+        # Subtest: POST rechaza BUG-RF2-01: subcentavo (BUG-RF2-04: error estructurado)
+        ok 12 - POST rechaza BUG-RF2-01: subcentavo (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 103.6504
+          type: 'test'
+          ...
+        # Subtest: POST rechaza BUG-RF2-02: monto como cadena numérica (BUG-RF2-04: error estructurado)
+        ok 13 - POST rechaza BUG-RF2-02: monto como cadena numérica (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 93.2013
+          type: 'test'
+          ...
+        # Subtest: POST rechaza categoría inexistente (BUG-RF2-04: error estructurado)
+        ok 14 - POST rechaza categoría inexistente (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 113.1053
+          type: 'test'
+          ...
+        # Subtest: POST rechaza BUG-RF2-03: categoría booleana (BUG-RF2-04: error estructurado)
+        ok 15 - POST rechaza BUG-RF2-03: categoría booleana (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 106.5129
+          type: 'test'
+          ...
+        # Subtest: POST rechaza categoría vacía (BUG-RF2-04: error estructurado)
+        ok 16 - POST rechaza categoría vacía (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 112.1754
+          type: 'test'
+          ...
+        # Subtest: POST rechaza categoría fraccionaria (BUG-RF2-04: error estructurado)
+        ok 17 - POST rechaza categoría fraccionaria (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 112.0444
+          type: 'test'
+          ...
+        # Subtest: POST rechaza categoría como cadena (BUG-RF2-04: error estructurado)
+        ok 18 - POST rechaza categoría como cadena (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 112.1912
+          type: 'test'
+          ...
+        # Subtest: POST rechaza fecha imposible (BUG-RF2-04: error estructurado)
+        ok 19 - POST rechaza fecha imposible (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 98.7779
+          type: 'test'
+          ...
+        # Subtest: POST rechaza fecha con formato incorrecto (BUG-RF2-04: error estructurado)
+        ok 20 - POST rechaza fecha con formato incorrecto (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 109.9918
+          type: 'test'
+          ...
+        # Subtest: POST rechaza método inválido (BUG-RF2-04: error estructurado)
+        ok 21 - POST rechaza método inválido (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 114.022
+          type: 'test'
+          ...
+        # Subtest: POST rechaza nota de más de 200 caracteres (BUG-RF2-04: error estructurado)
+        ok 22 - POST rechaza nota de más de 200 caracteres (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 120.5665
+          type: 'test'
+          ...
+        # Subtest: POST rechaza nota no textual (BUG-RF2-04: error estructurado)
+        ok 23 - POST rechaza nota no textual (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 201.344
+          type: 'test'
+          ...
+        # Subtest: POST rechaza BUG-RF2-06: sin cuerpo (BUG-RF2-04: error estructurado)
+        ok 24 - POST rechaza BUG-RF2-06: sin cuerpo (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 286.0644
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza monto de texto (BUG-RF2-04: error estructurado)
+        ok 25 - PUT rechaza monto de texto (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 196.1485
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza monto cero (BUG-RF2-04: error estructurado)
+        ok 26 - PUT rechaza monto cero (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 179.7993
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza monto negativo (BUG-RF2-04: error estructurado)
+        ok 27 - PUT rechaza monto negativo (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 200.4978
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza BUG-RF2-01: más de dos decimales (BUG-RF2-04: error estructurado)
+        ok 28 - PUT rechaza BUG-RF2-01: más de dos decimales (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 172.435
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza BUG-RF2-01: subcentavo (BUG-RF2-04: error estructurado)
+        ok 29 - PUT rechaza BUG-RF2-01: subcentavo (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 169.7566
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza BUG-RF2-02: monto como cadena numérica (BUG-RF2-04: error estructurado)
+        ok 30 - PUT rechaza BUG-RF2-02: monto como cadena numérica (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 136.7895
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza categoría inexistente (BUG-RF2-04: error estructurado)
+        ok 31 - PUT rechaza categoría inexistente (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 138.2147
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza BUG-RF2-03: categoría booleana (BUG-RF2-04: error estructurado)
+        ok 32 - PUT rechaza BUG-RF2-03: categoría booleana (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 119.1893
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza categoría vacía (BUG-RF2-04: error estructurado)
+        ok 33 - PUT rechaza categoría vacía (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 113.9079
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza categoría fraccionaria (BUG-RF2-04: error estructurado)
+        ok 34 - PUT rechaza categoría fraccionaria (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 123.5464
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza categoría como cadena (BUG-RF2-04: error estructurado)
+        ok 35 - PUT rechaza categoría como cadena (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 112.0701
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza fecha imposible (BUG-RF2-04: error estructurado)
+        ok 36 - PUT rechaza fecha imposible (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 135.4211
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza fecha con formato incorrecto (BUG-RF2-04: error estructurado)
+        ok 37 - PUT rechaza fecha con formato incorrecto (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 140.4734
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza método inválido (BUG-RF2-04: error estructurado)
+        ok 38 - PUT rechaza método inválido (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 126.1262
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza nota de más de 200 caracteres (BUG-RF2-04: error estructurado)
+        ok 39 - PUT rechaza nota de más de 200 caracteres (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 142.3681
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza nota no textual (BUG-RF2-04: error estructurado)
+        ok 40 - PUT rechaza nota no textual (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 196.0392
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza BUG-RF2-06: sin cuerpo (BUG-RF2-04: error estructurado)
+        ok 41 - PUT rechaza BUG-RF2-06: sin cuerpo (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 142.4877
+          type: 'test'
+          ...
+        # Subtest: PUT actualiza todos los campos y persiste los cambios
+        ok 42 - PUT actualiza todos los campos y persiste los cambios
+          ---
+          duration_ms: 268.8059
+          type: 'test'
+          ...
+        # Subtest: DELETE elimina, persiste la ausencia y un segundo borrado da 404
+        ok 43 - DELETE elimina, persiste la ausencia y un segundo borrado da 404
+          ---
+          duration_ms: 249.641
+          type: 'test'
+          ...
+        # Subtest: listados de A y B contienen únicamente sus gastos
+        ok 44 - listados de A y B contienen únicamente sus gastos
+          ---
+          duration_ms: 188.9187
+          type: 'test'
+          ...
+        # Subtest: A no puede PUT un gasto de B
+        ok 45 - A no puede PUT un gasto de B
+          ---
+          duration_ms: 220.1098
+          type: 'test'
+          ...
+        # Subtest: A no puede DELETE un gasto de B
+        ok 46 - A no puede DELETE un gasto de B
+          ---
+          duration_ms: 231.6504
+          type: 'test'
+          ...
+        # Subtest: B no puede PUT un gasto de A
+        ok 47 - B no puede PUT un gasto de A
+          ---
+          duration_ms: 148.0099
+          type: 'test'
+          ...
+        # Subtest: B no puede DELETE un gasto de A
+        ok 48 - B no puede DELETE un gasto de A
+          ---
+          duration_ms: 125.0311
+          type: 'test'
+          ...
+        # Subtest: filtra mes, categoría y su combinación sin filtrar datos ajenos
+        ok 49 - filtra mes, categoría y su combinación sin filtrar datos ajenos
+          ---
+          duration_ms: 186.3987
+          type: 'test'
+          ...
+        # Subtest: ordena por fecha descendente y desempata por id descendente
+        ok 50 - ordena por fecha descendente y desempata por id descendente
+          ---
+          duration_ms: 122.04
+          type: 'test'
+          ...
+        # Subtest: rechaza filtro de mes "2026-13"
+        ok 51 - rechaza filtro de mes "2026-13"
+          ---
+          duration_ms: 82.9111
+          type: 'test'
+          ...
+        # Subtest: rechaza filtro de mes "2026-1"
+        ok 52 - rechaza filtro de mes "2026-1"
+          ---
+          duration_ms: 79.7523
+          type: 'test'
+          ...
+        # Subtest: rechaza filtro de mes "incorrecto"
+        ok 53 - rechaza filtro de mes "incorrecto"
+          ---
+          duration_ms: 95.6285
+          type: 'test'
+          ...
+        # Subtest: rechaza filtro de mes ""
+        ok 54 - rechaza filtro de mes ""
+          ---
+          duration_ms: 77.8954
+          type: 'test'
+          ...
+        # Subtest: rechaza filtro de categoría abc
+        ok 55 - rechaza filtro de categoría abc
+          ---
+          duration_ms: 84.023
+          type: 'test'
+          ...
+        # Subtest: rechaza filtro de categoría 0
+        ok 56 - rechaza filtro de categoría 0
+          ---
+          duration_ms: 93.921
+          type: 'test'
+          ...
+        # Subtest: rechaza filtro de categoría -1
+        ok 57 - rechaza filtro de categoría -1
+          ---
+          duration_ms: 84.9625
+          type: 'test'
+          ...
+        # Subtest: rechaza filtro de categoría 1.5
+        ok 58 - rechaza filtro de categoría 1.5
+          ---
+          duration_ms: 96.1245
+          type: 'test'
+          ...
+        # Subtest: PUT de id inválido o inexistente abc da 404
+        ok 59 - PUT de id inválido o inexistente abc da 404
+          ---
+          duration_ms: 90.6433
+          type: 'test'
+          ...
+        # Subtest: PUT de id inválido o inexistente 0 da 404
+        ok 60 - PUT de id inválido o inexistente 0 da 404
+          ---
+          duration_ms: 79.5244
+          type: 'test'
+          ...
+        # Subtest: PUT de id inválido o inexistente -1 da 404
+        ok 61 - PUT de id inválido o inexistente -1 da 404
+          ---
+          duration_ms: 85.4023
+          type: 'test'
+          ...
+        # Subtest: PUT de id inválido o inexistente 1.5 da 404
+        ok 62 - PUT de id inválido o inexistente 1.5 da 404
+          ---
+          duration_ms: 88.111
+          type: 'test'
+          ...
+        # Subtest: PUT de id inválido o inexistente 2147483647 da 404
+        ok 63 - PUT de id inválido o inexistente 2147483647 da 404
+          ---
+          duration_ms: 80.8401
+          type: 'test'
+          ...
+        # Subtest: DELETE de id inválido o inexistente abc da 404
+        ok 64 - DELETE de id inválido o inexistente abc da 404
+          ---
+          duration_ms: 112.0422
+          type: 'test'
+          ...
+        # Subtest: DELETE de id inválido o inexistente 0 da 404
+        ok 65 - DELETE de id inválido o inexistente 0 da 404
+          ---
+          duration_ms: 187.727
+          type: 'test'
+          ...
+        # Subtest: DELETE de id inválido o inexistente -1 da 404
+        ok 66 - DELETE de id inválido o inexistente -1 da 404
+          ---
+          duration_ms: 198.9327
+          type: 'test'
+          ...
+        # Subtest: DELETE de id inválido o inexistente 1.5 da 404
+        ok 67 - DELETE de id inválido o inexistente 1.5 da 404
+          ---
+          duration_ms: 264.8011
+          type: 'test'
+          ...
+        # Subtest: DELETE de id inválido o inexistente 2147483647 da 404
+        ok 68 - DELETE de id inválido o inexistente 2147483647 da 404
+          ---
+          duration_ms: 120.2732
+          type: 'test'
+          ...
+        # Subtest: BUG-RF2-05: GET con token ausente da NO_AUTORIZADO
+        ok 69 - BUG-RF2-05: GET con token ausente da NO_AUTORIZADO
+          ---
+          duration_ms: 162.3901
+          type: 'test'
+          ...
+        # Subtest: BUG-RF2-05: GET con token inválido da NO_AUTORIZADO
+        ok 70 - BUG-RF2-05: GET con token inválido da NO_AUTORIZADO
+          ---
+          duration_ms: 143.9632
+          type: 'test'
+          ...
+        # Subtest: BUG-RF2-05: POST con token ausente da NO_AUTORIZADO
+        ok 71 - BUG-RF2-05: POST con token ausente da NO_AUTORIZADO
+          ---
+          duration_ms: 129.4446
+          type: 'test'
+          ...
+        # Subtest: BUG-RF2-05: POST con token inválido da NO_AUTORIZADO
+        ok 72 - BUG-RF2-05: POST con token inválido da NO_AUTORIZADO
+          ---
+          duration_ms: 147.3663
+          type: 'test'
+          ...
+        # Subtest: BUG-RF2-05: PUT con token ausente da NO_AUTORIZADO
+        ok 73 - BUG-RF2-05: PUT con token ausente da NO_AUTORIZADO
+          ---
+          duration_ms: 135.9832
+          type: 'test'
+          ...
+        # Subtest: BUG-RF2-05: PUT con token inválido da NO_AUTORIZADO
+        ok 74 - BUG-RF2-05: PUT con token inválido da NO_AUTORIZADO
+          ---
+          duration_ms: 113.2486
+          type: 'test'
+          ...
+        # Subtest: BUG-RF2-05: DELETE con token ausente da NO_AUTORIZADO
+        ok 75 - BUG-RF2-05: DELETE con token ausente da NO_AUTORIZADO
+          ---
+          duration_ms: 99.3533
+          type: 'test'
+          ...
+        # Subtest: BUG-RF2-05: DELETE con token inválido da NO_AUTORIZADO
+        ok 76 - BUG-RF2-05: DELETE con token inválido da NO_AUTORIZADO
+          ---
+          duration_ms: 113.1321
+          type: 'test'
+          ...
+        1..76
+    ok 2 - Gastos (Postman 03 / RF2)
+      ---
+      duration_ms: 10138.3456
+      type: 'suite'
+      ...
+    # Subtest: Presupuestos y alertas (CP-RF3 / CP-RF4)
+        # Subtest: CP-RF3-01: crea y consulta presupuesto de 2000 sin gastos
+        ok 1 - CP-RF3-01: crea y consulta presupuesto de 2000 sin gastos
+          ---
+          duration_ms: 112.9062
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-02: POST rechaza -500 sin persistir
+        ok 2 - CP-RF3-02: POST rechaza -500 sin persistir
+          ---
+          duration_ms: 107.0479
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-02: PUT rechaza -500 sin persistir
+        ok 3 - CP-RF3-02: PUT rechaza -500 sin persistir
+          ---
+          duration_ms: 150.8474
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-M0: POST rechaza 0 sin persistir
+        ok 4 - CP-RF3-M0: POST rechaza 0 sin persistir
+          ---
+          duration_ms: 147.6058
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-M0: PUT rechaza 0 sin persistir
+        ok 5 - CP-RF3-M0: PUT rechaza 0 sin persistir
+          ---
+          duration_ms: 126.1221
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MTXT: POST rechaza "1000" sin persistir
+        ok 6 - CP-RF3-MTXT: POST rechaza "1000" sin persistir
+          ---
+          duration_ms: 112.9763
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MTXT: PUT rechaza "1000" sin persistir
+        ok 7 - CP-RF3-MTXT: PUT rechaza "1000" sin persistir
+          ---
+          duration_ms: 131.6665
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MDEC: POST rechaza 1.001 sin persistir
+        ok 8 - CP-RF3-MDEC: POST rechaza 1.001 sin persistir
+          ---
+          duration_ms: 116.2899
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MDEC: PUT rechaza 1.001 sin persistir
+        ok 9 - CP-RF3-MDEC: PUT rechaza 1.001 sin persistir
+          ---
+          duration_ms: 129.3464
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MNULL: POST rechaza null sin persistir
+        ok 10 - CP-RF3-MNULL: POST rechaza null sin persistir
+          ---
+          duration_ms: 126.9912
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MNULL: PUT rechaza null sin persistir
+        ok 11 - CP-RF3-MNULL: PUT rechaza null sin persistir
+          ---
+          duration_ms: 237.428
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-DUP: unicidad por usuario, categoría y mes
+        ok 12 - CP-RF3-DUP: unicidad por usuario, categoría y mes
+          ---
+          duration_ms: 408.0536
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-CRUD: edita límite, recalcula y elimina sin borrar gastos
+        ok 13 - CP-RF3-CRUD: edita límite, recalcula y elimina sin borrar gastos
+          ---
+          duration_ms: 219.5892
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MES: GET rechaza undefined
+        ok 14 - CP-RF3-MES: GET rechaza undefined
+          ---
+          duration_ms: 97.1455
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MES: GET rechaza "2026-13"
+        ok 15 - CP-RF3-MES: GET rechaza "2026-13"
+          ---
+          duration_ms: 86.213
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MES: GET rechaza "2026-1"
+        ok 16 - CP-RF3-MES: GET rechaza "2026-1"
+          ---
+          duration_ms: 86.8294
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MES: GET rechaza ""
+        ok 17 - CP-RF3-MES: GET rechaza ""
+          ---
+          duration_ms: 85.4006
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-POST-MES
+        ok 18 - CP-RF3-POST-MES
+          ---
+          duration_ms: 145.1311
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-CAT
+        ok 19 - CP-RF3-CAT
+          ---
+          duration_ms: 108.886
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-USR: a no puede put presupuesto de b
+        ok 20 - CP-RF3-USR: a no puede put presupuesto de b
+          ---
+          duration_ms: 140.7737
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-USR: a no puede delete presupuesto de b
+        ok 21 - CP-RF3-USR: a no puede delete presupuesto de b
+          ---
+          duration_ms: 144.1799
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-USR: b no puede put presupuesto de a
+        ok 22 - CP-RF3-USR: b no puede put presupuesto de a
+          ---
+          duration_ms: 166.1874
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-USR: b no puede delete presupuesto de a
+        ok 23 - CP-RF3-USR: b no puede delete presupuesto de a
+          ---
+          duration_ms: 156.4045
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-AUTH: post con token ausente
+        ok 24 - CP-RF3-AUTH: post con token ausente
+          ---
+          duration_ms: 165.331
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-AUTH: post con token inválido
+        ok 25 - CP-RF3-AUTH: post con token inválido
+          ---
+          duration_ms: 125.2392
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-AUTH: get con token ausente
+        ok 26 - CP-RF3-AUTH: get con token ausente
+          ---
+          duration_ms: 122.921
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-AUTH: get con token inválido
+        ok 27 - CP-RF3-AUTH: get con token inválido
+          ---
+          duration_ms: 120.5239
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-AUTH: put con token ausente
+        ok 28 - CP-RF3-AUTH: put con token ausente
+          ---
+          duration_ms: 123.0652
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-AUTH: put con token inválido
+        ok 29 - CP-RF3-AUTH: put con token inválido
+          ---
+          duration_ms: 120.9476
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-AUTH: delete con token ausente
+        ok 30 - CP-RF3-AUTH: delete con token ausente
+          ---
+          duration_ms: 119.5122
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-AUTH: delete con token inválido
+        ok 31 - CP-RF3-AUTH: delete con token inválido
+          ---
+          duration_ms: 116.3705
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-01: POST acumula 800/1000, alerta
+        ok 32 - CP-RF4-01: POST acumula 800/1000, alerta
+          ---
+          duration_ms: 183.2608
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-01: PUT acumula 800/1000, alerta
+        ok 33 - CP-RF4-01: PUT acumula 800/1000, alerta
+          ---
+          duration_ms: 159.0797
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-02: POST acumula 1050/1000, excedido
+        ok 34 - CP-RF4-02: POST acumula 1050/1000, excedido
+          ---
+          duration_ms: 334.1553
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-02: PUT acumula 1050/1000, excedido
+        ok 35 - CP-RF4-02: PUT acumula 1050/1000, excedido
+          ---
+          duration_ms: 249.2853
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-03: POST acumula 150/1000, ok
+        ok 36 - CP-RF4-03: POST acumula 150/1000, ok
+          ---
+          duration_ms: 261.7908
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-03: PUT acumula 150/1000, ok
+        ok 37 - CP-RF4-03: PUT acumula 150/1000, ok
+          ---
+          duration_ms: 199.3964
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-L7999: POST acumula 7999/10000, ok
+        ok 38 - CP-RF4-L7999: POST acumula 7999/10000, ok
+          ---
+          duration_ms: 198.3821
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-L7999: PUT acumula 7999/10000, ok
+        ok 39 - CP-RF4-L7999: PUT acumula 7999/10000, ok
+          ---
+          duration_ms: 215.5698
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-L80: POST acumula 8000/10000, alerta
+        ok 40 - CP-RF4-L80: POST acumula 8000/10000, alerta
+          ---
+          duration_ms: 144.1947
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-L80: PUT acumula 8000/10000, alerta
+        ok 41 - CP-RF4-L80: PUT acumula 8000/10000, alerta
+          ---
+          duration_ms: 232.3775
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-L100: POST acumula 10000/10000, alerta
+        ok 42 - CP-RF4-L100: POST acumula 10000/10000, alerta
+          ---
+          duration_ms: 223.531
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-L100: PUT acumula 10000/10000, alerta
+        ok 43 - CP-RF4-L100: PUT acumula 10000/10000, alerta
+          ---
+          duration_ms: 153.4504
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-L10001: POST acumula 10001/10000, excedido
+        ok 44 - CP-RF4-L10001: POST acumula 10001/10000, excedido
+          ---
+          duration_ms: 135.8144
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-L10001: PUT acumula 10001/10000, excedido
+        ok 45 - CP-RF4-L10001: PUT acumula 10001/10000, excedido
+          ---
+          duration_ms: 134.9528
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-AIS: aísla sumas y alertas por usuario, mes y categoría
+        ok 46 - CP-RF4-AIS: aísla sumas y alertas por usuario, mes y categoría
+          ---
+          duration_ms: 194.4338
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-SIN: sin presupuesto no incluye alerta
+        ok 47 - CP-RF4-SIN: sin presupuesto no incluye alerta
+          ---
+          duration_ms: 221.6446
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-REC: PUT y DELETE de gastos recalculan el total sin duplicar
+        ok 48 - CP-RF4-REC: PUT y DELETE de gastos recalculan el total sin duplicar
+          ---
+          duration_ms: 209.3681
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-MOVER: cambiar mes y categoría deja de afectar el presupuesto original
+        ok 49 - CP-RF4-MOVER: cambiar mes y categoría deja de afectar el presupuesto original
+          ---
+          duration_ms: 173.5213
+          type: 'test'
+          ...
+        1..49
+    ok 3 - Presupuestos y alertas (CP-RF3 / CP-RF4)
+      ---
+      duration_ms: 7988.1627
+      type: 'suite'
+      ...
+    1..3
+ok 1 - API real + PostgreSQL temporal
+  ---
+  duration_ms: 24001.8149
+  type: 'suite'
+  ...
+1..1
+# tests 152
+# suites 4
+# pass 152
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 24956.63

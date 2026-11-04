@@ -12,6 +12,26 @@ import {
   resumenPresupuestos,
 } from './presupuestos.js';
 
+// El porcentaje de API se redondea a entero; el estado conserva el umbral exacto.
+describe('CP-RF4: presentación de los límites sin reclasificar por porcentaje redondeado', () => {
+  for (const [limite, gastado, porcentaje, estado, sobrante] of [
+    ['79,99 %', 7999, 80, 'ok', 0],
+    ['80 %', 8000, 80, 'alerta', 0],
+    ['100 %', 10000, 100, 'alerta', 0],
+    ['100,01 %', 10001, 100, 'excedido', 1],
+  ]) {
+    it(`CP-RF4-L${limite}: respeta estado ${estado} y excedente ${sobrante}`, () => {
+      const presupuesto = normalizarPresupuesto({
+        monto_limite: '10000', gastado: String(gastado), porcentaje: String(porcentaje), estado,
+      });
+      assert.equal(presupuesto.estado, estado);
+      assert.equal(estadoMasGrave([presupuesto]), estado);
+      assert.equal(excedente(presupuesto), sobrante);
+      assert.equal(avanceBarra(presupuesto.porcentaje), porcentaje / 100);
+    });
+  }
+});
+
 describe('normalizarPresupuesto', () => {
   it('convierte los montos que llegan como texto', () => {
     const p = normalizarPresupuesto({

@@ -102,13 +102,22 @@ También se verifican login, correo normalizado y duplicado, token vencido/firma
 incorrecta, CRUD persistido, filtros, orden y aislamiento bidireccional A/B.
 Las credenciales de las fixtures son ficticias y exclusivas de la base temporal.
 
-### Agregar presupuestos, membresías y reportes
+### QA presupuestos (RF3 / RF4)
 
-1. Copia `test/templates/endpoint.cjs.example` a `test/suites/presupuestos.cjs`,
-   `membresias.cjs` o `reportes.cjs`. La plantilla trae un ejemplo ejecutable para
+`npm run test:presupuestos` ejecuta las 49 pruebas de presupuestos y alertas;
+también están incluidas en las 152 pruebas de `npm test` y en el CI.
+`npm run qa:presupuestos` agrega Postman/Newman y la reproducción del bug móvil,
+con bases temporales y evidencia sanitizada. Mientras PRES-QA-01 siga abierto,
+este último comando devuelve 1. Ver [ejecución](../docs/postman/presupuestos.md)
+y [reporte QA presupuestos](../docs/qa/presupuestos-reporte.md).
+
+### Agregar membresías y reportes
+
+1. Copia `test/templates/endpoint.cjs.example` a `test/suites/membresias.cjs`
+   o `reportes.cjs`. La plantilla trae un ejemplo ejecutable para
    `GET /presupuestos`.
 2. Registra el módulo en `test/integration.test.cjs` con
-   `require('./suites/presupuestos.cjs')(() => context);` (ajusta el nombre).
+   `require('./suites/membresias.cjs')(() => context);` (ajusta el nombre).
 3. Agrega como mínimo un `it` por endpoint nuevo, verificando HTTP, cuerpo y,
    cuando haya escritura, persistencia. Añade validaciones y privacidad A/B
    según el contrato. Usa `ctx.api`, `ctx.a`, `ctx.b`, `ctx.pool` y
@@ -128,7 +137,7 @@ Para comprobar que las pruebas detectan una validación rota:
    `nota.length > 200` por `nota.length > 201`.
 2. Ejecuta `npm test`: deben fallar los dos casos de nota de más de 200 caracteres
    (POST y PUT) y el comando debe devolver código 1.
-3. Restaura `nota.length > 200` y ejecuta `npm test`: deben pasar las 103 pruebas.
+3. Restaura `nota.length > 200` y ejecuta `npm test`: deben pasar las 152 pruebas.
 
 La confirmación de Oscar en el PR sigue siendo necesaria para completar QA.
 

@@ -1,5 +1,7 @@
 # Checklist de pruebas — Billo RF1–RF8
 
+Ejecución RF3/RF4 del 2026-11-03: [QA presupuestos](qa/presupuestos-reporte.md), con evidencia de API, límites, aislamiento y bug móvil asignado. Los equivalentes de API pasaron; las filas visuales de esta plantilla siguen pendientes hasta ejecutarse en Android y obtener la confirmación de Joshua.
+
 Fuente: [plan de pruebas](plan-de-pruebas.md), sección 5. Se conservan sus IDs, precondiciones, pasos y resultados esperados. Los 23 casos existentes ya cubren los ocho requisitos; no fue necesario agregar casos al plan.
 
 ## Uso diario

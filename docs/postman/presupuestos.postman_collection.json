@@ -1,0 +1,3702 @@
+{
+  "info": {
+    "name": "Billo · QA presupuestos (RF3 / RF4)",
+    "description": "Ejecutar completa y en orden contra una API QA. Crea usuarios nuevos por iteración. Estados por importe exacto: <80 ok; 80..100 alerta; >100 excedido. Los porcentajes de presentación son enteros. No verifica UI móvil.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Preparación aislada",
+      "item": [
+        {
+          "name": "PREP-A: registrar usuario QA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"QA presupuestos A\",\n  \"email\": \"qa-pres-A-{{$guid}}@example.test\",\n  \"password\": \"QaPresupuestos123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Sesión creada', () => pm.expect(b.token).to.be.a('string').and.not.empty); pm.collectionVariables.set('tokenA', b.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PREP-B: registrar usuario QA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"QA presupuestos B\",\n  \"email\": \"qa-pres-B-{{$guid}}@example.test\",\n  \"password\": \"QaPresupuestos123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Sesión creada', () => pm.expect(b.token).to.be.a('string').and.not.empty); pm.collectionVariables.set('tokenB', b.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PREP-CAT: categorías reales de gasto",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/categorias"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "const cats = b.filter(c => c.tipo === 'gasto'); pm.test('Dos categorías disponibles', () => pm.expect(cats.length).to.be.at.least(2));",
+                  "pm.collectionVariables.set('categoriaId', cats[0].id); pm.collectionVariables.set('otraCategoriaId', cats[1].id);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 CP-RF3 presupuestos",
+      "item": [
+        {
+          "name": "CP-RF3-01: crear límite 2000",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_id\": {{categoriaId}},\n  \"mes\": \"2026-11\",\n  \"monto_limite\": 2000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('ID disponible', () => pm.expect(b.presupuesto.id).to.be.a('number')); pm.collectionVariables.set('presupuestoId', b.presupuesto.id);",
+                  "pm.test('Límite persistido', () => pm.expect(b.presupuesto).to.include({mes:'2026-11',monto_limite:2000}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-01: consultar presupuesto sin gastos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-11"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(0); pm.expect(b[0].porcentaje).to.eql(0);\n    pm.expect(b[0].estado).to.eql('ok'); pm.expect(b[0].monto_limite).to.eql(2000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    pm.expect(b[0].mes).to.eql('2026-11');\n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-02: monto negativo no crea",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_id\": {{categoriaId}},\n  \"mes\": \"2026-10\",\n  \"monto_limite\": -500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Error MONTO_INVALIDO', () => { pm.expect(b.error.code).to.eql('MONTO_INVALIDO'); pm.expect(b.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-02: ausencia tras rechazo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-10"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Sin presupuesto insertado', () => pm.expect(b).to.eql([]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-DUP: duplicado mismo usuario y mes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_id\": {{categoriaId}},\n  \"mes\": \"2026-11\",\n  \"monto_limite\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Error PRESUPUESTO_DUPLICADO', () => { pm.expect(b.error.code).to.eql('PRESUPUESTO_DUPLICADO'); pm.expect(b.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-VAL: PUT cero",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos/{{presupuestoId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto_limite\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Error MONTO_INVALIDO', () => { pm.expect(b.error.code).to.eql('MONTO_INVALIDO'); pm.expect(b.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-VAL: PUT texto",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos/{{presupuestoId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto_limite\": \"1000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Error MONTO_INVALIDO', () => { pm.expect(b.error.code).to.eql('MONTO_INVALIDO'); pm.expect(b.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-VAL: PUT tres decimales",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos/{{presupuestoId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto_limite\": 1.001\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Error MONTO_INVALIDO', () => { pm.expect(b.error.code).to.eql('MONTO_INVALIDO'); pm.expect(b.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-VAL: PUT negativo",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos/{{presupuestoId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto_limite\": -500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Error MONTO_INVALIDO', () => { pm.expect(b.error.code).to.eql('MONTO_INVALIDO'); pm.expect(b.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-VAL: rechazos no alteran límite",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-11"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(0); pm.expect(b[0].porcentaje).to.eql(0);\n    pm.expect(b[0].estado).to.eql('ok'); pm.expect(b[0].monto_limite).to.eql(2000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    \n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-CRUD: editar a 1000",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos/{{presupuestoId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto_limite\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Límite actualizado', () => pm.expect(b.presupuesto.monto_limite).to.eql(1000));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-CRUD: edición persistida",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-11"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(0); pm.expect(b[0].porcentaje).to.eql(0);\n    pm.expect(b[0].estado).to.eql('ok'); pm.expect(b[0].monto_limite).to.eql(1000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    \n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-USR: B no lista A",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-11"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Lista privada', () => pm.expect(b).to.eql([]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-USR: B no PUT A",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos/{{presupuestoId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto_limite\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Error PRESUPUESTO_NO_ENCONTRADO', () => { pm.expect(b.error.code).to.eql('PRESUPUESTO_NO_ENCONTRADO'); pm.expect(b.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-USR: B no DELETE A",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos/{{presupuestoId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Error PRESUPUESTO_NO_ENCONTRADO', () => { pm.expect(b.error.code).to.eql('PRESUPUESTO_NO_ENCONTRADO'); pm.expect(b.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-USR: A permanece intacto",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-11"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(0); pm.expect(b[0].porcentaje).to.eql(0);\n    pm.expect(b[0].estado).to.eql('ok'); pm.expect(b[0].monto_limite).to.eql(1000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    \n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-MES: mes obligatorio",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Error MES_INVALIDO', () => { pm.expect(b.error.code).to.eql('MES_INVALIDO'); pm.expect(b.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-MES: mes inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_id\": {{categoriaId}},\n  \"mes\": \"2026-13\",\n  \"monto_limite\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Error MES_INVALIDO', () => { pm.expect(b.error.code).to.eql('MES_INVALIDO'); pm.expect(b.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-CAT: categoría inexistente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_id\": 2147483647,\n  \"mes\": \"2026-10\",\n  \"monto_limite\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Error CATEGORIA_INEXISTENTE', () => { pm.expect(b.error.code).to.eql('CATEGORIA_INEXISTENTE'); pm.expect(b.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-AUTH: POST sin sesión",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-11",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_id\": {{categoriaId}},\n  \"mes\": \"2026-11\",\n  \"monto_limite\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Error NO_AUTORIZADO', () => { pm.expect(b.error.code).to.eql('NO_AUTORIZADO'); pm.expect(b.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-AUTH: GET sin sesión",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-11"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Error NO_AUTORIZADO', () => { pm.expect(b.error.code).to.eql('NO_AUTORIZADO'); pm.expect(b.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-AUTH: PUT sin sesión",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/presupuestos/{{presupuestoId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_id\": {{categoriaId}},\n  \"mes\": \"2026-11\",\n  \"monto_limite\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Error NO_AUTORIZADO', () => { pm.expect(b.error.code).to.eql('NO_AUTORIZADO'); pm.expect(b.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-AUTH: DELETE sin sesión",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/presupuestos/{{presupuestoId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Error NO_AUTORIZADO', () => { pm.expect(b.error.code).to.eql('NO_AUTORIZADO'); pm.expect(b.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 CP-RF4 alertas y límites",
+      "item": [
+        {
+          "name": "CP-RF4-01: preparar presupuesto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_id\": {{categoriaId}},\n  \"mes\": \"2026-01\",\n  \"monto_limite\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('ID disponible', () => pm.expect(b.presupuesto.id).to.be.a('number')); pm.collectionVariables.set('casoPresupuestoId', b.presupuesto.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-01: saldo inicial 700",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 700,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-01-01\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Sin aviso bajo el umbral', () => pm.expect(b).not.to.have.property('alerta'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-01: POST total 800",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 100,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-01-15\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('ID disponible', () => pm.expect(b.gasto.id).to.be.a('number')); pm.collectionVariables.set('gastoId', b.gasto.id);",
+                  "pm.test('Aviso exacto', () => pm.expect(b.alerta).to.eql({categoria_id: Number(pm.collectionVariables.get('categoriaId')), porcentaje: 80, estado: 'alerta'}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-01: GET después de POST",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-01"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(800); pm.expect(b[0].porcentaje).to.eql(80);\n    pm.expect(b[0].estado).to.eql('alerta'); pm.expect(b[0].monto_limite).to.eql(1000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    pm.expect(b[0].mes).to.eql('2026-01');\n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-01: PUT al mismo total",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos/{{gastoId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 100,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-01-15\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Aviso exacto', () => pm.expect(b.alerta).to.eql({categoria_id: Number(pm.collectionVariables.get('categoriaId')), porcentaje: 80, estado: 'alerta'}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-01: GET después de PUT",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-01"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(800); pm.expect(b[0].porcentaje).to.eql(80);\n    pm.expect(b[0].estado).to.eql('alerta'); pm.expect(b[0].monto_limite).to.eql(1000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    pm.expect(b[0].mes).to.eql('2026-01');\n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-02: preparar presupuesto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_id\": {{categoriaId}},\n  \"mes\": \"2026-02\",\n  \"monto_limite\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('ID disponible', () => pm.expect(b.presupuesto.id).to.be.a('number')); pm.collectionVariables.set('casoPresupuestoId', b.presupuesto.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-02: saldo inicial 950",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 950,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-02-01\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Aviso exacto', () => pm.expect(b.alerta).to.eql({categoria_id: Number(pm.collectionVariables.get('categoriaId')), porcentaje: 95, estado: 'alerta'}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-02: POST total 1050",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 100,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-02-15\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('ID disponible', () => pm.expect(b.gasto.id).to.be.a('number')); pm.collectionVariables.set('gastoId', b.gasto.id);",
+                  "pm.test('Aviso exacto', () => pm.expect(b.alerta).to.eql({categoria_id: Number(pm.collectionVariables.get('categoriaId')), porcentaje: 105, estado: 'excedido'}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-02: GET después de POST",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-02"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(1050); pm.expect(b[0].porcentaje).to.eql(105);\n    pm.expect(b[0].estado).to.eql('excedido'); pm.expect(b[0].monto_limite).to.eql(1000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    pm.expect(b[0].mes).to.eql('2026-02');\n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-02: PUT al mismo total",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos/{{gastoId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 100,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-02-15\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Aviso exacto', () => pm.expect(b.alerta).to.eql({categoria_id: Number(pm.collectionVariables.get('categoriaId')), porcentaje: 105, estado: 'excedido'}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-02: GET después de PUT",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-02"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(1050); pm.expect(b[0].porcentaje).to.eql(105);\n    pm.expect(b[0].estado).to.eql('excedido'); pm.expect(b[0].monto_limite).to.eql(1000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    pm.expect(b[0].mes).to.eql('2026-02');\n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-03: preparar presupuesto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_id\": {{categoriaId}},\n  \"mes\": \"2026-03\",\n  \"monto_limite\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('ID disponible', () => pm.expect(b.presupuesto.id).to.be.a('number')); pm.collectionVariables.set('casoPresupuestoId', b.presupuesto.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-03: saldo inicial 100",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 100,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-03-01\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Sin aviso bajo el umbral', () => pm.expect(b).not.to.have.property('alerta'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-03: POST total 150",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 50,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-03-15\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('ID disponible', () => pm.expect(b.gasto.id).to.be.a('number')); pm.collectionVariables.set('gastoId', b.gasto.id);",
+                  "pm.test('Sin aviso bajo el umbral', () => pm.expect(b).not.to.have.property('alerta'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-03: GET después de POST",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-03"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(150); pm.expect(b[0].porcentaje).to.eql(15);\n    pm.expect(b[0].estado).to.eql('ok'); pm.expect(b[0].monto_limite).to.eql(1000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    pm.expect(b[0].mes).to.eql('2026-03');\n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-03: PUT al mismo total",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos/{{gastoId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 50,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-03-15\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Sin aviso bajo el umbral', () => pm.expect(b).not.to.have.property('alerta'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-03: GET después de PUT",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-03"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(150); pm.expect(b[0].porcentaje).to.eql(15);\n    pm.expect(b[0].estado).to.eql('ok'); pm.expect(b[0].monto_limite).to.eql(1000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    pm.expect(b[0].mes).to.eql('2026-03');\n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L7999: preparar presupuesto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_id\": {{categoriaId}},\n  \"mes\": \"2026-04\",\n  \"monto_limite\": 10000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('ID disponible', () => pm.expect(b.presupuesto.id).to.be.a('number')); pm.collectionVariables.set('casoPresupuestoId', b.presupuesto.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L7999: saldo inicial 7000",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 7000,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-04-01\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Sin aviso bajo el umbral', () => pm.expect(b).not.to.have.property('alerta'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L7999: POST total 7999",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 999,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-04-15\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('ID disponible', () => pm.expect(b.gasto.id).to.be.a('number')); pm.collectionVariables.set('gastoId', b.gasto.id);",
+                  "pm.test('Sin aviso bajo el umbral', () => pm.expect(b).not.to.have.property('alerta'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L7999: GET después de POST",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-04"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(7999); pm.expect(b[0].porcentaje).to.eql(80);\n    pm.expect(b[0].estado).to.eql('ok'); pm.expect(b[0].monto_limite).to.eql(10000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    pm.expect(b[0].mes).to.eql('2026-04');\n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L7999: PUT al mismo total",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos/{{gastoId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 999,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-04-15\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Sin aviso bajo el umbral', () => pm.expect(b).not.to.have.property('alerta'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L7999: GET después de PUT",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-04"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(7999); pm.expect(b[0].porcentaje).to.eql(80);\n    pm.expect(b[0].estado).to.eql('ok'); pm.expect(b[0].monto_limite).to.eql(10000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    pm.expect(b[0].mes).to.eql('2026-04');\n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L80: preparar presupuesto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_id\": {{categoriaId}},\n  \"mes\": \"2026-05\",\n  \"monto_limite\": 10000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('ID disponible', () => pm.expect(b.presupuesto.id).to.be.a('number')); pm.collectionVariables.set('casoPresupuestoId', b.presupuesto.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L80: saldo inicial 7000",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 7000,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-05-01\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Sin aviso bajo el umbral', () => pm.expect(b).not.to.have.property('alerta'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L80: POST total 8000",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 1000,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-05-15\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('ID disponible', () => pm.expect(b.gasto.id).to.be.a('number')); pm.collectionVariables.set('gastoId', b.gasto.id);",
+                  "pm.test('Aviso exacto', () => pm.expect(b.alerta).to.eql({categoria_id: Number(pm.collectionVariables.get('categoriaId')), porcentaje: 80, estado: 'alerta'}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L80: GET después de POST",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-05"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(8000); pm.expect(b[0].porcentaje).to.eql(80);\n    pm.expect(b[0].estado).to.eql('alerta'); pm.expect(b[0].monto_limite).to.eql(10000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    pm.expect(b[0].mes).to.eql('2026-05');\n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L80: PUT al mismo total",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos/{{gastoId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 1000,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-05-15\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Aviso exacto', () => pm.expect(b.alerta).to.eql({categoria_id: Number(pm.collectionVariables.get('categoriaId')), porcentaje: 80, estado: 'alerta'}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L80: GET después de PUT",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-05"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(8000); pm.expect(b[0].porcentaje).to.eql(80);\n    pm.expect(b[0].estado).to.eql('alerta'); pm.expect(b[0].monto_limite).to.eql(10000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    pm.expect(b[0].mes).to.eql('2026-05');\n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L100: preparar presupuesto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_id\": {{categoriaId}},\n  \"mes\": \"2026-06\",\n  \"monto_limite\": 10000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('ID disponible', () => pm.expect(b.presupuesto.id).to.be.a('number')); pm.collectionVariables.set('casoPresupuestoId', b.presupuesto.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L100: saldo inicial 7000",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 7000,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-06-01\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Sin aviso bajo el umbral', () => pm.expect(b).not.to.have.property('alerta'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L100: POST total 10000",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 3000,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-06-15\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('ID disponible', () => pm.expect(b.gasto.id).to.be.a('number')); pm.collectionVariables.set('gastoId', b.gasto.id);",
+                  "pm.test('Aviso exacto', () => pm.expect(b.alerta).to.eql({categoria_id: Number(pm.collectionVariables.get('categoriaId')), porcentaje: 100, estado: 'alerta'}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L100: GET después de POST",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-06"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(10000); pm.expect(b[0].porcentaje).to.eql(100);\n    pm.expect(b[0].estado).to.eql('alerta'); pm.expect(b[0].monto_limite).to.eql(10000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    pm.expect(b[0].mes).to.eql('2026-06');\n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L100: PUT al mismo total",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos/{{gastoId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 3000,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-06-15\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Aviso exacto', () => pm.expect(b.alerta).to.eql({categoria_id: Number(pm.collectionVariables.get('categoriaId')), porcentaje: 100, estado: 'alerta'}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L100: GET después de PUT",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-06"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(10000); pm.expect(b[0].porcentaje).to.eql(100);\n    pm.expect(b[0].estado).to.eql('alerta'); pm.expect(b[0].monto_limite).to.eql(10000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    pm.expect(b[0].mes).to.eql('2026-06');\n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L10001: preparar presupuesto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_id\": {{categoriaId}},\n  \"mes\": \"2026-07\",\n  \"monto_limite\": 10000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('ID disponible', () => pm.expect(b.presupuesto.id).to.be.a('number')); pm.collectionVariables.set('casoPresupuestoId', b.presupuesto.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L10001: saldo inicial 7000",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 7000,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-07-01\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Sin aviso bajo el umbral', () => pm.expect(b).not.to.have.property('alerta'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L10001: POST total 10001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 3001,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-07-15\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('ID disponible', () => pm.expect(b.gasto.id).to.be.a('number')); pm.collectionVariables.set('gastoId', b.gasto.id);",
+                  "pm.test('Aviso exacto', () => pm.expect(b.alerta).to.eql({categoria_id: Number(pm.collectionVariables.get('categoriaId')), porcentaje: 100, estado: 'excedido'}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L10001: GET después de POST",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-07"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(10001); pm.expect(b[0].porcentaje).to.eql(100);\n    pm.expect(b[0].estado).to.eql('excedido'); pm.expect(b[0].monto_limite).to.eql(10000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    pm.expect(b[0].mes).to.eql('2026-07');\n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L10001: PUT al mismo total",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos/{{gastoId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 3001,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-07-15\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Aviso exacto', () => pm.expect(b.alerta).to.eql({categoria_id: Number(pm.collectionVariables.get('categoriaId')), porcentaje: 100, estado: 'excedido'}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-L10001: GET después de PUT",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-07"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(10001); pm.expect(b[0].porcentaje).to.eql(100);\n    pm.expect(b[0].estado).to.eql('excedido'); pm.expect(b[0].monto_limite).to.eql(10000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    pm.expect(b[0].mes).to.eql('2026-07');\n  });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 Aislamiento y recálculo",
+      "item": [
+        {
+          "name": "CP-RF4-AIS: B crea mismo mes y categoría",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_id\": {{categoriaId}},\n  \"mes\": \"2026-11\",\n  \"monto_limite\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('ID disponible', () => pm.expect(b.presupuesto.id).to.be.a('number')); pm.collectionVariables.set('presupuestoBId', b.presupuesto.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-AIS: A crea diciembre",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_id\": {{categoriaId}},\n  \"mes\": \"2026-12\",\n  \"monto_limite\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('ID disponible', () => pm.expect(b.presupuesto.id).to.be.a('number')); pm.collectionVariables.set('presupuestoDiciembreId', b.presupuesto.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-AIS: B llega a 100 %",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 1000,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-11-01\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Aviso exacto', () => pm.expect(b.alerta).to.eql({categoria_id: Number(pm.collectionVariables.get('categoriaId')), porcentaje: 100, estado: 'alerta'}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-AIS: A diciembre llega a 100 %",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 1000,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-12-01\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Aviso exacto', () => pm.expect(b.alerta).to.eql({categoria_id: Number(pm.collectionVariables.get('categoriaId')), porcentaje: 100, estado: 'alerta'}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-AIS: gasto de otra categoría sin presupuesto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 5000,\n  \"categoria_id\": {{otraCategoriaId}},\n  \"fecha\": \"2026-11-01\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Sin aviso bajo el umbral', () => pm.expect(b).not.to.have.property('alerta'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-AIS: A noviembre queda en 79,999 %",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 799.99,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-11-30\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('ID disponible', () => pm.expect(b.gasto.id).to.be.a('number')); pm.collectionVariables.set('gastoAId', b.gasto.id);",
+                  "pm.test('Sin aviso bajo el umbral', () => pm.expect(b).not.to.have.property('alerta'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-AIS: total exclusivo de A noviembre",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-11"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(799.99); pm.expect(b[0].porcentaje).to.eql(80);\n    pm.expect(b[0].estado).to.eql('ok'); pm.expect(b[0].monto_limite).to.eql(1000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    pm.expect(b[0].mes).to.eql('2026-11');\n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-AIS: total exclusivo de B noviembre",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-11"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(1000); pm.expect(b[0].porcentaje).to.eql(100);\n    pm.expect(b[0].estado).to.eql('alerta'); pm.expect(b[0].monto_limite).to.eql(1000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    pm.expect(b[0].mes).to.eql('2026-11');\n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-AIS: total exclusivo de A diciembre",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-12"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(1000); pm.expect(b[0].porcentaje).to.eql(100);\n    pm.expect(b[0].estado).to.eql('alerta'); pm.expect(b[0].monto_limite).to.eql(1000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    pm.expect(b[0].mes).to.eql('2026-12');\n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-AIS: mes sin datos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2027-01"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Sin datos de otros meses', () => pm.expect(b).to.eql([]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-REC: editar gasto a 100,001 %",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos/{{gastoAId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 1000.01,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-11-30\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Aviso exacto', () => pm.expect(b.alerta).to.eql({categoria_id: Number(pm.collectionVariables.get('categoriaId')), porcentaje: 100, estado: 'excedido'}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-REC: no duplica total anterior",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-11"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(1000.01); pm.expect(b[0].porcentaje).to.eql(100);\n    pm.expect(b[0].estado).to.eql('excedido'); pm.expect(b[0].monto_limite).to.eql(1000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    \n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-REC: bajar gasto a 79,999 %",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos/{{gastoAId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 799.99,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-11-30\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Sin aviso bajo el umbral', () => pm.expect(b).not.to.have.property('alerta'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-MOVER: mover gasto a octubre sin presupuesto",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos/{{gastoAId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 799.99,\n  \"categoria_id\": {{categoriaId}},\n  \"fecha\": \"2026-10-31\",\n  \"metodo_pago\": \"efectivo\",\n  \"nota\": \"QA presupuestos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Sin aviso bajo el umbral', () => pm.expect(b).not.to.have.property('alerta'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF4-MOVER: noviembre queda en cero",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-11"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Saldo, porcentaje y estado exactos', () => {\n    pm.expect(b).to.be.an('array').with.lengthOf(1);\n    pm.expect(b[0].gastado).to.eql(0); pm.expect(b[0].porcentaje).to.eql(0);\n    pm.expect(b[0].estado).to.eql('ok'); pm.expect(b[0].monto_limite).to.eql(1000);\n    pm.expect(b[0].categoria_id).to.eql(Number(pm.collectionVariables.get('categoriaId')));\n    \n  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-CRUD: eliminar presupuesto",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos/{{presupuestoId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('Eliminado', () => pm.expect(b).to.eql({eliminado:true}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF3-CRUD: ausencia persistida",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/presupuestos?mes=2026-11"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "pm.test('No reaparece', () => pm.expect(b).to.eql([]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 Limpieza por API",
+      "item": [
+        {
+          "name": "CLEAN-A: eliminar gastos y presupuestos del usuario",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "const token = pm.collectionVariables.get('tokenA'); const base = pm.collectionVariables.get('baseUrl');",
+                  "function remove(route, id) { pm.sendRequest({url:base+route+'/'+id, method:'DELETE', header:{Authorization:'Bearer '+token}}, (e,r) => {\n      pm.test('Limpieza '+route+'/'+id, () => { pm.expect(e).to.eql(null); pm.expect(r.code).to.eql(200); });\n    }); }",
+                  "b.forEach(g => remove('/gastos', g.id));",
+                  "for (let month = 1; month <= 12; month++) { const mes = '2026-'+String(month).padStart(2,'0');\n      pm.sendRequest({url:base+'/presupuestos?mes='+mes, header:{Authorization:'Bearer '+token}}, (e,r) => {\n        pm.test('Consulta limpieza '+mes, () => {pm.expect(e).to.eql(null); pm.expect(r.code).to.eql(200);});\n        if (!e && r.code === 200) r.json().forEach(p => remove('/presupuestos',p.id));\n      });\n    }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CLEAN-B: eliminar gastos y presupuestos del usuario",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/gastos"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const b = pm.response.json();",
+                  "const token = pm.collectionVariables.get('tokenB'); const base = pm.collectionVariables.get('baseUrl');",
+                  "function remove(route, id) { pm.sendRequest({url:base+route+'/'+id, method:'DELETE', header:{Authorization:'Bearer '+token}}, (e,r) => {\n      pm.test('Limpieza '+route+'/'+id, () => { pm.expect(e).to.eql(null); pm.expect(r.code).to.eql(200); });\n    }); }",
+                  "b.forEach(g => remove('/gastos', g.id));",
+                  "for (let month = 1; month <= 12; month++) { const mes = '2026-'+String(month).padStart(2,'0');\n      pm.sendRequest({url:base+'/presupuestos?mes='+mes, header:{Authorization:'Bearer '+token}}, (e,r) => {\n        pm.test('Consulta limpieza '+mes, () => {pm.expect(e).to.eql(null); pm.expect(r.code).to.eql(200);});\n        if (!e && r.code === 200) r.json().forEach(p => remove('/presupuestos',p.id));\n      });\n    }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

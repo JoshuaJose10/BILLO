@@ -1,0 +1,6590 @@
+{
+  "task": "QA presupuestos",
+  "contract": "v1.1",
+  "executedAt": "2026-11-04T01:10:25.827Z",
+  "timezone": "America/Mexico_City",
+  "backendCommit": "58ac43e6722d9b2600b1be136c302e30e6a27660",
+  "backendTree": "9eac28a88932873031a59b90dff54edc79642c2c",
+  "collectionSha256": "2998ff4965688cf1d2e0b78ce957488c9e13dec5e6433328a9afa163688c1576",
+  "node": "v22.15.0",
+  "newman": "6.2.3",
+  "iterations": 2,
+  "branch": "test/qa-presupuestos",
+  "applicationSource": "develop; backend/src, backend/migrations y lógica móvil sin cambios",
+  "fileSha256": {
+    "docs/postman/presupuestos.postman_collection.json": "2998ff4965688cf1d2e0b78ce957488c9e13dec5e6433328a9afa163688c1576",
+    "backend/qa/presupuestos.cjs": "b8bc24ebe21fbc3a1fb51463ab289a4286e592dc8c675d951fbcbd6f17c40353",
+    "backend/qa/generar-presupuestos.cjs": "44ac9038b0d7916826c9ef44c78ffa65f91a6cce0b88fc69652011f26fc898d6",
+    "backend/qa/verificar-alertas-mobile.cjs": "88a99e1546fcd01a1bb478c635ab3b98aadbfa5f28ffb760df9ed076ba7db7d7",
+    "backend/test/suites/presupuestos.cjs": "1d1b10a73c546224582e8e5ecbecab131610600ca82ec9baafcd4d182021823d",
+    "backend/test/presupuestos.test.cjs": "e3c486e9f27feb325ef9c94b08159278f5d48cbb4b77fd04ad74a32a82a69d3b",
+    "backend/test/helpers/database.cjs": "a1592b26ba1ab11923615958548eaa72bdfdde35cd931ec54cd409f1033ec1e2",
+    "backend/test/helpers/fixtures.cjs": "6b3098cfcfc9e28d6c5b1a303311fca4cf1e08010e8707e5210678db7a2283fc",
+    "backend/test/integration.test.cjs": "609169c26b5311560718e435be3caaaf81c10d6b49d35afe390f0d56c993a60d",
+    "backend/package.json": "442667efd2478e7907abeea48f53a0f26ec0934cf725149b0fd792b905041f2c",
+    "backend/package-lock.json": "9c43ab6dbcfd6555f9270a2b9173d3e31208c54f6c35c04fb89d927889c98d16",
+    "docs/postman/resumir-ejecucion.cjs": "baf82cea8c481c4e8aa1d326d8c9bdff520138a1800b42712a593d8b8a148def",
+    "mobile/src/services/gastos.js": "a5ae576cade06deacf42b630161670b3a78d0e08412288ef1d71e6656dc148ac",
+    "mobile/src/screens/NuevoGastoScreen.js": "8e33b18b18f09a535c13f7c05a520788ba3b67e694758efcb9e343c9de4b86a8",
+    "mobile/src/utils/presupuestos.js": "b8dd6153ec7720540ab7412ee6002b88107f82465fa68bb456068577c1a32d57",
+    "mobile/src/utils/presupuestos.test.mjs": "c5fd2a37fd8469cce59de0c5a6cbb13b7df1dd0656be1b5cb47835118d52de9a",
+    "backend/migrations/001_usuarios.sql": "7db4e2f2eb70498d32536eae89f8cc85cb987722140aedcc5e3b2ca9ad6d32a8",
+    "backend/migrations/002_categorias.sql": "1d70d9239153233461c4e41743b8b80330da7510a1daa8d8d0ec6cae817e8296",
+    "backend/migrations/003_gastos.sql": "ea343332e51e668f0fd121254a727a89ceacfc920d2134358afc934f3e9ecb7d",
+    "backend/migrations/004_presupuestos.sql": "85b9f1e773260e9b55d1078d0bee86d4d6c6e03ad4435240b13a77f6db2c6d7a",
+    "backend/migrations/005_catalogo_servicios.sql": "9f6817636731d86f9c4fa4ab624e2c9d49dc70c148edc6d5c59732625100b40b",
+    "backend/migrations/006_membresias.sql": "3685ab9c96664d1867be6102ec2c445fda280fa49e3b7974b136816c4fa0de33",
+    "backend/migrations/007_seed_categorias.sql": "fb71224a7a0a4af34db1f194d911453da42c497b25861c698d02656fae6f13b7",
+    "backend/migrations/008_usuarios_email_minusculas.sql": "ae8b1bc8b846b1230f4051f9d0993595e6698de86db1d9268cd263e3bf700ca7",
+    "backend/migrations/009_indices_y_restricciones.sql": "8f4a303adb3779fae0b4f851762523ee31c74081245a2aa16b116dcc6b002085",
+    "backend/migrations/010_seed_catalogo_servicios.sql": "d4500d5b81ccf18f47407598584546c925f7274f33044a3ad3a22e7169e3951e",
+    "backend/src/app.js": "7f13ec3d18ccc1326d694ae255e6bb3920986a0688e99850633399859b8a1aa1",
+    "backend/src/config/env.js": "bb34ba84db24e6f5fb30f753d0a2b59a4b62d84e08c28732f80cd49b291a7553",
+    "backend/src/controllers/auth.controller.js": "6c3dcb90cc180fb74befbd3584800137ed8674a4fd577d307e3ebe90cbdd7338",
+    "backend/src/controllers/catalogo.controller.js": "13720dd7df5c7e9ac22451c6897ba074233deb47785148eab25ae7eb71183182",
+    "backend/src/controllers/categorias.controller.js": "a98b5a06db099ce7ee373c2506f21ed472ee0a2351fa3fdfd590cf80ed14e9b3",
+    "backend/src/controllers/gastos.controller.js": "20788a1b623f8c757beb66f90bd419a7088fa4e8e5ada7a1475b142cc33f917c",
+    "backend/src/controllers/membresias.controller.js": "e7017c5f0313f4848b668a179c5369698fd851c6c0054c919fe21ed257817c58",
+    "backend/src/controllers/presupuestos.controller.js": "72ea62ed0900248b3d45f6a4274564d4bb5a2df27aea1b7ae2b5f812f53d57e6",
+    "backend/src/controllers/reportes.controller.js": "412a154fbdc1ffc7f232150d20efea94c6619242da31e7b61a898bca2eb8ff18",
+    "backend/src/controllers/tipoCambio.controller.js": "c86c4024bed8a5f14001d6aa53765fc7220880cc8f9bf4e61f90d1eab4696a37",
+    "backend/src/db/index.js": "32472af6565c26faf68dd018d4771eccece39fae4e9994db95b83ef8757fe060",
+    "backend/src/db/migrate.js": "f4a5d0b964a52edbc0f7d2de36c4bbe79e9a2bf55bdddc4469e274e7909ca590",
+    "backend/src/db/schema.sql": "b3a41469f54268f1e7a75041d935b3eafc01a9c1e77e8b7cc95cde5d54c54cf1",
+    "backend/src/index.js": "8e17d6f6a2a40d378c63a4983f1ee348fb0af0f0c21c68819bac1d08a7df2043",
+    "backend/src/middlewares/auth.middleware.js": "cbccad304155bf8cd44630777ad892110089e268f431c2822b5c9a2c974818ad",
+    "backend/src/routes/auth.routes.js": "8b7ea4829267e5609b6b6914d69dd81da7cda5e0f3ecbe649cb4612b5646fb40",
+    "backend/src/routes/catalogo.routes.js": "0aff4468db7843220bcd05fd639b0756e4c6eab0633380915104d9613ef96680",
+    "backend/src/routes/categorias.routes.js": "363f8bcf7f837700caf51885abdff1ccd4727f1107d7324a9795314238f9b2b1",
+    "backend/src/routes/gastos.routes.js": "9145c4253de284f7e61154c02684e30c976fbf3fa81560c7f07049e2404f0e4e",
+    "backend/src/routes/membresias.routes.js": "61fe078b5e50eee68101be8e51a49137bb18b1b581f58379fd843f876988d4dc",
+    "backend/src/routes/presupuestos.routes.js": "0731c12da88413f233f08a6c2b2b0fb96cd7ac9bd4cbd00c277bb7a603dd9ee2",
+    "backend/src/routes/reportes.routes.js": "49aa9953a8c5bffcf3a8bcdd99d9eb3007082d63329afd75cb99aa8d3e323a59",
+    "backend/src/routes/tipoCambio.routes.js": "a0caeca97456ddd79ecf32200fe1ec5ef3613165d8b4a98fa1d4e121c828fefe"
+  },
+  "postgres": "PostgreSQL 17.6 on x86_64-windows, compiled by msvc-19.44.35213, 64-bit",
+  "integration": {
+    "cases": 49,
+    "passed": 49,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "exitCode": 0
+  },
+  "mobile": {
+    "scope": "Servicio móvil real en VM; React y transporte aislados; sin prueba visual de pantalla",
+    "cases": 6,
+    "passed": 2,
+    "failed": 4,
+    "results": [
+      {
+        "name": "RF4-MOBILE-POST-ok",
+        "passed": true,
+        "apiResponse": {
+          "gasto": {
+            "id": 1,
+            "monto": 799.99,
+            "categoria_id": 1,
+            "fecha": "2026-11-03",
+            "metodo_pago": "efectivo",
+            "nota": null
+          }
+        },
+        "serviceResult": {
+          "id": 1,
+          "monto": 799.99,
+          "categoria_id": 1,
+          "fecha": "2026-11-03",
+          "metodo_pago": "efectivo",
+          "nota": null
+        }
+      },
+      {
+        "name": "RF4-MOBILE-POST-alerta",
+        "passed": false,
+        "apiResponse": {
+          "gasto": {
+            "id": 1,
+            "monto": 800,
+            "categoria_id": 1,
+            "fecha": "2026-11-03",
+            "metodo_pago": "efectivo",
+            "nota": null
+          },
+          "alerta": {
+            "categoria_id": 1,
+            "porcentaje": 80,
+            "estado": "alerta"
+          }
+        },
+        "serviceResult": {
+          "id": 1,
+          "monto": 800,
+          "categoria_id": 1,
+          "fecha": "2026-11-03",
+          "metodo_pago": "efectivo",
+          "nota": null
+        },
+        "error": "El adaptador debe conservar el aviso de presupuesto recibido de la API\n+ actual - expected\n\n+ undefined\n- {\n-   categoria_id: 1,\n-   estado: 'alerta',\n-   porcentaje: 80\n- }\n"
+      },
+      {
+        "name": "RF4-MOBILE-POST-excedido",
+        "passed": false,
+        "apiResponse": {
+          "gasto": {
+            "id": 1,
+            "monto": 1000.01,
+            "categoria_id": 1,
+            "fecha": "2026-11-03",
+            "metodo_pago": "efectivo",
+            "nota": null
+          },
+          "alerta": {
+            "categoria_id": 1,
+            "porcentaje": 100,
+            "estado": "excedido"
+          }
+        },
+        "serviceResult": {
+          "id": 1,
+          "monto": 1000.01,
+          "categoria_id": 1,
+          "fecha": "2026-11-03",
+          "metodo_pago": "efectivo",
+          "nota": null
+        },
+        "error": "El adaptador debe conservar el aviso de presupuesto recibido de la API\n+ actual - expected\n\n+ undefined\n- {\n-   categoria_id: 1,\n-   estado: 'excedido',\n-   porcentaje: 100\n- }\n"
+      },
+      {
+        "name": "RF4-MOBILE-PUT-ok",
+        "passed": true,
+        "apiResponse": {
+          "gasto": {
+            "id": 1,
+            "monto": 799.99,
+            "categoria_id": 1,
+            "fecha": "2026-11-03",
+            "metodo_pago": "efectivo",
+            "nota": null
+          }
+        },
+        "serviceResult": {
+          "id": 1,
+          "monto": 799.99,
+          "categoria_id": 1,
+          "fecha": "2026-11-03",
+          "metodo_pago": "efectivo",
+          "nota": null
+        }
+      },
+      {
+        "name": "RF4-MOBILE-PUT-alerta",
+        "passed": false,
+        "apiResponse": {
+          "gasto": {
+            "id": 1,
+            "monto": 800,
+            "categoria_id": 1,
+            "fecha": "2026-11-03",
+            "metodo_pago": "efectivo",
+            "nota": null
+          },
+          "alerta": {
+            "categoria_id": 1,
+            "porcentaje": 80,
+            "estado": "alerta"
+          }
+        },
+        "serviceResult": {
+          "id": 1,
+          "monto": 800,
+          "categoria_id": 1,
+          "fecha": "2026-11-03",
+          "metodo_pago": "efectivo",
+          "nota": null
+        },
+        "error": "El adaptador debe conservar el aviso de presupuesto recibido de la API\n+ actual - expected\n\n+ undefined\n- {\n-   categoria_id: 1,\n-   estado: 'alerta',\n-   porcentaje: 80\n- }\n"
+      },
+      {
+        "name": "RF4-MOBILE-PUT-excedido",
+        "passed": false,
+        "apiResponse": {
+          "gasto": {
+            "id": 1,
+            "monto": 1000.01,
+            "categoria_id": 1,
+            "fecha": "2026-11-03",
+            "metodo_pago": "efectivo",
+            "nota": null
+          },
+          "alerta": {
+            "categoria_id": 1,
+            "porcentaje": 100,
+            "estado": "excedido"
+          }
+        },
+        "serviceResult": {
+          "id": 1,
+          "monto": 1000.01,
+          "categoria_id": 1,
+          "fecha": "2026-11-03",
+          "metodo_pago": "efectivo",
+          "nota": null
+        },
+        "error": "El adaptador debe conservar el aviso de presupuesto recibido de la API\n+ actual - expected\n\n+ undefined\n- {\n-   categoria_id: 1,\n-   estado: 'excedido',\n-   porcentaje: 100\n- }\n"
+      }
+    ]
+  },
+  "database": {
+    "fresh": true,
+    "initialPublicTables": 0,
+    "migrations": [
+      "001_usuarios.sql",
+      "002_categorias.sql",
+      "003_gastos.sql",
+      "004_presupuestos.sql",
+      "005_catalogo_servicios.sql",
+      "006_membresias.sql",
+      "007_seed_categorias.sql",
+      "008_usuarios_email_minusculas.sql",
+      "009_indices_y_restricciones.sql",
+      "010_seed_catalogo_servicios.sql"
+    ],
+    "remaining": {
+      "gastos": 0,
+      "presupuestos": 0
+    },
+    "dropped": true
+  },
+  "scope": "API Express y PostgreSQL reales; servicio móvil aislado; sin ejecución visual Android",
+  "groups": {
+    "01 Preparación aislada": {
+      "cases": 6,
+      "passed": 6,
+      "failed": 0,
+      "casePassRate": 100,
+      "assertions": 18,
+      "assertionsPassed": 18,
+      "assertionsFailed": 0,
+      "assertionPassRate": 100
+    },
+    "02 CP-RF3 presupuestos": {
+      "cases": 46,
+      "passed": 46,
+      "failed": 0,
+      "casePassRate": 100,
+      "assertions": 140,
+      "assertionsPassed": 140,
+      "assertionsFailed": 0,
+      "assertionPassRate": 100
+    },
+    "03 CP-RF4 alertas y límites": {
+      "cases": 84,
+      "passed": 84,
+      "failed": 0,
+      "casePassRate": 100,
+      "assertions": 266,
+      "assertionsPassed": 266,
+      "assertionsFailed": 0,
+      "assertionPassRate": 100
+    },
+    "04 Aislamiento y recálculo": {
+      "cases": 34,
+      "passed": 34,
+      "failed": 0,
+      "casePassRate": 100,
+      "assertions": 104,
+      "assertionsPassed": 104,
+      "assertionsFailed": 0,
+      "assertionPassRate": 100
+    },
+    "05 Limpieza por API": {
+      "cases": 4,
+      "passed": 4,
+      "failed": 0,
+      "casePassRate": 100,
+      "assertions": 110,
+      "assertionsPassed": 110,
+      "assertionsFailed": 0,
+      "assertionPassRate": 100
+    }
+  },
+  "summary": {
+    "cases": 174,
+    "passed": 174,
+    "failed": 0,
+    "casePassRate": 100,
+    "assertions": 638,
+    "assertionsPassed": 638,
+    "assertionsFailed": 0,
+    "assertionPassRate": 100
+  },
+  "acceptance": {
+    "minimumPercent": 100,
+    "apiPassed": true,
+    "integrationPassed": true,
+    "mobilePassed": false,
+    "joshuaConfirmed": false,
+    "visualVerification": "Pendiente en dispositivo o emulador",
+    "passed": false
+  },
+  "stats": {
+    "iterations": {
+      "total": 2,
+      "pending": 0,
+      "failed": 0
+    },
+    "items": {
+      "total": 174,
+      "pending": 0,
+      "failed": 0
+    },
+    "scripts": {
+      "total": 174,
+      "pending": 0,
+      "failed": 0
+    },
+    "prerequests": {
+      "total": 174,
+      "pending": 0,
+      "failed": 0
+    },
+    "requests": {
+      "total": 276,
+      "pending": 0,
+      "failed": 0
+    },
+    "tests": {
+      "total": 174,
+      "pending": 0,
+      "failed": 0
+    },
+    "assertions": {
+      "total": 638,
+      "pending": 0,
+      "failed": 0
+    },
+    "testScripts": {
+      "total": 174,
+      "pending": 0,
+      "failed": 0
+    },
+    "prerequestScripts": {
+      "total": 0,
+      "pending": 0,
+      "failed": 0
+    }
+  },
+  "auxiliaryRequests": 102,
+  "executionErrors": [],
+  "executions": [
+    {
+      "iteration": 1,
+      "folder": "01 Preparación aislada",
+      "name": "PREP-A: registrar usuario QA",
+      "method": "POST",
+      "path": "auth/register",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sesión creada",
+          "passed": true
+        }
+      ],
+      "response": {
+        "usuario": {
+          "id": 1,
+          "nombre": "QA presupuestos A",
+          "email": "[CORREO_QA]"
+        },
+        "token": "[OMITIDO]"
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "01 Preparación aislada",
+      "name": "PREP-B: registrar usuario QA",
+      "method": "POST",
+      "path": "auth/register",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sesión creada",
+          "passed": true
+        }
+      ],
+      "response": {
+        "usuario": {
+          "id": 2,
+          "nombre": "QA presupuestos B",
+          "email": "[CORREO_QA]"
+        },
+        "token": "[OMITIDO]"
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "01 Preparación aislada",
+      "name": "PREP-CAT: categorías reales de gasto",
+      "method": "GET",
+      "path": "categorias",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Dos categorías disponibles",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "nombre": "Entretenimiento",
+          "tipo": "gasto",
+          "es_predefinida": true
+        },
+        {
+          "id": 2,
+          "nombre": "Comida",
+          "tipo": "gasto",
+          "es_predefinida": true
+        },
+        {
+          "id": 3,
+          "nombre": "Transporte",
+          "tipo": "gasto",
+          "es_predefinida": true
+        },
+        {
+          "id": 4,
+          "nombre": "Salud",
+          "tipo": "gasto",
+          "es_predefinida": true
+        },
+        {
+          "id": 5,
+          "nombre": "Otros",
+          "tipo": "gasto",
+          "es_predefinida": true
+        },
+        {
+          "id": 6,
+          "nombre": "Servicios",
+          "tipo": "gasto",
+          "es_predefinida": true
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-01: crear límite 2000",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        },
+        {
+          "name": "Límite persistido",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 1,
+          "categoria_id": 1,
+          "mes": "2026-11",
+          "monto_limite": 2000
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-01: consultar presupuesto sin gastos",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-11",
+          "monto_limite": 2000,
+          "gastado": 0,
+          "porcentaje": 0,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-02: monto negativo no crea",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 400,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error MONTO_INVALIDO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto límite debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-02: ausencia tras rechazo",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin presupuesto insertado",
+          "passed": true
+        }
+      ],
+      "response": []
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-DUP: duplicado mismo usuario y mes",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 409,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 409",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error PRESUPUESTO_DUPLICADO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "PRESUPUESTO_DUPLICADO",
+          "message": "Ya existe un presupuesto para esa categoría y mes"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-VAL: PUT cero",
+      "method": "PUT",
+      "path": "presupuestos/1",
+      "status": 400,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error MONTO_INVALIDO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto límite debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-VAL: PUT texto",
+      "method": "PUT",
+      "path": "presupuestos/1",
+      "status": 400,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error MONTO_INVALIDO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto límite debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-VAL: PUT tres decimales",
+      "method": "PUT",
+      "path": "presupuestos/1",
+      "status": 400,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error MONTO_INVALIDO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto límite debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-VAL: PUT negativo",
+      "method": "PUT",
+      "path": "presupuestos/1",
+      "status": 400,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error MONTO_INVALIDO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto límite debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-VAL: rechazos no alteran límite",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-11",
+          "monto_limite": 2000,
+          "gastado": 0,
+          "porcentaje": 0,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-CRUD: editar a 1000",
+      "method": "PUT",
+      "path": "presupuestos/1",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Límite actualizado",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 1,
+          "categoria_id": 1,
+          "mes": "2026-11",
+          "monto_limite": 1000
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-CRUD: edición persistida",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-11",
+          "monto_limite": 1000,
+          "gastado": 0,
+          "porcentaje": 0,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-USR: B no lista A",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Lista privada",
+          "passed": true
+        }
+      ],
+      "response": []
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-USR: B no PUT A",
+      "method": "PUT",
+      "path": "presupuestos/1",
+      "status": 404,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 404",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error PRESUPUESTO_NO_ENCONTRADO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "PRESUPUESTO_NO_ENCONTRADO",
+          "message": "Presupuesto no encontrado"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-USR: B no DELETE A",
+      "method": "DELETE",
+      "path": "presupuestos/1",
+      "status": 404,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 404",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error PRESUPUESTO_NO_ENCONTRADO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "PRESUPUESTO_NO_ENCONTRADO",
+          "message": "Presupuesto no encontrado"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-USR: A permanece intacto",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-11",
+          "monto_limite": 1000,
+          "gastado": 0,
+          "porcentaje": 0,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-MES: mes obligatorio",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 400,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error MES_INVALIDO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MES_INVALIDO",
+          "message": "El formato del mes debe ser YYYY-MM"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-MES: mes inválido",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 400,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error MES_INVALIDO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MES_INVALIDO",
+          "message": "El formato del mes debe ser YYYY-MM"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-CAT: categoría inexistente",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 400,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error CATEGORIA_INEXISTENTE",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "CATEGORIA_INEXISTENTE",
+          "message": "La categoría seleccionada no existe"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-AUTH: POST sin sesión",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 401,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error NO_AUTORIZADO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-AUTH: GET sin sesión",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 401,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error NO_AUTORIZADO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-AUTH: PUT sin sesión",
+      "method": "PUT",
+      "path": "presupuestos/1",
+      "status": 401,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error NO_AUTORIZADO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-AUTH: DELETE sin sesión",
+      "method": "DELETE",
+      "path": "presupuestos/1",
+      "status": 401,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error NO_AUTORIZADO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-01: preparar presupuesto",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 3,
+          "categoria_id": 1,
+          "mes": "2026-01",
+          "monto_limite": 1000
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-01: saldo inicial 700",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 1,
+          "monto": 700,
+          "categoria_id": 1,
+          "fecha": "2026-01-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-01: POST total 800",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 2,
+          "monto": 100,
+          "categoria_id": 1,
+          "fecha": "2026-01-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 80,
+          "estado": "alerta"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-01: GET después de POST",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 3,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-01",
+          "monto_limite": 1000,
+          "gastado": 800,
+          "porcentaje": 80,
+          "estado": "alerta"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-01: PUT al mismo total",
+      "method": "PUT",
+      "path": "gastos/2",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 2,
+          "monto": 100,
+          "categoria_id": 1,
+          "fecha": "2026-01-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 80,
+          "estado": "alerta"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-01: GET después de PUT",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 3,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-01",
+          "monto_limite": 1000,
+          "gastado": 800,
+          "porcentaje": 80,
+          "estado": "alerta"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-02: preparar presupuesto",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 4,
+          "categoria_id": 1,
+          "mes": "2026-02",
+          "monto_limite": 1000
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-02: saldo inicial 950",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 3,
+          "monto": 950,
+          "categoria_id": 1,
+          "fecha": "2026-02-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 95,
+          "estado": "alerta"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-02: POST total 1050",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 4,
+          "monto": 100,
+          "categoria_id": 1,
+          "fecha": "2026-02-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 105,
+          "estado": "excedido"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-02: GET después de POST",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 4,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-02",
+          "monto_limite": 1000,
+          "gastado": 1050,
+          "porcentaje": 105,
+          "estado": "excedido"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-02: PUT al mismo total",
+      "method": "PUT",
+      "path": "gastos/4",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 4,
+          "monto": 100,
+          "categoria_id": 1,
+          "fecha": "2026-02-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 105,
+          "estado": "excedido"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-02: GET después de PUT",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 4,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-02",
+          "monto_limite": 1000,
+          "gastado": 1050,
+          "porcentaje": 105,
+          "estado": "excedido"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-03: preparar presupuesto",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 5,
+          "categoria_id": 1,
+          "mes": "2026-03",
+          "monto_limite": 1000
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-03: saldo inicial 100",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 5,
+          "monto": 100,
+          "categoria_id": 1,
+          "fecha": "2026-03-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-03: POST total 150",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 6,
+          "monto": 50,
+          "categoria_id": 1,
+          "fecha": "2026-03-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-03: GET después de POST",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 5,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-03",
+          "monto_limite": 1000,
+          "gastado": 150,
+          "porcentaje": 15,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-03: PUT al mismo total",
+      "method": "PUT",
+      "path": "gastos/6",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 6,
+          "monto": 50,
+          "categoria_id": 1,
+          "fecha": "2026-03-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-03: GET después de PUT",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 5,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-03",
+          "monto_limite": 1000,
+          "gastado": 150,
+          "porcentaje": 15,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L7999: preparar presupuesto",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 6,
+          "categoria_id": 1,
+          "mes": "2026-04",
+          "monto_limite": 10000
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L7999: saldo inicial 7000",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 7,
+          "monto": 7000,
+          "categoria_id": 1,
+          "fecha": "2026-04-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L7999: POST total 7999",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 8,
+          "monto": 999,
+          "categoria_id": 1,
+          "fecha": "2026-04-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L7999: GET después de POST",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 6,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-04",
+          "monto_limite": 10000,
+          "gastado": 7999,
+          "porcentaje": 80,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L7999: PUT al mismo total",
+      "method": "PUT",
+      "path": "gastos/8",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 8,
+          "monto": 999,
+          "categoria_id": 1,
+          "fecha": "2026-04-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L7999: GET después de PUT",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 6,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-04",
+          "monto_limite": 10000,
+          "gastado": 7999,
+          "porcentaje": 80,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L80: preparar presupuesto",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 7,
+          "categoria_id": 1,
+          "mes": "2026-05",
+          "monto_limite": 10000
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L80: saldo inicial 7000",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 9,
+          "monto": 7000,
+          "categoria_id": 1,
+          "fecha": "2026-05-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L80: POST total 8000",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 10,
+          "monto": 1000,
+          "categoria_id": 1,
+          "fecha": "2026-05-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 80,
+          "estado": "alerta"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L80: GET después de POST",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 7,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-05",
+          "monto_limite": 10000,
+          "gastado": 8000,
+          "porcentaje": 80,
+          "estado": "alerta"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L80: PUT al mismo total",
+      "method": "PUT",
+      "path": "gastos/10",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 10,
+          "monto": 1000,
+          "categoria_id": 1,
+          "fecha": "2026-05-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 80,
+          "estado": "alerta"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L80: GET después de PUT",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 7,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-05",
+          "monto_limite": 10000,
+          "gastado": 8000,
+          "porcentaje": 80,
+          "estado": "alerta"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L100: preparar presupuesto",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 8,
+          "categoria_id": 1,
+          "mes": "2026-06",
+          "monto_limite": 10000
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L100: saldo inicial 7000",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 11,
+          "monto": 7000,
+          "categoria_id": 1,
+          "fecha": "2026-06-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L100: POST total 10000",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 12,
+          "monto": 3000,
+          "categoria_id": 1,
+          "fecha": "2026-06-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 100,
+          "estado": "alerta"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L100: GET después de POST",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 8,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-06",
+          "monto_limite": 10000,
+          "gastado": 10000,
+          "porcentaje": 100,
+          "estado": "alerta"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L100: PUT al mismo total",
+      "method": "PUT",
+      "path": "gastos/12",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 12,
+          "monto": 3000,
+          "categoria_id": 1,
+          "fecha": "2026-06-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 100,
+          "estado": "alerta"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L100: GET después de PUT",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 8,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-06",
+          "monto_limite": 10000,
+          "gastado": 10000,
+          "porcentaje": 100,
+          "estado": "alerta"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L10001: preparar presupuesto",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 9,
+          "categoria_id": 1,
+          "mes": "2026-07",
+          "monto_limite": 10000
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L10001: saldo inicial 7000",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 13,
+          "monto": 7000,
+          "categoria_id": 1,
+          "fecha": "2026-07-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L10001: POST total 10001",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 14,
+          "monto": 3001,
+          "categoria_id": 1,
+          "fecha": "2026-07-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 100,
+          "estado": "excedido"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L10001: GET después de POST",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 9,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-07",
+          "monto_limite": 10000,
+          "gastado": 10001,
+          "porcentaje": 100,
+          "estado": "excedido"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L10001: PUT al mismo total",
+      "method": "PUT",
+      "path": "gastos/14",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 14,
+          "monto": 3001,
+          "categoria_id": 1,
+          "fecha": "2026-07-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 100,
+          "estado": "excedido"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L10001: GET después de PUT",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 9,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-07",
+          "monto_limite": 10000,
+          "gastado": 10001,
+          "porcentaje": 100,
+          "estado": "excedido"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: B crea mismo mes y categoría",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 10,
+          "categoria_id": 1,
+          "mes": "2026-11",
+          "monto_limite": 1000
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: A crea diciembre",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 11,
+          "categoria_id": 1,
+          "mes": "2026-12",
+          "monto_limite": 1000
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: B llega a 100 %",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 15,
+          "monto": 1000,
+          "categoria_id": 1,
+          "fecha": "2026-11-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 100,
+          "estado": "alerta"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: A diciembre llega a 100 %",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 16,
+          "monto": 1000,
+          "categoria_id": 1,
+          "fecha": "2026-12-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 100,
+          "estado": "alerta"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: gasto de otra categoría sin presupuesto",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 17,
+          "monto": 5000,
+          "categoria_id": 2,
+          "fecha": "2026-11-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: A noviembre queda en 79,999 %",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 18,
+          "monto": 799.99,
+          "categoria_id": 1,
+          "fecha": "2026-11-30",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: total exclusivo de A noviembre",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-11",
+          "monto_limite": 1000,
+          "gastado": 799.99,
+          "porcentaje": 80,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: total exclusivo de B noviembre",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 10,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-11",
+          "monto_limite": 1000,
+          "gastado": 1000,
+          "porcentaje": 100,
+          "estado": "alerta"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: total exclusivo de A diciembre",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 11,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-12",
+          "monto_limite": 1000,
+          "gastado": 1000,
+          "porcentaje": 100,
+          "estado": "alerta"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: mes sin datos",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin datos de otros meses",
+          "passed": true
+        }
+      ],
+      "response": []
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-REC: editar gasto a 100,001 %",
+      "method": "PUT",
+      "path": "gastos/18",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 18,
+          "monto": 1000.01,
+          "categoria_id": 1,
+          "fecha": "2026-11-30",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 100,
+          "estado": "excedido"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-REC: no duplica total anterior",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-11",
+          "monto_limite": 1000,
+          "gastado": 1000.01,
+          "porcentaje": 100,
+          "estado": "excedido"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-REC: bajar gasto a 79,999 %",
+      "method": "PUT",
+      "path": "gastos/18",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 18,
+          "monto": 799.99,
+          "categoria_id": 1,
+          "fecha": "2026-11-30",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-MOVER: mover gasto a octubre sin presupuesto",
+      "method": "PUT",
+      "path": "gastos/18",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 18,
+          "monto": 799.99,
+          "categoria_id": 1,
+          "fecha": "2026-10-31",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-MOVER: noviembre queda en cero",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-11",
+          "monto_limite": 1000,
+          "gastado": 0,
+          "porcentaje": 0,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF3-CRUD: eliminar presupuesto",
+      "method": "DELETE",
+      "path": "presupuestos/1",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Eliminado",
+          "passed": true
+        }
+      ],
+      "response": {
+        "eliminado": true
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF3-CRUD: ausencia persistida",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No reaparece",
+          "passed": true
+        }
+      ],
+      "response": []
+    },
+    {
+      "iteration": 1,
+      "folder": "05 Limpieza por API",
+      "name": "CLEAN-A: eliminar gastos y presupuestos del usuario",
+      "method": "DELETE",
+      "path": "presupuestos/11",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/16",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/17",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/6",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/5",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/4",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/3",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/2",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/1",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-01",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-02",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/12",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/14",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/7",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/8",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/11",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/13",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/18",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/9",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-03",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/10",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-04",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-05",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-06",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-07",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-08",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-09",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-12",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-10",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-11",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /presupuestos/3",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /presupuestos/4",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /presupuestos/5",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /presupuestos/6",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /presupuestos/7",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /presupuestos/8",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /presupuestos/9",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /presupuestos/11",
+          "passed": true
+        }
+      ],
+      "response": {
+        "eliminado": true
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "05 Limpieza por API",
+      "name": "CLEAN-B: eliminar gastos y presupuestos del usuario",
+      "method": "DELETE",
+      "path": "presupuestos/10",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/15",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-01",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-02",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-03",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-04",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-05",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-06",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-07",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-08",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-10",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-11",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-09",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-12",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /presupuestos/10",
+          "passed": true
+        }
+      ],
+      "response": {
+        "eliminado": true
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "01 Preparación aislada",
+      "name": "PREP-A: registrar usuario QA",
+      "method": "POST",
+      "path": "auth/register",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sesión creada",
+          "passed": true
+        }
+      ],
+      "response": {
+        "usuario": {
+          "id": 3,
+          "nombre": "QA presupuestos A",
+          "email": "[CORREO_QA]"
+        },
+        "token": "[OMITIDO]"
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "01 Preparación aislada",
+      "name": "PREP-B: registrar usuario QA",
+      "method": "POST",
+      "path": "auth/register",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sesión creada",
+          "passed": true
+        }
+      ],
+      "response": {
+        "usuario": {
+          "id": 4,
+          "nombre": "QA presupuestos B",
+          "email": "[CORREO_QA]"
+        },
+        "token": "[OMITIDO]"
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "01 Preparación aislada",
+      "name": "PREP-CAT: categorías reales de gasto",
+      "method": "GET",
+      "path": "categorias",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Dos categorías disponibles",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "nombre": "Entretenimiento",
+          "tipo": "gasto",
+          "es_predefinida": true
+        },
+        {
+          "id": 2,
+          "nombre": "Comida",
+          "tipo": "gasto",
+          "es_predefinida": true
+        },
+        {
+          "id": 3,
+          "nombre": "Transporte",
+          "tipo": "gasto",
+          "es_predefinida": true
+        },
+        {
+          "id": 4,
+          "nombre": "Salud",
+          "tipo": "gasto",
+          "es_predefinida": true
+        },
+        {
+          "id": 5,
+          "nombre": "Otros",
+          "tipo": "gasto",
+          "es_predefinida": true
+        },
+        {
+          "id": 6,
+          "nombre": "Servicios",
+          "tipo": "gasto",
+          "es_predefinida": true
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-01: crear límite 2000",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        },
+        {
+          "name": "Límite persistido",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 12,
+          "categoria_id": 1,
+          "mes": "2026-11",
+          "monto_limite": 2000
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-01: consultar presupuesto sin gastos",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 12,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-11",
+          "monto_limite": 2000,
+          "gastado": 0,
+          "porcentaje": 0,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-02: monto negativo no crea",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 400,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error MONTO_INVALIDO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto límite debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-02: ausencia tras rechazo",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin presupuesto insertado",
+          "passed": true
+        }
+      ],
+      "response": []
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-DUP: duplicado mismo usuario y mes",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 409,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 409",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error PRESUPUESTO_DUPLICADO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "PRESUPUESTO_DUPLICADO",
+          "message": "Ya existe un presupuesto para esa categoría y mes"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-VAL: PUT cero",
+      "method": "PUT",
+      "path": "presupuestos/12",
+      "status": 400,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error MONTO_INVALIDO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto límite debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-VAL: PUT texto",
+      "method": "PUT",
+      "path": "presupuestos/12",
+      "status": 400,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error MONTO_INVALIDO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto límite debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-VAL: PUT tres decimales",
+      "method": "PUT",
+      "path": "presupuestos/12",
+      "status": 400,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error MONTO_INVALIDO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto límite debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-VAL: PUT negativo",
+      "method": "PUT",
+      "path": "presupuestos/12",
+      "status": 400,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error MONTO_INVALIDO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MONTO_INVALIDO",
+          "message": "El monto límite debe ser un número mayor a 0"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-VAL: rechazos no alteran límite",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 12,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-11",
+          "monto_limite": 2000,
+          "gastado": 0,
+          "porcentaje": 0,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-CRUD: editar a 1000",
+      "method": "PUT",
+      "path": "presupuestos/12",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Límite actualizado",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 12,
+          "categoria_id": 1,
+          "mes": "2026-11",
+          "monto_limite": 1000
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-CRUD: edición persistida",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 12,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-11",
+          "monto_limite": 1000,
+          "gastado": 0,
+          "porcentaje": 0,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-USR: B no lista A",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Lista privada",
+          "passed": true
+        }
+      ],
+      "response": []
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-USR: B no PUT A",
+      "method": "PUT",
+      "path": "presupuestos/12",
+      "status": 404,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 404",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error PRESUPUESTO_NO_ENCONTRADO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "PRESUPUESTO_NO_ENCONTRADO",
+          "message": "Presupuesto no encontrado"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-USR: B no DELETE A",
+      "method": "DELETE",
+      "path": "presupuestos/12",
+      "status": 404,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 404",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error PRESUPUESTO_NO_ENCONTRADO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "PRESUPUESTO_NO_ENCONTRADO",
+          "message": "Presupuesto no encontrado"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-USR: A permanece intacto",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 12,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-11",
+          "monto_limite": 1000,
+          "gastado": 0,
+          "porcentaje": 0,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-MES: mes obligatorio",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 400,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error MES_INVALIDO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MES_INVALIDO",
+          "message": "El formato del mes debe ser YYYY-MM"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-MES: mes inválido",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 400,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error MES_INVALIDO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "MES_INVALIDO",
+          "message": "El formato del mes debe ser YYYY-MM"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-CAT: categoría inexistente",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 400,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error CATEGORIA_INEXISTENTE",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "CATEGORIA_INEXISTENTE",
+          "message": "La categoría seleccionada no existe"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-AUTH: POST sin sesión",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 401,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error NO_AUTORIZADO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-AUTH: GET sin sesión",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 401,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error NO_AUTORIZADO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-AUTH: PUT sin sesión",
+      "method": "PUT",
+      "path": "presupuestos/12",
+      "status": 401,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error NO_AUTORIZADO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "02 CP-RF3 presupuestos",
+      "name": "CP-RF3-AUTH: DELETE sin sesión",
+      "method": "DELETE",
+      "path": "presupuestos/12",
+      "status": 401,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Error NO_AUTORIZADO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-01: preparar presupuesto",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 14,
+          "categoria_id": 1,
+          "mes": "2026-01",
+          "monto_limite": 1000
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-01: saldo inicial 700",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 19,
+          "monto": 700,
+          "categoria_id": 1,
+          "fecha": "2026-01-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-01: POST total 800",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 20,
+          "monto": 100,
+          "categoria_id": 1,
+          "fecha": "2026-01-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 80,
+          "estado": "alerta"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-01: GET después de POST",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 14,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-01",
+          "monto_limite": 1000,
+          "gastado": 800,
+          "porcentaje": 80,
+          "estado": "alerta"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-01: PUT al mismo total",
+      "method": "PUT",
+      "path": "gastos/20",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 20,
+          "monto": 100,
+          "categoria_id": 1,
+          "fecha": "2026-01-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 80,
+          "estado": "alerta"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-01: GET después de PUT",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 14,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-01",
+          "monto_limite": 1000,
+          "gastado": 800,
+          "porcentaje": 80,
+          "estado": "alerta"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-02: preparar presupuesto",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 15,
+          "categoria_id": 1,
+          "mes": "2026-02",
+          "monto_limite": 1000
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-02: saldo inicial 950",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 21,
+          "monto": 950,
+          "categoria_id": 1,
+          "fecha": "2026-02-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 95,
+          "estado": "alerta"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-02: POST total 1050",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 22,
+          "monto": 100,
+          "categoria_id": 1,
+          "fecha": "2026-02-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 105,
+          "estado": "excedido"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-02: GET después de POST",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 15,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-02",
+          "monto_limite": 1000,
+          "gastado": 1050,
+          "porcentaje": 105,
+          "estado": "excedido"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-02: PUT al mismo total",
+      "method": "PUT",
+      "path": "gastos/22",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 22,
+          "monto": 100,
+          "categoria_id": 1,
+          "fecha": "2026-02-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 105,
+          "estado": "excedido"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-02: GET después de PUT",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 15,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-02",
+          "monto_limite": 1000,
+          "gastado": 1050,
+          "porcentaje": 105,
+          "estado": "excedido"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-03: preparar presupuesto",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 16,
+          "categoria_id": 1,
+          "mes": "2026-03",
+          "monto_limite": 1000
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-03: saldo inicial 100",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 23,
+          "monto": 100,
+          "categoria_id": 1,
+          "fecha": "2026-03-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-03: POST total 150",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 24,
+          "monto": 50,
+          "categoria_id": 1,
+          "fecha": "2026-03-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-03: GET después de POST",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 16,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-03",
+          "monto_limite": 1000,
+          "gastado": 150,
+          "porcentaje": 15,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-03: PUT al mismo total",
+      "method": "PUT",
+      "path": "gastos/24",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 24,
+          "monto": 50,
+          "categoria_id": 1,
+          "fecha": "2026-03-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-03: GET después de PUT",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 16,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-03",
+          "monto_limite": 1000,
+          "gastado": 150,
+          "porcentaje": 15,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L7999: preparar presupuesto",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 17,
+          "categoria_id": 1,
+          "mes": "2026-04",
+          "monto_limite": 10000
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L7999: saldo inicial 7000",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 25,
+          "monto": 7000,
+          "categoria_id": 1,
+          "fecha": "2026-04-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L7999: POST total 7999",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 26,
+          "monto": 999,
+          "categoria_id": 1,
+          "fecha": "2026-04-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L7999: GET después de POST",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 17,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-04",
+          "monto_limite": 10000,
+          "gastado": 7999,
+          "porcentaje": 80,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L7999: PUT al mismo total",
+      "method": "PUT",
+      "path": "gastos/26",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 26,
+          "monto": 999,
+          "categoria_id": 1,
+          "fecha": "2026-04-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L7999: GET después de PUT",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 17,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-04",
+          "monto_limite": 10000,
+          "gastado": 7999,
+          "porcentaje": 80,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L80: preparar presupuesto",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 18,
+          "categoria_id": 1,
+          "mes": "2026-05",
+          "monto_limite": 10000
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L80: saldo inicial 7000",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 27,
+          "monto": 7000,
+          "categoria_id": 1,
+          "fecha": "2026-05-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L80: POST total 8000",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 28,
+          "monto": 1000,
+          "categoria_id": 1,
+          "fecha": "2026-05-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 80,
+          "estado": "alerta"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L80: GET después de POST",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 18,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-05",
+          "monto_limite": 10000,
+          "gastado": 8000,
+          "porcentaje": 80,
+          "estado": "alerta"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L80: PUT al mismo total",
+      "method": "PUT",
+      "path": "gastos/28",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 28,
+          "monto": 1000,
+          "categoria_id": 1,
+          "fecha": "2026-05-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 80,
+          "estado": "alerta"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L80: GET después de PUT",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 18,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-05",
+          "monto_limite": 10000,
+          "gastado": 8000,
+          "porcentaje": 80,
+          "estado": "alerta"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L100: preparar presupuesto",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 19,
+          "categoria_id": 1,
+          "mes": "2026-06",
+          "monto_limite": 10000
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L100: saldo inicial 7000",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 29,
+          "monto": 7000,
+          "categoria_id": 1,
+          "fecha": "2026-06-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L100: POST total 10000",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 30,
+          "monto": 3000,
+          "categoria_id": 1,
+          "fecha": "2026-06-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 100,
+          "estado": "alerta"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L100: GET después de POST",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 19,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-06",
+          "monto_limite": 10000,
+          "gastado": 10000,
+          "porcentaje": 100,
+          "estado": "alerta"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L100: PUT al mismo total",
+      "method": "PUT",
+      "path": "gastos/30",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 30,
+          "monto": 3000,
+          "categoria_id": 1,
+          "fecha": "2026-06-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 100,
+          "estado": "alerta"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L100: GET después de PUT",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 19,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-06",
+          "monto_limite": 10000,
+          "gastado": 10000,
+          "porcentaje": 100,
+          "estado": "alerta"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L10001: preparar presupuesto",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 20,
+          "categoria_id": 1,
+          "mes": "2026-07",
+          "monto_limite": 10000
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L10001: saldo inicial 7000",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 31,
+          "monto": 7000,
+          "categoria_id": 1,
+          "fecha": "2026-07-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L10001: POST total 10001",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 32,
+          "monto": 3001,
+          "categoria_id": 1,
+          "fecha": "2026-07-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 100,
+          "estado": "excedido"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L10001: GET después de POST",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 20,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-07",
+          "monto_limite": 10000,
+          "gastado": 10001,
+          "porcentaje": 100,
+          "estado": "excedido"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L10001: PUT al mismo total",
+      "method": "PUT",
+      "path": "gastos/32",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 32,
+          "monto": 3001,
+          "categoria_id": 1,
+          "fecha": "2026-07-15",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 100,
+          "estado": "excedido"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "03 CP-RF4 alertas y límites",
+      "name": "CP-RF4-L10001: GET después de PUT",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 20,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-07",
+          "monto_limite": 10000,
+          "gastado": 10001,
+          "porcentaje": 100,
+          "estado": "excedido"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: B crea mismo mes y categoría",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 21,
+          "categoria_id": 1,
+          "mes": "2026-11",
+          "monto_limite": 1000
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: A crea diciembre",
+      "method": "POST",
+      "path": "presupuestos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        }
+      ],
+      "response": {
+        "presupuesto": {
+          "id": 22,
+          "categoria_id": 1,
+          "mes": "2026-12",
+          "monto_limite": 1000
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: B llega a 100 %",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 33,
+          "monto": 1000,
+          "categoria_id": 1,
+          "fecha": "2026-11-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 100,
+          "estado": "alerta"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: A diciembre llega a 100 %",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 34,
+          "monto": 1000,
+          "categoria_id": 1,
+          "fecha": "2026-12-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 100,
+          "estado": "alerta"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: gasto de otra categoría sin presupuesto",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 35,
+          "monto": 5000,
+          "categoria_id": 2,
+          "fecha": "2026-11-01",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: A noviembre queda en 79,999 %",
+      "method": "POST",
+      "path": "gastos",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "ID disponible",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 36,
+          "monto": 799.99,
+          "categoria_id": 1,
+          "fecha": "2026-11-30",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: total exclusivo de A noviembre",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 12,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-11",
+          "monto_limite": 1000,
+          "gastado": 799.99,
+          "porcentaje": 80,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: total exclusivo de B noviembre",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 21,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-11",
+          "monto_limite": 1000,
+          "gastado": 1000,
+          "porcentaje": 100,
+          "estado": "alerta"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: total exclusivo de A diciembre",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 22,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-12",
+          "monto_limite": 1000,
+          "gastado": 1000,
+          "porcentaje": 100,
+          "estado": "alerta"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-AIS: mes sin datos",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin datos de otros meses",
+          "passed": true
+        }
+      ],
+      "response": []
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-REC: editar gasto a 100,001 %",
+      "method": "PUT",
+      "path": "gastos/36",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Aviso exacto",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 36,
+          "monto": 1000.01,
+          "categoria_id": 1,
+          "fecha": "2026-11-30",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        },
+        "alerta": {
+          "categoria_id": 1,
+          "porcentaje": 100,
+          "estado": "excedido"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-REC: no duplica total anterior",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 12,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-11",
+          "monto_limite": 1000,
+          "gastado": 1000.01,
+          "porcentaje": 100,
+          "estado": "excedido"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-REC: bajar gasto a 79,999 %",
+      "method": "PUT",
+      "path": "gastos/36",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 36,
+          "monto": 799.99,
+          "categoria_id": 1,
+          "fecha": "2026-11-30",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-MOVER: mover gasto a octubre sin presupuesto",
+      "method": "PUT",
+      "path": "gastos/36",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Sin aviso bajo el umbral",
+          "passed": true
+        }
+      ],
+      "response": {
+        "gasto": {
+          "id": 36,
+          "monto": 799.99,
+          "categoria_id": 1,
+          "fecha": "2026-10-31",
+          "metodo_pago": "efectivo",
+          "nota": "QA presupuestos"
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF4-MOVER: noviembre queda en cero",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Saldo, porcentaje y estado exactos",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 12,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-11",
+          "monto_limite": 1000,
+          "gastado": 0,
+          "porcentaje": 0,
+          "estado": "ok"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF3-CRUD: eliminar presupuesto",
+      "method": "DELETE",
+      "path": "presupuestos/12",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Eliminado",
+          "passed": true
+        }
+      ],
+      "response": {
+        "eliminado": true
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "04 Aislamiento y recálculo",
+      "name": "CP-RF3-CRUD: ausencia persistida",
+      "method": "GET",
+      "path": "presupuestos",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No reaparece",
+          "passed": true
+        }
+      ],
+      "response": []
+    },
+    {
+      "iteration": 2,
+      "folder": "05 Limpieza por API",
+      "name": "CLEAN-A: eliminar gastos y presupuestos del usuario",
+      "method": "DELETE",
+      "path": "presupuestos/22",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/34",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/35",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/36",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/32",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/31",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/30",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/29",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/28",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/27",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/26",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/24",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/23",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/22",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/21",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/20",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/19",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-02",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-03",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-01",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-04",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-05",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-06",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-07",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-08",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-09",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-10",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-11",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-12",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/25",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /presupuestos/16",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /presupuestos/15",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /presupuestos/14",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /presupuestos/17",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /presupuestos/18",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /presupuestos/19",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /presupuestos/20",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /presupuestos/22",
+          "passed": true
+        }
+      ],
+      "response": {
+        "eliminado": true
+      }
+    },
+    {
+      "iteration": 2,
+      "folder": "05 Limpieza por API",
+      "name": "CLEAN-B: eliminar gastos y presupuestos del usuario",
+      "method": "DELETE",
+      "path": "presupuestos/21",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /gastos/33",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-01",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-02",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-03",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-04",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-06",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-05",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-07",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-08",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-09",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-10",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-11",
+          "passed": true
+        },
+        {
+          "name": "Consulta limpieza 2026-12",
+          "passed": true
+        },
+        {
+          "name": "Limpieza /presupuestos/21",
+          "passed": true
+        }
+      ],
+      "response": {
+        "eliminado": true
+      }
+    }
+  ]
+}

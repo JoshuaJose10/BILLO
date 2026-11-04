@@ -1,0 +1,330 @@
+TAP version 13
+# ◇ injected env (0) from .env
+# OK 001_usuarios.sql
+# OK 002_categorias.sql
+# OK 003_gastos.sql
+# OK 004_presupuestos.sql
+# OK 005_catalogo_servicios.sql
+# OK 006_membresias.sql
+# OK 007_seed_categorias.sql
+# OK 008_usuarios_email_minusculas.sql
+# OK 009_indices_y_restricciones.sql
+# OK 010_seed_catalogo_servicios.sql
+# Migraciones completadas: 10 archivo(s) aplicado(s).
+# Subtest: QA presupuestos: API real + PostgreSQL temporal
+    # Subtest: Presupuestos y alertas (CP-RF3 / CP-RF4)
+        # Subtest: CP-RF3-01: crea y consulta presupuesto de 2000 sin gastos
+        ok 1 - CP-RF3-01: crea y consulta presupuesto de 2000 sin gastos
+          ---
+          duration_ms: 168.8422
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-02: POST rechaza -500 sin persistir
+        ok 2 - CP-RF3-02: POST rechaza -500 sin persistir
+          ---
+          duration_ms: 113.0822
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-02: PUT rechaza -500 sin persistir
+        ok 3 - CP-RF3-02: PUT rechaza -500 sin persistir
+          ---
+          duration_ms: 140.5829
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-M0: POST rechaza 0 sin persistir
+        ok 4 - CP-RF3-M0: POST rechaza 0 sin persistir
+          ---
+          duration_ms: 125.5612
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-M0: PUT rechaza 0 sin persistir
+        ok 5 - CP-RF3-M0: PUT rechaza 0 sin persistir
+          ---
+          duration_ms: 137.6033
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MTXT: POST rechaza "1000" sin persistir
+        ok 6 - CP-RF3-MTXT: POST rechaza "1000" sin persistir
+          ---
+          duration_ms: 117.8097
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MTXT: PUT rechaza "1000" sin persistir
+        ok 7 - CP-RF3-MTXT: PUT rechaza "1000" sin persistir
+          ---
+          duration_ms: 126.6069
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MDEC: POST rechaza 1.001 sin persistir
+        ok 8 - CP-RF3-MDEC: POST rechaza 1.001 sin persistir
+          ---
+          duration_ms: 118.8774
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MDEC: PUT rechaza 1.001 sin persistir
+        ok 9 - CP-RF3-MDEC: PUT rechaza 1.001 sin persistir
+          ---
+          duration_ms: 112.55
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MNULL: POST rechaza null sin persistir
+        ok 10 - CP-RF3-MNULL: POST rechaza null sin persistir
+          ---
+          duration_ms: 108.1113
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MNULL: PUT rechaza null sin persistir
+        ok 11 - CP-RF3-MNULL: PUT rechaza null sin persistir
+          ---
+          duration_ms: 111.6972
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-DUP: unicidad por usuario, categoría y mes
+        ok 12 - CP-RF3-DUP: unicidad por usuario, categoría y mes
+          ---
+          duration_ms: 254.8618
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-CRUD: edita límite, recalcula y elimina sin borrar gastos
+        ok 13 - CP-RF3-CRUD: edita límite, recalcula y elimina sin borrar gastos
+          ---
+          duration_ms: 161.1941
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MES: GET rechaza undefined
+        ok 14 - CP-RF3-MES: GET rechaza undefined
+          ---
+          duration_ms: 72.346
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MES: GET rechaza "2026-13"
+        ok 15 - CP-RF3-MES: GET rechaza "2026-13"
+          ---
+          duration_ms: 62.2555
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MES: GET rechaza "2026-1"
+        ok 16 - CP-RF3-MES: GET rechaza "2026-1"
+          ---
+          duration_ms: 56.2559
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-MES: GET rechaza ""
+        ok 17 - CP-RF3-MES: GET rechaza ""
+          ---
+          duration_ms: 63.6001
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-POST-MES
+        ok 18 - CP-RF3-POST-MES
+          ---
+          duration_ms: 66.1392
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-CAT
+        ok 19 - CP-RF3-CAT
+          ---
+          duration_ms: 68.4332
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-USR: a no puede put presupuesto de b
+        ok 20 - CP-RF3-USR: a no puede put presupuesto de b
+          ---
+          duration_ms: 102.4285
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-USR: a no puede delete presupuesto de b
+        ok 21 - CP-RF3-USR: a no puede delete presupuesto de b
+          ---
+          duration_ms: 112.3063
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-USR: b no puede put presupuesto de a
+        ok 22 - CP-RF3-USR: b no puede put presupuesto de a
+          ---
+          duration_ms: 105.8059
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-USR: b no puede delete presupuesto de a
+        ok 23 - CP-RF3-USR: b no puede delete presupuesto de a
+          ---
+          duration_ms: 93.9486
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-AUTH: post con token ausente
+        ok 24 - CP-RF3-AUTH: post con token ausente
+          ---
+          duration_ms: 82.2302
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-AUTH: post con token inválido
+        ok 25 - CP-RF3-AUTH: post con token inválido
+          ---
+          duration_ms: 97.925
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-AUTH: get con token ausente
+        ok 26 - CP-RF3-AUTH: get con token ausente
+          ---
+          duration_ms: 82.9621
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-AUTH: get con token inválido
+        ok 27 - CP-RF3-AUTH: get con token inválido
+          ---
+          duration_ms: 84.5915
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-AUTH: put con token ausente
+        ok 28 - CP-RF3-AUTH: put con token ausente
+          ---
+          duration_ms: 89.6743
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-AUTH: put con token inválido
+        ok 29 - CP-RF3-AUTH: put con token inválido
+          ---
+          duration_ms: 81.6812
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-AUTH: delete con token ausente
+        ok 30 - CP-RF3-AUTH: delete con token ausente
+          ---
+          duration_ms: 79.7161
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-AUTH: delete con token inválido
+        ok 31 - CP-RF3-AUTH: delete con token inválido
+          ---
+          duration_ms: 96.4225
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-01: POST acumula 800/1000, alerta
+        ok 32 - CP-RF4-01: POST acumula 800/1000, alerta
+          ---
+          duration_ms: 111.8592
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-01: PUT acumula 800/1000, alerta
+        ok 33 - CP-RF4-01: PUT acumula 800/1000, alerta
+          ---
+          duration_ms: 118.7547
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-02: POST acumula 1050/1000, excedido
+        ok 34 - CP-RF4-02: POST acumula 1050/1000, excedido
+          ---
+          duration_ms: 113.4892
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-02: PUT acumula 1050/1000, excedido
+        ok 35 - CP-RF4-02: PUT acumula 1050/1000, excedido
+          ---
+          duration_ms: 138.7387
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-03: POST acumula 150/1000, ok
+        ok 36 - CP-RF4-03: POST acumula 150/1000, ok
+          ---
+          duration_ms: 105.8949
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-03: PUT acumula 150/1000, ok
+        ok 37 - CP-RF4-03: PUT acumula 150/1000, ok
+          ---
+          duration_ms: 108.494
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-L7999: POST acumula 7999/10000, ok
+        ok 38 - CP-RF4-L7999: POST acumula 7999/10000, ok
+          ---
+          duration_ms: 105.1375
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-L7999: PUT acumula 7999/10000, ok
+        ok 39 - CP-RF4-L7999: PUT acumula 7999/10000, ok
+          ---
+          duration_ms: 102.1662
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-L80: POST acumula 8000/10000, alerta
+        ok 40 - CP-RF4-L80: POST acumula 8000/10000, alerta
+          ---
+          duration_ms: 101.2308
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-L80: PUT acumula 8000/10000, alerta
+        ok 41 - CP-RF4-L80: PUT acumula 8000/10000, alerta
+          ---
+          duration_ms: 104.3987
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-L100: POST acumula 10000/10000, alerta
+        ok 42 - CP-RF4-L100: POST acumula 10000/10000, alerta
+          ---
+          duration_ms: 105.4012
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-L100: PUT acumula 10000/10000, alerta
+        ok 43 - CP-RF4-L100: PUT acumula 10000/10000, alerta
+          ---
+          duration_ms: 112.5892
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-L10001: POST acumula 10001/10000, excedido
+        ok 44 - CP-RF4-L10001: POST acumula 10001/10000, excedido
+          ---
+          duration_ms: 100.2974
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-L10001: PUT acumula 10001/10000, excedido
+        ok 45 - CP-RF4-L10001: PUT acumula 10001/10000, excedido
+          ---
+          duration_ms: 119.4071
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-AIS: aísla sumas y alertas por usuario, mes y categoría
+        ok 46 - CP-RF4-AIS: aísla sumas y alertas por usuario, mes y categoría
+          ---
+          duration_ms: 155.455
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-SIN: sin presupuesto no incluye alerta
+        ok 47 - CP-RF4-SIN: sin presupuesto no incluye alerta
+          ---
+          duration_ms: 96.8154
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-REC: PUT y DELETE de gastos recalculan el total sin duplicar
+        ok 48 - CP-RF4-REC: PUT y DELETE de gastos recalculan el total sin duplicar
+          ---
+          duration_ms: 118.041
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-MOVER: cambiar mes y categoría deja de afectar el presupuesto original
+        ok 49 - CP-RF4-MOVER: cambiar mes y categoría deja de afectar el presupuesto original
+          ---
+          duration_ms: 118.9315
+          type: 'test'
+          ...
+        1..49
+    ok 1 - Presupuestos y alertas (CP-RF3 / CP-RF4)
+      ---
+      duration_ms: 5340.3162
+      type: 'suite'
+      ...
+    1..1
+ok 1 - QA presupuestos: API real + PostgreSQL temporal
+  ---
+  duration_ms: 7482.0679
+  type: 'suite'
+  ...
+1..1
+# tests 49
+# suites 2
+# pass 49
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8153.2723

@@ -1,0 +1,303 @@
+﻿
+> mobile@1.0.0 test
+> node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test "src/**/*.test.mjs"
+
+TAP version 13
+# Subtest: textoDesdeMonto
+    # Subtest: convierte montos enteros y con decimales
+    ok 1 - convierte montos enteros y con decimales
+      ---
+      duration_ms: 5.9143
+      type: 'test'
+      ...
+    # Subtest: conserva el cero de los centavos
+    ok 2 - conserva el cero de los centavos
+      ---
+      duration_ms: 0.4776
+      type: 'test'
+      ...
+    # Subtest: acepta el monto como texto (por si la API lo manda así)
+    ok 3 - acepta el monto como texto (por si la API lo manda así)
+      ---
+      duration_ms: 0.8951
+      type: 'test'
+      ...
+    # Subtest: redondea a 2 decimales
+    ok 4 - redondea a 2 decimales
+      ---
+      duration_ms: 0.6349
+      type: 'test'
+      ...
+    # Subtest: devuelve "" con montos no válidos
+    ok 5 - devuelve "" con montos no válidos
+      ---
+      duration_ms: 0.5587
+      type: 'test'
+      ...
+    # Subtest: es el inverso de montoDesdeTexto
+    ok 6 - es el inverso de montoDesdeTexto
+      ---
+      duration_ms: 0.8464
+      type: 'test'
+      ...
+    # Subtest: deja un texto que el teclado puede seguir editando
+    ok 7 - deja un texto que el teclado puede seguir editando
+      ---
+      duration_ms: 1.236
+      type: 'test'
+      ...
+    1..7
+ok 1 - textoDesdeMonto
+  ---
+  duration_ms: 16.0677
+  type: 'suite'
+  ...
+# Subtest: CP-RF4: presentación de los límites sin reclasificar por porcentaje redondeado
+    # Subtest: CP-RF4-L79,99 %: respeta estado ok y excedente 0
+    ok 1 - CP-RF4-L79,99 %: respeta estado ok y excedente 0
+      ---
+      duration_ms: 4.2854
+      type: 'test'
+      ...
+    # Subtest: CP-RF4-L80 %: respeta estado alerta y excedente 0
+    ok 2 - CP-RF4-L80 %: respeta estado alerta y excedente 0
+      ---
+      duration_ms: 0.4079
+      type: 'test'
+      ...
+    # Subtest: CP-RF4-L100 %: respeta estado alerta y excedente 0
+    ok 3 - CP-RF4-L100 %: respeta estado alerta y excedente 0
+      ---
+      duration_ms: 0.3298
+      type: 'test'
+      ...
+    # Subtest: CP-RF4-L100,01 %: respeta estado excedido y excedente 1
+    ok 4 - CP-RF4-L100,01 %: respeta estado excedido y excedente 1
+      ---
+      duration_ms: 0.5079
+      type: 'test'
+      ...
+    1..4
+ok 2 - CP-RF4: presentación de los límites sin reclasificar por porcentaje redondeado
+  ---
+  duration_ms: 9.2213
+  type: 'suite'
+  ...
+# Subtest: normalizarPresupuesto
+    # Subtest: convierte los montos que llegan como texto
+    ok 1 - convierte los montos que llegan como texto
+      ---
+      duration_ms: 2.7088
+      type: 'test'
+      ...
+    # Subtest: un estado desconocido cuenta como ok
+    ok 2 - un estado desconocido cuenta como ok
+      ---
+      duration_ms: 2.8769
+      type: 'test'
+      ...
+    1..2
+ok 3 - normalizarPresupuesto
+  ---
+  duration_ms: 8.0015
+  type: 'suite'
+  ...
+# Subtest: categoriasDeGasto
+    # Subtest: quita las de membresía y acepta las que no traen tipo
+    ok 1 - quita las de membresía y acepta las que no traen tipo
+      ---
+      duration_ms: 1.592
+      type: 'test'
+      ...
+    # Subtest: tolera null
+    ok 2 - tolera null
+      ---
+      duration_ms: 0.7336
+      type: 'test'
+      ...
+    1..2
+ok 4 - categoriasDeGasto
+  ---
+  duration_ms: 3.7229
+  type: 'suite'
+  ...
+# Subtest: avanceBarra
+    # Subtest: convierte el porcentaje en fracción con tope de 100%
+    ok 1 - convierte el porcentaje en fracción con tope de 100%
+      ---
+      duration_ms: 0.8632
+      type: 'test'
+      ...
+    1..1
+ok 5 - avanceBarra
+  ---
+  duration_ms: 1.5472
+  type: 'suite'
+  ...
+# Subtest: excedente
+    # Subtest: es lo que se pasó del límite, o 0
+    ok 1 - es lo que se pasó del límite, o 0
+      ---
+      duration_ms: 0.6809
+      type: 'test'
+      ...
+    # Subtest: no arrastra errores de coma flotante
+    ok 2 - no arrastra errores de coma flotante
+      ---
+      duration_ms: 0.3031
+      type: 'test'
+      ...
+    1..2
+ok 6 - excedente
+  ---
+  duration_ms: 1.2959
+  type: 'suite'
+  ...
+# Subtest: gastoPorCategoriaDePresupuestos
+    # Subtest: toma lo gastado de cada presupuesto, de mayor a menor
+    ok 1 - toma lo gastado de cada presupuesto, de mayor a menor
+      ---
+      duration_ms: 0.6529
+      type: 'test'
+      ...
+    # Subtest: tolera null
+    ok 2 - tolera null
+      ---
+      duration_ms: 0.2121
+      type: 'test'
+      ...
+    1..2
+ok 7 - gastoPorCategoriaDePresupuestos
+  ---
+  duration_ms: 1.167
+  type: 'suite'
+  ...
+# Subtest: estadoMasGrave
+    # Subtest: excedido > alerta > ok
+    ok 1 - excedido > alerta > ok
+      ---
+      duration_ms: 0.2953
+      type: 'test'
+      ...
+    1..1
+ok 8 - estadoMasGrave
+  ---
+  duration_ms: 0.4763
+  type: 'suite'
+  ...
+# Subtest: resumenPresupuestos
+    # Subtest: suma límites y gastado y toma el estado más grave
+    ok 1 - suma límites y gastado y toma el estado más grave
+      ---
+      duration_ms: 0.9183
+      type: 'test'
+      ...
+    # Subtest: sin presupuestos da ceros
+    ok 2 - sin presupuestos da ceros
+      ---
+      duration_ms: 0.9269
+      type: 'test'
+      ...
+    1..2
+ok 9 - resumenPresupuestos
+  ---
+  duration_ms: 2.2345
+  type: 'suite'
+  ...
+# Subtest: gastoPorCategoria
+    # Subtest: suma por categoría y ordena de mayor a menor
+    ok 1 - suma por categoría y ordena de mayor a menor
+      ---
+      duration_ms: 6.0078
+      type: 'test'
+      ...
+    # Subtest: sin gastos da una lista vacía
+    ok 2 - sin gastos da una lista vacía
+      ---
+      duration_ms: 0.4781
+      type: 'test'
+      ...
+    # Subtest: redondea los centavos
+    ok 3 - redondea los centavos
+      ---
+      duration_ms: 0.9137
+      type: 'test'
+      ...
+    1..3
+ok 10 - gastoPorCategoria
+  ---
+  duration_ms: 10.967
+  type: 'suite'
+  ...
+# Subtest: resumenGastoMes
+    # Subtest: tramos por categoría sobre el presupuesto
+    ok 1 - tramos por categoría sobre el presupuesto
+      ---
+      duration_ms: 5.4369
+      type: 'test'
+      ...
+    # Subtest: excedido: la barra queda llena y hay excedente
+    ok 2 - excedido: la barra queda llena y hay excedente
+      ---
+      duration_ms: 5.9773
+      type: 'test'
+      ...
+    # Subtest: sin presupuesto: los tramos llenan el 100% en proporción al gasto
+    ok 3 - sin presupuesto: los tramos llenan el 100% en proporción al gasto
+      ---
+      duration_ms: 0.8935
+      type: 'test'
+      ...
+    # Subtest: sin gastos: sin tramos ni excedente
+    ok 4 - sin gastos: sin tramos ni excedente
+      ---
+      duration_ms: 2.0675
+      type: 'test'
+      ...
+    1..4
+ok 11 - resumenGastoMes
+  ---
+  duration_ms: 16.223
+  type: 'suite'
+  ...
+# Subtest: nivelPorcentaje
+    # Subtest: normal < 80, aviso de 80 a 100, alerta > 100
+    ok 1 - normal < 80, aviso de 80 a 100, alerta > 100
+      ---
+      duration_ms: 0.9822
+      type: 'test'
+      ...
+    1..1
+ok 12 - nivelPorcentaje
+  ---
+  duration_ms: 1.6168
+  type: 'suite'
+  ...
+# Subtest: etiquetaBarraMes
+    # Subtest: con presupuesto
+    ok 1 - con presupuesto
+      ---
+      duration_ms: 2.1574
+      type: 'test'
+      ...
+    # Subtest: sin presupuesto
+    ok 2 - sin presupuesto
+      ---
+      duration_ms: 1.0668
+      type: 'test'
+      ...
+    1..2
+ok 13 - etiquetaBarraMes
+  ---
+  duration_ms: 3.7645
+  type: 'suite'
+  ...
+1..13
+# tests 33
+# suites 13
+# pass 33
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 703.4267

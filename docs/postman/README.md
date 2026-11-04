@@ -1,5 +1,7 @@
 # Billo API · Sprint 2 · línea base
 
+Para RF3/RF4, usar la colección y el ejecutor específicos de [QA presupuestos](presupuestos.md), con límites 79,99 %, 80 %, 100 % y 100,01 %. Su evidencia y dictamen están en [QA presupuestos](../qa/presupuestos-reporte.md); la colección histórica descrita abajo conserva su alcance.
+
 Colección Postman v2.1: [billo-api.postman_collection.json](billo-api.postman_collection.json).
 Contrato v1.1 (HU-16), sobre `develop` con HU-17, HU-18 y HU-19 integradas.
 
