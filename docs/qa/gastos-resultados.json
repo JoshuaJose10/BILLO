@@ -1,15 +1,15 @@
 {
   "task": "HU-12 · regresión de gastos",
   "contract": "v1.1",
-  "executedAt": "2026-11-03T21:12:31.653Z",
+  "executedAt": "2026-11-04T00:00:07.619Z",
   "timezone": "America/Mexico_City",
-  "backendCommit": "fcc2a5dcb02631222abf719df0054d9d4df68a14",
-  "backendTree": "c6d1737f9c2df3149c262854cbe012d9988604ad",
+  "backendCommit": "4011ac0215cece5528fe43d0f4f484dd61ac9af4",
+  "backendTree": "58e2123666944beea47f6725252e9f307d383192",
   "collectionSha256": "84cb9cf4310f1982bd50818fbc6fc1176ab1d11715271a5f8229e57f98004a4e",
   "node": "v22.15.1",
   "newman": "6.2.3",
   "iterations": 2,
-  "branch": "fix/errores-qa-baseline",
+  "branch": "develop",
   "applicationSource": "develop; backend/src y backend/migrations sin cambios",
   "fileSha256": {
     "backend/package-lock.json": "9c43ab6dbcfd6555f9270a2b9173d3e31208c54f6c35c04fb89d927889c98d16",
@@ -26,14 +26,14 @@
     "backend/migrations/008_usuarios_email_minusculas.sql": "ae8b1bc8b846b1230f4051f9d0993595e6698de86db1d9268cd263e3bf700ca7",
     "backend/migrations/009_indices_y_restricciones.sql": "8f4a303adb3779fae0b4f851762523ee31c74081245a2aa16b116dcc6b002085",
     "backend/migrations/010_seed_catalogo_servicios.sql": "d4500d5b81ccf18f47407598584546c925f7274f33044a3ad3a22e7169e3951e",
-    "backend/src/app.js": "2b7d70db1e7b2eabb5c0e2b8d912884a7a24f7bda8dfd8b2a2e909af9e681040",
+    "backend/src/app.js": "1e9d69ee761eed6c62bc4135bded8a83195d88f0a2ca5ecc9c6e9c78a911040a",
     "backend/src/config/env.js": "bb34ba84db24e6f5fb30f753d0a2b59a4b62d84e08c28732f80cd49b291a7553",
     "backend/src/controllers/auth.controller.js": "6c3dcb90cc180fb74befbd3584800137ed8674a4fd577d307e3ebe90cbdd7338",
     "backend/src/controllers/catalogo.controller.js": "13720dd7df5c7e9ac22451c6897ba074233deb47785148eab25ae7eb71183182",
-    "backend/src/controllers/categorias.controller.js": "8abd85667ca1134f0ada7e0b456883bddf237cdafd65ab9e29f6e6659323d26b",
-    "backend/src/controllers/gastos.controller.js": "dd3c61e1d8633b91b88edca0f3174b4edf0f00c806972cbe8e5c014904e5a263",
+    "backend/src/controllers/categorias.controller.js": "a98b5a06db099ce7ee373c2506f21ed472ee0a2351fa3fdfd590cf80ed14e9b3",
+    "backend/src/controllers/gastos.controller.js": "20788a1b623f8c757beb66f90bd419a7088fa4e8e5ada7a1475b142cc33f917c",
     "backend/src/controllers/membresias.controller.js": "e7017c5f0313f4848b668a179c5369698fd851c6c0054c919fe21ed257817c58",
-    "backend/src/controllers/presupuestos.controller.js": "480255191c084c8b83865f494e3584dd08bb67ced8b70205f8d62822788fd5b8",
+    "backend/src/controllers/presupuestos.controller.js": "72ea62ed0900248b3d45f6a4274564d4bb5a2df27aea1b7ae2b5f812f53d57e6",
     "backend/src/controllers/tipoCambio.controller.js": "c86c4024bed8a5f14001d6aa53765fc7220880cc8f9bf4e61f90d1eab4696a37",
     "backend/src/db/index.js": "32472af6565c26faf68dd018d4771eccece39fae4e9994db95b83ef8757fe060",
     "backend/src/db/migrate.js": "f4a5d0b964a52edbc0f7d2de36c4bbe79e9a2bf55bdddc4469e274e7909ca590",
@@ -50,7 +50,7 @@
   },
   "postgres": "PostgreSQL 18.2 on x86_64-windows, compiled by msvc-19.44.35222, 64-bit",
   "database": {
-    "name": "billo_qa_1793740350566_05a28bd92e89",
+    "name": "billo_qa_1793750406620_e03a15a5e5ef",
     "fresh": true,
     "initialPublicTables": 0,
     "migrations": [
@@ -118,7 +118,7 @@
           "id": 1,
           "monto": 80.5,
           "categoria_id": 1,
-          "fecha": "2026-11-03",
+          "fecha": "2026-11-04",
           "metodo_pago": "efectivo",
           "nota": "QA HU-15"
         }
@@ -155,7 +155,7 @@
           "id": 2,
           "monto": 80.5,
           "categoria_id": 1,
-          "fecha": "2026-11-03",
+          "fecha": "2026-11-04",
           "metodo_pago": "efectivo",
           "nota": "QA HU-15"
         }
@@ -192,7 +192,7 @@
           "id": 1,
           "monto": 80.5,
           "categoria_id": 1,
-          "fecha": "2026-11-03",
+          "fecha": "2026-11-04",
           "metodo_pago": "efectivo",
           "nota": "QA HU-15"
         }
@@ -229,7 +229,7 @@
           "id": 2,
           "monto": 80.5,
           "categoria_id": 1,
-          "fecha": "2026-11-03",
+          "fecha": "2026-11-04",
           "metodo_pago": "efectivo",
           "nota": "QA HU-15"
         }
@@ -430,7 +430,7 @@
           "id": 1,
           "monto": 80.5,
           "categoria_id": 1,
-          "fecha": "2026-11-03",
+          "fecha": "2026-11-04",
           "metodo_pago": "efectivo",
           "nota": "QA HU-15"
         }
@@ -467,7 +467,7 @@
           "id": 2,
           "monto": 80.5,
           "categoria_id": 1,
-          "fecha": "2026-11-03",
+          "fecha": "2026-11-04",
           "metodo_pago": "efectivo",
           "nota": "QA HU-15"
         }
@@ -1466,7 +1466,7 @@
           "id": 1,
           "monto": 99.9,
           "categoria_id": 1,
-          "fecha": "2026-11-03",
+          "fecha": "2026-11-04",
           "metodo_pago": "efectivo",
           "nota": "QA HU-15"
         }
@@ -1503,7 +1503,7 @@
           "id": 1,
           "monto": 99.9,
           "categoria_id": 1,
-          "fecha": "2026-11-03",
+          "fecha": "2026-11-04",
           "metodo_pago": "efectivo",
           "nota": "QA HU-15"
         }
@@ -1540,7 +1540,7 @@
           "id": 1,
           "monto": 99.9,
           "categoria_id": 1,
-          "fecha": "2026-11-03",
+          "fecha": "2026-11-04",
           "metodo_pago": "efectivo",
           "nota": "QA HU-15"
         }
@@ -2132,7 +2132,7 @@
           "id": 3,
           "monto": 80.5,
           "categoria_id": 1,
-          "fecha": "2026-11-03",
+          "fecha": "2026-11-04",
           "metodo_pago": "efectivo",
           "nota": "QA HU-15"
         }
@@ -2169,7 +2169,7 @@
           "id": 4,
           "monto": 80.5,
           "categoria_id": 1,
-          "fecha": "2026-11-03",
+          "fecha": "2026-11-04",
           "metodo_pago": "efectivo",
           "nota": "QA HU-15"
         }
@@ -2206,7 +2206,7 @@
           "id": 3,
           "monto": 80.5,
           "categoria_id": 1,
-          "fecha": "2026-11-03",
+          "fecha": "2026-11-04",
           "metodo_pago": "efectivo",
           "nota": "QA HU-15"
         }
@@ -2243,7 +2243,7 @@
           "id": 4,
           "monto": 80.5,
           "categoria_id": 1,
-          "fecha": "2026-11-03",
+          "fecha": "2026-11-04",
           "metodo_pago": "efectivo",
           "nota": "QA HU-15"
         }
@@ -2444,7 +2444,7 @@
           "id": 3,
           "monto": 80.5,
           "categoria_id": 1,
-          "fecha": "2026-11-03",
+          "fecha": "2026-11-04",
           "metodo_pago": "efectivo",
           "nota": "QA HU-15"
         }
@@ -2481,7 +2481,7 @@
           "id": 4,
           "monto": 80.5,
           "categoria_id": 1,
-          "fecha": "2026-11-03",
+          "fecha": "2026-11-04",
           "metodo_pago": "efectivo",
           "nota": "QA HU-15"
         }
@@ -3480,7 +3480,7 @@
           "id": 3,
           "monto": 99.9,
           "categoria_id": 1,
-          "fecha": "2026-11-03",
+          "fecha": "2026-11-04",
           "metodo_pago": "efectivo",
           "nota": "QA HU-15"
         }
@@ -3517,7 +3517,7 @@
           "id": 3,
           "monto": 99.9,
           "categoria_id": 1,
-          "fecha": "2026-11-03",
+          "fecha": "2026-11-04",
           "metodo_pago": "efectivo",
           "nota": "QA HU-15"
         }
@@ -3554,7 +3554,7 @@
           "id": 3,
           "monto": 99.9,
           "categoria_id": 1,
-          "fecha": "2026-11-03",
+          "fecha": "2026-11-04",
           "metodo_pago": "efectivo",
           "nota": "QA HU-15"
         }
