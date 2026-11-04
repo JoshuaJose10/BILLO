@@ -5,6 +5,7 @@ const gastosRoutes = require('./routes/gastos.routes');
 const presupuestosRoutes = require('./routes/presupuestos.routes');
 const catalogoRoutes = require('./routes/catalogo.routes');
 const membresiasRoutes = require('./routes/membresias.routes');
+const reportesRoutes = require('./routes/reportes.routes');
 const tipoCambioRoutes = require('./routes/tipoCambio.routes');
 
 const app = express();
@@ -15,6 +16,7 @@ app.use('/gastos', gastosRoutes);
 app.use('/presupuestos', presupuestosRoutes);
 app.use('/catalogo', catalogoRoutes);
 app.use('/membresias', membresiasRoutes);
+app.use('/reportes', reportesRoutes);
 // EXPERIMENTAL (HU-23, spike RF11): ver docs/spike-rf11-rf13.md
 app.use('/tipo-cambio', tipoCambioRoutes);
 
