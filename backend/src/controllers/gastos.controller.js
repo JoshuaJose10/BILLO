@@ -1,4 +1,5 @@
 const { pool } = require('../db');
+const { calcularAlertaPresupuesto } = require('./presupuestos.controller');
 
 const METODOS_PAGO_VALIDOS = ['efectivo', 'tarjeta', 'transferencia', 'otro'];
 
@@ -85,7 +86,8 @@ const validarDatosGasto = async (body) => {
   if (
     typeof categoria_id !== 'number' ||
     !Number.isInteger(categoria_id) ||
-    categoria_id <= 0
+    categoria_id <= 0 ||
+    categoria_id > 2147483647
   ) {
     return {
       error: {
@@ -145,7 +147,19 @@ const crearGasto = async (req, res) => {
       nota,
     ]);
 
-    return res.status(201).json({ gasto: formatearGasto(rows[0]) });
+    const gasto = formatearGasto(rows[0]);
+    const alerta = await calcularAlertaPresupuesto(
+      usuarioId,
+      gasto.categoria_id,
+      gasto.fecha
+    );
+
+    const respuesta = { gasto };
+    if (alerta) {
+      respuesta.alerta = alerta;
+    }
+
+    return res.status(201).json(respuesta);
   } catch (error) {
     console.error('Error al crear gasto:', error.message);
     return res.status(500).json({
@@ -181,7 +195,7 @@ const listarGastos = async (req, res) => {
 
     if (categoria_id !== undefined) {
       const catId = Number(categoria_id);
-      if (!Number.isInteger(catId) || catId <= 0) {
+      if (!Number.isInteger(catId) || catId <= 0 || catId > 2147483647) {
         return res.status(400).json({
           error: {
             code: 'CATEGORIA_INEXISTENTE',
@@ -219,7 +233,7 @@ const actualizarGasto = async (req, res) => {
     const usuarioId = req.usuario.id;
     const gastoId = Number(req.params.id);
 
-    if (!Number.isInteger(gastoId) || gastoId <= 0) {
+    if (!Number.isInteger(gastoId) || gastoId <= 0 || gastoId > 2147483647) {
       return res.status(404).json({
         error: {
           code: 'GASTO_NO_ENCONTRADO',
@@ -265,7 +279,19 @@ const actualizarGasto = async (req, res) => {
       });
     }
 
-    return res.status(200).json({ gasto: formatearGasto(rows[0]) });
+    const gasto = formatearGasto(rows[0]);
+    const alerta = await calcularAlertaPresupuesto(
+      usuarioId,
+      gasto.categoria_id,
+      gasto.fecha
+    );
+
+    const respuesta = { gasto };
+    if (alerta) {
+      respuesta.alerta = alerta;
+    }
+
+    return res.status(200).json(respuesta);
   } catch (error) {
     console.error('Error al actualizar gasto:', error.message);
     return res.status(500).json({
@@ -283,7 +309,7 @@ const eliminarGasto = async (req, res) => {
     const usuarioId = req.usuario.id;
     const gastoId = Number(req.params.id);
 
-    if (!Number.isInteger(gastoId) || gastoId <= 0) {
+    if (!Number.isInteger(gastoId) || gastoId <= 0 || gastoId > 2147483647) {
       return res.status(404).json({
         error: {
           code: 'GASTO_NO_ENCONTRADO',
