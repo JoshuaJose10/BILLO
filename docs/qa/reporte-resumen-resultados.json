@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-03",
+  "story": "RF6 - Reporte resumen mensual",
+  "databaseDropped": true,
+  "total": 13,
+  "passed": 13,
+  "failed": 0,
+  "results": [
+    {
+      "name": "CP-RF6-02: Usuario nuevo sin gastos ni membresías devuelve ceros",
+      "passed": true
+    },
+    {
+      "name": "CP-RF6-01: Gastos por 500 y membresías por 300 al mes",
+      "passed": true
+    },
+    {
+      "name": "Criterio: Membresía anual de 1,200 aporta 100 al gasto fijo",
+      "passed": true
+    },
+    {
+      "name": "Criterio QA: Totales coinciden con la suma manual de los datos",
+      "passed": true
+    },
+    {
+      "name": "Criterio QA: El usuario A no suma datos del usuario B",
+      "passed": true
+    },
+    {
+      "name": "Validación: mes obligatorio responde 400 MES_INVALIDO",
+      "passed": true
+    },
+    {
+      "name": "Validación: mes inválido () responde 400 MES_INVALIDO",
+      "passed": true
+    },
+    {
+      "name": "Validación: mes inválido (2026) responde 400 MES_INVALIDO",
+      "passed": true
+    },
+    {
+      "name": "Validación: mes inválido (2026-1) responde 400 MES_INVALIDO",
+      "passed": true
+    },
+    {
+      "name": "Validación: mes inválido (2026-13) responde 400 MES_INVALIDO",
+      "passed": true
+    },
+    {
+      "name": "Validación: mes inválido (2026/10) responde 400 MES_INVALIDO",
+      "passed": true
+    },
+    {
+      "name": "Validación: mes inválido (texto) responde 400 MES_INVALIDO",
+      "passed": true
+    },
+    {
+      "name": "Seguridad: sin token responde 401 NO_AUTORIZADO",
+      "passed": true
+    }
+  ]
+}

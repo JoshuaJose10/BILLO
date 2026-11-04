@@ -11,13 +11,13 @@ Fuente: [plan de pruebas](plan-de-pruebas.md), sección 5. Se conservan sus IDs,
 
 Entrega/PR: —
 
-Rama y commit: —
+Rama y commit: feature/reporte-resumen
 
-Ambiente y URL de API: —
+Ambiente y URL de API: Local (Express + PostgreSQL aislado)
 
 Dispositivo / versión de Android: —
 
-Evidencia de ejecución: —
+Evidencia de ejecución: [reporte-resumen-review.md](qa/reporte-resumen-review.md)
 
 | Caso | Historia | Resultado (Pasa / Falla) | Fecha | Quién | Enlace al bug si falló |
 |---|---|---|---|---|---|
@@ -37,8 +37,8 @@ Evidencia de ejecución: —
 | CP-RF5-02 | RF5. Gestión de membresías | Pendiente | — | — | — |
 | CP-RF5-03 | RF5. Gestión de membresías | Pendiente | — | — | — |
 | CP-RF5-04 | RF5. Gestión de membresías | Pendiente | — | — | — |
-| CP-RF6-01 | RF6. Gasto total mensual | Pendiente | — | — | — |
-| CP-RF6-02 | RF6. Gasto total mensual | Pendiente | — | — | — |
+| CP-RF6-01 | RF6. Gasto total mensual | Pasa | 2026-11-03 | Luis Dorian | — |
+| CP-RF6-02 | RF6. Gasto total mensual | Pasa | 2026-11-03 | Luis Dorian | — |
 | CP-RF7-01 | RF7. Notificación de cobro | Pendiente | — | — | — |
 | CP-RF7-02 | RF7. Notificación de cobro | Pendiente | — | — | — |
 | CP-RF7-03 | RF7. Notificación de cobro | Pendiente | — | — | — |
