@@ -32,8 +32,8 @@ async function createDatabase() {
 
   try {
     await admin.connect();
-    const templateDb = process.env.TEST_TEMPLATE_DATABASE || 'template0';
-    await admin.query(`CREATE DATABASE "${database}" TEMPLATE ${templateDb}`);
+    const template = process.env.TEST_TEMPLATE_DATABASE || 'template0';
+    await admin.query(`CREATE DATABASE "${database}" TEMPLATE ${template}`);
     created = true;
     process.env.DB_NAME = database;
     process.env.NODE_ENV = 'test';
