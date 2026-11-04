@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import PantallaCarga from '../components/PantallaCarga';
 import { useAuth } from '../context/AuthContext';
+import MembresiaScreen from '../screens/MembresiaScreen';
 import NuevoGastoScreen from '../screens/NuevoGastoScreen';
 import PerfilScreen from '../screens/PerfilScreen';
 import PresupuestoScreen from '../screens/PresupuestoScreen';
@@ -22,7 +23,7 @@ const opcionesHoja = {
   contentStyle: { backgroundColor: 'transparent' },
 };
 
-// Con token se muestran Main y las hojas (NuevoGasto, Perfil, Presupuesto); sin token, Auth. Al cambiar
+// Con token se muestran Main y las hojas (NuevoGasto, Perfil, Presupuesto, Membresia); sin token, Auth. Al cambiar
 // el token React Navigation cambia de navegador solo, sin navigation.reset.
 export default function RootNavigator() {
   const { token, cargando } = useAuth();
@@ -45,6 +46,7 @@ export default function RootNavigator() {
           <Stack.Screen name="NuevoGasto" component={NuevoGastoScreen} options={opcionesHoja} />
           <Stack.Screen name="Perfil" component={PerfilScreen} options={opcionesHoja} />
           <Stack.Screen name="Presupuesto" component={PresupuestoScreen} options={opcionesHoja} />
+          <Stack.Screen name="Membresia" component={MembresiaScreen} options={opcionesHoja} />
           {__DEV__ ? (
             <Stack.Screen
               name="Laboratorio"
