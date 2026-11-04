@@ -21,6 +21,7 @@ import ItemGasto from '../components/ItemGasto';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
 import TarjetaResumen from '../components/TarjetaResumen';
 import { useAuth } from '../context/AuthContext';
+import { useCategorias } from '../context/CategoriasContext';
 import { useGastosService } from '../services/gastos';
 import { usePresupuestosService } from '../services/presupuestos';
 import { radios } from '../theme/colors';
@@ -42,14 +43,14 @@ export default function InicioScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
   const { usuario } = useAuth();
-  const { listarCategorias, listarGastos, eliminarGasto } = useGastosService();
+  const { listarGastos, eliminarGasto } = useGastosService();
+  const { categorias } = useCategorias();
   const { listarPresupuestos } = usePresupuestosService();
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
   const [gastos, setGastos] = useState([]);
   const [gastosMes, setGastosMes] = useState([]);
-  const [categorias, setCategorias] = useState([]);
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
   const [textoError, setTextoError] = useState('');
   const [refrescando, setRefrescando] = useState(false);
@@ -65,22 +66,20 @@ export default function InicioScreen({ navigation }) {
       .then((lista) => resumenPresupuestos(lista).limite)
       .catch(() => null);
     try {
-      const [lista, delMes, cats] = await Promise.all([
+      const [lista, delMes] = await Promise.all([
         listarGastos(),
         listarGastos({ mes: mesActual() }),
-        listarCategorias(),
       ]);
       setPresupuestoTotal(await presupuestos);
       setGastos(ordenarGastos(lista));
       setGastosMes(delMes);
-      setCategorias(cats || []);
       setEstado('listo');
       setHayDatos(true);
     } catch (error) {
       setTextoError(mensajeError(error?.code, error?.message));
       setEstado('error');
     }
-  }, [listarCategorias, listarGastos, listarPresupuestos]);
+  }, [listarGastos, listarPresupuestos]);
 
   // Recarga cada vez que Inicio gana foco (por ejemplo al cerrar la hoja de Nuevo gasto).
   useFocusEffect(

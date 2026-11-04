@@ -37,7 +37,8 @@ export function useGastosService() {
 
   return useMemo(
     () => ({
-      // GET /categorias → [{ id, nombre }]
+      // GET /categorias → [{ id, nombre }]. Las pantallas no la llaman: usan la caché de la
+      // sesión (useCategorias, context/CategoriasContext.js), que la pide una vez.
       listarCategorias: () => api('/categorias'),
 
       // POST /gastos { monto, categoria_id, fecha: 'YYYY-MM-DD', metodo_pago, nota? }

@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -21,10 +21,11 @@ import MontoGrande from '../components/MontoGrande';
 import PanelHoja from '../components/PanelHoja';
 import TecladoNumerico from '../components/TecladoNumerico';
 import { useAvisos } from '../context/AvisosContext';
+import { useCategorias } from '../context/CategoriasContext';
 import { METODO_PAGO_DEFECTO, METODOS_PAGO, NOTA_MAX, useGastosService } from '../services/gastos';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
-import { contenidoAviso, nombreCategoriaPorId } from '../utils/avisos';
+import { contenidoAviso } from '../utils/avisos';
 import { mensajeError } from '../utils/errores';
 import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
 import { fechaRelativa, LOCALE, resumirTexto } from '../utils/formato';
@@ -37,7 +38,13 @@ import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
 export default function NuevoGastoScreen({ navigation, route }) {
   const gastoEditado = route.params?.gasto;
   const editando = !!gastoEditado;
-  const { listarCategorias, crearGasto, actualizarGasto, eliminarGasto } = useGastosService();
+  const { crearGasto, actualizarGasto, eliminarGasto } = useGastosService();
+  const {
+    categorias,
+    estado: estadoCategorias,
+    recargar: reintentarCategorias,
+    nombrePorId,
+  } = useCategorias();
   const { mostrarAviso } = useAvisos();
   const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
@@ -53,10 +60,6 @@ export default function NuevoGastoScreen({ navigation, route }) {
   const [nota, setNota] = useState(gastoEditado?.nota ?? '');
   const [panel, setPanel] = useState(null); // 'metodo' | 'fecha' | 'nota'
 
-  const [categorias, setCategorias] = useState([]);
-  const [estadoCategorias, setEstadoCategorias] = useState('cargando'); // 'cargando' | 'listo' | 'error'
-  const [intento, setIntento] = useState(0);
-
   const [errores, setErrores] = useState({});
   const [errorApi, setErrorApi] = useState('');
   const [guardando, setGuardando] = useState(false);
@@ -69,29 +72,13 @@ export default function NuevoGastoScreen({ navigation, route }) {
   // goBack: mientras la hoja está abierta el modal nativo taparía el aviso.
   const avisoPendiente = useRef(null);
 
-  // Carga las categorías al abrir y cada vez que se pulsa "Reintentar" (cambia `intento`).
-  useEffect(() => {
-    let activo = true;
-    listarCategorias()
-      .then((lista) => {
-        if (!activo) return;
-        setCategorias(lista || []);
-        setEstadoCategorias('listo');
-        // Si la categoría del gasto editado ya no existe, queda sin elegir y la validación la pide.
-        setCategoriaId((id) => ((lista || []).some((c) => c.id === id) ? id : null));
-      })
-      .catch(() => {
-        if (activo) setEstadoCategorias('error');
-      });
-    return () => {
-      activo = false;
-    };
-  }, [listarCategorias, intento]);
-
-  const reintentarCategorias = () => {
-    setEstadoCategorias('cargando');
-    setIntento((n) => n + 1);
-  };
+  // Las categorías vienen de la caché de la sesión (CategoriasProvider); si fallaron, la fila
+  // ofrece Reintentar. Si la categoría del gasto editado ya no existe, queda sin elegir y la
+  // validación la pide.
+  const categoriaElegida =
+    estadoCategorias === 'listo' && !categorias.some((c) => c.id === categoriaId)
+      ? null
+      : categoriaId;
 
   const alPulsarTecla = (tecla) => {
     setTexto((actual) => aplicarTecla(actual, tecla));
@@ -124,7 +111,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
     const monto = montoDesdeTexto(texto);
     const nuevos = {};
     if (!(monto > 0)) nuevos.monto = 'Ingresa un monto mayor a $0';
-    if (!categoriaId) nuevos.categoria = 'Elige una categoría';
+    if (!categoriaElegida) nuevos.categoria = 'Elige una categoría';
     setErrores(nuevos);
     setErrorApi('');
     if (nuevos.monto || nuevos.categoria) return;
@@ -133,7 +120,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
     setGuardando(true);
     const datos = {
       monto,
-      categoria_id: categoriaId,
+      categoria_id: categoriaElegida,
       fecha: fechaLocalISO(fecha),
       metodo_pago: metodo,
       nota: nota.trim() || null,
@@ -142,11 +129,8 @@ export default function NuevoGastoScreen({ navigation, route }) {
       const { alerta } = editando
         ? await actualizarGasto(gastoEditado.id, datos)
         : await crearGasto(datos);
-      // Con alerta, el nombre sale de las categorías que ya cargó la hoja; sin alerta, nada.
-      const contenido = contenidoAviso(
-        alerta,
-        nombreCategoriaPorId(categorias, alerta?.categoria_id),
-      );
+      // Con alerta, el nombre sale de la caché de categorías; sin alerta, nada.
+      const contenido = contenidoAviso(alerta, nombrePorId(alerta?.categoria_id));
       avisoPendiente.current = contenido ? { ...contenido, mes: datos.fecha.slice(0, 7) } : null;
       enviando.current = false;
       hojaRef.current?.cerrar();
@@ -253,7 +237,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
               <ChipCategoria
                 key={c.id}
                 nombre={c.nombre}
-                seleccionado={c.id === categoriaId}
+                seleccionado={c.id === categoriaElegida}
                 error={!!errores.categoria}
                 onPress={() => elegirCategoria(c.id)}
               />
