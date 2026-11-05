@@ -1,7 +1,15 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -10,11 +18,13 @@ import Boton from '../components/Boton';
 import Etiqueta from '../components/Etiqueta';
 import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizable';
 import FondoDegradado from '../components/FondoDegradado';
+import ItemMembresia from '../components/ItemMembresia';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
 import PantallaProximamente from '../components/PantallaProximamente';
 import SelectorMes from '../components/SelectorMes';
 import SelectorSegmentado from '../components/SelectorSegmentado';
 import TarjetaPresupuesto from '../components/TarjetaPresupuesto';
+import { useMembresiasService } from '../services/membresias';
 import { usePresupuestosService } from '../services/presupuestos';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
@@ -22,22 +32,18 @@ import { fonts } from '../theme/fonts';
 import { mensajeError } from '../utils/errores';
 import { mesActual } from '../utils/fechas';
 import { formatearMonto, nombreMes } from '../utils/formato';
+import { calcularTotalMensual, formatearDiaMes } from '../utils/membresias';
 import { gastoPorCategoriaDePresupuestos, resumenPresupuestos } from '../utils/presupuestos';
 import { etiquetaBarraMes, nivelPorcentaje, resumenGastoMes } from '../utils/resumenMes';
 
-// Secciones de Cartera. Suscripciones y Tarjetas aún no existen (badge "Pronto").
+// Secciones de Cartera. Presupuestos (RF3), Suscripciones / Membresías (RF5) y Tarjetas (pronto).
 const SECCIONES = [
   { valor: 'presupuestos', etiqueta: 'Presupuestos' },
-  { valor: 'suscripciones', etiqueta: 'Suscripciones', insignia: 'Pronto' },
+  { valor: 'suscripciones', etiqueta: 'Suscripciones' },
   { valor: 'tarjetas', etiqueta: 'Tarjetas', insignia: 'Pronto' },
 ];
 
 const PROXIMAMENTE = {
-  suscripciones: {
-    icono: 'calendar-sync-outline',
-    titulo: 'Suscripciones',
-    mensaje: 'Pronto podrás ver tus suscripciones y su próximo cobro.',
-  },
   tarjetas: {
     icono: 'credit-card-outline',
     titulo: 'Tarjetas',
@@ -48,11 +54,6 @@ const PROXIMAMENTE = {
 // Fundido corto al cambiar de sección y al aparecer las filas.
 const APARECER = FadeIn.duration(180);
 
-// Cartera: selector de secciones (Presupuestos, Suscripciones, Tarjetas; empieza en Presupuestos y
-// no se recuerda entre sesiones).
-// Presupuestos (RF3): los del mes por categoría con su avance. El estado y el porcentaje de cada
-// uno los calcula la API. Tocar un presupuesto lo edita; deslizarlo muestra Editar y Eliminar.
-// Crear y editar abren la hoja Presupuesto.
 // Parámetros opcionales (los manda el aviso de presupuesto, HU-35): `seccion`, `mes` y `solicitud`
 // (marca de tiempo para volver a aplicarlos aunque Cartera ya esté abierta).
 export default function CarteraScreen({ navigation, route }) {
@@ -61,84 +62,140 @@ export default function CarteraScreen({ navigation, route }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
   const { listarPresupuestos, eliminarPresupuesto } = usePresupuestosService();
+  const { listarMembresias, eliminarMembresia } = useMembresiasService();
 
   const [seccion, setSeccion] = useState('presupuestos');
   const enPresupuestos = seccion === 'presupuestos';
+  const enSuscripciones = seccion === 'suscripciones';
+
+  // --- Estado de Presupuestos ---
   const [mes, setMes] = useState(mesActual);
-  // Datos de la última respuesta válida y el mes con el que se pidieron.
   const [presupuestos, setPresupuestos] = useState([]);
   const [mesCargado, setMesCargado] = useState(null);
-  const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
-  const [textoError, setTextoError] = useState('');
-  const [refrescando, setRefrescando] = useState(false);
+  const [estadoPresupuestos, setEstadoPresupuestos] = useState('cargando');
+  const [textoErrorPresupuestos, setTextoErrorPresupuestos] = useState('');
+  const [refrescandoPresupuestos, setRefrescandoPresupuestos] = useState(false);
+  const ultimaPeticionPresupuestos = useRef(0);
+
+  // --- Estado de Membresías / Suscripciones ---
+  const [membresias, setMembresias] = useState([]);
+  const [estadoMembresias, setEstadoMembresias] = useState('cargando');
+  const [textoErrorMembresias, setTextoErrorMembresias] = useState('');
+  const [refrescandoMembresias, setRefrescandoMembresias] = useState(false);
+  const ultimaPeticionMembresias = useRef(0);
 
   // Aplica los parámetros una vez por `solicitud`, durante el render (sin efecto) como recomienda
   // React para ajustar estado a partir de props.
-  const { solicitud, seccion: seccionPedida, mes: mesPedido } = route.params ?? {};
+  const { solicitud, seccion: seccionPedida, mes: mesPedido } = route?.params ?? {};
   const [solicitudAplicada, setSolicitudAplicada] = useState(null);
   if (solicitud && solicitud !== solicitudAplicada) {
     setSolicitudAplicada(solicitud);
     if (SECCIONES.some((s) => s.valor === seccionPedida)) setSeccion(seccionPedida);
     if (/^\d{4}-\d{2}$/.test(mesPedido ?? '') && mesPedido !== mes) {
       setMes(mesPedido);
-      if (estado === 'error') setEstado('cargando');
+      if (estadoPresupuestos === 'error') setEstadoPresupuestos('cargando');
     }
   }
 
-  // Cada petición recibe un número; si al responder ya hay una más nueva, se descarta.
-  const ultimaPeticion = useRef(0);
-
-  const cargar = useCallback(async () => {
-    const peticion = ++ultimaPeticion.current;
+  const cargarPresupuestos = useCallback(async () => {
+    const peticion = ++ultimaPeticionPresupuestos.current;
     try {
       const lista = await listarPresupuestos(mes);
-      if (peticion !== ultimaPeticion.current) return;
+      if (peticion !== ultimaPeticionPresupuestos.current) return;
       setPresupuestos(lista);
       setMesCargado(mes);
-      setEstado('listo');
+      setEstadoPresupuestos('listo');
     } catch (error) {
-      if (peticion !== ultimaPeticion.current) return;
-      setTextoError(mensajeError(error?.code, error?.message));
-      setEstado('error');
+      if (peticion !== ultimaPeticionPresupuestos.current) return;
+      setTextoErrorPresupuestos(mensajeError(error?.code, error?.message));
+      setEstadoPresupuestos('error');
     }
   }, [listarPresupuestos, mes]);
 
-  // Recarga al ganar foco (un gasto nuevo o un presupuesto editado mueve las barras) y, como
-  // `cargar` cambia con el mes, también al cambiar de mes.
+  const cargarMembresias = useCallback(async () => {
+    const peticion = ++ultimaPeticionMembresias.current;
+    try {
+      const lista = await listarMembresias();
+      if (peticion !== ultimaPeticionMembresias.current) return;
+      setMembresias(lista);
+      setEstadoMembresias('listo');
+    } catch (error) {
+      if (peticion !== ultimaPeticionMembresias.current) return;
+      setTextoErrorMembresias(mensajeError(error?.code, error?.message));
+      setEstadoMembresias('error');
+    }
+  }, [listarMembresias]);
+
   useFocusEffect(
     useCallback(() => {
-      cargar();
-    }, [cargar]),
+      if (enPresupuestos) {
+        cargarPresupuestos();
+      } else if (enSuscripciones) {
+        cargarMembresias();
+      }
+    }, [enPresupuestos, enSuscripciones, cargarPresupuestos, cargarMembresias]),
   );
 
+  const cambiarSeccion = (nueva) => {
+    setSeccion(nueva);
+    if (nueva === 'suscripciones' && estadoMembresias === 'cargando') {
+      cargarMembresias();
+    }
+  };
+
   const refrescar = async () => {
-    setRefrescando(true);
-    await cargar();
-    setRefrescando(false);
+    if (enPresupuestos) {
+      setRefrescandoPresupuestos(true);
+      await cargarPresupuestos();
+      setRefrescandoPresupuestos(false);
+    } else if (enSuscripciones) {
+      setRefrescandoMembresias(true);
+      await cargarMembresias();
+      setRefrescandoMembresias(false);
+    }
   };
 
   const cambiarMes = (nuevo) => {
     setMes(nuevo);
-    if (estado === 'error') setEstado('cargando');
+    if (estadoPresupuestos === 'error') setEstadoPresupuestos('cargando');
   };
 
   const reintentar = () => {
-    setEstado('cargando');
-    cargar();
+    if (enPresupuestos) {
+      setEstadoPresupuestos('cargando');
+      cargarPresupuestos();
+    } else if (enSuscripciones) {
+      setEstadoMembresias('cargando');
+      cargarMembresias();
+    }
   };
 
   const filas = useFilasDeslizables();
+
+  // Handlers para Presupuestos
   const crearPresupuesto = () => navigation.navigate('Presupuesto', { mes });
-  const editarPresupuesto = (presupuesto) =>
-    navigation.navigate('Presupuesto', { mes: presupuesto.mes, presupuesto });
+  const editarPresupuesto = (p) =>
+    navigation.navigate('Presupuesto', { mes: p.mes, presupuesto: p });
   const presupuestoEliminado = (id) => {
     setPresupuestos((lista) => lista.filter((p) => p.id !== id));
-    cargar();
+    cargarPresupuestos();
   };
 
-  // Mismo resumen que la tarjeta de Inicio: lo gastado en cada categoría con presupuesto sobre el
-  // total presupuestado.
-  const resumen = useMemo(
+  // Handlers para Suscripciones
+  const crearMembresia = () => navigation.navigate('Membresia', { onGuardado: cargarMembresias });
+  const editarMembresia = (m) =>
+    navigation.navigate('Membresia', {
+      membresia: m,
+      onGuardado: cargarMembresias,
+      onEliminado: membresiaEliminada,
+    });
+  const membresiaEliminada = (id) => {
+    setMembresias((lista) => lista.filter((m) => m.id !== id));
+    cargarMembresias();
+  };
+
+  // Resumen de Presupuestos
+  const resumenP = useMemo(
     () =>
       resumenGastoMes(
         gastoPorCategoriaDePresupuestos(presupuestos),
@@ -146,42 +203,73 @@ export default function CarteraScreen({ navigation, route }) {
       ),
     [presupuestos],
   );
-  const nivel = nivelPorcentaje(resumen.porcentaje);
-  const colorPorcentaje =
-    nivel === 'alerta'
+  const nivelP = nivelPorcentaje(resumenP.porcentaje);
+  const colorPorcentajeP =
+    nivelP === 'alerta'
       ? colors.alerta
-      : nivel === 'aviso'
+      : nivelP === 'aviso'
         ? colors.avisoTexto
         : colors.textSecondary;
 
-  const listo = estado === 'listo';
-  // Se eligió otro mes y la respuesta aún no llega: la lista anterior se atenúa.
-  const cambiandoMes = listo && mesCargado !== mes;
-  const atenuado = cambiandoMes ? styles.atenuado : null;
+  const listoPresupuestos = estadoPresupuestos === 'listo';
+  const cambiandoMes = listoPresupuestos && mesCargado !== mes;
+  const atenuadoP = cambiandoMes ? styles.atenuado : null;
   const nombreDelMes = nombreMes(mesCargado ?? mes);
   const periodo = mes === mesActual() ? 'este mes' : `en ${nombreMes(mes)}`;
-  const hayPresupuestos = listo && presupuestos.length > 0;
+  const hayPresupuestos = listoPresupuestos && presupuestos.length > 0;
+
+  // Resumen de Suscripciones
+  const totalMensualSuscripciones = useMemo(() => calcularTotalMensual(membresias), [membresias]);
+  const listaMembresiasLista = estadoMembresias === 'listo';
+  const hayMembresias = listaMembresiasLista && membresias.length > 0;
+  const proximaMembresia = hayMembresias ? membresias[0] : null;
+
+  const subtituloCartera = enSuscripciones
+    ? 'Gestión de cobros recurrentes'
+    : 'Límites de gasto y control mensual';
 
   const encabezado = (
     <View style={styles.encabezado}>
-      <Text style={styles.titulo} accessibilityRole="header">
-        Cartera
-      </Text>
+      {/* Header con título y botón de agregar */}
+      <View style={styles.cabeceraBarra}>
+        <View style={styles.titulosColumna}>
+          <Text style={styles.titulo} accessibilityRole="header">
+            Cartera
+          </Text>
+          <Text style={styles.subtitulo}>{subtituloCartera}</Text>
+        </View>
+
+        {enSuscripciones && hayMembresias ? (
+          <Pressable
+            style={({ pressed }) => [
+              styles.botonAgregarTop,
+              pressed ? styles.botonAgregarTopPresionado : null,
+            ]}
+            onPress={crearMembresia}
+            accessibilityRole="button"
+            accessibilityLabel="Agregar suscripción"
+          >
+            <MaterialCommunityIcons name="plus" size={17} color={colors.text} />
+            <Text style={styles.textoBotonAgregarTop}>Agregar</Text>
+          </Pressable>
+        ) : null}
+      </View>
 
       <SelectorSegmentado
         opciones={SECCIONES}
         valor={seccion}
-        onCambiar={setSeccion}
+        onCambiar={cambiarSeccion}
         accessibilityLabel="Secciones de Cartera"
         style={styles.selectorSecciones}
       />
 
+      {/* Sección Presupuestos */}
       {enPresupuestos ? (
         <Animated.View entering={APARECER} style={styles.seccionPresupuestos}>
           <SelectorMes mes={mes} onCambiar={cambiarMes} />
 
           {hayPresupuestos ? (
-            <View style={[styles.resumen, atenuado]}>
+            <View style={[styles.resumen, atenuadoP]}>
               <View style={styles.resumenFila}>
                 <Etiqueta style={styles.resumenEtiqueta}>Gastado en {nombreDelMes}</Etiqueta>
                 {cambiandoMes ? (
@@ -190,27 +278,27 @@ export default function CarteraScreen({ navigation, route }) {
               </View>
               <View style={styles.resumenMontos}>
                 <Text style={styles.resumenGastado} numberOfLines={1} adjustsFontSizeToFit>
-                  {formatearMonto(resumen.gastado)}
+                  {formatearMonto(resumenP.gastado)}
                 </Text>
                 <Text style={styles.resumenLimite} numberOfLines={1}>
-                  de {formatearMonto(resumen.presupuesto)}
+                  de {formatearMonto(resumenP.presupuesto)}
                 </Text>
               </View>
               <View style={styles.resumenBarra}>
                 <View style={styles.resumenPista}>
                   <BarraCategorias
-                    tramos={resumen.tramos}
-                    porcentaje={resumen.porcentaje}
-                    etiqueta={etiquetaBarraMes(resumen)}
+                    tramos={resumenP.tramos}
+                    porcentaje={resumenP.porcentaje}
+                    etiqueta={etiquetaBarraMes(resumenP)}
                   />
                 </View>
-                <Text style={[styles.resumenPorcentaje, { color: colorPorcentaje }]}>
-                  {resumen.porcentaje}%
+                <Text style={[styles.resumenPorcentaje, { color: colorPorcentajeP }]}>
+                  {resumenP.porcentaje}%
                 </Text>
               </View>
-              {resumen.excedente > 0 ? (
+              {resumenP.excedente > 0 ? (
                 <Text style={styles.resumenExcedido}>
-                  Te pasaste por {formatearMonto(resumen.excedente)}
+                  Te pasaste por {formatearMonto(resumenP.excedente)}
                 </Text>
               ) : null}
             </View>
@@ -221,11 +309,48 @@ export default function CarteraScreen({ navigation, route }) {
           ) : null}
         </Animated.View>
       ) : null}
+
+      {/* Sección Suscripciones: Tarjeta de Resumen Hero */}
+      {enSuscripciones && hayMembresias ? (
+        <Animated.View entering={APARECER} style={styles.seccionSuscripciones}>
+          <View style={styles.tarjetaResumenSubs}>
+            <View style={styles.resumenFila}>
+              <Etiqueta style={styles.resumenEtiqueta}>TOTAL MENSUAL</Etiqueta>
+              <View style={styles.pildoraMesActual}>
+                <View style={styles.puntoMesVerde} />
+                <Text style={styles.textoMesActual}>{nombreMes(mesActual()).toUpperCase()}</Text>
+              </View>
+            </View>
+
+            <View style={styles.resumenMontos}>
+              <Text style={styles.resumenTotalSubs} numberOfLines={1} adjustsFontSizeToFit>
+                {formatearMonto(totalMensualSuscripciones)}
+              </Text>
+              <Text style={styles.resumenMonedaSubs}>MXN / mes</Text>
+            </View>
+
+            <Text style={styles.resumenDetalleSubs}>
+              {membresias.length}{' '}
+              {membresias.length === 1 ? 'suscripción activa' : 'suscripciones activas'}
+              {proximaMembresia
+                ? ` · Próximo cobro el ${formatearDiaMes(proximaMembresia.fecha_cobro)}`
+                : ''}
+            </Text>
+          </View>
+
+          <View style={styles.cabeceraListaSubs}>
+            <Etiqueta>SUSCRIPCIONES ACTIVAS</Etiqueta>
+            <Text style={styles.contadorServicios}>
+              {membresias.length} {membresias.length === 1 ? 'SERVICIO' : 'SERVICIOS'}
+            </Text>
+          </View>
+        </Animated.View>
+      ) : null}
     </View>
   );
 
   let contenidoVacio;
-  if (!enPresupuestos) {
+  if (!enPresupuestos && !enSuscripciones) {
     const proximamente = PROXIMAMENTE[seccion];
     contenidoVacio = (
       <Animated.View key={seccion} entering={APARECER}>
@@ -237,58 +362,135 @@ export default function CarteraScreen({ navigation, route }) {
         />
       </Animated.View>
     );
-  } else if (estado === 'cargando') {
-    contenidoVacio = (
-      <View style={styles.estado}>
-        <ActivityIndicator size="large" color={colors.text} />
-      </View>
-    );
-  } else if (estado === 'error') {
-    contenidoVacio = (
-      <View style={styles.estado}>
-        <MaterialCommunityIcons name="wifi-off" size={40} color={colors.textSecondary} />
-        <Text style={styles.estadoTitulo}>{textoError}</Text>
-        <View style={styles.estadoBoton}>
-          <Boton titulo="Reintentar" onPress={reintentar} />
+  } else if (enPresupuestos) {
+    if (estadoPresupuestos === 'cargando') {
+      contenidoVacio = (
+        <View style={styles.estado}>
+          <ActivityIndicator size="large" color={colors.text} />
         </View>
-      </View>
-    );
+      );
+    } else if (estadoPresupuestos === 'error') {
+      contenidoVacio = (
+        <View style={styles.estado}>
+          <MaterialCommunityIcons name="wifi-off" size={40} color={colors.textSecondary} />
+          <Text style={styles.estadoTitulo}>{textoErrorPresupuestos}</Text>
+          <View style={styles.estadoBoton}>
+            <Boton titulo="Reintentar" onPress={reintentar} />
+          </View>
+        </View>
+      );
+    } else {
+      contenidoVacio = (
+        <View style={[styles.estado, atenuadoP]}>
+          <MaterialCommunityIcons name="wallet-outline" size={40} color={colors.textSecondary} />
+          <Text style={styles.estadoTitulo}>Sin presupuestos {periodo}</Text>
+          <Text style={styles.estadoTexto}>
+            Ponle un límite a cada categoría y ve cuánto llevas gastado.
+          </Text>
+          <View style={styles.estadoBoton}>
+            <Boton titulo="Crear tu primer presupuesto" icono="plus" onPress={crearPresupuesto} />
+          </View>
+        </View>
+      );
+    }
   } else {
-    contenidoVacio = (
-      <View style={[styles.estado, atenuado]}>
-        <MaterialCommunityIcons name="wallet-outline" size={40} color={colors.textSecondary} />
-        <Text style={styles.estadoTitulo}>Sin presupuestos {periodo}</Text>
-        <Text style={styles.estadoTexto}>
-          Ponle un límite a cada categoría y ve cuánto llevas gastado.
-        </Text>
-        <View style={styles.estadoBoton}>
-          <Boton titulo="Crear tu primer presupuesto" icono="plus" onPress={crearPresupuesto} />
+    // enSuscripciones
+    if (estadoMembresias === 'cargando') {
+      contenidoVacio = (
+        <View style={styles.estado}>
+          <ActivityIndicator size="large" color={colors.text} />
         </View>
-      </View>
-    );
+      );
+    } else if (estadoMembresias === 'error') {
+      contenidoVacio = (
+        <View style={styles.estado}>
+          <MaterialCommunityIcons name="wifi-off" size={40} color={colors.textSecondary} />
+          <Text style={styles.estadoTitulo}>{textoErrorMembresias}</Text>
+          <View style={styles.estadoBoton}>
+            <Boton titulo="Reintentar" onPress={reintentar} />
+          </View>
+        </View>
+      );
+    } else {
+      contenidoVacio = (
+        <View style={styles.estado}>
+          <MaterialCommunityIcons
+            name="calendar-sync-outline"
+            size={40}
+            color={colors.textSecondary}
+          />
+          <Text style={styles.estadoTitulo}>Sin suscripciones registradas</Text>
+          <Text style={styles.estadoTexto}>
+            Agrega tus suscripciones para controlar tus cobros recurrentes y fechas de pago.
+          </Text>
+          <View style={styles.estadoBoton}>
+            <Boton titulo="Agregar tu primera suscripción" icono="plus" onPress={crearMembresia} />
+          </View>
+        </View>
+      );
+    }
   }
+
+  // Lista de datos según la sección
+  const datosLista = enPresupuestos
+    ? listoPresupuestos
+      ? presupuestos
+      : []
+    : enSuscripciones
+      ? listaMembresiasLista
+        ? membresias
+        : []
+      : [];
 
   return (
     <View style={styles.pantalla}>
       <FondoDegradado />
       <FlatList
-        data={enPresupuestos && listo ? presupuestos : []}
-        keyExtractor={(p) => String(p.id)}
-        renderItem={({ item }) => (
-          <Animated.View entering={APARECER} style={atenuado}>
-            <FilaDeslizable
-              filas={filas}
-              onEditar={() => editarPresupuesto(item)}
-              eliminar={() => eliminarPresupuesto(item.id)}
-              onEliminado={() => presupuestoEliminado(item.id)}
-              tituloEliminar={`¿Eliminar el presupuesto de ${item.categoria}?`}
-              codigoNoExiste="PRESUPUESTO_NO_ENCONTRADO"
-              mensajeNoExiste="Este presupuesto ya no existe"
-            >
-              <TarjetaPresupuesto presupuesto={item} />
-            </FilaDeslizable>
-          </Animated.View>
-        )}
+        data={datosLista}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={({ item }) => {
+          if (enPresupuestos) {
+            return (
+              <Animated.View entering={APARECER} style={atenuadoP}>
+                <FilaDeslizable
+                  filas={filas}
+                  onEditar={() => editarPresupuesto(item)}
+                  eliminar={() => eliminarPresupuesto(item.id)}
+                  onEliminado={() => presupuestoEliminado(item.id)}
+                  tituloEliminar={`¿Eliminar el presupuesto de ${item.categoria}?`}
+                  codigoNoExiste="PRESUPUESTO_NO_ENCONTRADO"
+                  mensajeNoExiste="Este presupuesto ya no existe"
+                >
+                  <TarjetaPresupuesto presupuesto={item} />
+                </FilaDeslizable>
+              </Animated.View>
+            );
+          }
+          if (enSuscripciones) {
+            return (
+              <Animated.View entering={APARECER}>
+                <FilaDeslizable
+                  filas={filas}
+                  onEditar={() => editarMembresia(item)}
+                  eliminar={() => eliminarMembresia(item.id)}
+                  onEliminado={() => membresiaEliminada(item.id)}
+                  tituloEliminar={`¿Eliminar la suscripción a ${item.nombre}?`}
+                  codigoNoExiste="MEMBRESIA_NO_ENCONTRADA"
+                  mensajeNoExiste="Esta suscripción ya no existe"
+                >
+                  <Pressable
+                    onPress={() => editarMembresia(item)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Editar suscripción ${item.nombre}`}
+                  >
+                    <ItemMembresia membresia={item} opaca />
+                  </Pressable>
+                </FilaDeslizable>
+              </Animated.View>
+            );
+          }
+          return null;
+        }}
         ItemSeparatorComponent={Separador}
         onScrollBeginDrag={filas.cerrarAbierta}
         ListHeaderComponent={encabezado}
@@ -298,9 +500,9 @@ export default function CarteraScreen({ navigation, route }) {
           { paddingTop: insets.top + 4, paddingBottom: alturaNavbar + 16 },
         ]}
         refreshControl={
-          enPresupuestos ? (
+          enPresupuestos || enSuscripciones ? (
             <RefreshControl
-              refreshing={refrescando}
+              refreshing={enPresupuestos ? refrescandoPresupuestos : refrescandoMembresias}
               onRefresh={refrescar}
               tintColor={colors.text}
             />
@@ -322,17 +524,22 @@ const crearEstilos = (colors) =>
       flex: 1,
       backgroundColor: colors.background,
     },
-    // px-margin (20)
     lista: {
       paddingHorizontal: 20,
     },
-    // Como Movimientos: gap-space-sm pt-space-xs, y espacio antes de la lista
     encabezado: {
       gap: 12,
       paddingTop: 4,
       marginBottom: 16,
     },
-    // headline-lg (28/34, -0.02em) en bold
+    cabeceraBarra: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    titulosColumna: {
+      flex: 1,
+    },
     titulo: {
       fontFamily: fonts.sansBold,
       fontSize: 28,
@@ -340,15 +547,112 @@ const crearEstilos = (colors) =>
       letterSpacing: -0.56,
       color: colors.text,
     },
-    // Espacio para las insignias "Pronto", que sobresalen 10 px por arriba
-    selectorSecciones: {
-      marginTop: 8,
+    subtitulo: {
+      fontFamily: fonts.sans,
+      fontSize: 13,
+      lineHeight: 18,
+      color: colors.textSecondary,
+      marginTop: 2,
     },
-    // Selector de mes, resumen y botón de agregar (mismo espaciado que el encabezado)
+    botonAgregarTop: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 14,
+      paddingVertical: 7,
+      borderRadius: 9999,
+      backgroundColor: colors.surfaceHigh,
+      borderWidth: 1,
+      borderColor: colors.borderTopStrong,
+    },
+    botonAgregarTopPresionado: {
+      opacity: 0.8,
+      backgroundColor: colors.surfaceHighest,
+    },
+    textoBotonAgregarTop: {
+      fontFamily: fonts.sansMedium,
+      fontSize: 13,
+      color: colors.text,
+      letterSpacing: -0.1,
+    },
+    selectorSecciones: {
+      marginTop: 4,
+    },
     seccionPresupuestos: {
       gap: 12,
     },
-    // Como el resumen de Movimientos: p-space-md bg-surface-container-low rounded-xl
+    seccionSuscripciones: {
+      gap: 14,
+      marginTop: 4,
+    },
+    tarjetaResumenSubs: {
+      padding: 16,
+      borderRadius: radios.xl,
+      borderTopWidth: 1,
+      borderTopColor: colors.borderTop,
+      backgroundColor: colors.surfaceLow,
+      shadowColor: colors.sombra,
+      shadowOffset: { width: 0, height: 8 },
+      shadowRadius: 12,
+      shadowOpacity: 0.5,
+      elevation: 6,
+      gap: 6,
+    },
+    pildoraMesActual: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 3,
+      borderRadius: 9999,
+      backgroundColor: colors.glass05,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+    },
+    puntoMesVerde: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: '#34C77B',
+    },
+    textoMesActual: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 10,
+      letterSpacing: 0.8,
+      color: colors.textSecondary,
+    },
+    resumenTotalSubs: {
+      fontFamily: fonts.monoSemiBold,
+      fontSize: 32,
+      lineHeight: 38,
+      letterSpacing: -0.64,
+      color: colors.text,
+    },
+    resumenMonedaSubs: {
+      fontFamily: fonts.sans,
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginLeft: 6,
+    },
+    resumenDetalleSubs: {
+      fontFamily: fonts.sans,
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: 4,
+    },
+    cabeceraListaSubs: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 2,
+      paddingTop: 4,
+    },
+    contadorServicios: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 11,
+      letterSpacing: 0.6,
+      color: colors.textVariant,
+    },
     resumen: {
       padding: 16,
       borderRadius: radios.xl,
@@ -376,7 +680,6 @@ const crearEstilos = (colors) =>
       gap: 8,
       marginTop: 6,
     },
-    // financial-metric-lg: JetBrains Mono 600 32/36, -0.02em
     resumenGastado: {
       fontFamily: fonts.monoSemiBold,
       flexShrink: 1,
@@ -390,7 +693,6 @@ const crearEstilos = (colors) =>
       fontSize: 14,
       color: colors.textVariant,
     },
-    // Barra por categorías con el porcentaje a la derecha (como en Inicio)
     resumenBarra: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -413,7 +715,6 @@ const crearEstilos = (colors) =>
       color: colors.alerta,
       marginTop: 8,
     },
-    // gap-2 entre presupuestos
     separador: {
       height: 8,
     },

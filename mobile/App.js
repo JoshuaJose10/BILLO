@@ -14,7 +14,7 @@ import {
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -55,6 +55,15 @@ function Navegacion() {
 }
 
 export default function App() {
+  const [tiempoAgotadoFuentes, setTiempoAgotadoFuentes] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setTiempoAgotadoFuentes(true);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const [fuentesCargadas, errorFuentes] = useFonts({
     // La navbar dibuja los íconos como texto con esta fuente.
     ...MaterialCommunityIcons.font,
@@ -68,10 +77,8 @@ export default function App() {
     Inter_700Bold,
   });
 
-  // Si las fuentes fallan se sigue con las del sistema en vez de bloquear la app.
-  // La pantalla de carga también sigue el tema del sistema.
-  // GestureHandlerRootView va hasta arriba: lo necesitan las filas deslizables de gastos.
-  if (!fuentesCargadas && !errorFuentes) {
+  // Si las fuentes fallan o tardan se sigue con las del sistema en vez de bloquear la app.
+  if (!fuentesCargadas && !errorFuentes && !tiempoAgotadoFuentes) {
     return (
       <GestureHandlerRootView style={styles.raiz}>
         <TemaProvider>
