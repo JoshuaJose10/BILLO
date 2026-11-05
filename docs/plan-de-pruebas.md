@@ -52,6 +52,10 @@ Las pruebas unitarias y HTTP no aprueban por sí solas la navegación ni los mó
 | CP-RF4-01 | RF4. Alerta de presupuesto | Presupuesto de Comida de $1,000 y gastos de Comida por $700. | 1) Registrar un gasto de Comida por $100 (total $800, 80 %) | La app muestra una alerta de que el gasto se acerca al presupuesto de Comida. | Positivo | Alta |
 | CP-RF4-02 | RF4. Alerta de presupuesto | Presupuesto de Comida de $1,000 y gastos de Comida por $950. | 1) Registrar un gasto de Comida por $100 (total $1,050) | La app muestra una alerta de que el presupuesto de Comida fue superado. | Positivo | Alta |
 | CP-RF4-03 | RF4. Alerta de presupuesto | Presupuesto de Comida de $1,000 y gastos de Comida por $100. | 1) Registrar un gasto de Comida por $50 (total $150, 15 %) | No se muestra ninguna alerta. | Negativo | Media |
+| CP-RF4-04 | RF4. Límite 79,99 % | Presupuesto de $1,000 y gastos de $700. | 1) Crear un gasto de $99.90 2) Repetir mediante edición en datos independientes 3) Consultar presupuestos | Total $799.90; estado `ok`; sin campo `alerta`. | Negativo | Alta |
+| CP-RF4-05 | RF4. Límite 80 % | Presupuesto de $1,000 y gastos de $700. | 1) Crear un gasto de $100 2) Repetir mediante edición en datos independientes 3) Consultar presupuestos | Total $800; estado `alerta`; aviso de acercamiento. | Positivo | Alta |
+| CP-RF4-06 | RF4. Límite 100 % | Presupuesto de $1,000 y gastos de $950. | 1) Crear un gasto de $50 2) Repetir mediante edición en datos independientes 3) Consultar presupuestos | Total $1,000; estado `alerta`; todavía no está `excedido`. | Positivo | Alta |
+| CP-RF4-07 | RF4. Límite 100,01 % | Presupuesto de $1,000 y gastos de $950. | 1) Crear un gasto de $50.10 2) Repetir mediante edición en datos independientes 3) Consultar presupuestos | Total $1,000.10; estado `excedido`; aviso de presupuesto superado. | Positivo | Alta |
 | CP-RF5-01 | RF5. Gestión de membresías | Sesión iniciada. | 1) Abrir Membresías y pulsar Agregar 2) Capturar nombre "Netflix", costo `199`, frecuencia Mensual y fecha de cobro dentro de 10 días 3) Guardar | La membresía aparece en la lista con los cuatro datos capturados. | Positivo | Alta |
 | CP-RF5-02 | RF5. Gestión de membresías | Existe la membresía "Netflix" de $199. | 1) Abrir la membresía 2) Cambiar el costo a `219` 3) Guardar 4) Volver a la lista | El costo se actualiza a $219. Al eliminarla con Eliminar y confirmar, desaparece de la lista. | Positivo | Media |
 | CP-RF5-03 | RF5. Gestión de membresías | Sesión iniciada. | 1) Pulsar Agregar membresía 2) Dejar el nombre vacío y capturar costo `199` 3) Guardar | Se indica que el nombre es obligatorio y la membresía no se guarda. | Negativo | Media |
@@ -88,7 +92,7 @@ Las pruebas unitarias y HTTP no aprueban por sí solas la navegación ni los mó
 | RF1 | 4 | 2 | 2 | 0 |
 | RF2 | 3 | 1 | 2 | 0 |
 | RF3 | 2 | 1 | 1 | 0 |
-| RF4 | 3 | 2 | 1 | 0 |
+| RF4 | 7 | 5 | 2 | 0 |
 | RF5 | 4 | 2 | 2 | 0 |
 | RF6 | 2 | 1 | 1 | 0 |
 | RF7 | 3 | 1 | 2 | 0 |
@@ -99,4 +103,10 @@ Las pruebas unitarias y HTTP no aprueban por sí solas la navegación ni los mó
 | RNF2 | 2 | 2 | 0 | 0 |
 | RNF3 | 2 | 1 | 1 | 0 |
 | RNF4 | 1 | 1 | 0 | 0 |
-| **Total** | **35** | **19** | **15** | **1** |
+| **Total** | **39** | **22** | **16** | **1** |
+
+La ejecución API de RF3/RF4 y sus casos adicionales de aislamiento se documentan
+en [QA presupuestos](qa/presupuestos-reporte.md). Los sufijos `POST`, `PUT`,
+`GET`, `L7999`, `L8000`, `L10000` y `L10001` distinguen variantes del mismo caso.
+Se verifica el estado con montos exactos; la API actual presenta `porcentaje`
+como entero redondeado. Los casos HTTP no sustituyen la verificación visual en dispositivo.

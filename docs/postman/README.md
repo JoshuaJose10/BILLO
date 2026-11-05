@@ -3,6 +3,44 @@
 Colección Postman v2.1: [billo-api.postman_collection.json](billo-api.postman_collection.json).
 Contrato v1.1 (HU-16), sobre `develop` con HU-17, HU-18 y HU-19 integradas.
 
+## QA presupuestos (RF3/RF4, HU-24 y HU-29)
+
+La colección dedicada [presupuestos.postman_collection.json](presupuestos.postman_collection.json)
+cubre CP-RF3-01/02, CP-RF4-01 a 07, los límites 79,99 %, 80 %, 100 % y
+100,01 %, y el aislamiento entre usuarios, meses y categorías. Prueba alertas
+en POST y PUT de gastos, y rechazo de PUT/DELETE de presupuestos ajenos.
+Conserva intactos la colección y los resultados históricos de Sprint 2.
+
+Desde `backend`, con los mismos requisitos PostgreSQL descritos abajo:
+
+```powershell
+npm run qa:presupuestos
+```
+
+Ejecuta 49 pruebas de integración y **202 peticiones × 2 iteraciones = 404 casos**
+de Newman. Las solicitudes auxiliares de limpieza no se suman a los casos;
+sus aserciones sí se incluyen. Exige 100 % de casos y aserciones y cero gastos
+y presupuestos al terminar. Elimina exclusivamente las bases creadas por el runner.
+La salida 0 significa todo correcto, 1 significa fallos y 2 ejecución incompleta.
+
+Evidencia sanitizada: [ejecucion-presupuestos.json](ejecucion-presupuestos.json),
+[resultados de integración](../qa/presupuestos-resultados.json) y
+[reporte QA presupuestos e instrucciones para Joshua](../qa/presupuestos-reporte.md).
+No se escriben los reportes crudos de Newman porque contienen sesiones.
+
+Para Postman manual: importar **esta colección dedicada**, sin ambiente, configurar
+`baseUrl` al servidor QA y ejecutar todas las carpetas en orden con dos iteraciones.
+Las cuentas se generan en cada iteración y la última carpeta elimina sus gastos
+y presupuestos. La API no ofrece eliminar cuentas; en ejecución manual quedan
+las cuentas QA. El comando anterior elimina toda la base temporal al terminar.
+No usar el servidor de desarrollo como destino de una ejecución manual si se
+necesita conservarlo sin datos QA.
+
+Para mantener la colección, editar `backend/qa/coleccion-presupuestos.cjs` y
+ejecutar `npm run qa:presupuestos:coleccion` desde `backend`. Después volver a
+ejecutar QA; el runner consume el JSON importable, sin regenerarlo implícitamente.
+La comprobación independiente de Joshua está pendiente.
+
 ## Ejecución reproducible con Newman
 
 Requiere Node.js 22, PostgreSQL y un usuario con permiso `CREATEDB`. Configurar
