@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 
 import { useApi } from '../context/AuthContext';
+import { normalizarAlerta } from '../utils/avisos';
 import { aNumero } from '../utils/formato';
 
 // Valores que acepta el backend en `metodo_pago` (gastos.controller.js).
@@ -22,6 +23,12 @@ export const NOTA_MAX = 200;
 
 const normalizarGasto = (gasto) => ({ ...gasto, monto: aNumero(gasto.monto) });
 
+// Respuesta de POST y PUT: { gasto, alerta } con `alerta` null si no viene (sin presupuesto o en 'ok').
+const normalizarGuardado = ({ gasto, alerta }) => ({
+  gasto: normalizarGasto(gasto),
+  alerta: normalizarAlerta(alerta),
+});
+
 // Servicio de gastos con el token de la sesión (un 401 cierra la sesión vía useApi):
 //   const { listarCategorias, crearGasto, listarGastos, actualizarGasto, eliminarGasto } =
 //     useGastosService();
@@ -34,12 +41,11 @@ export function useGastosService() {
       listarCategorias: () => api('/categorias'),
 
       // POST /gastos { monto, categoria_id, fecha: 'YYYY-MM-DD', metodo_pago, nota? }
-      // → 201 { gasto }. 400: MONTO_INVALIDO, FECHA_INVALIDA, METODO_PAGO_INVALIDO,
+      // → 201 { gasto, alerta? }. 400: MONTO_INVALIDO, FECHA_INVALIDA, METODO_PAGO_INVALIDO,
       //   NOTA_INVALIDA, CATEGORIA_INEXISTENTE.
-      crearGasto: async (datos) => {
-        const { gasto } = await api('/gastos', { method: 'POST', body: datos });
-        return normalizarGasto(gasto);
-      },
+      // Devuelve { gasto, alerta }; alerta = { categoria_id, porcentaje, estado } o null.
+      crearGasto: async (datos) =>
+        normalizarGuardado(await api('/gastos', { method: 'POST', body: datos })),
 
       // GET /gastos?mes=YYYY-MM&categoria_id=N → [gasto], ordenados por fecha descendente.
       listarGastos: async ({ mes, categoria_id } = {}) => {
@@ -51,14 +57,12 @@ export function useGastosService() {
       },
 
       // PUT /gastos/:id con el mismo body que POST (se reemplazan todos los campos)
-      // → 200 { gasto }. 400: los mismos que crearGasto. 404: GASTO_NO_ENCONTRADO.
-      actualizarGasto: async (id, datos) => {
-        const { gasto } = await api(`/gastos/${encodeURIComponent(id)}`, {
-          method: 'PUT',
-          body: datos,
-        });
-        return normalizarGasto(gasto);
-      },
+      // → 200 { gasto, alerta? }. 400: los mismos que crearGasto. 404: GASTO_NO_ENCONTRADO.
+      // Devuelve { gasto, alerta } como crearGasto.
+      actualizarGasto: async (id, datos) =>
+        normalizarGuardado(
+          await api(`/gastos/${encodeURIComponent(id)}`, { method: 'PUT', body: datos }),
+        ),
 
       // DELETE /gastos/:id → 200 { eliminado: true }. 404: GASTO_NO_ENCONTRADO.
       eliminarGasto: (id) => api(`/gastos/${encodeURIComponent(id)}`, { method: 'DELETE' }),

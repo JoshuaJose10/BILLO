@@ -20,9 +20,11 @@ import HojaInferior from '../components/HojaInferior';
 import MontoGrande from '../components/MontoGrande';
 import PanelHoja from '../components/PanelHoja';
 import TecladoNumerico from '../components/TecladoNumerico';
+import { useAvisos } from '../context/AvisosContext';
 import { METODO_PAGO_DEFECTO, METODOS_PAGO, NOTA_MAX, useGastosService } from '../services/gastos';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
+import { contenidoAviso, nombreCategoriaPorId } from '../utils/avisos';
 import { mensajeError } from '../utils/errores';
 import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
 import { fechaRelativa, LOCALE, resumirTexto } from '../utils/formato';
@@ -36,6 +38,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
   const gastoEditado = route.params?.gasto;
   const editando = !!gastoEditado;
   const { listarCategorias, crearGasto, actualizarGasto, eliminarGasto } = useGastosService();
+  const { mostrarAviso } = useAvisos();
   const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
 
@@ -62,6 +65,9 @@ export default function NuevoGastoScreen({ navigation, route }) {
   const ocupado = guardando || eliminando;
   const enviando = useRef(false);
   const hojaRef = useRef(null);
+  // Aviso de presupuesto (HU-35) que se muestra al terminar de cerrarse la hoja, justo antes de
+  // goBack: mientras la hoja está abierta el modal nativo taparía el aviso.
+  const avisoPendiente = useRef(null);
 
   // Carga las categorías al abrir y cada vez que se pulsa "Reintentar" (cambia `intento`).
   useEffect(() => {
@@ -133,11 +139,15 @@ export default function NuevoGastoScreen({ navigation, route }) {
       nota: nota.trim() || null,
     };
     try {
-      if (editando) {
-        await actualizarGasto(gastoEditado.id, datos);
-      } else {
-        await crearGasto(datos);
-      }
+      const { alerta } = editando
+        ? await actualizarGasto(gastoEditado.id, datos)
+        : await crearGasto(datos);
+      // Con alerta, el nombre sale de las categorías que ya cargó la hoja; sin alerta, nada.
+      const contenido = contenidoAviso(
+        alerta,
+        nombreCategoriaPorId(categorias, alerta?.categoria_id),
+      );
+      avisoPendiente.current = contenido ? { ...contenido, mes: datos.fecha.slice(0, 7) } : null;
       enviando.current = false;
       hojaRef.current?.cerrar();
     } catch (error) {
@@ -180,7 +190,11 @@ export default function NuevoGastoScreen({ navigation, route }) {
       ref={hojaRef}
       titulo={editando ? 'Editar gasto' : 'Nuevo gasto'}
       etiquetaFondo={editando ? 'Cerrar editar gasto' : 'Cerrar nuevo gasto'}
-      onCerrada={() => navigation.goBack()}
+      onCerrada={() => {
+        if (avisoPendiente.current) mostrarAviso(avisoPendiente.current);
+        avisoPendiente.current = null;
+        navigation.goBack();
+      }}
       bloqueada={ocupado}
     >
       <ScrollView

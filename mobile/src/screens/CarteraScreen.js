@@ -54,7 +54,9 @@ const PROXIMAMENTE = {
 // Fundido corto al cambiar de sección y al aparecer las filas.
 const APARECER = FadeIn.duration(180);
 
-export default function CarteraScreen({ navigation }) {
+// Parámetros opcionales (los manda el aviso de presupuesto, HU-35): `seccion`, `mes` y `solicitud`
+// (marca de tiempo para volver a aplicarlos aunque Cartera ya esté abierta).
+export default function CarteraScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
   const { colors } = useTema();
@@ -81,6 +83,19 @@ export default function CarteraScreen({ navigation }) {
   const [textoErrorMembresias, setTextoErrorMembresias] = useState('');
   const [refrescandoMembresias, setRefrescandoMembresias] = useState(false);
   const ultimaPeticionMembresias = useRef(0);
+
+  // Aplica los parámetros una vez por `solicitud`, durante el render (sin efecto) como recomienda
+  // React para ajustar estado a partir de props.
+  const { solicitud, seccion: seccionPedida, mes: mesPedido } = route?.params ?? {};
+  const [solicitudAplicada, setSolicitudAplicada] = useState(null);
+  if (solicitud && solicitud !== solicitudAplicada) {
+    setSolicitudAplicada(solicitud);
+    if (SECCIONES.some((s) => s.valor === seccionPedida)) setSeccion(seccionPedida);
+    if (/^\d{4}-\d{2}$/.test(mesPedido ?? '') && mesPedido !== mes) {
+      setMes(mesPedido);
+      if (estadoPresupuestos === 'error') setEstadoPresupuestos('cargando');
+    }
+  }
 
   const cargarPresupuestos = useCallback(async () => {
     const peticion = ++ultimaPeticionPresupuestos.current;
