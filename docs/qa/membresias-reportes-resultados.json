@@ -1,0 +1,293 @@
+{
+  "title": "QA membresías y reportes",
+  "executedAt": "2026-11-05T18:51:27.047Z",
+  "timezone": "America/Mexico_City",
+  "branch": "develop",
+  "baseCommit": "e1575d986040d2e4c51fc80f54a46e44001f076a",
+  "workingTree": "Cambios locales; ver hashes de los archivos ejecutados.",
+  "node": "v22.15.0",
+  "newman": "6.2.3",
+  "platform": "win32",
+  "fileSha256": {
+    "backend/package.json": "b7a85ef42fb9b9a0c36ae96058a77b6a2043bd496b7e39460522e1c6bbe2c4fd",
+    "backend/package-lock.json": "9c43ab6dbcfd6555f9270a2b9173d3e31208c54f6c35c04fb89d927889c98d16",
+    "backend/qa/membresias-reportes.cjs": "079cff4e632af45235f0c2938aa5f4f4a2cfa2e04980d96af94bc98f22aa067a",
+    "backend/qa/coleccion-membresias-reportes.cjs": "ca4ba31c2de6faadc0051eb8164a04fa972bd42962e56f85f3096225af13d8b5",
+    "backend/test/integration.test.cjs": "5e76f95c5efa4474611351f9cdcf64e08983c9621ba1eba4e7d67a10ad4f9b15",
+    "backend/test/membresias-reportes.test.cjs": "7398914b64b17645361c204f95fbf5d442a59d8336de766031f8613ffd5d9432",
+    "backend/test/suites/membresias-reportes.cjs": "0722eb59da32e0698d40f2912fa32b8bdef1ec4f6221ef8d02d7e99bb6332046",
+    "backend/test/helpers/database.cjs": "dc8a9d1b5d15d22d2886ce5d24fcb171cc2f9cbcd5b9835663b5f0ffeac015d8",
+    "backend/test/helpers/fixtures.cjs": "1387405294e7bc8690e40a64f07febf5e1f8ca19200244bfda610f842a53597a",
+    "docs/postman/resumir-ejecucion.cjs": "baf82cea8c481c4e8aa1d326d8c9bdff520138a1800b42712a593d8b8a148def",
+    "docs/postman/membresias-reportes.postman_collection.json": "c9c23d58c31620a96705f335555fc4c269021742d59d0d931a988fbdc6bac811",
+    "backend/migrations/001_usuarios.sql": "7db4e2f2eb70498d32536eae89f8cc85cb987722140aedcc5e3b2ca9ad6d32a8",
+    "backend/migrations/002_categorias.sql": "1d70d9239153233461c4e41743b8b80330da7510a1daa8d8d0ec6cae817e8296",
+    "backend/migrations/003_gastos.sql": "ea343332e51e668f0fd121254a727a89ceacfc920d2134358afc934f3e9ecb7d",
+    "backend/migrations/004_presupuestos.sql": "85b9f1e773260e9b55d1078d0bee86d4d6c6e03ad4435240b13a77f6db2c6d7a",
+    "backend/migrations/005_catalogo_servicios.sql": "9f6817636731d86f9c4fa4ab624e2c9d49dc70c148edc6d5c59732625100b40b",
+    "backend/migrations/006_membresias.sql": "3685ab9c96664d1867be6102ec2c445fda280fa49e3b7974b136816c4fa0de33",
+    "backend/migrations/007_seed_categorias.sql": "fb71224a7a0a4af34db1f194d911453da42c497b25861c698d02656fae6f13b7",
+    "backend/migrations/008_usuarios_email_minusculas.sql": "ae8b1bc8b846b1230f4051f9d0993595e6698de86db1d9268cd263e3bf700ca7",
+    "backend/migrations/009_indices_y_restricciones.sql": "8f4a303adb3779fae0b4f851762523ee31c74081245a2aa16b116dcc6b002085",
+    "backend/migrations/010_seed_catalogo_servicios.sql": "d4500d5b81ccf18f47407598584546c925f7274f33044a3ad3a22e7169e3951e",
+    "backend/src/app.js": "3e02037ae818f75091ebe764b672da639bd75052deb19db701a300f4499da0d1",
+    "backend/src/config/env.js": "bb34ba84db24e6f5fb30f753d0a2b59a4b62d84e08c28732f80cd49b291a7553",
+    "backend/src/controllers/auth.controller.js": "6c3dcb90cc180fb74befbd3584800137ed8674a4fd577d307e3ebe90cbdd7338",
+    "backend/src/controllers/catalogo.controller.js": "13720dd7df5c7e9ac22451c6897ba074233deb47785148eab25ae7eb71183182",
+    "backend/src/controllers/categorias.controller.js": "a98b5a06db099ce7ee373c2506f21ed472ee0a2351fa3fdfd590cf80ed14e9b3",
+    "backend/src/controllers/gastos.controller.js": "20788a1b623f8c757beb66f90bd419a7088fa4e8e5ada7a1475b142cc33f917c",
+    "backend/src/controllers/membresias.controller.js": "e7017c5f0313f4848b668a179c5369698fd851c6c0054c919fe21ed257817c58",
+    "backend/src/controllers/presupuestos.controller.js": "72ea62ed0900248b3d45f6a4274564d4bb5a2df27aea1b7ae2b5f812f53d57e6",
+    "backend/src/controllers/reportes.controller.js": "db6b574ec3c7543079b43db864d5efa31b7ac0685c038aa79fd9e30324ac0ec8",
+    "backend/src/controllers/tipoCambio.controller.js": "c86c4024bed8a5f14001d6aa53765fc7220880cc8f9bf4e61f90d1eab4696a37",
+    "backend/src/db/index.js": "32472af6565c26faf68dd018d4771eccece39fae4e9994db95b83ef8757fe060",
+    "backend/src/db/migrate.js": "f4a5d0b964a52edbc0f7d2de36c4bbe79e9a2bf55bdddc4469e274e7909ca590",
+    "backend/src/db/schema.sql": "b3a41469f54268f1e7a75041d935b3eafc01a9c1e77e8b7cc95cde5d54c54cf1",
+    "backend/src/index.js": "8e17d6f6a2a40d378c63a4983f1ee348fb0af0f0c21c68819bac1d08a7df2043",
+    "backend/src/middlewares/auth.middleware.js": "cbccad304155bf8cd44630777ad892110089e268f431c2822b5c9a2c974818ad",
+    "backend/src/routes/auth.routes.js": "8b7ea4829267e5609b6b6914d69dd81da7cda5e0f3ecbe649cb4612b5646fb40",
+    "backend/src/routes/catalogo.routes.js": "0aff4468db7843220bcd05fd639b0756e4c6eab0633380915104d9613ef96680",
+    "backend/src/routes/categorias.routes.js": "363f8bcf7f837700caf51885abdff1ccd4727f1107d7324a9795314238f9b2b1",
+    "backend/src/routes/gastos.routes.js": "9145c4253de284f7e61154c02684e30c976fbf3fa81560c7f07049e2404f0e4e",
+    "backend/src/routes/membresias.routes.js": "61fe078b5e50eee68101be8e51a49137bb18b1b581f58379fd843f876988d4dc",
+    "backend/src/routes/presupuestos.routes.js": "0731c12da88413f233f08a6c2b2b0fb96cd7ac9bd4cbd00c277bb7a603dd9ee2",
+    "backend/src/routes/reportes.routes.js": "fc794a2a16c9697b37ab98a4783cb087f040cf734b47b3f79b04b5c4dc70f7b5",
+    "backend/src/routes/tipoCambio.routes.js": "a0caeca97456ddd79ecf32200fe1ec5ef3613165d8b4a98fa1d4e121c828fefe"
+  },
+  "automated": {
+    "summary": {
+      "cases": 43,
+      "passed": 43,
+      "failed": 0
+    },
+    "executionErrors": [],
+    "executions": [
+      {
+        "name": "CP-RF5-01: crea y lista nombre, costo, frecuencia y fecha",
+        "passed": true
+      },
+      {
+        "name": "CP-RF5-02: edita a 219, elimina y recalcula el resumen",
+        "passed": true
+      },
+      {
+        "name": "CP-RF5-03: rechaza datos inválidos sin persistir",
+        "passed": true
+      },
+      {
+        "name": "CP-RF5-04: rechaza datos inválidos sin persistir",
+        "passed": true
+      },
+      {
+        "name": "RF5-COSTO-CERO: rechaza datos inválidos sin persistir",
+        "passed": true
+      },
+      {
+        "name": "RF5-FRECUENCIA: rechaza datos inválidos sin persistir",
+        "passed": true
+      },
+      {
+        "name": "RF5-FECHA: rechaza datos inválidos sin persistir",
+        "passed": true
+      },
+      {
+        "name": "RF5-SERVICIO: rechaza datos inválidos sin persistir",
+        "passed": true
+      },
+      {
+        "name": "RF5-CATALOGO: hereda nombre y costo; permite costo personalizado sin cambiar catálogo",
+        "passed": true
+      },
+      {
+        "name": "CP-RF6-01: variable 500 + fijo 300 = total 800",
+        "passed": true
+      },
+      {
+        "name": "CP-RF6-02 / CP-RF8-02: sin datos devuelve ceros y arreglos vacíos",
+        "passed": true
+      },
+      {
+        "name": "CP-RF8-01: categorías 600/300/100 con proporciones 60/30/10",
+        "passed": true
+      },
+      {
+        "name": "CONSISTENCIA-ANUAL: tres endpoints concilian 1000 + (200 + 1200/12) = 1300",
+        "passed": true
+      },
+      {
+        "name": "CONSISTENCIA-DECIMALES: 0.10 + 0.20 y dos anuales de 100 redondeados al final",
+        "passed": true
+      },
+      {
+        "name": "RF8-REDONDEO: tres categorías iguales suman 100 % con orden estable",
+        "passed": true
+      },
+      {
+        "name": "CONSISTENCIA-CAMBIOS: editar y borrar gastos/membresías actualiza ambos reportes",
+        "passed": true
+      },
+      {
+        "name": "AISLAMIENTO-AB: listas y reportes propios; catálogo compartido sin datos personales",
+        "passed": true
+      },
+      {
+        "name": "AISLAMIENTO-PUT: no modifica membresía ajena ni totales",
+        "passed": true
+      },
+      {
+        "name": "AISLAMIENTO-DELETE: no modifica membresía ajena ni totales",
+        "passed": true
+      },
+      {
+        "name": "AUTH-GET /catalogo: sin token",
+        "passed": true
+      },
+      {
+        "name": "AUTH-GET /catalogo: token inválido",
+        "passed": true
+      },
+      {
+        "name": "AUTH-GET /membresias: sin token",
+        "passed": true
+      },
+      {
+        "name": "AUTH-GET /membresias: token inválido",
+        "passed": true
+      },
+      {
+        "name": "AUTH-POST /membresias: sin token",
+        "passed": true
+      },
+      {
+        "name": "AUTH-POST /membresias: token inválido",
+        "passed": true
+      },
+      {
+        "name": "AUTH-PUT /membresias/1: sin token",
+        "passed": true
+      },
+      {
+        "name": "AUTH-PUT /membresias/1: token inválido",
+        "passed": true
+      },
+      {
+        "name": "AUTH-DELETE /membresias/1: sin token",
+        "passed": true
+      },
+      {
+        "name": "AUTH-DELETE /membresias/1: token inválido",
+        "passed": true
+      },
+      {
+        "name": "AUTH-GET /reportes/resumen?mes=2026-10: sin token",
+        "passed": true
+      },
+      {
+        "name": "AUTH-GET /reportes/resumen?mes=2026-10: token inválido",
+        "passed": true
+      },
+      {
+        "name": "AUTH-GET /reportes/por-categoria?mes=2026-10: sin token",
+        "passed": true
+      },
+      {
+        "name": "AUTH-GET /reportes/por-categoria?mes=2026-10: token inválido",
+        "passed": true
+      },
+      {
+        "name": "MES-INVALIDO /reportes/resumen: null",
+        "passed": true
+      },
+      {
+        "name": "MES-INVALIDO /reportes/resumen: \"\"",
+        "passed": true
+      },
+      {
+        "name": "MES-INVALIDO /reportes/resumen: \"2026-13\"",
+        "passed": true
+      },
+      {
+        "name": "MES-INVALIDO /reportes/resumen: \"2026-1\"",
+        "passed": true
+      },
+      {
+        "name": "MES-INVALIDO /reportes/resumen: \"2026-10-01\"",
+        "passed": true
+      },
+      {
+        "name": "MES-INVALIDO /reportes/por-categoria: null",
+        "passed": true
+      },
+      {
+        "name": "MES-INVALIDO /reportes/por-categoria: \"\"",
+        "passed": true
+      },
+      {
+        "name": "MES-INVALIDO /reportes/por-categoria: \"2026-13\"",
+        "passed": true
+      },
+      {
+        "name": "MES-INVALIDO /reportes/por-categoria: \"2026-1\"",
+        "passed": true
+      },
+      {
+        "name": "MES-INVALIDO /reportes/por-categoria: \"2026-10-01\"",
+        "passed": true
+      }
+    ]
+  },
+  "postman": {
+    "summary": {
+      "cases": 270,
+      "passed": 270,
+      "failed": 0,
+      "casePassRate": 100,
+      "assertions": 830,
+      "assertionsPassed": 830,
+      "assertionsFailed": 0,
+      "assertionPassRate": 100
+    },
+    "iterations": 2,
+    "acceptance": {
+      "minimumPercent": 100,
+      "passed": true
+    },
+    "database": {
+      "name": "billo_test_1793904685900_641520cdb4e7",
+      "fresh": true,
+      "initialPublicTables": 0,
+      "migrations": [
+        "001_usuarios.sql",
+        "002_categorias.sql",
+        "003_gastos.sql",
+        "004_presupuestos.sql",
+        "005_catalogo_servicios.sql",
+        "006_membresias.sql",
+        "007_seed_categorias.sql",
+        "008_usuarios_email_minusculas.sql",
+        "009_indices_y_restricciones.sql",
+        "010_seed_catalogo_servicios.sql"
+      ],
+      "remaining": {
+        "gastos": 0,
+        "membresias": 0
+      },
+      "dropped": true
+    }
+  },
+  "reconciliation": {
+    "month": "2026-10",
+    "variable": 1000,
+    "fixed": 300,
+    "total": 1300,
+    "rule": "suma(categorías)=gasto_variable; suma(membresías mensualizadas)=gasto_fijo; variable+fijo=total",
+    "evidenceCases": [
+      "CONSISTENCIA-ANUAL-FIJO",
+      "CONSISTENCIA-ANUAL-RESUMEN",
+      "CP-RF8-01 / CONSISTENCIA-ANUAL-CATEGORIAS"
+    ]
+  },
+  "verdict": "APROBADO (alcance API)",
+  "joshuaReview": "PENDIENTE: Joshua debe repetir dos casos al azar y registrar sus resultados.",
+  "postmanEvidence": "postman/ejecucion-membresias-reportes.json"
+}

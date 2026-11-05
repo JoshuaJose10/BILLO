@@ -41,6 +41,38 @@ ejecutar `npm run qa:presupuestos:coleccion` desde `backend`. Después volver a
 ejecutar QA; el runner consume el JSON importable, sin regenerarlo implícitamente.
 La comprobación independiente de Joshua está pendiente.
 
+## QA membresías y reportes (RF5/RF6/RF8, HU-26, HU-31 y HU-32)
+
+La colección dedicada [membresias-reportes.postman_collection.json](membresias-reportes.postman_collection.json)
+cubre CP-RF5-01 a 04, CP-RF6-01/02 y CP-RF8-01/02, catálogo, anualidades,
+decimales, cambios, aislamiento A/B y token ausente/inválido en todas las rutas
+del alcance. Conciliación: categorías = variable; membresías mensualizadas =
+fijo; variable + fijo = total. El catálogo es compartido.
+
+Desde `backend`, con PostgreSQL y un usuario con permiso `CREATEDB`:
+
+```powershell
+npm run qa:membresias-reportes
+```
+
+Ejecuta 43 pruebas de integración y **135 peticiones × 2 iteraciones = 270 casos**
+de Newman, con 830 aserciones y exigencia del 100 %. Crea cuentas nuevas por
+iteración, valida que no queden gastos ni membresías y elimina sus bases temporales.
+Salida 0: aprobado; 1: fallos; 2: ejecución incompleta. No usa `DB_NAME` como
+destino de pruebas. `QA_OUTPUT_DIR` permite guardar otra ejecución por separado.
+
+Evidencias: [ejecución sanitizada](ejecucion-membresias-reportes.json),
+[resultados y hashes](../qa/membresias-reportes-resultados.json) y
+[reporte QA membresías y reportes](../qa/membresias-reportes-reporte.md), que
+incluye el dataset y las instrucciones para que Joshua repita dos casos al azar.
+Su revisión está pendiente; tampoco se sustituye la comprobación visual en Android.
+
+En Postman, importar la colección dedicada sin ambiente, ajustar `baseUrl` al
+servidor QA y ejecutar todas las carpetas en orden con dos iteraciones. Las
+cuentas quedan en el servidor manual porque la API no permite borrarlas.
+Para mantener la colección, editar `backend/qa/coleccion-membresias-reportes.cjs`
+y ejecutar `npm run qa:membresias-reportes:coleccion`; después repetir QA.
+
 ## Ejecución reproducible con Newman
 
 Requiere Node.js 22, PostgreSQL y un usuario con permiso `CREATEDB`. Configurar
