@@ -1,0 +1,308 @@
+{
+  "title": "QA presupuestos",
+  "executedAt": "2026-11-05T04:29:06.147Z",
+  "timezone": "America/Mexico_City",
+  "branch": "test/qa-presupuestos",
+  "baseCommit": "f1f3a46707da0d9c28a9845d5df1c161244e0573",
+  "workingTree": "Cambios locales; ver hashes de los archivos ejecutados.",
+  "node": "v22.15.0",
+  "newman": "6.2.3",
+  "platform": "win32",
+  "fileSha256": {
+    "backend/package.json": "27b8cfbcc0999df9483e7c696b7eb1be9ae279b477be465e6d4827bb67c5324c",
+    "backend/package-lock.json": "9c43ab6dbcfd6555f9270a2b9173d3e31208c54f6c35c04fb89d927889c98d16",
+    "backend/qa/presupuestos.cjs": "915d1cce25c30a7ced533206a9ad637b9c66a736792cb2ddea4842b4a56110b2",
+    "backend/qa/coleccion-presupuestos.cjs": "fa8a976884d6b48a4a420dd1713de0470dca8edc62d0c433afd4cf8a590b5905",
+    "backend/test/integration.test.cjs": "27f7e0935c00df6a1f79e7e3fe306fb0f5a910e8672d1fbc6dbb2d8385e59f7e",
+    "backend/test/presupuestos.test.cjs": "7d3d31c0f331ed22f76860f4f55c5591c08a81f9365e24e107f6d28020348945",
+    "backend/test/suites/presupuestos.cjs": "53baaa4df2061b8fad164279bead43f3654ff120130f69ccf6b52df5f771fb8e",
+    "backend/test/helpers/database.cjs": "dc8a9d1b5d15d22d2886ce5d24fcb171cc2f9cbcd5b9835663b5f0ffeac015d8",
+    "backend/test/helpers/fixtures.cjs": "1387405294e7bc8690e40a64f07febf5e1f8ca19200244bfda610f842a53597a",
+    "docs/postman/resumir-ejecucion.cjs": "baf82cea8c481c4e8aa1d326d8c9bdff520138a1800b42712a593d8b8a148def",
+    "docs/postman/presupuestos.postman_collection.json": "b27547b3a9380a4a6485e1c727f486357540ada40388fcdbaaa365517dd52b2d",
+    "backend/migrations/001_usuarios.sql": "7db4e2f2eb70498d32536eae89f8cc85cb987722140aedcc5e3b2ca9ad6d32a8",
+    "backend/migrations/002_categorias.sql": "1d70d9239153233461c4e41743b8b80330da7510a1daa8d8d0ec6cae817e8296",
+    "backend/migrations/003_gastos.sql": "ea343332e51e668f0fd121254a727a89ceacfc920d2134358afc934f3e9ecb7d",
+    "backend/migrations/004_presupuestos.sql": "85b9f1e773260e9b55d1078d0bee86d4d6c6e03ad4435240b13a77f6db2c6d7a",
+    "backend/migrations/005_catalogo_servicios.sql": "9f6817636731d86f9c4fa4ab624e2c9d49dc70c148edc6d5c59732625100b40b",
+    "backend/migrations/006_membresias.sql": "3685ab9c96664d1867be6102ec2c445fda280fa49e3b7974b136816c4fa0de33",
+    "backend/migrations/007_seed_categorias.sql": "fb71224a7a0a4af34db1f194d911453da42c497b25861c698d02656fae6f13b7",
+    "backend/migrations/008_usuarios_email_minusculas.sql": "ae8b1bc8b846b1230f4051f9d0993595e6698de86db1d9268cd263e3bf700ca7",
+    "backend/migrations/009_indices_y_restricciones.sql": "8f4a303adb3779fae0b4f851762523ee31c74081245a2aa16b116dcc6b002085",
+    "backend/migrations/010_seed_catalogo_servicios.sql": "d4500d5b81ccf18f47407598584546c925f7274f33044a3ad3a22e7169e3951e",
+    "backend/src/app.js": "3e02037ae818f75091ebe764b672da639bd75052deb19db701a300f4499da0d1",
+    "backend/src/config/env.js": "bb34ba84db24e6f5fb30f753d0a2b59a4b62d84e08c28732f80cd49b291a7553",
+    "backend/src/controllers/auth.controller.js": "6c3dcb90cc180fb74befbd3584800137ed8674a4fd577d307e3ebe90cbdd7338",
+    "backend/src/controllers/catalogo.controller.js": "13720dd7df5c7e9ac22451c6897ba074233deb47785148eab25ae7eb71183182",
+    "backend/src/controllers/categorias.controller.js": "a98b5a06db099ce7ee373c2506f21ed472ee0a2351fa3fdfd590cf80ed14e9b3",
+    "backend/src/controllers/gastos.controller.js": "20788a1b623f8c757beb66f90bd419a7088fa4e8e5ada7a1475b142cc33f917c",
+    "backend/src/controllers/membresias.controller.js": "e7017c5f0313f4848b668a179c5369698fd851c6c0054c919fe21ed257817c58",
+    "backend/src/controllers/presupuestos.controller.js": "72ea62ed0900248b3d45f6a4274564d4bb5a2df27aea1b7ae2b5f812f53d57e6",
+    "backend/src/controllers/reportes.controller.js": "db6b574ec3c7543079b43db864d5efa31b7ac0685c038aa79fd9e30324ac0ec8",
+    "backend/src/controllers/tipoCambio.controller.js": "c86c4024bed8a5f14001d6aa53765fc7220880cc8f9bf4e61f90d1eab4696a37",
+    "backend/src/db/index.js": "32472af6565c26faf68dd018d4771eccece39fae4e9994db95b83ef8757fe060",
+    "backend/src/db/migrate.js": "f4a5d0b964a52edbc0f7d2de36c4bbe79e9a2bf55bdddc4469e274e7909ca590",
+    "backend/src/db/schema.sql": "b3a41469f54268f1e7a75041d935b3eafc01a9c1e77e8b7cc95cde5d54c54cf1",
+    "backend/src/index.js": "8e17d6f6a2a40d378c63a4983f1ee348fb0af0f0c21c68819bac1d08a7df2043",
+    "backend/src/middlewares/auth.middleware.js": "cbccad304155bf8cd44630777ad892110089e268f431c2822b5c9a2c974818ad",
+    "backend/src/routes/auth.routes.js": "8b7ea4829267e5609b6b6914d69dd81da7cda5e0f3ecbe649cb4612b5646fb40",
+    "backend/src/routes/catalogo.routes.js": "0aff4468db7843220bcd05fd639b0756e4c6eab0633380915104d9613ef96680",
+    "backend/src/routes/categorias.routes.js": "363f8bcf7f837700caf51885abdff1ccd4727f1107d7324a9795314238f9b2b1",
+    "backend/src/routes/gastos.routes.js": "9145c4253de284f7e61154c02684e30c976fbf3fa81560c7f07049e2404f0e4e",
+    "backend/src/routes/membresias.routes.js": "61fe078b5e50eee68101be8e51a49137bb18b1b581f58379fd843f876988d4dc",
+    "backend/src/routes/presupuestos.routes.js": "0731c12da88413f233f08a6c2b2b0fb96cd7ac9bd4cbd00c277bb7a603dd9ee2",
+    "backend/src/routes/reportes.routes.js": "fc794a2a16c9697b37ab98a4783cb087f040cf734b47b3f79b04b5c4dc70f7b5",
+    "backend/src/routes/tipoCambio.routes.js": "a0caeca97456ddd79ecf32200fe1ec5ef3613165d8b4a98fa1d4e121c828fefe"
+  },
+  "automated": {
+    "summary": {
+      "cases": 49,
+      "passed": 49,
+      "failed": 0
+    },
+    "executionErrors": [],
+    "executions": [
+      {
+        "name": "CP-RF3-01: crea y consulta presupuesto de 2000 sin gastos",
+        "passed": true
+      },
+      {
+        "name": "CP-RF3-02: creación inválida no persiste datos",
+        "passed": true
+      },
+      {
+        "name": "RF3-CERO: creación inválida no persiste datos",
+        "passed": true
+      },
+      {
+        "name": "RF3-TEXTO: creación inválida no persiste datos",
+        "passed": true
+      },
+      {
+        "name": "RF3-DECIMALES: creación inválida no persiste datos",
+        "passed": true
+      },
+      {
+        "name": "RF3-PRECISION: creación inválida no persiste datos",
+        "passed": true
+      },
+      {
+        "name": "RF3-MAXIMO: creación inválida no persiste datos",
+        "passed": true
+      },
+      {
+        "name": "RF3-MES: creación inválida no persiste datos",
+        "passed": true
+      },
+      {
+        "name": "RF3-CATEGORIA: creación inválida no persiste datos",
+        "passed": true
+      },
+      {
+        "name": "RF3-DUPLICADO: 409 sin modificar el presupuesto original",
+        "passed": true
+      },
+      {
+        "name": "RF3-CRUD: modifica límite, recalcula estado y elimina sin borrar gastos",
+        "passed": true
+      },
+      {
+        "name": "RF3-PUT-INVALIDO: rechaza -500 sin alterar límite ni estado",
+        "passed": true
+      },
+      {
+        "name": "RF3-GET-MES: rechaza mes undefined",
+        "passed": true
+      },
+      {
+        "name": "RF3-GET-MES: rechaza mes \"\"",
+        "passed": true
+      },
+      {
+        "name": "RF3-GET-MES: rechaza mes \"2026-1\"",
+        "passed": true
+      },
+      {
+        "name": "RF3-GET-MES: rechaza mes \"2026-00\"",
+        "passed": true
+      },
+      {
+        "name": "RF3-GET-MES: rechaza mes \"2026-13\"",
+        "passed": true
+      },
+      {
+        "name": "RF3-GET-MES: rechaza mes \"2026-10-01\"",
+        "passed": true
+      },
+      {
+        "name": "CP-RF4-01-POST: total 800, alerta, porcentaje 80",
+        "passed": true
+      },
+      {
+        "name": "CP-RF4-01-PUT: total 800, alerta, porcentaje 80",
+        "passed": true
+      },
+      {
+        "name": "CP-RF4-02-POST: total 1050, excedido, porcentaje 105",
+        "passed": true
+      },
+      {
+        "name": "CP-RF4-02-PUT: total 1050, excedido, porcentaje 105",
+        "passed": true
+      },
+      {
+        "name": "CP-RF4-03-POST: total 150, ok, porcentaje 15",
+        "passed": true
+      },
+      {
+        "name": "CP-RF4-03-PUT: total 150, ok, porcentaje 15",
+        "passed": true
+      },
+      {
+        "name": "CP-RF4-04-L7999-POST: total 799.9, ok, porcentaje 80",
+        "passed": true
+      },
+      {
+        "name": "CP-RF4-04-L7999-PUT: total 799.9, ok, porcentaje 80",
+        "passed": true
+      },
+      {
+        "name": "CP-RF4-05-L8000-POST: total 800, alerta, porcentaje 80",
+        "passed": true
+      },
+      {
+        "name": "CP-RF4-05-L8000-PUT: total 800, alerta, porcentaje 80",
+        "passed": true
+      },
+      {
+        "name": "CP-RF4-06-L10000-POST: total 1000, alerta, porcentaje 100",
+        "passed": true
+      },
+      {
+        "name": "CP-RF4-06-L10000-PUT: total 1000, alerta, porcentaje 100",
+        "passed": true
+      },
+      {
+        "name": "CP-RF4-07-L10001-POST: total 1000.1, excedido, porcentaje 100",
+        "passed": true
+      },
+      {
+        "name": "CP-RF4-07-L10001-PUT: total 1000.1, excedido, porcentaje 100",
+        "passed": true
+      },
+      {
+        "name": "RF4-CENTAVO: límite 100 y gasto 100.01 ya es excedido",
+        "passed": true
+      },
+      {
+        "name": "RF4-SIN-PRESUPUESTO: crear y editar gasto no incluyen alerta",
+        "passed": true
+      },
+      {
+        "name": "RF4-RECALCULO: editar y borrar gastos retira alertas y recalcula el total",
+        "passed": true
+      },
+      {
+        "name": "RF3/RF4-USUARIOS: misma categoría y mes con límites, gastos y alertas propios",
+        "passed": true
+      },
+      {
+        "name": "RF3-PRIVACIDAD-PUT: B no modifica ni elimina presupuesto A",
+        "passed": true
+      },
+      {
+        "name": "RF3-PRIVACIDAD-DELETE: B no modifica ni elimina presupuesto A",
+        "passed": true
+      },
+      {
+        "name": "RF3/RF4-MESES: septiembre/octubre/noviembre y cambio de año quedan aislados",
+        "passed": true
+      },
+      {
+        "name": "RF3/RF4-CATEGORIAS: otra categoría no contamina total ni alerta",
+        "passed": true
+      },
+      {
+        "name": "RF4-TRASLADO: cambiar categoría y mes recalcula origen y destino",
+        "passed": true
+      },
+      {
+        "name": "RF3-AUTH-GET: sin token",
+        "passed": true
+      },
+      {
+        "name": "RF3-AUTH-GET: token inválido",
+        "passed": true
+      },
+      {
+        "name": "RF3-AUTH-POST: sin token",
+        "passed": true
+      },
+      {
+        "name": "RF3-AUTH-POST: token inválido",
+        "passed": true
+      },
+      {
+        "name": "RF3-AUTH-PUT: sin token",
+        "passed": true
+      },
+      {
+        "name": "RF3-AUTH-PUT: token inválido",
+        "passed": true
+      },
+      {
+        "name": "RF3-AUTH-DELETE: sin token",
+        "passed": true
+      },
+      {
+        "name": "RF3-AUTH-DELETE: token inválido",
+        "passed": true
+      }
+    ]
+  },
+  "postman": {
+    "summary": {
+      "cases": 404,
+      "passed": 404,
+      "failed": 0,
+      "casePassRate": 100,
+      "assertions": 1468,
+      "assertionsPassed": 1468,
+      "assertionsFailed": 0,
+      "assertionPassRate": 100
+    },
+    "iterations": 2,
+    "acceptance": {
+      "minimumPercent": 100,
+      "passed": true
+    },
+    "database": {
+      "name": "billo_test_1793852943113_66738209dd4b",
+      "fresh": true,
+      "initialPublicTables": 0,
+      "migrations": [
+        "001_usuarios.sql",
+        "002_categorias.sql",
+        "003_gastos.sql",
+        "004_presupuestos.sql",
+        "005_catalogo_servicios.sql",
+        "006_membresias.sql",
+        "007_seed_categorias.sql",
+        "008_usuarios_email_minusculas.sql",
+        "009_indices_y_restricciones.sql",
+        "010_seed_catalogo_servicios.sql"
+      ],
+      "remaining": {
+        "gastos": 0,
+        "presupuestos": 0
+      },
+      "dropped": true
+    }
+  },
+  "verdict": {
+    "HU-24": "APROBADO (alcance API)",
+    "HU-29": "APROBADO (alcance API)"
+  },
+  "joshuaReview": "PENDIENTE: requiere ejecución propia y comparación de los números.",
+  "postmanEvidence": "postman/ejecucion-presupuestos.json"
+}

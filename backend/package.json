@@ -9,7 +9,10 @@
     "lint": "eslint .",
     "migrate": "node src/db/migrate.js",
     "qa:baseline": "node qa/gastos.cjs",
-    "qa:reportes": "node qa/reportes.cjs"
+    "qa:reportes": "node qa/reportes.cjs",
+    "test:presupuestos": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test test/presupuestos.test.cjs",
+    "qa:presupuestos": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON qa/presupuestos.cjs",
+    "qa:presupuestos:coleccion": "node qa/coleccion-presupuestos.cjs"
   },
   "keywords": [],
   "author": "",

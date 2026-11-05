@@ -1,0 +1,588 @@
+TAP version 13
+# Subtest: normalizarAlerta
+    # Subtest: sin alerta da null
+    ok 1 - sin alerta da null
+      ---
+      duration_ms: 2.0019
+      type: 'test'
+      ...
+    # Subtest: convierte el porcentaje que llega como texto
+    ok 2 - convierte el porcentaje que llega como texto
+      ---
+      duration_ms: 2.2248
+      type: 'test'
+      ...
+    # Subtest: un estado sin aviso o un porcentaje inválido da null
+    ok 3 - un estado sin aviso o un porcentaje inválido da null
+      ---
+      duration_ms: 0.5386
+      type: 'test'
+      ...
+    1..3
+ok 1 - normalizarAlerta
+  ---
+  duration_ms: 7.9875
+  type: 'suite'
+  ...
+# Subtest: contenidoAviso
+    # Subtest: alerta: se acerca al presupuesto
+    ok 1 - alerta: se acerca al presupuesto
+      ---
+      duration_ms: 1.1852
+      type: 'test'
+      ...
+    # Subtest: excedido: se pasó del presupuesto
+    ok 2 - excedido: se pasó del presupuesto
+      ---
+      duration_ms: 0.5394
+      type: 'test'
+      ...
+    # Subtest: redondea el porcentaje
+    ok 3 - redondea el porcentaje
+      ---
+      duration_ms: 0.5133
+      type: 'test'
+      ...
+    # Subtest: categoría desconocida o vacía: "Presupuesto al N%"
+    ok 4 - categoría desconocida o vacía: "Presupuesto al N%"
+      ---
+      duration_ms: 0.7826
+      type: 'test'
+      ...
+    # Subtest: quita espacios del nombre
+    ok 5 - quita espacios del nombre
+      ---
+      duration_ms: 0.9439
+      type: 'test'
+      ...
+    # Subtest: sin alerta válida da null
+    ok 6 - sin alerta válida da null
+      ---
+      duration_ms: 0.8071
+      type: 'test'
+      ...
+    1..6
+ok 2 - contenidoAviso
+  ---
+  duration_ms: 7.1568
+  type: 'suite'
+  ...
+# Subtest: nombreCategoriaPorId
+    # Subtest: busca por id aunque llegue como texto
+    ok 1 - busca por id aunque llegue como texto
+      ---
+      duration_ms: 0.7743
+      type: 'test'
+      ...
+    # Subtest: id desconocido, null o lista vacía dan undefined
+    ok 2 - id desconocido, null o lista vacía dan undefined
+      ---
+      duration_ms: 0.3529
+      type: 'test'
+      ...
+    1..2
+ok 3 - nombreCategoriaPorId
+  ---
+  duration_ms: 1.5618
+  type: 'suite'
+  ...
+# Subtest: cargarDatosInicio
+    # Subtest: hace exactamente 3 peticiones del mes, todas antes de que responda alguna
+    ok 1 - hace exactamente 3 peticiones del mes, todas antes de que responda alguna
+      ---
+      duration_ms: 5.1649
+      type: 'test'
+      ...
+    # Subtest: si fallan los presupuestos sigue con null
+    ok 2 - si fallan los presupuestos sigue con null
+      ---
+      duration_ms: 2.5721
+      type: 'test'
+      ...
+    # Subtest: si falla el resumen o los gastos lanza el error
+    ok 3 - si falla el resumen o los gastos lanza el error
+      ---
+      duration_ms: 2.1334
+      type: 'test'
+      ...
+    1..3
+ok 4 - cargarDatosInicio
+  ---
+  duration_ms: 13.667
+  type: 'suite'
+  ...
+# Subtest: utils/membresias
+    # Subtest: calcularTotalMensual
+        # Subtest: devuelve 0 con lista vacía o nula
+        ok 1 - devuelve 0 con lista vacía o nula
+          ---
+          duration_ms: 2.4343
+          type: 'test'
+          ...
+        # Subtest: suma membresías mensuales exactas
+        ok 2 - suma membresías mensuales exactas
+          ---
+          duration_ms: 0.5403
+          type: 'test'
+          ...
+        # Subtest: divide las anuales entre 12 y suma con las mensuales
+        ok 3 - divide las anuales entre 12 y suma con las mensuales
+          ---
+          duration_ms: 0.7046
+          type: 'test'
+          ...
+        # Subtest: redondea a 2 decimales
+        ok 4 - redondea a 2 decimales
+          ---
+          duration_ms: 0.5665
+          type: 'test'
+          ...
+        1..4
+    ok 1 - calcularTotalMensual
+      ---
+      duration_ms: 7.347
+      type: 'suite'
+      ...
+    # Subtest: esCobroProximo
+        # Subtest: es true para 0, 1, 2, 3 días
+        ok 1 - es true para 0, 1, 2, 3 días
+          ---
+          duration_ms: 0.5753
+          type: 'test'
+          ...
+        # Subtest: es false para 4 o más días y para negativos
+        ok 2 - es false para 4 o más días y para negativos
+          ---
+          duration_ms: 1.0087
+          type: 'test'
+          ...
+        1..2
+    ok 2 - esCobroProximo
+      ---
+      duration_ms: 2.3439
+      type: 'suite'
+      ...
+    # Subtest: textoCobro
+        # Subtest: muestra texto según los días
+        ok 1 - muestra texto según los días
+          ---
+          duration_ms: 1.6026
+          type: 'test'
+          ...
+        1..1
+    ok 3 - textoCobro
+      ---
+      duration_ms: 2.1542
+      type: 'suite'
+      ...
+    # Subtest: estiloServicio
+        # Subtest: asigna color e icono específico a servicios conocidos
+        ok 1 - asigna color e icono específico a servicios conocidos
+          ---
+          duration_ms: 1.0023
+          type: 'test'
+          ...
+        # Subtest: usa valores por defecto para nombres desconocidos
+        ok 2 - usa valores por defecto para nombres desconocidos
+          ---
+          duration_ms: 1.0137
+          type: 'test'
+          ...
+        1..2
+    ok 4 - estiloServicio
+      ---
+      duration_ms: 2.8636
+      type: 'suite'
+      ...
+    # Subtest: validarMembresia
+        # Subtest: valida correctamente datos válidos
+        ok 1 - valida correctamente datos válidos
+          ---
+          duration_ms: 2.6941
+          type: 'test'
+          ...
+        # Subtest: falla con nombre vacío (CP-RF5-03)
+        ok 2 - falla con nombre vacío (CP-RF5-03)
+          ---
+          duration_ms: 0.6961
+          type: 'test'
+          ...
+        # Subtest: falla con costo "abc" o no numérico (CP-RF5-04)
+        ok 3 - falla con costo "abc" o no numérico (CP-RF5-04)
+          ---
+          duration_ms: 0.4888
+          type: 'test'
+          ...
+        # Subtest: falla con costo 0 o negativo
+        ok 4 - falla con costo 0 o negativo
+          ---
+          duration_ms: 0.4565
+          type: 'test'
+          ...
+        # Subtest: falla con más de 2 decimales
+        ok 5 - falla con más de 2 decimales
+          ---
+          duration_ms: 0.4065
+          type: 'test'
+          ...
+        1..5
+    ok 5 - validarMembresia
+      ---
+      duration_ms: 7.9394
+      type: 'suite'
+      ...
+    1..5
+ok 5 - utils/membresias
+  ---
+  duration_ms: 25.4374
+  type: 'suite'
+  ...
+# Subtest: textoDesdeMonto
+    # Subtest: convierte montos enteros y con decimales
+    ok 1 - convierte montos enteros y con decimales
+      ---
+      duration_ms: 6.0197
+      type: 'test'
+      ...
+    # Subtest: conserva el cero de los centavos
+    ok 2 - conserva el cero de los centavos
+      ---
+      duration_ms: 0.4352
+      type: 'test'
+      ...
+    # Subtest: acepta el monto como texto (por si la API lo manda así)
+    ok 3 - acepta el monto como texto (por si la API lo manda así)
+      ---
+      duration_ms: 0.6718
+      type: 'test'
+      ...
+    # Subtest: redondea a 2 decimales
+    ok 4 - redondea a 2 decimales
+      ---
+      duration_ms: 0.4335
+      type: 'test'
+      ...
+    # Subtest: devuelve "" con montos no válidos
+    ok 5 - devuelve "" con montos no válidos
+      ---
+      duration_ms: 0.4468
+      type: 'test'
+      ...
+    # Subtest: es el inverso de montoDesdeTexto
+    ok 6 - es el inverso de montoDesdeTexto
+      ---
+      duration_ms: 0.5962
+      type: 'test'
+      ...
+    # Subtest: deja un texto que el teclado puede seguir editando
+    ok 7 - deja un texto que el teclado puede seguir editando
+      ---
+      duration_ms: 0.7211
+      type: 'test'
+      ...
+    1..7
+ok 6 - textoDesdeMonto
+  ---
+  duration_ms: 14.531
+  type: 'suite'
+  ...
+# Subtest: normalizarPresupuesto
+    # Subtest: convierte los montos que llegan como texto
+    ok 1 - convierte los montos que llegan como texto
+      ---
+      duration_ms: 4.3835
+      type: 'test'
+      ...
+    # Subtest: un estado desconocido cuenta como ok
+    ok 2 - un estado desconocido cuenta como ok
+      ---
+      duration_ms: 0.6688
+      type: 'test'
+      ...
+    1..2
+ok 7 - normalizarPresupuesto
+  ---
+  duration_ms: 14.0624
+  type: 'suite'
+  ...
+# Subtest: categoriasDeGasto
+    # Subtest: quita las de membresía y acepta las que no traen tipo
+    ok 1 - quita las de membresía y acepta las que no traen tipo
+      ---
+      duration_ms: 0.7725
+      type: 'test'
+      ...
+    # Subtest: tolera null
+    ok 2 - tolera null
+      ---
+      duration_ms: 0.3851
+      type: 'test'
+      ...
+    1..2
+ok 8 - categoriasDeGasto
+  ---
+  duration_ms: 2.1725
+  type: 'suite'
+  ...
+# Subtest: avanceBarra
+    # Subtest: convierte el porcentaje en fracción con tope de 100%
+    ok 1 - convierte el porcentaje en fracción con tope de 100%
+      ---
+      duration_ms: 0.5462
+      type: 'test'
+      ...
+    1..1
+ok 9 - avanceBarra
+  ---
+  duration_ms: 0.8722
+  type: 'suite'
+  ...
+# Subtest: excedente
+    # Subtest: es lo que se pasó del límite, o 0
+    ok 1 - es lo que se pasó del límite, o 0
+      ---
+      duration_ms: 0.9384
+      type: 'test'
+      ...
+    # Subtest: no arrastra errores de coma flotante
+    ok 2 - no arrastra errores de coma flotante
+      ---
+      duration_ms: 0.6572
+      type: 'test'
+      ...
+    1..2
+ok 10 - excedente
+  ---
+  duration_ms: 2.6701
+  type: 'suite'
+  ...
+# Subtest: gastoPorCategoriaDePresupuestos
+    # Subtest: toma lo gastado de cada presupuesto, de mayor a menor
+    ok 1 - toma lo gastado de cada presupuesto, de mayor a menor
+      ---
+      duration_ms: 1.163
+      type: 'test'
+      ...
+    # Subtest: tolera null
+    ok 2 - tolera null
+      ---
+      duration_ms: 0.6995
+      type: 'test'
+      ...
+    1..2
+ok 11 - gastoPorCategoriaDePresupuestos
+  ---
+  duration_ms: 3.6025
+  type: 'suite'
+  ...
+# Subtest: estadoMasGrave
+    # Subtest: excedido > alerta > ok
+    ok 1 - excedido > alerta > ok
+      ---
+      duration_ms: 4.442
+      type: 'test'
+      ...
+    1..1
+ok 12 - estadoMasGrave
+  ---
+  duration_ms: 4.7705
+  type: 'suite'
+  ...
+# Subtest: resumenPresupuestos
+    # Subtest: suma límites y gastado y toma el estado más grave
+    ok 1 - suma límites y gastado y toma el estado más grave
+      ---
+      duration_ms: 3.4847
+      type: 'test'
+      ...
+    # Subtest: sin presupuestos da ceros
+    ok 2 - sin presupuestos da ceros
+      ---
+      duration_ms: 0.7994
+      type: 'test'
+      ...
+    1..2
+ok 13 - resumenPresupuestos
+  ---
+  duration_ms: 4.8183
+  type: 'suite'
+  ...
+# Subtest: presupuestosEnRiesgo
+    # Subtest: solo alerta y excedido: primero excedidos, luego por porcentaje
+    ok 1 - solo alerta y excedido: primero excedidos, luego por porcentaje
+      ---
+      duration_ms: 0.8445
+      type: 'test'
+      ...
+    # Subtest: sin riesgo o null da lista vacía
+    ok 2 - sin riesgo o null da lista vacía
+      ---
+      duration_ms: 0.399
+      type: 'test'
+      ...
+    1..2
+ok 14 - presupuestosEnRiesgo
+  ---
+  duration_ms: 1.5756
+  type: 'suite'
+  ...
+# Subtest: normalizarResumen
+    # Subtest: convierte los montos que llegan como texto
+    ok 1 - convierte los montos que llegan como texto
+      ---
+      duration_ms: 8.1498
+      type: 'test'
+      ...
+    # Subtest: sin respuesta o con valores inválidos da ceros con el mes pedido
+    ok 2 - sin respuesta o con valores inválidos da ceros con el mes pedido
+      ---
+      duration_ms: 8.8643
+      type: 'test'
+      ...
+    1..2
+ok 15 - normalizarResumen
+  ---
+  duration_ms: 23.206
+  type: 'suite'
+  ...
+# Subtest: normalizarPorCategoria
+    # Subtest: convierte total y porcentaje
+    ok 1 - convierte total y porcentaje
+      ---
+      duration_ms: 1.4267
+      type: 'test'
+      ...
+    # Subtest: tolera null
+    ok 2 - tolera null
+      ---
+      duration_ms: 0.6982
+      type: 'test'
+      ...
+    1..2
+ok 16 - normalizarPorCategoria
+  ---
+  duration_ms: 3.457
+  type: 'suite'
+  ...
+# Subtest: gastoPorCategoria
+    # Subtest: suma por categoría y ordena de mayor a menor
+    ok 1 - suma por categoría y ordena de mayor a menor
+      ---
+      duration_ms: 11.6498
+      type: 'test'
+      ...
+    # Subtest: sin gastos da una lista vacía
+    ok 2 - sin gastos da una lista vacía
+      ---
+      duration_ms: 1.2638
+      type: 'test'
+      ...
+    # Subtest: redondea los centavos
+    ok 3 - redondea los centavos
+      ---
+      duration_ms: 1.0547
+      type: 'test'
+      ...
+    1..3
+ok 17 - gastoPorCategoria
+  ---
+  duration_ms: 17.4416
+  type: 'suite'
+  ...
+# Subtest: resumenGastoMes
+    # Subtest: tramos por categoría sobre el presupuesto
+    ok 1 - tramos por categoría sobre el presupuesto
+      ---
+      duration_ms: 3.5095
+      type: 'test'
+      ...
+    # Subtest: excedido: la barra queda llena y hay excedente
+    ok 2 - excedido: la barra queda llena y hay excedente
+      ---
+      duration_ms: 1.3607
+      type: 'test'
+      ...
+    # Subtest: sin presupuesto: los tramos llenan el 100% en proporción al gasto
+    ok 3 - sin presupuesto: los tramos llenan el 100% en proporción al gasto
+      ---
+      duration_ms: 1.257
+      type: 'test'
+      ...
+    # Subtest: sin gastos: sin tramos ni excedente
+    ok 4 - sin gastos: sin tramos ni excedente
+      ---
+      duration_ms: 2.103
+      type: 'test'
+      ...
+    1..4
+ok 18 - resumenGastoMes
+  ---
+  duration_ms: 12.0852
+  type: 'suite'
+  ...
+# Subtest: nivelPorcentaje
+    # Subtest: normal < 80, aviso de 80 a 100, alerta > 100
+    ok 1 - normal < 80, aviso de 80 a 100, alerta > 100
+      ---
+      duration_ms: 1.1301
+      type: 'test'
+      ...
+    1..1
+ok 19 - nivelPorcentaje
+  ---
+  duration_ms: 2.0309
+  type: 'suite'
+  ...
+# Subtest: etiquetaBarraMes
+    # Subtest: con presupuesto
+    ok 1 - con presupuesto
+      ---
+      duration_ms: 2.6587
+      type: 'test'
+      ...
+    # Subtest: sin presupuesto
+    ok 2 - sin presupuesto
+      ---
+      duration_ms: 1.5851
+      type: 'test'
+      ...
+    1..2
+ok 20 - etiquetaBarraMes
+  ---
+  duration_ms: 4.8776
+  type: 'suite'
+  ...
+# Subtest: cuadre de la barra con gasto_variable
+    # Subtest: la suma de los tramos y de los chips iguala gasto_variable
+    ok 1 - la suma de los tramos y de los chips iguala gasto_variable
+      ---
+      duration_ms: 1.2251
+      type: 'test'
+      ...
+    # Subtest: mes sin gastos: todo en ceros
+    ok 2 - mes sin gastos: todo en ceros
+      ---
+      duration_ms: 0.5696
+      type: 'test'
+      ...
+    # Subtest: sin gastadoServidor se usa la suma de las categorías
+    ok 3 - sin gastadoServidor se usa la suma de las categorías
+      ---
+      duration_ms: 0.8796
+      type: 'test'
+      ...
+    1..3
+ok 21 - cuadre de la barra con gasto_variable
+  ---
+  duration_ms: 7.0029
+  type: 'suite'
+  ...
+1..21
+# tests 66
+# suites 26
+# pass 66
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1057.3687

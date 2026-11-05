@@ -79,8 +79,8 @@ impedir que se ejecute la limpieza. La suite tiene un límite de 55 segundos.
 
 ### Cobertura y regresiones
 
-Hay **126 pruebas ejecutables**, sin casos omitidos: 27 de autenticación, 76 de
-gastos, 17 de resumen mensual y 6 del cliente HTTP de mobile. Se convirtieron los casos de las carpetas 01 y 03 de
+Hay **175 pruebas ejecutables**, sin casos omitidos: 27 de autenticación, 76 de
+gastos, 49 de presupuestos/alertas, 17 de resumen mensual y 6 del cliente HTTP de mobile. Se convirtieron los casos de las carpetas 01 y 03 de
 `docs/postman/billo-api.postman_collection.json`, con casos adicionales de límites,
 tipos y persistencia. La limpieza de Postman queda reemplazada por hooks de la
 suite. No se incluyen aquí las carpetas de categorías y errores HTTP globales,
@@ -110,10 +110,31 @@ un 401 autenticado. No requiere instalar las dependencias de Expo en este job.
 Esta integración comprueba el contrato HTTP usado por SDK 58; las APIs nativas
 de React Native se prueban en dispositivo según la [guía SDK 58](../docs/qa/sdk58-migracion.md).
 
-### Agregar presupuestos, membresías y reportes
+### QA de presupuestos y alertas (RF3/RF4)
 
-1. Copia `test/templates/endpoint.cjs.example` a `test/suites/presupuestos.cjs`,
-   `membresias.cjs` o `reportes.cjs`. La plantilla trae un ejemplo ejecutable para
+`test/suites/presupuestos.cjs` cubre CP-RF3-01/02 y CP-RF4-01 a 07,
+CRUD, validaciones, ausencia de presupuesto, recálculo y aislamiento por usuario,
+mes y categoría. Se ejecuta dentro de `npm test` y también por separado:
+
+```powershell
+npm run test:presupuestos
+npm run qa:presupuestos
+```
+
+El segundo comando ejecuta los mismos 49 casos en Node y la colección dedicada
+de Postman con Newman 6.2.3 (202 peticiones × 2 iteraciones). Cada runner crea y
+elimina su propia base temporal con las diez migraciones. Genera evidencia sin
+sesiones en `docs/qa/presupuestos-resultados.json` y
+`docs/postman/ejecucion-presupuestos.json`. Exige el 100 % de casos y aserciones;
+devuelve 0 si pasan todos, 1 si hay fallos y 2 si no se pudo completar la ejecución.
+`QA_OUTPUT_DIR` permite guardar la repetición fuera de la evidencia del repositorio.
+Consulta el [reporte QA presupuestos](../docs/qa/presupuestos-reporte.md),
+incluidas las instrucciones y la confirmación pendiente de Joshua.
+
+### Agregar nuevas suites
+
+1. Copia `test/templates/endpoint.cjs.example` a un módulo nuevo en `test/suites/`
+   (sin sobrescribir las suites existentes). La plantilla trae un ejemplo para
    `GET /presupuestos`.
 2. Registra el módulo en `test/integration.test.cjs` con
    `require('./suites/presupuestos.cjs')(() => context);` (ajusta el nombre).
