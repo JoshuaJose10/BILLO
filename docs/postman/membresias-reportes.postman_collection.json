@@ -1,0 +1,4789 @@
+{
+  "info": {
+    "_postman_id": "302775ab-9337-497a-8a61-b620a4e80378",
+    "name": "Billo · QA membresías y reportes (RF5/RF6/RF8)",
+    "description": "Ejecutar completa y en orden, sin ambiente, dos iteraciones. Cuentas nuevas y mes fijo 2026-10. suma(categorías)=resumen.gasto_variable; suma(membresías mensualizadas)=resumen.gasto_fijo; variable+fijo=total. Catálogo compartido. No sustituye revisión de Joshua ni UI. Ver docs/qa/membresias-reportes-reporte.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000",
+      "type": "string"
+    },
+    {
+      "key": "tokenInvalido",
+      "value": "invalido",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 Preparación · cuentas nuevas, categorías y catálogo",
+      "item": [
+        {
+          "name": "PREP-USUARIO-A",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/register",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"QA membresías A\",\n  \"email\": \"qa.membresias.a.{{qaRun}}@example.test\",\n  \"password\": \"{{qaPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "Object.keys(pm.collectionVariables.toObject()).filter(k=>!['baseUrl','tokenInvalido'].includes(k)).forEach(k=>pm.collectionVariables.unset(k));",
+                  "const run=pm.variables.replaceIn('{{$guid}}').replace(/-/g,''); pm.collectionVariables.set('qaRun',run); pm.collectionVariables.set('qaPassword','Qa!'+run);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Sesión válida\", () => { pm.expect(body.token).to.be.a('string').and.not.empty; pm.expect(body.usuario.id).to.be.a('number'); });",
+                  "if (body?.token != null) pm.collectionVariables.set('qaTokenA', body?.token);",
+                  "if (body?.usuario?.id != null) pm.collectionVariables.set('usuarioA', body?.usuario?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PREP-USUARIO-B",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/register",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"QA membresías B\",\n  \"email\": \"qa.membresias.b.{{qaRun}}@example.test\",\n  \"password\": \"{{qaPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Sesión válida\", () => { pm.expect(body.token).to.be.a('string').and.not.empty; pm.expect(body.usuario.id).to.be.a('number'); });",
+                  "if (body?.token != null) pm.collectionVariables.set('qaTokenB', body?.token);",
+                  "if (body?.usuario?.id != null) pm.collectionVariables.set('usuarioB', body?.usuario?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PREP-CATEGORIAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/categorias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Categorías del conjunto conocido\", () => { ['Comida','Transporte','Entretenimiento'].forEach(n=>pm.expect(body.some(c=>c.nombre===n)).to.equal(true)); });",
+                  "if(Array.isArray(body)) for(const [n,k] of [['Comida','catComida'],['Transporte','catTransporte'],['Entretenimiento','catOcio']]) {const c=body.find(c=>c.nombre===n);if(c)pm.collectionVariables.set(k,c.id);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RF5-CATALOGO-A",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/catalogo",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Contrato de catálogo y Netflix 199\", () => { pm.expect(body).to.be.an('array').and.not.empty; body.forEach(s=>{pm.expect(s).to.have.all.keys('id','nombre','logo_url','costo_sugerido');pm.expect(s.costo_sugerido).to.be.a('number');}); pm.expect(body.find(s=>s.nombre==='Netflix').costo_sugerido).to.equal(199); });",
+                  "if (JSON.stringify(body) != null) pm.collectionVariables.set('catalogoOriginal', JSON.stringify(body));",
+                  "const s=body.find(s=>s.nombre==='Netflix'); if(s)pm.collectionVariables.set('servicioId',s.id);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 RF5 · casos CP y valores del catálogo",
+      "item": [
+        {
+          "name": "CP-RF6-02",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Resumen coincide con suma manual\", () => { pm.expect(body).to.deep.equal({mes:'2026-10',gasto_variable:0,gasto_fijo:0,total:0}); pm.expect(Math.round((body.gasto_variable+body.gasto_fijo)*100)).to.equal(Math.round(body.total*100)); });",
+                  "if (JSON.stringify(body) != null) pm.collectionVariables.set('ultimoResumen', JSON.stringify(body));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF8-02",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Categorías, importes, porcentajes y orden exactos\", () => { const id=n=>Number(pm.collectionVariables.get(({Comida:'catComida',Transporte:'catTransporte',Entretenimiento:'catOcio'})[n])); const esperado=[].sort((a,b)=>b[1]-a[1]||id(a[0])-id(b[0])); pm.expect(body).to.be.an('array').with.lengthOf(esperado.length); pm.expect(body.map(c=>[c.categoria,c.total])).to.deep.equal(esperado); pm.expect(body.map(c=>c.porcentaje)).to.deep.equal([]); body.forEach(c=>{pm.expect(c).to.have.all.keys('categoria_id','categoria','total','porcentaje');pm.expect(c.categoria_id).to.equal(id(c.categoria));}); });",
+                  "pm.test(\"Conciliación con resumen consultado\", () => { const r=JSON.parse(pm.collectionVariables.get('ultimoResumen')); pm.expect(Math.round(body.reduce((s,c)=>s+c.total,0)*100)).to.equal(Math.round(r.gasto_variable*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RF5-LISTA-VACIA",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Lista y suma mensual coinciden con suma manual\", () => { pm.expect(body).to.be.an('array').with.lengthOf(0); body.forEach(m=>{pm.expect(m.costo).to.be.a('number');pm.expect(m.dias_para_cobro).to.be.a('number');}); const fijo=Math.round(body.reduce((s,m)=>s+(m.frecuencia==='anual'?m.costo/12:m.costo),0)*100); pm.expect(fijo).to.equal(Math.round(0*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF5-01-CREAR",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Netflix\",\n  \"costo\": 199,\n  \"frecuencia\": \"mensual\",\n  \"fecha_cobro\": \"2026-10-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Membresía persistida\", () => { pm.expect(body.membresia).to.have.all.keys('id','servicio_id','nombre','costo','frecuencia','fecha_cobro'); pm.expect(body.membresia.id).to.be.a('number').and.above(0); pm.expect(body.membresia).to.include({\"nombre\":\"Netflix\",\"costo\":199,\"frecuencia\":\"mensual\",\"fecha_cobro\":\"2026-10-20\"}); pm.expect(body.membresia.servicio_id).to.equal(null); });",
+                  "if (body?.membresia?.id != null) pm.collectionVariables.set('crud', body?.membresia?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF5-01-LISTAR",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Cuatro datos capturados\", () => { pm.expect(body).to.have.lengthOf(1);pm.expect(body[0]).to.include({id:Number(pm.collectionVariables.get('crud')),nombre:'Netflix',costo:199,frecuencia:'mensual',fecha_cobro:'2026-10-20',servicio_id:null});pm.expect(Number.isInteger(body[0].dias_para_cobro)).to.equal(true); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF5-02-EDITAR",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/membresias/{{crud}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Netflix\",\n  \"costo\": 219,\n  \"frecuencia\": \"mensual\",\n  \"fecha_cobro\": \"2026-10-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Costo actualizado\", () => { pm.expect(body.membresia.costo).to.equal(219); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF5-02-PERSISTENCIA",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Lista y suma mensual coinciden con suma manual\", () => { pm.expect(body).to.be.an('array').with.lengthOf(1); body.forEach(m=>{pm.expect(m.costo).to.be.a('number');pm.expect(m.dias_para_cobro).to.be.a('number');}); const fijo=Math.round(body.reduce((s,m)=>s+(m.frecuencia==='anual'?m.costo/12:m.costo),0)*100); pm.expect(fijo).to.equal(Math.round(219*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF5-02-RESUMEN",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Resumen coincide con suma manual\", () => { pm.expect(body).to.deep.equal({mes:'2026-10',gasto_variable:0,gasto_fijo:219,total:219}); pm.expect(Math.round((body.gasto_variable+body.gasto_fijo)*100)).to.equal(Math.round(body.total*100)); });",
+                  "if (JSON.stringify(body) != null) pm.collectionVariables.set('ultimoResumen', JSON.stringify(body));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-crud",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/membresias/{{crud}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF5-02-ELIMINADA",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Lista y suma mensual coinciden con suma manual\", () => { pm.expect(body).to.be.an('array').with.lengthOf(0); body.forEach(m=>{pm.expect(m.costo).to.be.a('number');pm.expect(m.dias_para_cobro).to.be.a('number');}); const fijo=Math.round(body.reduce((s,m)=>s+(m.frecuencia==='anual'?m.costo/12:m.costo),0)*100); pm.expect(fijo).to.equal(Math.round(0*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF5-03",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"\",\n  \"costo\": 199,\n  \"frecuencia\": \"mensual\",\n  \"fecha_cobro\": \"2026-10-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('NOMBRE_INVALIDO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF5-04",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Netflix\",\n  \"costo\": \"abc\",\n  \"frecuencia\": \"mensual\",\n  \"fecha_cobro\": \"2026-10-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('COSTO_INVALIDO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RF5-COSTO-CERO",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Netflix\",\n  \"costo\": 0,\n  \"frecuencia\": \"mensual\",\n  \"fecha_cobro\": \"2026-10-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('COSTO_INVALIDO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RF5-FRECUENCIA",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Netflix\",\n  \"costo\": 199,\n  \"frecuencia\": \"semanal\",\n  \"fecha_cobro\": \"2026-10-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('FRECUENCIA_INVALIDA'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RF5-FECHA",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Netflix\",\n  \"costo\": 199,\n  \"frecuencia\": \"mensual\",\n  \"fecha_cobro\": \"2026-02-30\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('FECHA_INVALIDA'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RF5-SERVICIO",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Netflix\",\n  \"costo\": 199,\n  \"frecuencia\": \"mensual\",\n  \"fecha_cobro\": \"2026-10-20\",\n  \"servicio_id\": 2147483647\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('SERVICIO_INEXISTENTE'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RF5-INVALIDOS-NO-PERSISTEN",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Lista y suma mensual coinciden con suma manual\", () => { pm.expect(body).to.be.an('array').with.lengthOf(0); body.forEach(m=>{pm.expect(m.costo).to.be.a('number');pm.expect(m.dias_para_cobro).to.be.a('number');}); const fijo=Math.round(body.reduce((s,m)=>s+(m.frecuencia==='anual'?m.costo/12:m.costo),0)*100); pm.expect(fijo).to.equal(Math.round(0*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RF5-CATALOGO-HERENCIA",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"servicio_id\": {{servicioId}},\n  \"frecuencia\": \"mensual\",\n  \"fecha_cobro\": \"2026-10-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Nombre y costo heredados\", () => { pm.expect(body.membresia).to.include({nombre:'Netflix',costo:199,servicio_id:Number(pm.collectionVariables.get('servicioId'))}); });",
+                  "if (body?.membresia?.id != null) pm.collectionVariables.set('desdeCatalogo', body?.membresia?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RF5-CATALOGO-RESUMEN",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Resumen coincide con suma manual\", () => { pm.expect(body).to.deep.equal({mes:'2026-10',gasto_variable:0,gasto_fijo:199,total:199}); pm.expect(Math.round((body.gasto_variable+body.gasto_fijo)*100)).to.equal(Math.round(body.total*100)); });",
+                  "if (JSON.stringify(body) != null) pm.collectionVariables.set('ultimoResumen', JSON.stringify(body));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RF5-CATALOGO-COSTO-PROPIO",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/membresias/{{desdeCatalogo}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"servicio_id\": {{servicioId}},\n  \"frecuencia\": \"mensual\",\n  \"fecha_cobro\": \"2026-10-20\",\n  \"costo\": 219\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Costo propio sin cambiar servicio\", () => { pm.expect(body.membresia).to.include({nombre:'Netflix',costo:219,servicio_id:Number(pm.collectionVariables.get('servicioId'))}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RF5-CATALOGO-COSTO-PROPIO-RESUMEN",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Resumen coincide con suma manual\", () => { pm.expect(body).to.deep.equal({mes:'2026-10',gasto_variable:0,gasto_fijo:219,total:219}); pm.expect(Math.round((body.gasto_variable+body.gasto_fijo)*100)).to.equal(Math.round(body.total*100)); });",
+                  "if (JSON.stringify(body) != null) pm.collectionVariables.set('ultimoResumen', JSON.stringify(body));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RF5-CATALOGO-INTACTO",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/catalogo",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Catálogo intacto\", () => { pm.expect(body).to.deep.equal(JSON.parse(pm.collectionVariables.get('catalogoOriginal'))); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-desdeCatalogo",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/membresias/{{desdeCatalogo}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 RF6 · CP-RF6-01 500 + 300 = 800",
+      "item": [
+        {
+          "name": "RF6-GASTO-350",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/gastos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 350,\n  \"categoria_id\": {{catComida}},\n  \"fecha\": \"2026-10-15\",\n  \"metodo_pago\": \"efectivo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Gasto persistido\", () => { pm.expect(body.gasto).to.include({monto:350,fecha:'2026-10-15',categoria_id:Number(pm.collectionVariables.get('catComida'))}); });",
+                  "if (body?.gasto?.id != null) pm.collectionVariables.set('cp6G1', body?.gasto?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RF6-GASTO-150",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/gastos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 150,\n  \"categoria_id\": {{catComida}},\n  \"fecha\": \"2026-10-15\",\n  \"metodo_pago\": \"efectivo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Gasto persistido\", () => { pm.expect(body.gasto).to.include({monto:150,fecha:'2026-10-15',categoria_id:Number(pm.collectionVariables.get('catComida'))}); });",
+                  "if (body?.gasto?.id != null) pm.collectionVariables.set('cp6G2', body?.gasto?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RF6-MENSUAL-300",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Netflix\",\n  \"costo\": 300,\n  \"frecuencia\": \"mensual\",\n  \"fecha_cobro\": \"2026-10-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Membresía persistida\", () => { pm.expect(body.membresia).to.have.all.keys('id','servicio_id','nombre','costo','frecuencia','fecha_cobro'); pm.expect(body.membresia.id).to.be.a('number').and.above(0); pm.expect(body.membresia).to.include({\"nombre\":\"Netflix\",\"costo\":300,\"frecuencia\":\"mensual\",\"fecha_cobro\":\"2026-10-20\"}); pm.expect(body.membresia.servicio_id).to.equal(null); });",
+                  "if (body?.membresia?.id != null) pm.collectionVariables.set('cp6M', body?.membresia?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF6-01",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Resumen coincide con suma manual\", () => { pm.expect(body).to.deep.equal({mes:'2026-10',gasto_variable:500,gasto_fijo:300,total:800}); pm.expect(Math.round((body.gasto_variable+body.gasto_fijo)*100)).to.equal(Math.round(body.total*100)); });",
+                  "if (JSON.stringify(body) != null) pm.collectionVariables.set('ultimoResumen', JSON.stringify(body));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF6-01-FIJO",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Lista y suma mensual coinciden con suma manual\", () => { pm.expect(body).to.be.an('array').with.lengthOf(1); body.forEach(m=>{pm.expect(m.costo).to.be.a('number');pm.expect(m.dias_para_cobro).to.be.a('number');}); const fijo=Math.round(body.reduce((s,m)=>s+(m.frecuencia==='anual'?m.costo/12:m.costo),0)*100); pm.expect(fijo).to.equal(Math.round(300*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF6-01-VARIABLE",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Categorías, importes, porcentajes y orden exactos\", () => { const id=n=>Number(pm.collectionVariables.get(({Comida:'catComida',Transporte:'catTransporte',Entretenimiento:'catOcio'})[n])); const esperado=[[\"Comida\",500]].sort((a,b)=>b[1]-a[1]||id(a[0])-id(b[0])); pm.expect(body).to.be.an('array').with.lengthOf(esperado.length); pm.expect(body.map(c=>[c.categoria,c.total])).to.deep.equal(esperado); pm.expect(body.map(c=>c.porcentaje)).to.deep.equal([100]); body.forEach(c=>{pm.expect(c).to.have.all.keys('categoria_id','categoria','total','porcentaje');pm.expect(c.categoria_id).to.equal(id(c.categoria));}); });",
+                  "pm.test(\"Conciliación con resumen consultado\", () => { const r=JSON.parse(pm.collectionVariables.get('ultimoResumen')); pm.expect(Math.round(body.reduce((s,c)=>s+c.total,0)*100)).to.equal(Math.round(r.gasto_variable*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-cp6G1",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/gastos/{{cp6G1}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-cp6G2",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/gastos/{{cp6G2}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-cp6M",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/membresias/{{cp6M}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 RF8 y conciliación · anual, meses y usuarios",
+      "item": [
+        {
+          "name": "DATOS-GASTO-0",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/gastos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 350,\n  \"categoria_id\": {{catComida}},\n  \"fecha\": \"2026-10-01\",\n  \"metodo_pago\": \"efectivo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Gasto persistido\", () => { pm.expect(body.gasto).to.include({monto:350,fecha:'2026-10-01',categoria_id:Number(pm.collectionVariables.get('catComida'))}); });",
+                  "if (body?.gasto?.id != null) pm.collectionVariables.set('datosG0', body?.gasto?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DATOS-GASTO-1",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/gastos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 250,\n  \"categoria_id\": {{catComida}},\n  \"fecha\": \"2026-10-31\",\n  \"metodo_pago\": \"efectivo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Gasto persistido\", () => { pm.expect(body.gasto).to.include({monto:250,fecha:'2026-10-31',categoria_id:Number(pm.collectionVariables.get('catComida'))}); });",
+                  "if (body?.gasto?.id != null) pm.collectionVariables.set('datosG1', body?.gasto?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DATOS-GASTO-2",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/gastos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 300,\n  \"categoria_id\": {{catTransporte}},\n  \"fecha\": \"2026-10-15\",\n  \"metodo_pago\": \"efectivo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Gasto persistido\", () => { pm.expect(body.gasto).to.include({monto:300,fecha:'2026-10-15',categoria_id:Number(pm.collectionVariables.get('catTransporte'))}); });",
+                  "if (body?.gasto?.id != null) pm.collectionVariables.set('datosG2', body?.gasto?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DATOS-GASTO-3",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/gastos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 100,\n  \"categoria_id\": {{catOcio}},\n  \"fecha\": \"2026-10-20\",\n  \"metodo_pago\": \"efectivo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Gasto persistido\", () => { pm.expect(body.gasto).to.include({monto:100,fecha:'2026-10-20',categoria_id:Number(pm.collectionVariables.get('catOcio'))}); });",
+                  "if (body?.gasto?.id != null) pm.collectionVariables.set('datosG3', body?.gasto?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DATOS-GASTO-4",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/gastos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 777,\n  \"categoria_id\": {{catComida}},\n  \"fecha\": \"2026-09-30\",\n  \"metodo_pago\": \"efectivo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Gasto persistido\", () => { pm.expect(body.gasto).to.include({monto:777,fecha:'2026-09-30',categoria_id:Number(pm.collectionVariables.get('catComida'))}); });",
+                  "if (body?.gasto?.id != null) pm.collectionVariables.set('datosG4', body?.gasto?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DATOS-GASTO-5",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/gastos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 888,\n  \"categoria_id\": {{catComida}},\n  \"fecha\": \"2026-11-01\",\n  \"metodo_pago\": \"efectivo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Gasto persistido\", () => { pm.expect(body.gasto).to.include({monto:888,fecha:'2026-11-01',categoria_id:Number(pm.collectionVariables.get('catComida'))}); });",
+                  "if (body?.gasto?.id != null) pm.collectionVariables.set('datosG5', body?.gasto?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DATOS-MENSUAL-200",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Gimnasio\",\n  \"costo\": 200,\n  \"frecuencia\": \"mensual\",\n  \"fecha_cobro\": \"2026-10-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Membresía persistida\", () => { pm.expect(body.membresia).to.have.all.keys('id','servicio_id','nombre','costo','frecuencia','fecha_cobro'); pm.expect(body.membresia.id).to.be.a('number').and.above(0); pm.expect(body.membresia).to.include({\"nombre\":\"Gimnasio\",\"costo\":200,\"frecuencia\":\"mensual\",\"fecha_cobro\":\"2026-10-20\"}); pm.expect(body.membresia.servicio_id).to.equal(null); });",
+                  "if (body?.membresia?.id != null) pm.collectionVariables.set('mensual', body?.membresia?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DATOS-ANUAL-1200",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Anual\",\n  \"costo\": 1200,\n  \"frecuencia\": \"anual\",\n  \"fecha_cobro\": \"2027-01-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Membresía persistida\", () => { pm.expect(body.membresia).to.have.all.keys('id','servicio_id','nombre','costo','frecuencia','fecha_cobro'); pm.expect(body.membresia.id).to.be.a('number').and.above(0); pm.expect(body.membresia).to.include({\"nombre\":\"Anual\",\"costo\":1200,\"frecuencia\":\"anual\",\"fecha_cobro\":\"2027-01-01\"}); pm.expect(body.membresia.servicio_id).to.equal(null); });",
+                  "if (body?.membresia?.id != null) pm.collectionVariables.set('anual', body?.membresia?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CONSISTENCIA-ANUAL-FIJO",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Lista y suma mensual coinciden con suma manual\", () => { pm.expect(body).to.be.an('array').with.lengthOf(2); body.forEach(m=>{pm.expect(m.costo).to.be.a('number');pm.expect(m.dias_para_cobro).to.be.a('number');}); const fijo=Math.round(body.reduce((s,m)=>s+(m.frecuencia==='anual'?m.costo/12:m.costo),0)*100); pm.expect(fijo).to.equal(Math.round(300*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CONSISTENCIA-ANUAL-RESUMEN",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Resumen coincide con suma manual\", () => { pm.expect(body).to.deep.equal({mes:'2026-10',gasto_variable:1000,gasto_fijo:300,total:1300}); pm.expect(Math.round((body.gasto_variable+body.gasto_fijo)*100)).to.equal(Math.round(body.total*100)); });",
+                  "if (JSON.stringify(body) != null) pm.collectionVariables.set('ultimoResumen', JSON.stringify(body));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CP-RF8-01 / CONSISTENCIA-ANUAL-CATEGORIAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Categorías, importes, porcentajes y orden exactos\", () => { const id=n=>Number(pm.collectionVariables.get(({Comida:'catComida',Transporte:'catTransporte',Entretenimiento:'catOcio'})[n])); const esperado=[[\"Comida\",600],[\"Transporte\",300],[\"Entretenimiento\",100]].sort((a,b)=>b[1]-a[1]||id(a[0])-id(b[0])); pm.expect(body).to.be.an('array').with.lengthOf(esperado.length); pm.expect(body.map(c=>[c.categoria,c.total])).to.deep.equal(esperado); pm.expect(body.map(c=>c.porcentaje)).to.deep.equal([60,30,10]); body.forEach(c=>{pm.expect(c).to.have.all.keys('categoria_id','categoria','total','porcentaje');pm.expect(c.categoria_id).to.equal(id(c.categoria));}); });",
+                  "pm.test(\"Conciliación con resumen consultado\", () => { const r=JSON.parse(pm.collectionVariables.get('ultimoResumen')); pm.expect(Math.round(body.reduce((s,c)=>s+c.total,0)*100)).to.equal(Math.round(r.gasto_variable*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DATOS-B-GASTO",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/gastos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 999,\n  \"categoria_id\": {{catComida}},\n  \"fecha\": \"2026-10-15\",\n  \"metodo_pago\": \"efectivo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Gasto persistido\", () => { pm.expect(body.gasto).to.include({monto:999,fecha:'2026-10-15',categoria_id:Number(pm.collectionVariables.get('catComida'))}); });",
+                  "if (body?.gasto?.id != null) pm.collectionVariables.set('bGasto', body?.gasto?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DATOS-B-MEMBRESIA",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Privada B\",\n  \"costo\": 750,\n  \"frecuencia\": \"mensual\",\n  \"fecha_cobro\": \"2026-10-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Membresía persistida\", () => { pm.expect(body.membresia).to.have.all.keys('id','servicio_id','nombre','costo','frecuencia','fecha_cobro'); pm.expect(body.membresia.id).to.be.a('number').and.above(0); pm.expect(body.membresia).to.include({\"nombre\":\"Privada B\",\"costo\":750,\"frecuencia\":\"mensual\",\"fecha_cobro\":\"2026-10-20\"}); pm.expect(body.membresia.servicio_id).to.equal(null); });",
+                  "if (body?.membresia?.id != null) pm.collectionVariables.set('bMembresia', body?.membresia?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AISLAMIENTO-A-MEMBRESIAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/membresias?usuario_id={{usuarioB}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Lista y suma mensual coinciden con suma manual\", () => { pm.expect(body).to.be.an('array').with.lengthOf(2); body.forEach(m=>{pm.expect(m.costo).to.be.a('number');pm.expect(m.dias_para_cobro).to.be.a('number');}); const fijo=Math.round(body.reduce((s,m)=>s+(m.frecuencia==='anual'?m.costo/12:m.costo),0)*100); pm.expect(fijo).to.equal(Math.round(300*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AISLAMIENTO-A-RESUMEN",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-10&usuario_id={{usuarioB}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Resumen coincide con suma manual\", () => { pm.expect(body).to.deep.equal({mes:'2026-10',gasto_variable:1000,gasto_fijo:300,total:1300}); pm.expect(Math.round((body.gasto_variable+body.gasto_fijo)*100)).to.equal(Math.round(body.total*100)); });",
+                  "if (JSON.stringify(body) != null) pm.collectionVariables.set('ultimoResumen', JSON.stringify(body));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AISLAMIENTO-A-CATEGORIAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=2026-10&usuario_id={{usuarioB}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Categorías, importes, porcentajes y orden exactos\", () => { const id=n=>Number(pm.collectionVariables.get(({Comida:'catComida',Transporte:'catTransporte',Entretenimiento:'catOcio'})[n])); const esperado=[[\"Comida\",600],[\"Transporte\",300],[\"Entretenimiento\",100]].sort((a,b)=>b[1]-a[1]||id(a[0])-id(b[0])); pm.expect(body).to.be.an('array').with.lengthOf(esperado.length); pm.expect(body.map(c=>[c.categoria,c.total])).to.deep.equal(esperado); pm.expect(body.map(c=>c.porcentaje)).to.deep.equal([60,30,10]); body.forEach(c=>{pm.expect(c).to.have.all.keys('categoria_id','categoria','total','porcentaje');pm.expect(c.categoria_id).to.equal(id(c.categoria));}); });",
+                  "pm.test(\"Conciliación con resumen consultado\", () => { const r=JSON.parse(pm.collectionVariables.get('ultimoResumen')); pm.expect(Math.round(body.reduce((s,c)=>s+c.total,0)*100)).to.equal(Math.round(r.gasto_variable*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AISLAMIENTO-A-CATALOGO-COMPARTIDO",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/catalogo",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Catálogo global sin membresías privadas\", () => { pm.expect(body).to.deep.equal(JSON.parse(pm.collectionVariables.get('catalogoOriginal')));pm.expect(body.some(s=>s.nombre==='Privada B')).to.equal(false); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AISLAMIENTO-B-MEMBRESIAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/membresias?usuario_id={{usuarioA}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Lista y suma mensual coinciden con suma manual\", () => { pm.expect(body).to.be.an('array').with.lengthOf(1); body.forEach(m=>{pm.expect(m.costo).to.be.a('number');pm.expect(m.dias_para_cobro).to.be.a('number');}); const fijo=Math.round(body.reduce((s,m)=>s+(m.frecuencia==='anual'?m.costo/12:m.costo),0)*100); pm.expect(fijo).to.equal(Math.round(750*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AISLAMIENTO-B-RESUMEN",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-10&usuario_id={{usuarioA}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Resumen coincide con suma manual\", () => { pm.expect(body).to.deep.equal({mes:'2026-10',gasto_variable:999,gasto_fijo:750,total:1749}); pm.expect(Math.round((body.gasto_variable+body.gasto_fijo)*100)).to.equal(Math.round(body.total*100)); });",
+                  "if (JSON.stringify(body) != null) pm.collectionVariables.set('ultimoResumen', JSON.stringify(body));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AISLAMIENTO-B-CATEGORIAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=2026-10&usuario_id={{usuarioA}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Categorías, importes, porcentajes y orden exactos\", () => { const id=n=>Number(pm.collectionVariables.get(({Comida:'catComida',Transporte:'catTransporte',Entretenimiento:'catOcio'})[n])); const esperado=[[\"Comida\",999]].sort((a,b)=>b[1]-a[1]||id(a[0])-id(b[0])); pm.expect(body).to.be.an('array').with.lengthOf(esperado.length); pm.expect(body.map(c=>[c.categoria,c.total])).to.deep.equal(esperado); pm.expect(body.map(c=>c.porcentaje)).to.deep.equal([100]); body.forEach(c=>{pm.expect(c).to.have.all.keys('categoria_id','categoria','total','porcentaje');pm.expect(c.categoria_id).to.equal(id(c.categoria));}); });",
+                  "pm.test(\"Conciliación con resumen consultado\", () => { const r=JSON.parse(pm.collectionVariables.get('ultimoResumen')); pm.expect(Math.round(body.reduce((s,c)=>s+c.total,0)*100)).to.equal(Math.round(r.gasto_variable*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AISLAMIENTO-B-CATALOGO-COMPARTIDO",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/catalogo",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Catálogo global sin membresías privadas\", () => { pm.expect(body).to.deep.equal(JSON.parse(pm.collectionVariables.get('catalogoOriginal')));pm.expect(body.some(s=>s.nombre==='Privada B')).to.equal(false); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AISLAMIENTO-PUT-AJENA",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/membresias/{{anual}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Netflix\",\n  \"costo\": 1,\n  \"frecuencia\": \"mensual\",\n  \"fecha_cobro\": \"2026-10-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('MEMBRESIA_NO_ENCONTRADA'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AISLAMIENTO-DELETE-AJENA",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/membresias/{{anual}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('MEMBRESIA_NO_ENCONTRADA'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AISLAMIENTO-A-CONSERVA-FIJO",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Lista y suma mensual coinciden con suma manual\", () => { pm.expect(body).to.be.an('array').with.lengthOf(2); body.forEach(m=>{pm.expect(m.costo).to.be.a('number');pm.expect(m.dias_para_cobro).to.be.a('number');}); const fijo=Math.round(body.reduce((s,m)=>s+(m.frecuencia==='anual'?m.costo/12:m.costo),0)*100); pm.expect(fijo).to.equal(Math.round(300*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AISLAMIENTO-A-CONSERVA-TOTAL",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Resumen coincide con suma manual\", () => { pm.expect(body).to.deep.equal({mes:'2026-10',gasto_variable:1000,gasto_fijo:300,total:1300}); pm.expect(Math.round((body.gasto_variable+body.gasto_fijo)*100)).to.equal(Math.round(body.total*100)); });",
+                  "if (JSON.stringify(body) != null) pm.collectionVariables.set('ultimoResumen', JSON.stringify(body));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "MESES-2026-09-RESUMEN",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-09",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Mes independiente, fijo mensualizado\", () => { pm.expect(body).to.deep.equal({mes:'2026-09',gasto_variable:777,gasto_fijo:300,total:1077}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "MESES-2026-09-CATEGORIAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=2026-09",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Solo gastos del mes\", () => { pm.expect(body).to.have.lengthOf(1);pm.expect(body[0]).to.include({categoria:'Comida',total:777,porcentaje:100}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "MESES-2026-11-RESUMEN",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-11",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Mes independiente, fijo mensualizado\", () => { pm.expect(body).to.deep.equal({mes:'2026-11',gasto_variable:888,gasto_fijo:300,total:1188}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "MESES-2026-11-CATEGORIAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=2026-11",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Solo gastos del mes\", () => { pm.expect(body).to.have.lengthOf(1);pm.expect(body[0]).to.include({categoria:'Comida',total:888,porcentaje:100}); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 Seguridad y validación de meses",
+      "item": [
+        {
+          "name": "AUTH-GET-/catalogo-AUSENTE",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/catalogo",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('NO_AUTORIZADO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-GET-/catalogo-INVALIDO",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/catalogo",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenInvalido}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('NO_AUTORIZADO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-GET-/membresias-AUSENTE",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('NO_AUTORIZADO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-GET-/membresias-INVALIDO",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenInvalido}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('NO_AUTORIZADO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-POST-/membresias-AUSENTE",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Netflix\",\n  \"costo\": 199,\n  \"frecuencia\": \"mensual\",\n  \"fecha_cobro\": \"2026-10-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('NO_AUTORIZADO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-POST-/membresias-INVALIDO",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenInvalido}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Netflix\",\n  \"costo\": 199,\n  \"frecuencia\": \"mensual\",\n  \"fecha_cobro\": \"2026-10-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('NO_AUTORIZADO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-PUT-/membresias/{{anual}}-AUSENTE",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/membresias/{{anual}}",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Netflix\",\n  \"costo\": 199,\n  \"frecuencia\": \"mensual\",\n  \"fecha_cobro\": \"2026-10-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('NO_AUTORIZADO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-PUT-/membresias/{{anual}}-INVALIDO",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/membresias/{{anual}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenInvalido}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Netflix\",\n  \"costo\": 199,\n  \"frecuencia\": \"mensual\",\n  \"fecha_cobro\": \"2026-10-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('NO_AUTORIZADO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-DELETE-/membresias/{{anual}}-AUSENTE",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/membresias/{{anual}}",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('NO_AUTORIZADO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-DELETE-/membresias/{{anual}}-INVALIDO",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/membresias/{{anual}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenInvalido}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('NO_AUTORIZADO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-GET-/reportes/resumen?mes=2026-10-AUSENTE",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-10",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('NO_AUTORIZADO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-GET-/reportes/resumen?mes=2026-10-INVALIDO",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenInvalido}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('NO_AUTORIZADO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-GET-/reportes/por-categoria?mes=2026-10-AUSENTE",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=2026-10",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('NO_AUTORIZADO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-GET-/reportes/por-categoria?mes=2026-10-INVALIDO",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenInvalido}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('NO_AUTORIZADO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-NO-MODIFICA-MEMBRESIAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Lista y suma mensual coinciden con suma manual\", () => { pm.expect(body).to.be.an('array').with.lengthOf(2); body.forEach(m=>{pm.expect(m.costo).to.be.a('number');pm.expect(m.dias_para_cobro).to.be.a('number');}); const fijo=Math.round(body.reduce((s,m)=>s+(m.frecuencia==='anual'?m.costo/12:m.costo),0)*100); pm.expect(fijo).to.equal(Math.round(300*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-NO-MODIFICA-RESUMEN",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Resumen coincide con suma manual\", () => { pm.expect(body).to.deep.equal({mes:'2026-10',gasto_variable:1000,gasto_fijo:300,total:1300}); pm.expect(Math.round((body.gasto_variable+body.gasto_fijo)*100)).to.equal(Math.round(body.total*100)); });",
+                  "if (JSON.stringify(body) != null) pm.collectionVariables.set('ultimoResumen', JSON.stringify(body));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "MES-INVALIDO-/reportes/resumen-AUSENTE",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('MES_INVALIDO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "MES-INVALIDO-/reportes/resumen-VACIO",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('MES_INVALIDO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "MES-INVALIDO-/reportes/resumen-2026-13",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-13",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('MES_INVALIDO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "MES-INVALIDO-/reportes/resumen-2026-1",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-1",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('MES_INVALIDO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "MES-INVALIDO-/reportes/resumen-2026-10-01",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-10-01",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('MES_INVALIDO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "MES-INVALIDO-/reportes/por-categoria-AUSENTE",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('MES_INVALIDO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "MES-INVALIDO-/reportes/por-categoria-VACIO",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('MES_INVALIDO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "MES-INVALIDO-/reportes/por-categoria-2026-13",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=2026-13",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('MES_INVALIDO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "MES-INVALIDO-/reportes/por-categoria-2026-1",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=2026-1",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('MES_INVALIDO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "MES-INVALIDO-/reportes/por-categoria-2026-10-01",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=2026-10-01",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(body).to.have.all.keys('error'); pm.expect(body.error).to.have.all.keys('code','message'); pm.expect(body.error.code).to.equal('MES_INVALIDO'); pm.expect(body.error.message).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 Cambios y limpieza del conjunto conocido",
+      "item": [
+        {
+          "name": "CAMBIOS-ANUAL-2400",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/membresias/{{anual}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Anual\",\n  \"costo\": 2400,\n  \"frecuencia\": \"anual\",\n  \"fecha_cobro\": \"2026-10-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Anual actualizada\", () => { pm.expect(body.membresia.costo).to.equal(2400); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CAMBIOS-GASTO-400",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/gastos/{{datosG0}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 400,\n  \"categoria_id\": {{catComida}},\n  \"fecha\": \"2026-10-01\",\n  \"metodo_pago\": \"efectivo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Gasto actualizado\", () => { pm.expect(body.gasto.monto).to.equal(400); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CAMBIOS-FIJO",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Lista y suma mensual coinciden con suma manual\", () => { pm.expect(body).to.be.an('array').with.lengthOf(2); body.forEach(m=>{pm.expect(m.costo).to.be.a('number');pm.expect(m.dias_para_cobro).to.be.a('number');}); const fijo=Math.round(body.reduce((s,m)=>s+(m.frecuencia==='anual'?m.costo/12:m.costo),0)*100); pm.expect(fijo).to.equal(Math.round(400*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CAMBIOS-RESUMEN",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Resumen coincide con suma manual\", () => { pm.expect(body).to.deep.equal({mes:'2026-10',gasto_variable:1050,gasto_fijo:400,total:1450}); pm.expect(Math.round((body.gasto_variable+body.gasto_fijo)*100)).to.equal(Math.round(body.total*100)); });",
+                  "if (JSON.stringify(body) != null) pm.collectionVariables.set('ultimoResumen', JSON.stringify(body));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CAMBIOS-CATEGORIAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Categorías, importes, porcentajes y orden exactos\", () => { const id=n=>Number(pm.collectionVariables.get(({Comida:'catComida',Transporte:'catTransporte',Entretenimiento:'catOcio'})[n])); const esperado=[[\"Comida\",650],[\"Transporte\",300],[\"Entretenimiento\",100]].sort((a,b)=>b[1]-a[1]||id(a[0])-id(b[0])); pm.expect(body).to.be.an('array').with.lengthOf(esperado.length); pm.expect(body.map(c=>[c.categoria,c.total])).to.deep.equal(esperado); pm.expect(body.map(c=>c.porcentaje)).to.deep.equal([61,29,10]); body.forEach(c=>{pm.expect(c).to.have.all.keys('categoria_id','categoria','total','porcentaje');pm.expect(c.categoria_id).to.equal(id(c.categoria));}); });",
+                  "pm.test(\"Conciliación con resumen consultado\", () => { const r=JSON.parse(pm.collectionVariables.get('ultimoResumen')); pm.expect(Math.round(body.reduce((s,c)=>s+c.total,0)*100)).to.equal(Math.round(r.gasto_variable*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-datosG0",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/gastos/{{datosG0}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-datosG1",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/gastos/{{datosG1}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-datosG2",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/gastos/{{datosG2}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-datosG3",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/gastos/{{datosG3}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-datosG4",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/gastos/{{datosG4}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-datosG5",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/gastos/{{datosG5}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-mensual",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/membresias/{{mensual}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-anual",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/membresias/{{anual}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-bGasto",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/gastos/{{bGasto}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-bMembresia",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/membresias/{{bMembresia}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CAMBIOS-ELIMINADOS-RESUMEN",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Resumen coincide con suma manual\", () => { pm.expect(body).to.deep.equal({mes:'2026-10',gasto_variable:0,gasto_fijo:0,total:0}); pm.expect(Math.round((body.gasto_variable+body.gasto_fijo)*100)).to.equal(Math.round(body.total*100)); });",
+                  "if (JSON.stringify(body) != null) pm.collectionVariables.set('ultimoResumen', JSON.stringify(body));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CAMBIOS-ELIMINADOS-CATEGORIAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Categorías, importes, porcentajes y orden exactos\", () => { const id=n=>Number(pm.collectionVariables.get(({Comida:'catComida',Transporte:'catTransporte',Entretenimiento:'catOcio'})[n])); const esperado=[].sort((a,b)=>b[1]-a[1]||id(a[0])-id(b[0])); pm.expect(body).to.be.an('array').with.lengthOf(esperado.length); pm.expect(body.map(c=>[c.categoria,c.total])).to.deep.equal(esperado); pm.expect(body.map(c=>c.porcentaje)).to.deep.equal([]); body.forEach(c=>{pm.expect(c).to.have.all.keys('categoria_id','categoria','total','porcentaje');pm.expect(c.categoria_id).to.equal(id(c.categoria));}); });",
+                  "pm.test(\"Conciliación con resumen consultado\", () => { const r=JSON.parse(pm.collectionVariables.get('ultimoResumen')); pm.expect(Math.round(body.reduce((s,c)=>s+c.total,0)*100)).to.equal(Math.round(r.gasto_variable*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CAMBIOS-ELIMINADOS-MEMBRESIAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Lista y suma mensual coinciden con suma manual\", () => { pm.expect(body).to.be.an('array').with.lengthOf(0); body.forEach(m=>{pm.expect(m.costo).to.be.a('number');pm.expect(m.dias_para_cobro).to.be.a('number');}); const fijo=Math.round(body.reduce((s,m)=>s+(m.frecuencia==='anual'?m.costo/12:m.costo),0)*100); pm.expect(fijo).to.equal(Math.round(0*100)); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 Decimales, porcentajes y limpieza final",
+      "item": [
+        {
+          "name": "DECIMALES-010",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/gastos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 0.1,\n  \"categoria_id\": {{catComida}},\n  \"fecha\": \"2026-10-15\",\n  \"metodo_pago\": \"efectivo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Gasto persistido\", () => { pm.expect(body.gasto).to.include({monto:0.1,fecha:'2026-10-15',categoria_id:Number(pm.collectionVariables.get('catComida'))}); });",
+                  "if (body?.gasto?.id != null) pm.collectionVariables.set('decimalG1', body?.gasto?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DECIMALES-020",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/gastos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 0.2,\n  \"categoria_id\": {{catTransporte}},\n  \"fecha\": \"2026-10-15\",\n  \"metodo_pago\": \"efectivo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Gasto persistido\", () => { pm.expect(body.gasto).to.include({monto:0.2,fecha:'2026-10-15',categoria_id:Number(pm.collectionVariables.get('catTransporte'))}); });",
+                  "if (body?.gasto?.id != null) pm.collectionVariables.set('decimalG2', body?.gasto?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DECIMALES-ANUAL1",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Netflix\",\n  \"costo\": 100,\n  \"frecuencia\": \"anual\",\n  \"fecha_cobro\": \"2026-10-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Membresía persistida\", () => { pm.expect(body.membresia).to.have.all.keys('id','servicio_id','nombre','costo','frecuencia','fecha_cobro'); pm.expect(body.membresia.id).to.be.a('number').and.above(0); pm.expect(body.membresia).to.include({\"nombre\":\"Netflix\",\"costo\":100,\"frecuencia\":\"anual\",\"fecha_cobro\":\"2026-10-20\"}); pm.expect(body.membresia.servicio_id).to.equal(null); });",
+                  "if (body?.membresia?.id != null) pm.collectionVariables.set('decimalM1', body?.membresia?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DECIMALES-ANUAL2",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Netflix\",\n  \"costo\": 100,\n  \"frecuencia\": \"anual\",\n  \"fecha_cobro\": \"2026-10-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Membresía persistida\", () => { pm.expect(body.membresia).to.have.all.keys('id','servicio_id','nombre','costo','frecuencia','fecha_cobro'); pm.expect(body.membresia.id).to.be.a('number').and.above(0); pm.expect(body.membresia).to.include({\"nombre\":\"Netflix\",\"costo\":100,\"frecuencia\":\"anual\",\"fecha_cobro\":\"2026-10-20\"}); pm.expect(body.membresia.servicio_id).to.equal(null); });",
+                  "if (body?.membresia?.id != null) pm.collectionVariables.set('decimalM2', body?.membresia?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CONSISTENCIA-DECIMALES-FIJO",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Lista y suma mensual coinciden con suma manual\", () => { pm.expect(body).to.be.an('array').with.lengthOf(2); body.forEach(m=>{pm.expect(m.costo).to.be.a('number');pm.expect(m.dias_para_cobro).to.be.a('number');}); const fijo=Math.round(body.reduce((s,m)=>s+(m.frecuencia==='anual'?m.costo/12:m.costo),0)*100); pm.expect(fijo).to.equal(Math.round(16.67*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CONSISTENCIA-DECIMALES-RESUMEN",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Resumen coincide con suma manual\", () => { pm.expect(body).to.deep.equal({mes:'2026-10',gasto_variable:0.3,gasto_fijo:16.67,total:16.97}); pm.expect(Math.round((body.gasto_variable+body.gasto_fijo)*100)).to.equal(Math.round(body.total*100)); });",
+                  "if (JSON.stringify(body) != null) pm.collectionVariables.set('ultimoResumen', JSON.stringify(body));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CONSISTENCIA-DECIMALES-CATEGORIAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Categorías, importes, porcentajes y orden exactos\", () => { const id=n=>Number(pm.collectionVariables.get(({Comida:'catComida',Transporte:'catTransporte',Entretenimiento:'catOcio'})[n])); const esperado=[[\"Transporte\",0.2],[\"Comida\",0.1]].sort((a,b)=>b[1]-a[1]||id(a[0])-id(b[0])); pm.expect(body).to.be.an('array').with.lengthOf(esperado.length); pm.expect(body.map(c=>[c.categoria,c.total])).to.deep.equal(esperado); pm.expect(body.map(c=>c.porcentaje)).to.deep.equal([67,33]); body.forEach(c=>{pm.expect(c).to.have.all.keys('categoria_id','categoria','total','porcentaje');pm.expect(c.categoria_id).to.equal(id(c.categoria));}); });",
+                  "pm.test(\"Conciliación con resumen consultado\", () => { const r=JSON.parse(pm.collectionVariables.get('ultimoResumen')); pm.expect(Math.round(body.reduce((s,c)=>s+c.total,0)*100)).to.equal(Math.round(r.gasto_variable*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-decimalG1",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/gastos/{{decimalG1}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-decimalG2",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/gastos/{{decimalG2}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-decimalM1",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/membresias/{{decimalM1}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-decimalM2",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/membresias/{{decimalM2}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TERCIOS-0",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/gastos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 1,\n  \"categoria_id\": {{catComida}},\n  \"fecha\": \"2026-10-15\",\n  \"metodo_pago\": \"efectivo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Gasto persistido\", () => { pm.expect(body.gasto).to.include({monto:1,fecha:'2026-10-15',categoria_id:Number(pm.collectionVariables.get('catComida'))}); });",
+                  "if (body?.gasto?.id != null) pm.collectionVariables.set('tercio0', body?.gasto?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TERCIOS-1",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/gastos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 1,\n  \"categoria_id\": {{catTransporte}},\n  \"fecha\": \"2026-10-15\",\n  \"metodo_pago\": \"efectivo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Gasto persistido\", () => { pm.expect(body.gasto).to.include({monto:1,fecha:'2026-10-15',categoria_id:Number(pm.collectionVariables.get('catTransporte'))}); });",
+                  "if (body?.gasto?.id != null) pm.collectionVariables.set('tercio1', body?.gasto?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TERCIOS-2",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/gastos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 1,\n  \"categoria_id\": {{catOcio}},\n  \"fecha\": \"2026-10-15\",\n  \"metodo_pago\": \"efectivo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Gasto persistido\", () => { pm.expect(body.gasto).to.include({monto:1,fecha:'2026-10-15',categoria_id:Number(pm.collectionVariables.get('catOcio'))}); });",
+                  "if (body?.gasto?.id != null) pm.collectionVariables.set('tercio2', body?.gasto?.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RF8-REDONDEO-100",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Categorías, importes, porcentajes y orden exactos\", () => { const id=n=>Number(pm.collectionVariables.get(({Comida:'catComida',Transporte:'catTransporte',Entretenimiento:'catOcio'})[n])); const esperado=[[\"Comida\",1],[\"Transporte\",1],[\"Entretenimiento\",1]].sort((a,b)=>b[1]-a[1]||id(a[0])-id(b[0])); pm.expect(body).to.be.an('array').with.lengthOf(esperado.length); pm.expect(body.map(c=>[c.categoria,c.total])).to.deep.equal(esperado); pm.expect(body.map(c=>c.porcentaje)).to.deep.equal([34,33,33]); body.forEach(c=>{pm.expect(c).to.have.all.keys('categoria_id','categoria','total','porcentaje');pm.expect(c.categoria_id).to.equal(id(c.categoria));}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-tercio0",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/gastos/{{tercio0}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-tercio1",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/gastos/{{tercio1}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "LIMPIEZA-tercio2",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/gastos/{{tercio2}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Eliminado\", () => { pm.expect(body).to.deep.equal({eliminado:true}); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "FINAL-A-RESUMEN",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Resumen coincide con suma manual\", () => { pm.expect(body).to.deep.equal({mes:'2026-10',gasto_variable:0,gasto_fijo:0,total:0}); pm.expect(Math.round((body.gasto_variable+body.gasto_fijo)*100)).to.equal(Math.round(body.total*100)); });",
+                  "if (JSON.stringify(body) != null) pm.collectionVariables.set('ultimoResumen', JSON.stringify(body));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "FINAL-A-CATEGORIAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Categorías, importes, porcentajes y orden exactos\", () => { const id=n=>Number(pm.collectionVariables.get(({Comida:'catComida',Transporte:'catTransporte',Entretenimiento:'catOcio'})[n])); const esperado=[].sort((a,b)=>b[1]-a[1]||id(a[0])-id(b[0])); pm.expect(body).to.be.an('array').with.lengthOf(esperado.length); pm.expect(body.map(c=>[c.categoria,c.total])).to.deep.equal(esperado); pm.expect(body.map(c=>c.porcentaje)).to.deep.equal([]); body.forEach(c=>{pm.expect(c).to.have.all.keys('categoria_id','categoria','total','porcentaje');pm.expect(c.categoria_id).to.equal(id(c.categoria));}); });",
+                  "pm.test(\"Conciliación con resumen consultado\", () => { const r=JSON.parse(pm.collectionVariables.get('ultimoResumen')); pm.expect(Math.round(body.reduce((s,c)=>s+c.total,0)*100)).to.equal(Math.round(r.gasto_variable*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "FINAL-A-MEMBRESIAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Lista y suma mensual coinciden con suma manual\", () => { pm.expect(body).to.be.an('array').with.lengthOf(0); body.forEach(m=>{pm.expect(m.costo).to.be.a('number');pm.expect(m.dias_para_cobro).to.be.a('number');}); const fijo=Math.round(body.reduce((s,m)=>s+(m.frecuencia==='anual'?m.costo/12:m.costo),0)*100); pm.expect(fijo).to.equal(Math.round(0*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "FINAL-A-GASTOS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/gastos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Sin gastos de ningún mes\", () => { pm.expect(body).to.deep.equal([]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "FINAL-B-RESUMEN",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/resumen?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Resumen coincide con suma manual\", () => { pm.expect(body).to.deep.equal({mes:'2026-10',gasto_variable:0,gasto_fijo:0,total:0}); pm.expect(Math.round((body.gasto_variable+body.gasto_fijo)*100)).to.equal(Math.round(body.total*100)); });",
+                  "if (JSON.stringify(body) != null) pm.collectionVariables.set('ultimoResumen', JSON.stringify(body));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "FINAL-B-CATEGORIAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/reportes/por-categoria?mes=2026-10",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Categorías, importes, porcentajes y orden exactos\", () => { const id=n=>Number(pm.collectionVariables.get(({Comida:'catComida',Transporte:'catTransporte',Entretenimiento:'catOcio'})[n])); const esperado=[].sort((a,b)=>b[1]-a[1]||id(a[0])-id(b[0])); pm.expect(body).to.be.an('array').with.lengthOf(esperado.length); pm.expect(body.map(c=>[c.categoria,c.total])).to.deep.equal(esperado); pm.expect(body.map(c=>c.porcentaje)).to.deep.equal([]); body.forEach(c=>{pm.expect(c).to.have.all.keys('categoria_id','categoria','total','porcentaje');pm.expect(c.categoria_id).to.equal(id(c.categoria));}); });",
+                  "pm.test(\"Conciliación con resumen consultado\", () => { const r=JSON.parse(pm.collectionVariables.get('ultimoResumen')); pm.expect(Math.round(body.reduce((s,c)=>s+c.total,0)*100)).to.equal(Math.round(r.gasto_variable*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "FINAL-B-MEMBRESIAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/membresias",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Lista y suma mensual coinciden con suma manual\", () => { pm.expect(body).to.be.an('array').with.lengthOf(0); body.forEach(m=>{pm.expect(m.costo).to.be.a('number');pm.expect(m.dias_para_cobro).to.be.a('number');}); const fijo=Math.round(body.reduce((s,m)=>s+(m.frecuencia==='anual'?m.costo/12:m.costo),0)*100); pm.expect(fijo).to.equal(Math.round(0*100)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "FINAL-B-GASTOS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/gastos",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Sin gastos de ningún mes\", () => { pm.expect(body).to.deep.equal([]); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

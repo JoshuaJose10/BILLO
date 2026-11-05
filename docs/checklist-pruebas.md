@@ -66,6 +66,12 @@ Evidencia de ejecución: [reporte-resumen-review.md](qa/reporte-resumen-review.m
 
 ## Qué comprueba cada herramienta
 
+Ejecución API del **2026-11-05**, RF5/RF6/RF8: ver
+[QA membresías y reportes](qa/membresias-reportes-reporte.md). Los ocho CP pasan
+en API, con conciliación, aislamiento y autenticación. La suite y la colección
+dedicadas son reproducibles; se conserva arriba el resultado histórico. Las
+pantallas Android y la repetición de dos casos al azar por Joshua siguen pendientes.
+
 La [colección Billo API](postman/billo-api.postman_collection.json) comprueba la parte de API de CP-RF1-01 a CP-RF1-04 y validaciones adicionales de autenticación. Ver [instrucciones y trazabilidad](postman/README.md). Un resultado de Postman no aprueba por sí solo las pantallas ni la navegación de esos casos: deben ejecutarse también en Android.
 
 RF2–RF8 se ejecutan con los pasos del plan cuando la funcionalidad y sus datos estén disponibles. Los presupuestos y las alertas requieren los saldos iniciales indicados; usar usuarios de QA para evitar que otros gastos alteren los totales. RF7 requiere permisos de notificación y la ejecución controlada del proceso de avisos; RF8 requiere comprobar también la gráfica visible. Los umbrales de RF4 y RF7 siguen sujetos a los supuestos del plan. No se asigna un estado de aprobado a funcionalidades que aún no estén implementadas.

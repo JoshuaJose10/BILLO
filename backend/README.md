@@ -131,6 +131,26 @@ devuelve 0 si pasan todos, 1 si hay fallos y 2 si no se pudo completar la ejecuc
 Consulta el [reporte QA presupuestos](../docs/qa/presupuestos-reporte.md),
 incluidas las instrucciones y la confirmación pendiente de Joshua.
 
+### QA de membresías y reportes (RF5/RF6/RF8)
+
+`test/suites/membresias-reportes.cjs` agrega CP-RF5-01 a 04, CP-RF6-01/02 y
+CP-RF8-01/02, conciliación con membresía anual, catálogo, decimales, aislamiento
+A/B y token ausente/inválido en cada ruta del alcance. Sus 43 casos se incluyen
+en `npm test` y CI. También se pueden ejecutar por separado:
+
+```powershell
+npm run test:membresias-reportes
+npm run qa:membresias-reportes
+```
+
+El segundo comando ejecuta integración y Newman (135 peticiones × 2 iteraciones)
+con bases PostgreSQL temporales. Exige 100 % de éxito y limpieza completa;
+genera evidencia sanitizada en `docs/qa/membresias-reportes-resultados.json` y
+`docs/postman/ejecucion-membresias-reportes.json`. `QA_OUTPUT_DIR` permite conservar
+otra ejecución sin sobrescribir la publicada. Ver el
+[reporte QA membresías y reportes](../docs/qa/membresias-reportes-reporte.md)
+para los datos, la suma manual y la repetición pendiente de Joshua.
+
 ### Agregar nuevas suites
 
 1. Copia `test/templates/endpoint.cjs.example` a un módulo nuevo en `test/suites/`
