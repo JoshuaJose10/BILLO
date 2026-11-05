@@ -4,7 +4,7 @@ API REST de Billo (Node.js, Express y PostgreSQL).
 
 ## Requisitos
 
-- Node.js (v18 o superior)
+- Node.js 22.13 o superior dentro de la rama 22 (`../.nvmrc`, igual que CI y mobile).
 - PostgreSQL (v14 o superior) con una base de datos creada (por ejemplo `billo_dev`)
 
 ## Estructura del proyecto
@@ -53,7 +53,7 @@ Consulta [la guía de QA](../docs/postman/README.md) y el
 
 ## Pruebas automáticas (HU-28)
 
-Requieren **Node.js 20 o superior**, PostgreSQL 14 o superior activo y un usuario
+Requieren **Node.js 22.13 o superior dentro de la rama 22**, PostgreSQL 14 o superior activo y un usuario
 con permiso `CREATEDB`. No hace falta crear una base de pruebas ni iniciar el
 servidor. Se usan las credenciales `DB_HOST`, `DB_PORT`, `DB_USER` y `DB_PASSWORD`
 de `.env` o del entorno (el entorno tiene prioridad).
@@ -79,8 +79,8 @@ impedir que se ejecute la limpieza. La suite tiene un límite de 55 segundos.
 
 ### Cobertura y regresiones
 
-Hay **103 pruebas ejecutables**, sin casos omitidos: 27 de autenticación y 76 de
-gastos. Se convirtieron los casos de las carpetas 01 y 03 de
+Hay **126 pruebas ejecutables**, sin casos omitidos: 27 de autenticación, 76 de
+gastos, 17 de resumen mensual y 6 del cliente HTTP de mobile. Se convirtieron los casos de las carpetas 01 y 03 de
 `docs/postman/billo-api.postman_collection.json`, con casos adicionales de límites,
 tipos y persistencia. La limpieza de Postman queda reemplazada por hooks de la
 suite. No se incluyen aquí las carpetas de categorías y errores HTTP globales,
@@ -102,6 +102,14 @@ También se verifican login, correo normalizado y duplicado, token vencido/firma
 incorrecta, CRUD persistido, filtros, orden y aislamiento bidireccional A/B.
 Las credenciales de las fixtures son ficticias y exclusivas de la base temporal.
 
+`test/suites/mobile.cjs` importa los servicios reales `apiFetch`, `registrar` y
+`login` de `mobile/src/services/`. Levanta Express en un puerto local aleatorio y
+usa `fetch` contra la misma base temporal. Comprueba registro/login/perfil con JWT,
+CRUD persistido y resumen, aislamiento A/B, errores 400 y cierre de sesión ante
+un 401 autenticado. No requiere instalar las dependencias de Expo en este job.
+Esta integración comprueba el contrato HTTP usado por SDK 58; las APIs nativas
+de React Native se prueban en dispositivo según la [guía SDK 58](../docs/qa/sdk58-migracion.md).
+
 ### Agregar presupuestos, membresías y reportes
 
 1. Copia `test/templates/endpoint.cjs.example` a `test/suites/presupuestos.cjs`,
@@ -119,7 +127,7 @@ Las credenciales de las fixtures son ficticias y exclusivas de la base temporal.
 ### CI y revisión de Oscar
 
 `.github/workflows/ci.yml` ejecuta `npm ci`, lint y `npm test` en cada PR con
-PostgreSQL 16 y Node 20. Se conserva el nombre del check `Backend (lint)` para
+PostgreSQL 16 y Node 22 desde `.nvmrc`. Se conserva el nombre del check `Backend (lint)` para
 respetar las reglas de rama existentes. Un fallo de la suite hace fallar el job.
 
 Para comprobar que las pruebas detectan una validación rota:

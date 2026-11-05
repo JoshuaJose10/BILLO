@@ -48,7 +48,7 @@ Una tarea solo pasa a **"completa"** en ClickUp cuando **Luis Dorian la aprueba 
 ## Flujo para entregar una tarea
 1. Crea tu rama desde `develop` con el formato `<tipo>/<tema>`.
 2. Programa y prueba localmente.
-3. Corre `npm run lint` — debe pasar sin errores.
+3. Usa Node 22.13 o superior dentro de la rama 22 (`.nvmrc`). En backend corre `npm run lint` y `npm test` con PostgreSQL activo. En mobile corre `npm run check:sdk`, `npm run doctor`, `npm run lint`, `npm test`, `npm run verificar:temas` y `npm run test:bundle`. Deben terminar sin errores; ver [validación SDK 58](docs/qa/sdk58-migracion.md).
 4. Haz commit y push de tu rama.
 5. Abre un Pull Request **hacia `develop`** usando la plantilla (se llena sola).
 6. Pide revisión a tu pareja de revisión.

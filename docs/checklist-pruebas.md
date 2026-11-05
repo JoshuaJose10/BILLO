@@ -4,6 +4,11 @@ Fuente: [plan de pruebas](plan-de-pruebas.md), sección 5. Se conservan sus IDs,
 
 ## Uso diario
 
+Para la migración de plataforma, usar además el [checklist SDK 58](qa/sdk58-migracion.md).
+Anotar SDK de Expo, versión de Expo Go o identificador del development build,
+versión de Node y commit. Los resultados ya registrados abajo pertenecen a su
+ejecución original; conservarlos y crear una ejecución nueva para SDK 58.
+
 1. Copiar esta tabla para cada entrega o ejecución, conservando los IDs. Anotar rama/commit, ambiente, dispositivo y enlace a las evidencias.
 2. Ejecutar los pasos del plan y registrar **Pasa** o **Falla**, fecha en formato YYYY-MM-DD y nombre de quien probó. **Pendiente** significa que no se ejecutó. **Bloqueado** requiere explicar el impedimento y las dependencias; no equivale a Pasa ni a Falla.
 3. Si falla, crear un reporte por defecto usando la [plantilla de bugs](plantilla-reporte-bug.md), clasificarlo con [criterios de calidad](criterios-calidad.md) y pegar el enlace en la fila. Reutilizar el mismo bug si afecta varios casos. No incluir contraseñas, tokens ni credenciales reales en evidencias.

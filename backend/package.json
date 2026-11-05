@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "node --test test/integration.test.cjs",
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test test/integration.test.cjs",
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "lint": "eslint .",

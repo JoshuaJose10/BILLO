@@ -12,6 +12,8 @@
 ## Checklist
 - [ ] Cumple los criterios de aceptación de la tarea
 - [ ] `npm run lint` sin errores
+- [ ] Pruebas de integración del backend pasan con PostgreSQL temporal
+- [ ] Si afecta mobile: `check:sdk`, `doctor`, `npm test`, `verificar:temas` y `test:bundle` pasan en SDK 58
 - [ ] No hay contraseñas ni claves en el código
 - [ ] Actualicé la documentación si algo cambió
 
