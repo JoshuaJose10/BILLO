@@ -16,13 +16,17 @@ import BarraCategorias from './BarraCategorias';
 // de leyenda de la barra.
 // - `resumen`: de resumenGastoMes ({ gastado, presupuesto, porcentaje, excedente, tramos }).
 //   Sin presupuesto solo se muestra "$gastado" y la barra reparte el 100% entre categorías.
-// - `conPresupuestos`: false si no se pudieron cargar los presupuestos; entonces no se ofrece
-//   "Define un presupuesto" (Inicio no muestra error por eso).
+// - `conPresupuestos`: false si no se pudieron cargar los presupuestos; entonces no se dibuja la
+//   barra ni se ofrece "Define un presupuesto" (Inicio no muestra error por eso).
+// - `gastoFijo` y `total` (GET /reportes/resumen): con gastoFijo > 0, debajo del monto aparece
+//   "Suscripciones $X · Total $Y".
 // - `onDefinirPresupuesto`: abre Cartera.
 export default function TarjetaResumen({
   resumen,
   principales = [],
   conPresupuestos = true,
+  gastoFijo = 0,
+  total,
   onDefinirPresupuesto,
 }) {
   const { colors, esOscuro } = useTema();
@@ -36,7 +40,7 @@ export default function TarjetaResumen({
       : nivel === 'aviso'
         ? colors.avisoTexto
         : colors.textSecondary;
-  const mostrarBarra = conLimite || gastado > 0;
+  const mostrarBarra = conPresupuestos && (conLimite || gastado > 0);
 
   return (
     <View style={styles.tarjeta}>
@@ -49,6 +53,12 @@ export default function TarjetaResumen({
           ) : null}
         </Text>
       </View>
+
+      {gastoFijo > 0 ? (
+        <Text style={styles.fijos} numberOfLines={1}>
+          Suscripciones {formatearMonto(gastoFijo)} · Total {formatearMonto(total ?? gastado)}
+        </Text>
+      ) : null}
 
       {mostrarBarra ? (
         <View style={styles.filaBarra}>
@@ -155,6 +165,15 @@ const crearEstilos = (colors) =>
       fontFamily: fonts.monoMedium,
       fontSize: 12,
       color: colors.textSecondary,
+    },
+    // Línea discreta de gasto fijo y total, alineada a la derecha bajo el monto
+    fijos: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 11,
+      lineHeight: 16,
+      color: colors.textSecondary,
+      textAlign: 'right',
+      marginTop: 2,
     },
     // flex items-center gap-2 mb-2.5
     filaBarra: {

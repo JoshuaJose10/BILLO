@@ -9,6 +9,7 @@ import {
   excedente,
   gastoPorCategoriaDePresupuestos,
   normalizarPresupuesto,
+  presupuestosEnRiesgo,
   resumenPresupuestos,
 } from './presupuestos.js';
 
@@ -122,5 +123,26 @@ describe('resumenPresupuestos', () => {
       porcentaje: 0,
       estado: 'ok',
     });
+  });
+});
+
+describe('presupuestosEnRiesgo', () => {
+  it('solo alerta y excedido: primero excedidos, luego por porcentaje', () => {
+    const lista = [
+      { id: 1, estado: 'ok', porcentaje: 40 },
+      { id: 2, estado: 'alerta', porcentaje: 82 },
+      { id: 3, estado: 'excedido', porcentaje: 105 },
+      { id: 4, estado: 'alerta', porcentaje: 97 },
+      { id: 5, estado: 'excedido', porcentaje: 130 },
+    ];
+    assert.deepEqual(
+      presupuestosEnRiesgo(lista).map((p) => p.id),
+      [5, 3, 4, 2],
+    );
+  });
+
+  it('sin riesgo o null da lista vacía', () => {
+    assert.deepEqual(presupuestosEnRiesgo([{ estado: 'ok', porcentaje: 10 }]), []);
+    assert.deepEqual(presupuestosEnRiesgo(null), []);
   });
 });

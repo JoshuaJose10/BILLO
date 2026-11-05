@@ -119,3 +119,48 @@ describe('etiquetaBarraMes', () => {
     );
   });
 });
+
+// HU-39: "Gastado este mes" viene de gasto_variable (GET /reportes/resumen) y la barra y los chips
+// de los gastos del mes (GET /gastos?mes). Con los mismos gastos, ambos deben sumar lo mismo.
+describe('cuadre de la barra con gasto_variable', () => {
+  // Como lo calcula el backend: SUM(monto) redondeado a 2 decimales.
+  const gastoVariable = (lista) =>
+    Math.round((lista.reduce((s, g) => s + g.monto, 0) + Number.EPSILON) * 100) / 100;
+
+  const delMes = [
+    { categoria_id: 1, monto: 85.5 },
+    { categoria_id: 2, monto: 0.1 },
+    { categoria_id: 2, monto: 0.2 },
+    { categoria_id: 3, monto: 1199.99 },
+    { categoria_id: 1, monto: 14.35 },
+    { categoria_id: 4, monto: 333.33 },
+    { categoria_id: 4, monto: 333.33 },
+    { categoria_id: 4, monto: 333.34 },
+  ];
+
+  it('la suma de los tramos y de los chips iguala gasto_variable', () => {
+    const servidor = gastoVariable(delMes);
+    const porCategoria = gastoPorCategoria(delMes, nombres);
+    const resumen = resumenGastoMes(porCategoria, 0, servidor);
+    const sumaCentavos = (lista) => Math.round(lista.reduce((s, c) => s + c.total, 0) * 100);
+    assert.equal(servidor, 2300.14);
+    assert.equal(resumen.gastado, servidor);
+    assert.equal(sumaCentavos(porCategoria), Math.round(servidor * 100));
+    assert.equal(sumaCentavos(resumen.tramos), Math.round(servidor * 100));
+  });
+
+  it('mes sin gastos: todo en ceros', () => {
+    const resumen = resumenGastoMes(gastoPorCategoria([], nombres), 0, 0);
+    assert.deepEqual(resumen, {
+      gastado: 0,
+      presupuesto: 0,
+      porcentaje: null,
+      excedente: 0,
+      tramos: [],
+    });
+  });
+
+  it('sin gastadoServidor se usa la suma de las categorías', () => {
+    assert.equal(resumenGastoMes([{ id: '1', total: 10.25 }], 0).gastado, 10.25);
+  });
+});

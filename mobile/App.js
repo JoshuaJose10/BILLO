@@ -22,6 +22,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import PantallaCarga from './src/components/PantallaCarga';
 import { AuthProvider } from './src/context/AuthContext';
 import { AvisosProvider } from './src/context/AvisosContext';
+import { CategoriasProvider } from './src/context/CategoriasContext';
 import RootNavigator from './src/navigation/RootNavigator';
 import { navegacionRef } from './src/navigation/navegacionRef';
 import { TemaProvider, useTema } from './src/theme/TemaContext';
@@ -92,9 +93,12 @@ export default function App() {
     <GestureHandlerRootView style={styles.raiz}>
       <SafeAreaProvider>
         <AuthProvider>
-          <TemaProvider>
-            <Navegacion />
-          </TemaProvider>
+          {/* Caché de categorías de la sesión: se pide al iniciar sesión y se suelta al cerrarla. */}
+          <CategoriasProvider>
+            <TemaProvider>
+              <Navegacion />
+            </TemaProvider>
+          </CategoriasProvider>
         </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

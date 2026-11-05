@@ -9,6 +9,7 @@ import HojaInferior from '../components/HojaInferior';
 import IconoCategoria from '../components/IconoCategoria';
 import MontoGrande from '../components/MontoGrande';
 import TecladoNumerico from '../components/TecladoNumerico';
+import { useCategorias } from '../context/CategoriasContext';
 import { usePresupuestosService } from '../services/presupuestos';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
@@ -28,13 +29,8 @@ const NO_EXISTE = 'Este presupuesto ya no existe. Cierra para actualizar la list
 // Un 409 PRESUPUESTO_DUPLICADO ofrece editar el existente; un 404 avisa que ya no existe.
 export default function PresupuestoScreen({ navigation, route }) {
   const mes = route.params?.mes ?? mesActual();
-  const {
-    listarPresupuestos,
-    listarCategoriasGasto,
-    crearPresupuesto,
-    actualizarPresupuesto,
-    eliminarPresupuesto,
-  } = usePresupuestosService();
+  const { listarPresupuestos, crearPresupuesto, actualizarPresupuesto, eliminarPresupuesto } =
+    usePresupuestosService();
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
@@ -47,11 +43,22 @@ export default function PresupuestoScreen({ navigation, route }) {
   );
   const [categoriaId, setCategoriaId] = useState(null);
 
-  // Categorías de gasto y presupuestos que ya hay ese mes (para marcar "Ya tiene").
-  const [categorias, setCategorias] = useState([]);
+  // Categorías de gasto (caché de la sesión) y presupuestos que ya hay ese mes (para marcar
+  // "Ya tiene"). La fila de categorías espera a ambos y muestra Reintentar si cualquiera falla.
+  const {
+    categoriasGasto: categorias,
+    estado: estadoCache,
+    recargar: recargarCategorias,
+  } = useCategorias();
   const [existentes, setExistentes] = useState([]);
-  const [estadoCategorias, setEstadoCategorias] = useState('cargando'); // 'cargando' | 'listo' | 'error'
+  const [estadoExistentes, setEstadoExistentes] = useState('cargando'); // 'cargando' | 'listo' | 'error'
   const [intento, setIntento] = useState(0);
+  const estadoCategorias =
+    estadoCache === 'error' || estadoExistentes === 'error'
+      ? 'error'
+      : estadoCache === 'listo' && estadoExistentes === 'listo'
+        ? 'listo'
+        : 'cargando';
 
   const [errores, setErrores] = useState({});
   const [errorApi, setErrorApi] = useState('');
@@ -65,24 +72,27 @@ export default function PresupuestoScreen({ navigation, route }) {
   useEffect(() => {
     if (editando) return undefined;
     let activo = true;
-    Promise.all([listarCategoriasGasto(), listarPresupuestos(mes)])
-      .then(([cats, lista]) => {
+    listarPresupuestos(mes)
+      .then((lista) => {
         if (!activo) return;
-        setCategorias(cats);
         setExistentes(lista);
-        setEstadoCategorias('listo');
+        setEstadoExistentes('listo');
       })
       .catch(() => {
-        if (activo) setEstadoCategorias('error');
+        if (activo) setEstadoExistentes('error');
       });
     return () => {
       activo = false;
     };
-  }, [editando, listarCategoriasGasto, listarPresupuestos, mes, intento]);
+  }, [editando, listarPresupuestos, mes, intento]);
 
+  // Vuelve a pedir solo lo que falló.
   const reintentarCategorias = () => {
-    setEstadoCategorias('cargando');
-    setIntento((n) => n + 1);
+    if (estadoCache === 'error') recargarCategorias();
+    if (estadoExistentes === 'error') {
+      setEstadoExistentes('cargando');
+      setIntento((n) => n + 1);
+    }
   };
 
   const limpiarErrores = (campo) => {

@@ -25,13 +25,17 @@ export function nivelPorcentaje(porcentaje) {
 }
 
 // Resumen del mes para la tarjeta. `presupuesto`: suma de los límites del mes (0 o null si no hay).
+// `gastadoServidor`: gasto_variable de GET /reportes/resumen; si viene, es el "gastado" que se
+// muestra (los tramos siguen saliendo de los gastos del mes, que suman lo mismo).
 // - Con presupuesto, cada tramo mide gasto / max(presupuesto, gastado): si se pasó, la barra
 //   queda llena; si no, el hueco es lo que falta del presupuesto.
 // - Sin presupuesto, los tramos llenan el 100% en proporción al gasto.
 // `porcentaje` es null sin presupuesto.
-export function resumenGastoMes(porCategoria, presupuesto) {
+export function resumenGastoMes(porCategoria, presupuesto, gastadoServidor) {
   const categorias = porCategoria || [];
-  const gastado = redondear2(categorias.reduce((s, c) => s + c.total, 0));
+  const gastado = Number.isFinite(gastadoServidor)
+    ? redondear2(gastadoServidor)
+    : redondear2(categorias.reduce((s, c) => s + c.total, 0));
   const limite = presupuesto > 0 ? presupuesto : 0;
   const escala = limite > 0 ? Math.max(limite, gastado) : gastado;
   return {

@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -19,68 +19,85 @@ import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizabl
 import FondoDegradado from '../components/FondoDegradado';
 import ItemGasto from '../components/ItemGasto';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
+import TarjetaPresupuesto, { NOMBRE_ESTADO } from '../components/TarjetaPresupuesto';
 import TarjetaResumen from '../components/TarjetaResumen';
 import { useAuth } from '../context/AuthContext';
+import { useCategorias } from '../context/CategoriasContext';
 import { useGastosService } from '../services/gastos';
 import { usePresupuestosService } from '../services/presupuestos';
+import { useReportesService } from '../services/reportes';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { mensajeError } from '../utils/errores';
 import { mesActual } from '../utils/fechas';
-import { resumenPresupuestos } from '../utils/presupuestos';
+import { cargarDatosInicio, MOVIMIENTOS_RECIENTES } from '../utils/inicio';
+import { presupuestosEnRiesgo, resumenPresupuestos } from '../utils/presupuestos';
 import { gastoPorCategoria, resumenGastoMes } from '../utils/resumenMes';
 
 // Categorías con chip en la tarjeta del mes (las de más gasto).
 const CHIPS_CATEGORIA = 3;
 
-// Del más reciente al más antiguo (fecha y luego id, igual que el backend).
-const ordenarGastos = (gastos) =>
-  [...gastos].sort((a, b) => (a.fecha === b.fecha ? b.id - a.id : a.fecha < b.fecha ? 1 : -1));
-
+// Inicio (RF6, HU-39) con datos del servidor. Al abrir o ganar foco hace exactamente 3 peticiones
+// en paralelo, todas del mes actual (cargarDatosInicio):
+// - GET /reportes/resumen: "Gastado este mes" = gasto_variable (cuadra con Movimientos y Reportes);
+//   con suscripciones, debajo "Suscripciones $X · Total $Y".
+// - GET /gastos?mes: barra por categorías, chips y los primeros 5 movimientos recientes.
+// - GET /presupuestos?mes: límite de la barra y "Presupuestos en riesgo" (alerta o excedido). Si
+//   falla, Inicio sigue sin barra ni riesgo.
+// Los nombres de las categorías salen de la caché de la sesión (useCategorias).
 export default function InicioScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
   const { usuario } = useAuth();
-  const { listarCategorias, listarGastos, eliminarGasto } = useGastosService();
+  const { listarGastos, eliminarGasto } = useGastosService();
   const { listarPresupuestos } = usePresupuestosService();
+  const { obtenerResumen } = useReportesService();
+  const {
+    categorias,
+    estado: estadoCategorias,
+    recargar: recargarCategorias,
+    nombrePorId,
+  } = useCategorias();
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
-  const [gastos, setGastos] = useState([]);
+  const [resumen, setResumen] = useState(null);
   const [gastosMes, setGastosMes] = useState([]);
-  const [categorias, setCategorias] = useState([]);
+  // null si no se pudieron cargar los presupuestos.
+  const [presupuestos, setPresupuestos] = useState(null);
+  const [mesCargado, setMesCargado] = useState(null);
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
   const [textoError, setTextoError] = useState('');
   const [refrescando, setRefrescando] = useState(false);
   const [hayDatos, setHayDatos] = useState(false);
-  // Suma de los límites del mes; null si no se pudieron cargar los presupuestos.
-  const [presupuestoTotal, setPresupuestoTotal] = useState(null);
+
+  // Cada petición recibe un número; si al responder ya hay una más nueva, se descarta.
+  const ultimaPeticion = useRef(0);
 
   const cargar = useCallback(async () => {
     // Recarga en silencio: el indicador de pantalla completa solo aparece en la primera carga
     // (estado inicial) o al reintentar desde la pantalla de error.
-    // Los presupuestos van en paralelo y aparte: si fallan, Inicio sigue sin el total.
-    const presupuestos = listarPresupuestos(mesActual())
-      .then((lista) => resumenPresupuestos(lista).limite)
-      .catch(() => null);
+    const peticion = ++ultimaPeticion.current;
+    const mes = mesActual();
     try {
-      const [lista, delMes, cats] = await Promise.all([
-        listarGastos(),
-        listarGastos({ mes: mesActual() }),
-        listarCategorias(),
-      ]);
-      setPresupuestoTotal(await presupuestos);
-      setGastos(ordenarGastos(lista));
-      setGastosMes(delMes);
-      setCategorias(cats || []);
+      const datos = await cargarDatosInicio(
+        { obtenerResumen, listarGastos, listarPresupuestos },
+        mes,
+      );
+      if (peticion !== ultimaPeticion.current) return;
+      setResumen(datos.resumen);
+      setGastosMes(datos.gastos);
+      setPresupuestos(datos.presupuestos);
+      setMesCargado(mes);
       setEstado('listo');
       setHayDatos(true);
     } catch (error) {
+      if (peticion !== ultimaPeticion.current) return;
       setTextoError(mensajeError(error?.code, error?.message));
       setEstado('error');
     }
-  }, [listarCategorias, listarGastos, listarPresupuestos]);
+  }, [obtenerResumen, listarGastos, listarPresupuestos]);
 
   // Recarga cada vez que Inicio gana foco (por ejemplo al cerrar la hoja de Nuevo gasto).
   useFocusEffect(
@@ -89,7 +106,13 @@ export default function InicioScreen({ navigation }) {
     }, [cargar]),
   );
 
+  // Si las categorías fallaron, refrescar y Reintentar también las vuelven a pedir.
+  const recargarCategoriasSiFallaron = () => {
+    if (estadoCategorias === 'error') recargarCategorias();
+  };
+
   const refrescar = async () => {
+    recargarCategoriasSiFallaron();
     setRefrescando(true);
     await cargar();
     setRefrescando(false);
@@ -99,26 +122,35 @@ export default function InicioScreen({ navigation }) {
     () => Object.fromEntries(categorias.map((c) => [c.id, c.nombre])),
     [categorias],
   );
-
   const porCategoria = useMemo(
     () => gastoPorCategoria(gastosMes, nombresCategoria),
     [gastosMes, nombresCategoria],
   );
   const principales = useMemo(() => porCategoria.slice(0, CHIPS_CATEGORIA), [porCategoria]);
+  const presupuestoTotal = presupuestos ? resumenPresupuestos(presupuestos).limite : null;
   const resumenMes = useMemo(
-    () => resumenGastoMes(porCategoria, presupuestoTotal),
-    [porCategoria, presupuestoTotal],
+    () => resumenGastoMes(porCategoria, presupuestoTotal, resumen?.gasto_variable),
+    [porCategoria, presupuestoTotal, resumen],
   );
+  const enRiesgo = useMemo(() => presupuestosEnRiesgo(presupuestos), [presupuestos]);
+  const recientes = useMemo(() => gastosMes.slice(0, MOVIMIENTOS_RECIENTES), [gastosMes]);
   const primerNombre = (usuario?.nombre || '').trim().split(' ')[0];
 
   const abrirNuevoGasto = () => navigation.navigate('NuevoGasto');
+  // Cartera › Presupuestos en el mes de los datos (ver los parámetros de CarteraScreen).
+  const abrirPresupuestos = () =>
+    navigation.navigate('Cartera', {
+      seccion: 'presupuestos',
+      mes: mesCargado ?? mesActual(),
+      solicitud: Date.now(),
+    });
 
   // Filas deslizables: Editar abre la hoja en modo edición; al eliminar, la fila se quita al
   // momento y se recargan la lista y los totales.
   const filas = useFilasDeslizables();
   const editarGasto = (gasto) => navigation.navigate('NuevoGasto', { gasto });
   const gastoEliminado = (id) => {
-    setGastos((lista) => lista.filter((g) => g.id !== id));
+    setGastosMes((lista) => lista.filter((g) => g.id !== id));
     cargar();
   };
 
@@ -145,9 +177,31 @@ export default function InicioScreen({ navigation }) {
       <TarjetaResumen
         resumen={resumenMes}
         principales={principales}
-        conPresupuestos={presupuestoTotal != null}
-        onDefinirPresupuesto={() => navigation.navigate('Cartera')}
+        conPresupuestos={presupuestos != null}
+        gastoFijo={resumen?.gasto_fijo ?? 0}
+        total={resumen?.total}
+        onDefinirPresupuesto={abrirPresupuestos}
       />
+
+      {enRiesgo.length > 0 ? (
+        <View style={styles.riesgo}>
+          <Text style={styles.riesgoTitulo} accessibilityRole="header">
+            Presupuestos en riesgo
+          </Text>
+          {enRiesgo.map((p) => (
+            <Pressable
+              key={p.id}
+              onPress={abrirPresupuestos}
+              accessibilityRole="button"
+              accessibilityLabel={`${p.categoria}: ${p.porcentaje}% del presupuesto, ${NOMBRE_ESTADO[p.estado]}`}
+              accessibilityHint="Abre tus presupuestos en Cartera"
+              style={({ pressed }) => (pressed ? styles.riesgoPresionado : null)}
+            >
+              <TarjetaPresupuesto presupuesto={p} compacta />
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
     </View>
   );
 
@@ -165,6 +219,23 @@ export default function InicioScreen({ navigation }) {
     </View>
   );
 
+  // Si el mes tiene más gastos que los recientes, el pie enlaza a Movimientos.
+  const pieInicio = (
+    <View style={styles.panelPie}>
+      {gastosMes.length > recientes.length ? (
+        <Pressable
+          onPress={() => navigation.navigate('Movimientos')}
+          hitSlop={8}
+          accessibilityRole="link"
+          accessibilityHint="Abre Movimientos"
+          style={styles.verTodos}
+        >
+          <Text style={styles.enlace}>Ver los {gastosMes.length} movimientos del mes</Text>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+
   if (estado === 'cargando') {
     return (
       <View style={[styles.pantalla, styles.centro]}>
@@ -175,6 +246,7 @@ export default function InicioScreen({ navigation }) {
   }
 
   const reintentar = () => {
+    recargarCategoriasSiFallaron();
     setEstado('cargando');
     cargar();
   };
@@ -196,7 +268,7 @@ export default function InicioScreen({ navigation }) {
     <View style={styles.pantalla}>
       <FondoDegradado />
       <FlatList
-        data={gastos}
+        data={recientes}
         keyExtractor={(g) => String(g.id)}
         renderItem={({ item }) => (
           <View style={styles.panelFila}>
@@ -209,7 +281,7 @@ export default function InicioScreen({ navigation }) {
               codigoNoExiste="GASTO_NO_ENCONTRADO"
               mensajeNoExiste="Este gasto ya no existe"
             >
-              <ItemGasto gasto={item} nombreCategoria={nombresCategoria[item.categoria_id]} opaca />
+              <ItemGasto gasto={item} nombreCategoria={nombrePorId(item.categoria_id)} opaca />
             </FilaDeslizable>
           </View>
         )}
@@ -227,7 +299,7 @@ export default function InicioScreen({ navigation }) {
             {panelInicio}
           </>
         }
-        ListFooterComponent={<View style={styles.panelPie} />}
+        ListFooterComponent={pieInicio}
         ListEmptyComponent={
           <View style={[styles.panelFila, styles.vacio]}>
             <MaterialCommunityIcons
@@ -235,9 +307,9 @@ export default function InicioScreen({ navigation }) {
               size={40}
               color={colors.textSecondary}
             />
-            <Text style={styles.estadoTitulo}>Aún no tienes gastos</Text>
+            <Text style={styles.estadoTitulo}>Sin gastos este mes</Text>
             <Pressable onPress={abrirNuevoGasto} hitSlop={8} accessibilityRole="button">
-              <Text style={styles.enlace}>Registra tu primer gasto</Text>
+              <Text style={styles.enlace}>Registra un gasto</Text>
             </Pressable>
           </View>
         }
@@ -323,10 +395,32 @@ const crearEstilos = (colors) =>
       backgroundColor: colors.surfaceLowest80,
     },
     panelPie: {
-      height: 16,
+      minHeight: 16,
       borderBottomLeftRadius: radios.panel,
       borderBottomRightRadius: radios.panel,
       backgroundColor: colors.surfaceLowest80,
+    },
+    // Enlace a Movimientos al pie del panel
+    verTodos: {
+      alignSelf: 'center',
+      paddingTop: 14,
+      paddingBottom: 16,
+    },
+    // Sección "Presupuestos en riesgo" entre la tarjeta del mes y el panel de movimientos
+    riesgo: {
+      marginTop: 18,
+      gap: 8,
+    },
+    riesgoTitulo: {
+      fontFamily: fonts.sansSemiBold,
+      fontSize: 16,
+      lineHeight: 22,
+      letterSpacing: -0.4,
+      color: colors.text,
+      marginBottom: 2,
+    },
+    riesgoPresionado: {
+      opacity: 0.7,
     },
     // w-8 h-1 rounded-full bg-surface-container-highest mx-auto mb-3 opacity-60
     panelJalador: {

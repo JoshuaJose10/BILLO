@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
 
 import { useApi } from '../context/AuthContext';
-import { categoriasDeGasto, normalizarPresupuesto } from '../utils/presupuestos';
+import { normalizarPresupuesto } from '../utils/presupuestos';
 
 // Servicio de presupuestos (RF3) con el token de la sesión (un 401 cierra la sesión vía useApi).
 // Los errores llegan como { code, message, status } (contrato v1.1); ver utils/errores.js.
-//   const { listarPresupuestos, crearPresupuesto, actualizarPresupuesto, eliminarPresupuesto,
-//     listarCategoriasGasto } = usePresupuestosService();
+//   const { listarPresupuestos, crearPresupuesto, actualizarPresupuesto, eliminarPresupuesto } =
+//     usePresupuestosService();
+// Las categorías de gasto vienen de la caché de la sesión: useCategorias().categoriasGasto.
 export function usePresupuestosService() {
   const api = useApi();
 
@@ -42,10 +43,6 @@ export function usePresupuestosService() {
       // DELETE /presupuestos/:id → 200 { eliminado: true }. 404: PRESUPUESTO_NO_ENCONTRADO.
       eliminarPresupuesto: (id) =>
         api(`/presupuestos/${encodeURIComponent(id)}`, { method: 'DELETE' }),
-
-      // GET /categorias?tipo=gasto → solo las de gasto (se filtran también en la app mientras
-      // la API ignore `tipo`).
-      listarCategoriasGasto: async () => categoriasDeGasto(await api('/categorias?tipo=gasto')),
     }),
     [api],
   );

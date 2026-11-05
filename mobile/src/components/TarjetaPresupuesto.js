@@ -25,13 +25,15 @@ const PASTILLA = {
 // Presupuesto de una categoría en Cartera: ícono, nombre, pastilla de estado, porcentaje,
 // "gastado / límite" y barra (color de la categoría en meta, aviso o alerta según el `estado` de
 // la API). En excedido, "Te pasaste por $X". Fondo opaco para FilaDeslizable.
-export default function TarjetaPresupuesto({ presupuesto }) {
+// `compacta` (Inicio, "Presupuestos en riesgo"): sin la línea "gastado / límite" ni "Te pasaste",
+// con menos relleno; el estado y el porcentaje siguen en la pastilla y la barra.
+export default function TarjetaPresupuesto({ presupuesto, compacta = false }) {
   const styles = useEstilos(crearEstilos);
   const { categoria, gastado, monto_limite: limite, porcentaje, estado } = presupuesto;
   const excedido = estado === 'excedido';
 
   return (
-    <View style={styles.fila}>
+    <View style={[styles.fila, compacta ? styles.filaCompacta : null]}>
       <IconoCategoria nombre={categoria} />
       <View style={styles.cuerpo}>
         <View style={styles.cabecera}>
@@ -47,18 +49,20 @@ export default function TarjetaPresupuesto({ presupuesto }) {
             <Text style={styles.porcentaje}>{porcentaje}%</Text>
           </View>
         </View>
-        <Text style={styles.montos} numberOfLines={1}>
-          {formatearMonto(gastado)} / {formatearMonto(limite)}
-        </Text>
+        {compacta ? null : (
+          <Text style={styles.montos} numberOfLines={1}>
+            {formatearMonto(gastado)} / {formatearMonto(limite)}
+          </Text>
+        )}
         <BarraPresupuesto
           fraccion={avanceBarra(porcentaje)}
           porcentaje={porcentaje}
           estado={estado}
           categoria={categoria}
           etiqueta={`${categoria}: ${porcentaje}% del presupuesto, ${NOMBRE_ESTADO[estado]}`}
-          style={styles.barra}
+          style={compacta ? styles.barraCompacta : styles.barra}
         />
-        {excedido ? (
+        {excedido && !compacta ? (
           <Text style={styles.excedido}>
             Te pasaste por {formatearMonto(excedente(presupuesto))}
           </Text>
@@ -79,6 +83,9 @@ const crearEstilos = (colors) =>
       paddingRight: 14,
       borderRadius: radios['2xl'],
       backgroundColor: colors.filaOpaca,
+    },
+    filaCompacta: {
+      paddingVertical: 8,
     },
     cuerpo: {
       flex: 1,
@@ -148,6 +155,9 @@ const crearEstilos = (colors) =>
     },
     barra: {
       marginTop: 8,
+    },
+    barraCompacta: {
+      marginTop: 6,
     },
     excedido: {
       fontFamily: fonts.sansMedium,

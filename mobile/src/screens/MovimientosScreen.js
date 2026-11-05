@@ -20,6 +20,7 @@ import FondoDegradado from '../components/FondoDegradado';
 import ItemGasto from '../components/ItemGasto';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
 import SelectorMes from '../components/SelectorMes';
+import { useCategorias } from '../context/CategoriasContext';
 import { etiquetaMetodoPago, useGastosService } from '../services/gastos';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
@@ -51,7 +52,14 @@ const agruparPorDia = (gastos) => {
 export default function MovimientosScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
-  const { listarCategorias, listarGastos, eliminarGasto } = useGastosService();
+  const { listarGastos, eliminarGasto } = useGastosService();
+  // Categorías de la caché de la sesión (filtro y nombres de cada gasto).
+  const {
+    categorias,
+    estado: estadoCategorias,
+    recargar: recargarCategorias,
+    nombrePorId,
+  } = useCategorias();
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
@@ -62,7 +70,6 @@ export default function MovimientosScreen({ navigation }) {
   // Datos de la última respuesta válida y el filtro con el que se pidieron.
   const [gastos, setGastos] = useState([]);
   const [filtroCargado, setFiltroCargado] = useState(null);
-  const [categorias, setCategorias] = useState([]);
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
   const [textoError, setTextoError] = useState('');
   const [refrescando, setRefrescando] = useState(false);
@@ -73,13 +80,9 @@ export default function MovimientosScreen({ navigation }) {
   const cargar = useCallback(async () => {
     const peticion = ++ultimaPeticion.current;
     try {
-      const [lista, cats] = await Promise.all([
-        listarGastos({ mes, categoria_id: categoriaId }),
-        listarCategorias(),
-      ]);
+      const lista = await listarGastos({ mes, categoria_id: categoriaId });
       if (peticion !== ultimaPeticion.current) return;
       setGastos(lista);
-      setCategorias(cats || []);
       setFiltroCargado({ mes, categoriaId });
       setEstado('listo');
     } catch (error) {
@@ -87,7 +90,7 @@ export default function MovimientosScreen({ navigation }) {
       setTextoError(mensajeError(error?.code, error?.message));
       setEstado('error');
     }
-  }, [listarCategorias, listarGastos, mes, categoriaId]);
+  }, [listarGastos, mes, categoriaId]);
 
   // Recarga al ganar foco (un gasto nuevo aparece al volver de NuevoGasto) y, como `cargar`
   // cambia con el filtro, también al cambiar de mes o de categoría.
@@ -97,7 +100,13 @@ export default function MovimientosScreen({ navigation }) {
     }, [cargar]),
   );
 
+  // Si las categorías fallaron, refrescar y Reintentar también las vuelven a pedir.
+  const recargarCategoriasSiFallaron = () => {
+    if (estadoCategorias === 'error') recargarCategorias();
+  };
+
   const refrescar = async () => {
+    recargarCategoriasSiFallaron();
     setRefrescando(true);
     await cargar();
     setRefrescando(false);
@@ -111,6 +120,7 @@ export default function MovimientosScreen({ navigation }) {
   };
 
   const reintentar = () => {
+    recargarCategoriasSiFallaron();
     setEstado('cargando');
     cargar();
   };
@@ -124,18 +134,13 @@ export default function MovimientosScreen({ navigation }) {
     cargar();
   };
 
-  const nombresCategoria = useMemo(
-    () => Object.fromEntries(categorias.map((c) => [c.id, c.nombre])),
-    [categorias],
-  );
-
   const secciones = useMemo(() => agruparPorDia(gastos), [gastos]);
   const total = useMemo(() => gastos.reduce((suma, g) => suma + g.monto, 0), [gastos]);
 
   // Textos del resumen y del estado vacío: describen lo que se está mostrando.
   const mesMostrado = filtroCargado?.mes ?? mes;
   const categoriaMostrada =
-    filtroCargado?.categoriaId != null ? nombresCategoria[filtroCargado.categoriaId] : null;
+    filtroCargado?.categoriaId != null ? nombrePorId(filtroCargado.categoriaId) : null;
   const nombreDelMes = nombreMes(mesMostrado);
   const etiquetaResumen = categoriaMostrada
     ? `Gastado en ${categoriaMostrada} · ${nombreDelMes}`
@@ -246,7 +251,7 @@ export default function MovimientosScreen({ navigation }) {
             >
               <ItemGasto
                 gasto={item}
-                nombreCategoria={nombresCategoria[item.categoria_id]}
+                nombreCategoria={nombrePorId(item.categoria_id)}
                 metodoPago={etiquetaMetodoPago(item.metodo_pago)}
                 opaca
               />
