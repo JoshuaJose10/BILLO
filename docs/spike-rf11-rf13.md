@@ -1,5 +1,11 @@
 # Spike HU-23: voz, widget y cambio de moneda (RF11, RF12, RF13)
 
+> **Evidencia histórica de SDK 57 (2026-10-28).** Las versiones y resultados de
+> este documento corresponden a ese build. El proyecto migra a SDK 58; consulta
+> [la guía y validación actual](qa/sdk58-migracion.md). El issue #159 del widget
+> fue cerrado con la versión 0.26.0 el 2026-10-29. Las pruebas en dispositivo
+> deben repetirse con un binario de SDK 58; no se trasladan los aprobados de SDK 57.
+
 **Rama:** `spike/dev-build` · **Fecha:** 2026-10-28 · **Tipo:** prueba técnica, no es una función terminada.
 
 **Objetivo:** saber si el registro por voz (RF12), el widget de Android (RF13) y el cambio de moneda (RF11) se pueden implementar con nuestro stack (Expo SDK 57, React Native 0.86, nueva arquitectura) en un *development build* de Android, sin romper el trabajo diario en Expo Go.

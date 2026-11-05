@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch } from './api.js';
 
 // El backend de login normaliza el correo a minúsculas pero el de registro no,
 // así que lo normalizamos aquí para que ambos coincidan.

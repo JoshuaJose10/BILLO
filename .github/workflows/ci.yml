@@ -48,7 +48,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
@@ -62,7 +62,10 @@ jobs:
     # El nombre se usa como check obligatorio en las reglas de rama: no cambiarlo
     name: Mobile (lint)
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
+    env:
+      CI: 'true'
+      EXPO_PUBLIC_API_URL: http://127.0.0.1:3000
     defaults:
       run:
         working-directory: mobile
@@ -72,10 +75,20 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: mobile/package-lock.json
 
       - run: npm ci
 
       - run: npm run lint
+
+      - run: npm run check:sdk
+
+      - run: npm run doctor
+
+      - run: npm test
+
+      - run: npm run verificar:temas
+
+      - run: npm run test:bundle

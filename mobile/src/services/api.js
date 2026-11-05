@@ -1,4 +1,4 @@
-import { API_URL, TIMEOUT_MS } from '../config/api';
+import { API_URL, TIMEOUT_MS } from '../config/api.js';
 
 // Códigos que genera la app (no vienen del servidor).
 export const SIN_CONEXION = 'SIN_CONEXION';

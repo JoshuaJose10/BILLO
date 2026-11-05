@@ -4,7 +4,7 @@ App móvil de gastos diarios con módulo de membresías digitales.
 Proyecto de Tópicos Selectos de Ingeniería de Software — Infinite Labs.
 
 ## Estructura
-- `mobile/` — App React Native / Expo
+- `mobile/` — App React Native / Expo SDK 58
 - `backend/` — API Node.js + Express
 - `docs/` — Esquema de BD, contrato de API, plan de pruebas, actas y métricas
 
@@ -23,6 +23,9 @@ aplica las migraciones y la elimina al terminar. El usuario PostgreSQL necesita
 permiso `CREATEDB`. Consulta requisitos, cobertura y cómo agregar endpoints en
 [backend/README.md](backend/README.md#pruebas-automáticas-hu-28).
 El CI ejecuta lint y pruebas en cada pull request.
+También prueba el cliente HTTP real de mobile contra la API y PostgreSQL temporal.
+El check móvil valida dependencias de SDK 58, Expo Doctor, lint, pruebas unitarias,
+temas y bundles de Android/iOS. Consulta la [guía de migración y validación](docs/qa/sdk58-migracion.md).
 
 ## Equipo
 | Nombre | Rol |
@@ -43,7 +46,7 @@ Estado de implementación de RF2–RF8, evidencia del código y pendientes: [rep
 
 ## Instalación del backend
 🛠️ Requisitos Previos
-Node.js (v18 o superior)
+Node.js 22.13 o superior dentro de la rama 22 (la misma de `.nvmrc` y CI)
 npm
 PostgreSQL (ejecutándose en el puerto por defecto 5432)
 
@@ -111,10 +114,10 @@ Guía completa (requisitos, cómo correr, mapa de pantallas y lint): [mobile/REA
 
 ### Requisitos
 
-- [Node.js](https://nodejs.org/) 20 LTS o superior
+- [Node.js](https://nodejs.org/) 22.13 o superior dentro de la rama 22 (`.nvmrc`)
 - [Git](https://git-scm.com/)
 - Una de estas opciones para correr la app en Android:
-  - La app **Expo Go** instalada en un teléfono Android, o
+  - La app **Expo Go compatible con SDK 58** instalada en un teléfono Android, o
   - **Android Studio** con un emulador configurado
 
 ### Pasos
@@ -124,19 +127,24 @@ git clone https://github.com/JoshuaJose10/BILLO.git
 cd BILLO
 git checkout develop
 cd mobile
-npm install
-npx expo start
+npm ci
+# Copiar .env.example a .env y ajustar EXPO_PUBLIC_API_URL antes de iniciar.
+npm start
 ```
 
 ### Cómo abrir la app en Android
 
 - **Teléfono físico:** con el teléfono y la computadora en la **misma red Wi-Fi**, abre Expo Go y escanea el código QR que aparece en la terminal. Si el QR no funciona, en Expo Go elige ingresar la URL manualmente y escribe la dirección `exp://...` que muestra la terminal.
-- **Emulador:** con el emulador de Android Studio abierto, presiona `a` en la terminal donde corre `npx expo start`.
+- **Emulador:** con el emulador de Android Studio abierto, presiona `a` en la terminal donde corre `npm start`.
 - **Si la red bloquea la conexión** (por ejemplo, Wi-Fi de la escuela o red pública), inicia el servidor en modo túnel:
 
   ```bash
-  npx expo start --tunnel
+  npm start -- --tunnel
   ```
+
+El túnel de SDK 58 requiere iniciar sesión con `npx expo login`.
+Voz y widget requieren generar e instalar un **development build nuevo para SDK 58**;
+el APK de SDK 57 no sirve para validar los módulos actualizados. Ver [mobile/README.md](mobile/README.md).
 
 ### Resultado esperado
 

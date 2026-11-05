@@ -20,6 +20,14 @@ Este documento define qué se prueba y cuál es el resultado esperado de cada re
 | Prioridad | Alta (función principal o seguridad), Media (función de apoyo), Baja (detalle menor). |
 | ID del caso | `CP-RFx-nn` para requisitos funcionales y `CP-RNFx-nn` para no funcionales. |
 
+### Regresión de plataforma: Expo SDK 58
+
+La migración de SDK 57 a SDK 58 conserva los criterios funcionales de este plan.
+Antes de aprobarla, ejecutar los checks automáticos y los casos de dispositivo
+`SDK58-01` a `SDK58-06` de la [guía de migración](qa/sdk58-migracion.md).
+Registrar SDK, commit, versión de Node, dispositivo y tipo de build en cada ejecución.
+Las pruebas unitarias y HTTP no aprueban por sí solas la navegación ni los módulos nativos.
+
 ## 4. Supuestos por confirmar con Joshua
 
 | # | Supuesto usado en los casos | Por qué hay que confirmarlo |
