@@ -105,9 +105,7 @@ export default function MembresiaScreen({ navigation, route }) {
       DateTimePickerAndroid.open({
         value: fecha,
         mode: 'date',
-        onChange: (_evento, nueva) => {
-          if (nueva) setFecha(nueva);
-        },
+        onValueChange: (_evento, nueva) => setFecha(nueva),
       });
     } else {
       setMostrarPickerIos((v) => !v);
@@ -148,7 +146,6 @@ export default function MembresiaScreen({ navigation, route }) {
       } else {
         await crearMembresia(payload);
       }
-      route.params?.onGuardado?.();
       enviando.current = false;
       hojaRef.current?.cerrar();
     } catch (error) {
@@ -166,7 +163,6 @@ export default function MembresiaScreen({ navigation, route }) {
 
     try {
       await eliminarMembresia(membresiaEditada.id);
-      route.params?.onEliminado?.(membresiaEditada.id);
       enviando.current = false;
       hojaRef.current?.cerrar();
     } catch (error) {
@@ -304,7 +300,7 @@ export default function MembresiaScreen({ navigation, route }) {
               value={fecha}
               mode="date"
               display="spinner"
-              onChange={(_e, d) => d && setFecha(d)}
+              onValueChange={(_evento, nueva) => setFecha(nueva)}
               textColor={colors.text}
               themeVariant={esOscuro ? 'dark' : 'light'}
             />

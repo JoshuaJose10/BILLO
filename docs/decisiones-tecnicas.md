@@ -78,7 +78,7 @@ npx expo install react-native-gifted-charts react-native-svg expo-linear-gradien
 | Paquete | Versión fijada |
 |---|---|
 | react-native-paper | `5.15.x` ← anotar la exacta del `package.json` |
-| react-native-gifted-charts | `1.4.x` ← anotar la exacta del `package.json` |
+| react-native-gifted-charts | `1.4.81` |
 | react-native-svg | La que indique `npx expo install` |
 | expo-linear-gradient | La que indique `npx expo install` |
 

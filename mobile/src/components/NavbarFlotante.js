@@ -204,10 +204,9 @@ function Pestana({
     );
   }, [activa, reducirMovimiento, progreso]);
 
-  const estiloIcono = useAnimatedStyle(
-    () => ({ color: interpolateColor(progreso.value, [0, 1], [colorInactivo, colorActivo]) }),
-    [colorInactivo, colorActivo],
-  );
+  const estiloIcono = useAnimatedStyle(() => ({
+    color: interpolateColor(progreso.value, [0, 1], [colorInactivo, colorActivo]),
+  }));
   const estiloEtiqueta = useAnimatedStyle(() => ({
     opacity: progreso.value,
     transform: [{ translateX: 6 * (1 - progreso.value) }],
