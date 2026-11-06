@@ -182,13 +182,8 @@ export default function CarteraScreen({ navigation, route }) {
   };
 
   // Handlers para Suscripciones
-  const crearMembresia = () => navigation.navigate('Membresia', { onGuardado: cargarMembresias });
-  const editarMembresia = (m) =>
-    navigation.navigate('Membresia', {
-      membresia: m,
-      onGuardado: cargarMembresias,
-      onEliminado: membresiaEliminada,
-    });
+  const crearMembresia = () => navigation.navigate('Membresia');
+  const editarMembresia = (m) => navigation.navigate('Membresia', { membresia: m });
   const membresiaEliminada = (id) => {
     setMembresias((lista) => lista.filter((m) => m.id !== id));
     cargarMembresias();
