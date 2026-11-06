@@ -233,6 +233,7 @@ Antes del ajuste, Servicios daba 2.12 / 2.31 / 2.99 y Salud 2.35 / 2.65 / 3.40.
   color base; no seleccionado → superficie neutra con micro-punto de 6px del color base. El chip
   "Todas" (con `icono` propio) no lleva punto y, seleccionado, usa el acento translúcido.
 - **`TarjetaResumen`** (Inicio): micro-punto de 6px del color base en cada chip de categoría.
+- **`DonaCategorias`** (Reportes): cada rebanada y su punto de leyenda usan `colorCategoria`. El centro y las separaciones usan `surfaceLow`, igual que la tarjeta: PieChart pinta el centro encima de las rebanadas, así que debe ser un token opaco.
 
 | Token | Valor | Uso |
 | --- | --- | --- |
