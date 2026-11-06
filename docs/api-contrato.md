@@ -1,25 +1,29 @@
-# Contrato de API — Billo (v1.1)
+# Contrato de API — Billo (v1.2)
 
 Estado: **esquema de BD congelado desde el 2026-10-13** (ver «Congelamiento del esquema»). Cualquier cambio al contrato o al esquema se acuerda con el equipo y se anota en el **Registro de cambios**.
 
 Cada sección indica en qué sprint se implementa: **S1** (Sprint 1), **S2** (Sprint 2), **S3** (Sprint 3).
 
-Este documento describe el comportamiento **acordado**. Donde el backend actual responde distinto, la diferencia se marca con **«Diferencia actual (se corrige en HU-18)»** (o **HU-17** para las validaciones de gastos); no se oculta ni se da por aprobada.
+Este documento describe el comportamiento **acordado**. Desde v1.2 las diferencias que marcaba v1.1 (HU-17 y HU-18) están corregidas en `develop` y se conservan como historial con la etiqueta «Diferencia histórica». Donde el backend actual responde distinto, la diferencia se marca con **«Diferencia actual»**; no se oculta ni se da por aprobada.
 
-## Estado de implementación (verificado el 2026-10-23)
+## Estado de implementación (verificado el 2026-11-05)
 
-Verificado con `curl` contra el backend de `develop` (commit `30707e5`), PostgreSQL local y una cuenta QA creada para la prueba.
+Verificado con `curl` contra el backend de `develop` (commit `ec43600`), PostgreSQL 16 local y una cuenta de prueba nueva. Las rutas de v1.1 que no cumplían (HU-17, HU-18) ya cumplen.
 
 | Ruta | Implementada | ¿Cumple el contrato? |
 |---|---|---|
-| `POST /auth/register` | Sí | No: cuerpo de éxito sin envoltura ni token; sin cuerpo → 500 |
-| `POST /auth/login` | Sí | Parcial: éxito correcto; sin cuerpo → 500; correo con mayúsculas al registrar no puede iniciar sesión |
-| `GET /auth/perfil` | No (404 HTML) | No: solo existe el alias `/auth/profile` |
-| `GET /auth/profile` (alias temporal) | Sí | Parcial: token inválido o vencido → `TOKEN_INVALIDO` |
-| `GET /categorias` | Sí | No: ignora `tipo` y no devuelve `tipo` ni `es_predefinida` |
-| `POST /gastos`, `PUT /gastos/:id` | Sí | Parcial: validación de monto y categoría más permisiva; sin cuerpo → 500 |
-| `GET /gastos`, `DELETE /gastos/:id` | Sí | Sí, salvo el código del 401 |
-| Presupuestos, catálogo, membresías, reportes, notificaciones (S2/S3) | No (404 HTML) | Pendiente de su sprint |
+| `POST /auth/register`, `POST /auth/login` | Sí | Sí (`{ usuario, token }`; correo sin distinguir mayúsculas). Detalle: el registro sin cuerpo responde `NOMBRE_REQUERIDO`, no `CAMPOS_REQUERIDOS` |
+| `GET /auth/perfil` | Sí | Sí |
+| `GET /categorias?tipo=gasto` | Sí | Sí (incluye `tipo` y `es_predefinida`) |
+| `POST/GET/PUT/DELETE /gastos` | Sí | Sí (validación de monto y categoría; JSON malformado → `JSON_INVALIDO`) |
+| `POST/GET/PUT/DELETE /presupuestos` y aviso `alerta` | Sí (S2) | Sí |
+| `GET /catalogo` | Sí (S2) | Sí |
+| `POST/PUT/DELETE /catalogo` | No (404 `RUTA_NO_ENCONTRADA`) | Pendiente de S3 (RF9) |
+| `POST/GET/PUT/DELETE /membresias` | Sí (S2) | Sí |
+| `GET /reportes/resumen`, `GET /reportes/por-categoria` | Sí (S2) | Sí |
+| `GET /tipo-cambio?moneda=USD` | Sí, **experimental** (spike HU-23) | Fuera de contrato: sin token y con otra ruta que la propuesta en X-01 (`/divisas/tipo-cambio`). Se normaliza en S3 (RF11) |
+| `POST /notificaciones/token` | No (404) | Pendiente de S3 (RF7) |
+| Token con `rol` y rutas de administración | No | Pendiente de S3 (RF9) |
 
 ## Convenciones
 
@@ -49,14 +53,14 @@ Errores que pueden aparecer en cualquier ruta:
 | 404 | `RUTA_NO_ENCONTRADA` | La ruta o el método no existen |
 | 500 | `ERROR_SERVIDOR` | Error inesperado del servidor |
 
-> **Diferencia actual (se corrige en HU-18):** un JSON malformado responde 400 y una ruta inexistente 404, pero ambos en **HTML** de Express (sin `error.code`; el 400 incluye la traza del servidor). `POST /auth/register` responde su 500 como `{ "error": "Error interno del servidor" }` (texto, sin `code`).
+> **Diferencia histórica (corregida en HU-18):** un JSON malformado responde 400 y una ruta inexistente 404, pero ambos en **HTML** de Express (sin `error.code`; el 400 incluye la traza del servidor). `POST /auth/register` responde su 500 como `{ "error": "Error interno del servidor" }` (texto, sin `code`).
 
 ### Errores de autenticación
 El 401 de cualquier ruta con token usa siempre `NO_AUTORIZADO`, sea por token ausente, con formato distinto a `Bearer <token>`, inválido o vencido. El `message` puede distinguir el caso.
 
 401 → { "error": { "code": "NO_AUTORIZADO", "message": "El token es inválido o ha expirado" } }
 
-> **Diferencia actual (se corrige en HU-18):** token ausente o sin `Bearer` → `NO_AUTORIZADO` (correcto); token inválido o vencido → `TOKEN_INVALIDO`.
+> **Diferencia histórica (corregida en HU-18):** token ausente o sin `Bearer` → `NO_AUTORIZADO` (correcto); token inválido o vencido → `TOKEN_INVALIDO`.
 
 ## Autenticación (S1)
 
@@ -70,7 +74,7 @@ Body: { "nombre": "Ana", "email": "ana@correo.com", "password": "Segura123" }
 
 Ejemplo 409 → { "error": { "code": "EMAIL_DUPLICADO", "message": "El correo ya está registrado" } }
 
-> **Diferencia actual (se corrige en HU-18):**
+> **Diferencia histórica (corregida en HU-18):**
 > - El 201 devuelve el usuario sin envoltura y sin token: `{ "id": 7, "nombre": "Ana", "email": "ana@correo.com" }`.
 > - Sin cuerpo responde 500 `{ "error": "Error interno del servidor" }`.
 > - El correo se guarda tal como llega; si tiene mayúsculas, el login (que busca en minúsculas) responde 401 `CREDENCIALES_INVALIDAS` con la contraseña correcta.
@@ -83,7 +87,7 @@ Body: { "email": "ana@correo.com", "password": "Segura123" }
 
 Ejemplo 401 → { "error": { "code": "CREDENCIALES_INVALIDAS", "message": "Correo o contraseña incorrectos" } }
 
-> **Diferencia actual (se corrige en HU-18):** sin cuerpo responde 500 `ERROR_SERVIDOR` en lugar de 400 `CAMPOS_REQUERIDOS`. El 200 ya cumple (el orden de las claves no importa).
+> **Diferencia histórica (corregida en HU-18):** sin cuerpo responde 500 `ERROR_SERVIDOR` en lugar de 400 `CAMPOS_REQUERIDOS`. El 200 ya cumple (el orden de las claves no importa).
 
 ### GET /auth/perfil  (requiere token)
 Ruta oficial. **Alias temporal:** `GET /auth/profile` responde igual mientras la app migra; se retira cuando la app use solo `/auth/perfil` (se anotará en el Registro de cambios).
@@ -93,7 +97,7 @@ Ruta oficial. **Alias temporal:** `GET /auth/profile` responde igual mientras la
 
 Ejemplo 401 → { "error": { "code": "NO_AUTORIZADO", "message": "Token no proporcionado o formato inválido" } }
 
-> **Diferencia actual (se corrige en HU-18):** `/auth/perfil` aún no existe y responde 404 HTML `Cannot GET /auth/perfil`; solo está `/auth/profile`, que responde el 200 de arriba. HU-18 agrega `/auth/perfil` y deja `/auth/profile` como alias. Token inválido o vencido → `TOKEN_INVALIDO` (ver «Errores de autenticación»).
+> **Diferencia histórica (corregida en HU-18):** `/auth/perfil` aún no existe y responde 404 HTML `Cannot GET /auth/perfil`; solo está `/auth/profile`, que responde el 200 de arriba. HU-18 agrega `/auth/perfil` y deja `/auth/profile` como alias. Token inválido o vencido → `TOKEN_INVALIDO` (ver «Errores de autenticación»).
 
 ## Categorías (S1)
 
@@ -104,7 +108,7 @@ Query opcional: `tipo` = `gasto` o `membresia`. Sin `tipo` devuelve todas.
 
 Lista inicial (cargada por migración o seed): Comida, Transporte, Entretenimiento, Servicios, Salud y Otros. Los `id` dependen del orden de carga: la app y las pruebas deben leerlos de esta ruta, no fijarlos.
 
-> **Diferencia actual (se corrige en HU-18):** responde 200 `[ { "id": 1, "nombre": "Entretenimiento" }, ... ]`, sin `tipo` ni `es_predefinida`; el parámetro `tipo` se ignora (también un valor inválido devuelve 200 con todas las categorías, en lugar de 400 `TIPO_INVALIDO`).
+> **Diferencia histórica (corregida en HU-18):** responde 200 `[ { "id": 1, "nombre": "Entretenimiento" }, ... ]`, sin `tipo` ni `es_predefinida`; el parámetro `tipo` se ignora (también un valor inválido devuelve 200 con todas las categorías, en lugar de 400 `TIPO_INVALIDO`).
 
 ## Gastos (todas requieren token) (S1)
 
@@ -117,7 +121,7 @@ Body: { "monto": 85.50, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago":
 
 Ejemplo 400 → { "error": { "code": "MONTO_INVALIDO", "message": "El monto debe ser un número mayor a 0" } }
 
-> **Diferencia actual (se corrige en HU-17):**
+> **Diferencia histórica (corregida en HU-17):**
 > - Acepta `monto` como cadena (`"80.50"`), con más de 2 decimales (`80.555` se guarda como `80.56`; `0.001` se guarda como `0`) y `categoria_id: true` (se toma como `1`). Ver BUG-RF2-01 a BUG-RF2-03.
 > - Sin cuerpo responde 500 `ERROR_SERVIDOR` (BUG-RF2-06).
 
@@ -136,7 +140,7 @@ Body: igual que POST (se reemplazan todos los campos)
 
 Ejemplo 404 → { "error": { "code": "GASTO_NO_ENCONTRADO", "message": "Gasto no encontrado" } }
 
-> **Diferencia actual (se corrige en HU-17):** las mismas de `POST /gastos` (validación de monto y categoría, y 500 sin cuerpo).
+> **Diferencia histórica (corregida en HU-17):** las mismas de `POST /gastos` (validación de monto y categoría, y 500 sin cuerpo).
 
 ### DELETE /gastos/:id
 - 200 → { "eliminado": true }
@@ -266,12 +270,12 @@ Son campos nuevos y opcionales (no rompen nada de lo existente). Se aplican en u
 
 | ID | Cambio | Para qué | Estado |
 |---|---|---|---|
-| C-01 | `usuarios.expo_push_token` (varchar, nulo) | Guardar el token de Expo del teléfono para enviar el aviso de cobro (RF7). | Propuesto |
-| C-02 | `membresias.ultima_notificacion` (date, nulo) | Evitar mandar el mismo aviso más de una vez por cobro (RF7). | Propuesto |
+| C-01 | `usuarios.expo_push_token` (varchar, nulo) | Guardar el token de Expo del teléfono para enviar el aviso de cobro (RF7). | Recomendado; pendiente de aprobar Oscar (ver `docs/decisiones-esquema-sprint3.md`) |
+| C-02 | `membresias.ultima_notificacion` (date, nulo) | Evitar mandar el mismo aviso más de una vez por cobro (RF7). | Recomendado; pendiente de aprobar Oscar |
 
-### Extensiones propuestas, fuera del congelamiento (por confirmar con el profesor y el equipo)
+### Extensiones propuestas, fuera del congelamiento
 
-Provienen de la ampliación del Canvas. No forman parte de v1.0.
+Provienen de la ampliación del Canvas. La HU-23 recomendó **IR** en RF11, RF12 y RF13 (RF13 condicionado). Solo X-01 cambia el esquema; la decisión está en `docs/decisiones-esquema-sprint3.md`.
 
 | ID | Requisito | Cambio en esquema | Cambio en API |
 |---|---|---|---|
@@ -302,3 +306,4 @@ Pendiente en la colección Postman (**HU-22**, Luis Dorian): agregar las asercio
 - 2026-09-30 — v0.1 — Primera versión (auth + gastos). Autor: Joshua.
 - 2026-10-13 — v1.0 — Se agregan convenciones (encabezado de token, formatos, rol), categorías, presupuestos con estados de alerta, catálogo de servicios, membresías, reportes (resumen y por categoría), registro de token push y modo exploración sin API. En gastos se explicitan `metodo_pago` y `nota` (ya existían en el esquema). Se congela el esquema de seis tablas. Se proponen C-01 y C-02 y se dejan X-01 a X-03 como extensiones. Autor: Joshua. Aprobación: pendiente de Fernando y Oscar.
 - 2026-10-23 — v1.1 — Alineación con el backend de S1 (HU-16), verificada con `curl` sobre `develop` (`30707e5`). Errores con `{ "error": { "code", "message" } }` en todos los ejemplos (antes `codigo/mensaje`); 500 con `ERROR_SERVIDOR` (antes `ERROR_INTERNO`); se agregan `JSON_INVALIDO` y `RUTA_NO_ENCONTRADA` para que todo error sea JSON. El 401 por token ausente, inválido o vencido usa siempre `NO_AUTORIZADO`. Registro y login devuelven `{ usuario, token }`. `GET /auth/perfil` queda como ruta oficial y `GET /auth/profile` como alias temporal; se documenta la respuesta real del perfil y su 404 `USUARIO_NO_ENCONTRADO`. Se agregan los códigos que el backend ya usa: `NOMBRE_REQUERIDO`, `CAMPOS_REQUERIDOS`, `NOTA_INVALIDA` y `CATEGORIA_INEXISTENTE` en el filtro de `GET /gastos`. Se definen el correo sin distinción de mayúsculas, el monto como número JSON y el cuerpo ausente como 400. Se añaden la tabla de estado de implementación, las diferencias actuales marcadas «se corrige en HU-18» (o HU-17 para validaciones de gastos) y la trazabilidad con los reportes QA (aserciones pendientes de Postman en HU-22). Sin cambios en el esquema ni en S2/S3. Autor: Joshua.
+- 2026-11-05 — v1.2 — Cierre del Sprint 2 (HU-41). Se actualiza la tabla de estado de implementación (verificada con `curl` sobre `develop` `ec43600`): presupuestos, catálogo (lectura), membresías y reportes quedan implementados y las diferencias de v1.1 (HU-17, HU-18) pasan a «históricas». Se documenta `GET /tipo-cambio` como experimental y fuera de contrato. C-01, C-02 y X-01 pasan a recomendados, a la espera de la aprobación de Oscar. Sin cambios en rutas ni en el esquema vigente. Autor: Joshua. Aprobación: pendiente de Oscar.
