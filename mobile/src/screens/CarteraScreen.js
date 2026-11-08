@@ -10,7 +10,12 @@ import {
   Text,
   View,
 } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+  useReducedMotion,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import BarraCategorias from '../components/BarraCategorias';
@@ -54,6 +59,11 @@ const PROXIMAMENTE = {
 
 // Fundido corto al cambiar de sección y al aparecer las filas.
 const APARECER = FadeIn.duration(180);
+// Botón píldora del encabezado: el texto entra con fundido, el ancho se ajusta con una transición
+// lineal y en "Próximamente" se va con fundido. Con "Reducir movimiento" no se anima.
+const TEXTO_BOTON = FadeIn.duration(180);
+const SALIR_BOTON = FadeOut.duration(150);
+const ANCHO_BOTON = LinearTransition.duration(220);
 
 // Parámetros opcionales (los manda el aviso de presupuesto, HU-35): `seccion`, `mes` y `solicitud`
 // (marca de tiempo para volver a aplicarlos aunque Cartera ya esté abierta).
@@ -62,6 +72,7 @@ export default function CarteraScreen({ navigation, route }) {
   const alturaNavbar = useAlturaNavbar();
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
+  const reducirMovimiento = useReducedMotion();
   const { listarPresupuestos, eliminarPresupuesto } = usePresupuestosService();
   const { listarMembresias, eliminarMembresia } = useMembresiasService();
 
@@ -221,6 +232,14 @@ export default function CarteraScreen({ navigation, route }) {
   const hayMembresias = listaMembresiasLista && membresias.length > 0;
   const proximaMembresia = hayMembresias ? membresias[0] : null;
 
+  // Acción del botón píldora según la sección; null en "Próximamente" (se oculta).
+  const accionEncabezado = enPresupuestos
+    ? { texto: 'Nuevo', etiqueta: 'Nuevo presupuesto', onPress: crearPresupuesto }
+    : enSuscripciones
+      ? { texto: 'Agregar', etiqueta: 'Agregar suscripción', onPress: crearMembresia }
+      : null;
+  const animar = (animacion) => (reducirMovimiento ? undefined : animacion);
+
   const subtituloCartera = enSuscripciones
     ? 'Gestión de cobros recurrentes'
     : 'Límites de gasto y control mensual';
@@ -236,19 +255,35 @@ export default function CarteraScreen({ navigation, route }) {
           <Text style={styles.subtitulo}>{subtituloCartera}</Text>
         </View>
 
-        {enSuscripciones && hayMembresias ? (
-          <Pressable
-            style={({ pressed }) => [
-              styles.botonAgregarTop,
-              pressed ? styles.botonAgregarTopPresionado : null,
-            ]}
-            onPress={crearMembresia}
-            accessibilityRole="button"
-            accessibilityLabel="Agregar suscripción"
+        {/* La píldora lleva el fondo y anima su ancho; el Pressable va dentro (el texto nuevo
+            entra con fundido gracias a `key`). */}
+        {accionEncabezado ? (
+          <Animated.View
+            entering={animar(TEXTO_BOTON)}
+            exiting={animar(SALIR_BOTON)}
+            layout={animar(ANCHO_BOTON)}
+            style={styles.botonAgregarTop}
           >
-            <MaterialCommunityIcons name="plus" size={17} color={colors.text} />
-            <Text style={styles.textoBotonAgregarTop}>Agregar</Text>
-          </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.botonAgregarContenido,
+                pressed ? styles.botonAgregarTopPresionado : null,
+              ]}
+              onPress={accionEncabezado.onPress}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel={accionEncabezado.etiqueta}
+            >
+              <MaterialCommunityIcons name="plus" size={17} color={colors.text} />
+              <Animated.Text
+                key={accionEncabezado.texto}
+                entering={animar(TEXTO_BOTON)}
+                style={styles.textoBotonAgregarTop}
+              >
+                {accionEncabezado.texto}
+              </Animated.Text>
+            </Pressable>
+          </Animated.View>
         ) : null}
       </View>
 
@@ -299,10 +334,6 @@ export default function CarteraScreen({ navigation, route }) {
                 </Text>
               ) : null}
             </View>
-          ) : null}
-
-          {hayPresupuestos ? (
-            <Boton titulo="Agregar presupuesto" icono="plus" onPress={crearPresupuesto} compacto />
           ) : null}
         </Animated.View>
       ) : null}
@@ -541,58 +572,57 @@ const crearEstilos = (colors) =>
       paddingHorizontal: 20,
     },
     encabezado: {
-      gap: 12,
-      paddingTop: 4,
-      marginBottom: 16,
+      gap: espacios.sm + 4,
+      paddingTop: espacios.xs,
+      marginBottom: espacios.md,
     },
     cabeceraBarra: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+      gap: espacios.sm + 4,
     },
     titulosColumna: {
       flex: 1,
     },
     titulo: {
-      fontFamily: fonts.sansBold,
-      fontSize: 28,
-      lineHeight: 34,
-      letterSpacing: -0.56,
+      ...tipografia.headlineLg,
       color: colors.text,
     },
     subtitulo: {
-      fontFamily: fonts.sans,
-      fontSize: 13,
-      lineHeight: 18,
+      ...tipografia.bodyMd,
       color: colors.textSecondary,
       marginTop: 2,
     },
+    // Píldora "+ Agregar" de Stitch: fondo, borde y radio; overflow oculto para que el texto no se
+    // salga mientras el ancho se anima.
     botonAgregarTop: {
+      borderRadius: radios.full,
+      backgroundColor: colors.surfaceHigh,
+      borderWidth: 1,
+      borderColor: colors.borderTopStrong,
+      overflow: 'hidden',
+    },
+    botonAgregarContenido: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
       paddingHorizontal: 14,
       paddingVertical: 7,
-      borderRadius: 9999,
-      backgroundColor: colors.surfaceHigh,
-      borderWidth: 1,
-      borderColor: colors.borderTopStrong,
     },
     botonAgregarTopPresionado: {
-      opacity: 0.8,
       backgroundColor: colors.surfaceHighest,
     },
     textoBotonAgregarTop: {
-      fontFamily: fonts.sansMedium,
+      ...tipografia.labelPill,
       fontSize: 13,
       color: colors.text,
-      letterSpacing: -0.1,
     },
     selectorSecciones: {
-      marginTop: 4,
+      marginTop: espacios.xs,
     },
     seccionPresupuestos: {
-      gap: 12,
+      gap: espacios.sm + 4,
     },
     seccionSuscripciones: {
       gap: espacios.md,
