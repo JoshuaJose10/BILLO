@@ -318,6 +318,17 @@ export const temas = {
 };
 
 // Radios del export (Tailwind: DEFAULT 4, lg 8, xl 12, 2xl 16, 3xl 24, full).
+// Espaciado de Obsidian Luminescence (DESIGN.md, `spacing`): space-xs…xl y el margen lateral de
+// las pantallas (px-margin, 20). Igual en ambos temas.
+export const espacios = {
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  margen: 20,
+};
+
 export const radios = {
   sm: 4,
   lg: 8,
