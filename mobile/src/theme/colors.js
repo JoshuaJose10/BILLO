@@ -146,6 +146,11 @@ export const temas = {
     exito: '#10B981', // en meta / ingresos
     exitoSuave: 'rgba(16, 185, 129, 0.15)',
     exitoTexto: '#10B981', // texto de estado sobre exitoSuave (pastilla "En meta")
+    // Cobro de membresía en 3 días o menos (Cartera, HU-05): punto, pastilla y borde de tarjeta
+    cobroProximo: '#34C77B',
+    cobroProximoSuave: 'rgba(52, 199, 123, 0.12)',
+    cobroProximoBorde: 'rgba(52, 199, 123, 0.4)',
+    cobroProximoBordeTarjeta: 'rgba(52, 199, 123, 0.35)',
     aviso: '#FF9F0A', // cerca del límite
     avisoSuave: 'rgba(255, 159, 10, 0.15)',
     avisoTexto: '#FF9F0A', // aviso como texto (porcentaje de Inicio, pastilla "Cerca del límite")
@@ -289,6 +294,11 @@ export const temas = {
     exito: '#22A866',
     exitoSuave: 'rgba(34, 168, 102, 0.12)',
     exitoTexto: '#137343', // >= 4.5:1 sobre exitoSuave (exito da 2.54)
+    // Cobro de membresía en 3 días o menos (Cartera, HU-05): punto, pastilla y borde de tarjeta
+    cobroProximo: '#34C77B',
+    cobroProximoSuave: 'rgba(52, 199, 123, 0.12)',
+    cobroProximoBorde: 'rgba(52, 199, 123, 0.4)',
+    cobroProximoBordeTarjeta: 'rgba(52, 199, 123, 0.35)',
     aviso: '#D97706',
     avisoSuave: 'rgba(217, 119, 6, 0.12)',
     avisoTexto: '#A3470A', // >= 4.5:1 sobre avisoSuave y sobre blanco (aviso da 3.19)

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test, { describe } from 'node:test';
 
+import { coloresServicio } from '../theme/servicios.js';
+
 import {
   calcularTotalMensual,
   esCobroProximo,
@@ -69,14 +71,14 @@ describe('utils/membresias', () => {
 
   describe('estiloServicio', () => {
     test('asigna color e icono específico a servicios conocidos', () => {
-      assert.equal(estiloServicio('Netflix').color, '#E50914');
-      assert.equal(estiloServicio('Spotify Individual').color, '#1DB954');
-      assert.equal(estiloServicio('YouTube Premium').color, '#FF0000');
+      assert.equal(estiloServicio('Netflix').color, coloresServicio.netflix);
+      assert.equal(estiloServicio('Spotify Individual').color, coloresServicio.spotify);
+      assert.equal(estiloServicio('YouTube Premium').color, coloresServicio.youtube);
     });
 
     test('usa valores por defecto para nombres desconocidos', () => {
       const def = estiloServicio('Gimnasio Municipal');
-      assert.equal(def.color, '#8B5CF6');
+      assert.equal(def.color, coloresServicio.defecto);
       assert.equal(def.icono, 'calendar-sync');
     });
   });
