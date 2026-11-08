@@ -1,5 +1,5 @@
 -- Esquema de base de datos de BILLO
--- Resultado consolidado de las migraciones (001 a 010)
+-- Resultado consolidado de las migraciones (001 a 011)
 -- Fuente de verdad para cambios de esquema: backend/migrations/
 
 CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -8,12 +8,13 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 );
 
 CREATE TABLE IF NOT EXISTS usuarios (
-  id            SERIAL PRIMARY KEY,
-  nombre        VARCHAR(255),
-  email         VARCHAR(255) NOT NULL UNIQUE,
-  password_hash VARCHAR(255) NOT NULL,
-  rol           VARCHAR(20) DEFAULT 'usuario' CHECK (rol IN ('usuario', 'admin')),
-  created_at    TIMESTAMP DEFAULT NOW()
+  id              SERIAL PRIMARY KEY,
+  nombre          VARCHAR(255),
+  email           VARCHAR(255) NOT NULL UNIQUE,
+  password_hash   VARCHAR(255) NOT NULL,
+  rol             VARCHAR(20) DEFAULT 'usuario' CHECK (rol IN ('usuario', 'admin')),
+  expo_push_token VARCHAR(255) NULL,
+  created_at      TIMESTAMP DEFAULT NOW()
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_usuarios_email_lower
@@ -27,14 +28,17 @@ CREATE TABLE IF NOT EXISTS categorias (
 );
 
 CREATE TABLE IF NOT EXISTS gastos (
-  id           SERIAL PRIMARY KEY,
-  usuario_id   INTEGER REFERENCES usuarios(id),
-  categoria_id INTEGER REFERENCES categorias(id),
-  monto        NUMERIC(12, 2) CHECK (monto > 0),
-  fecha        DATE,
-  metodo_pago  VARCHAR(50),
-  nota         VARCHAR(255),
-  created_at   TIMESTAMP DEFAULT NOW()
+  id             SERIAL PRIMARY KEY,
+  usuario_id     INTEGER REFERENCES usuarios(id),
+  categoria_id   INTEGER REFERENCES categorias(id),
+  monto          NUMERIC(12, 2) CHECK (monto > 0),
+  moneda         VARCHAR(3) NOT NULL DEFAULT 'MXN',
+  monto_original NUMERIC(12, 2) NULL CHECK (monto_original > 0),
+  tipo_cambio    NUMERIC(12, 6) NULL CHECK (tipo_cambio > 0),
+  fecha          DATE,
+  metodo_pago    VARCHAR(50),
+  nota           VARCHAR(255),
+  created_at     TIMESTAMP DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_gastos_usuario_fecha
@@ -57,13 +61,14 @@ CREATE TABLE IF NOT EXISTS catalogo_servicios (
 );
 
 CREATE TABLE IF NOT EXISTS membresias (
-  id          SERIAL PRIMARY KEY,
-  usuario_id  INTEGER NOT NULL REFERENCES usuarios(id),
-  servicio_id INTEGER NULL REFERENCES catalogo_servicios(id),
-  nombre      VARCHAR(255) NOT NULL,
-  costo       NUMERIC(12, 2) NOT NULL CHECK (costo > 0),
-  frecuencia  VARCHAR(20) NOT NULL CHECK (frecuencia IN ('mensual', 'anual')),
-  fecha_cobro DATE NOT NULL
+  id                  SERIAL PRIMARY KEY,
+  usuario_id          INTEGER NOT NULL REFERENCES usuarios(id),
+  servicio_id         INTEGER NULL REFERENCES catalogo_servicios(id),
+  nombre              VARCHAR(255) NOT NULL,
+  costo               NUMERIC(12, 2) NOT NULL CHECK (costo > 0),
+  frecuencia          VARCHAR(20) NOT NULL CHECK (frecuencia IN ('mensual', 'anual')),
+  fecha_cobro         DATE NOT NULL,
+  ultima_notificacion DATE NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_membresias_usuario_fecha_cobro
