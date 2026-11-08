@@ -246,14 +246,12 @@ export default function CarteraScreen({ navigation, route }) {
 
   const encabezado = (
     <View style={styles.encabezado}>
-      {/* Header con título y botón de agregar */}
+      {/* Fila 1: título y botón, centrados en una fila de alto fijo (el del título), así el
+          botón no se mueve al cambiar el subtítulo ni al ocultarse en "Próximamente". */}
       <View style={styles.cabeceraBarra}>
-        <View style={styles.titulosColumna}>
-          <Text style={styles.titulo} accessibilityRole="header">
-            Cartera
-          </Text>
-          <Text style={styles.subtitulo}>{subtituloCartera}</Text>
-        </View>
+        <Text style={styles.titulo} accessibilityRole="header">
+          Cartera
+        </Text>
 
         {/* La píldora lleva el fondo y anima su ancho; el Pressable va dentro (el texto nuevo
             entra con fundido gracias a `key`). */}
@@ -285,6 +283,18 @@ export default function CarteraScreen({ navigation, route }) {
             </Pressable>
           </Animated.View>
         ) : null}
+      </View>
+
+      {/* Fila 2: subtítulo a todo el ancho, una línea y alto fijo; cambia con fundido corto. */}
+      <View style={styles.filaSubtitulo}>
+        <Animated.Text
+          key={subtituloCartera}
+          entering={animar(TEXTO_BOTON)}
+          style={styles.subtitulo}
+          numberOfLines={1}
+        >
+          {subtituloCartera}
+        </Animated.Text>
       </View>
 
       <SelectorSegmentado
@@ -576,23 +586,28 @@ const crearEstilos = (colors) =>
       paddingTop: espacios.xs,
       marginBottom: espacios.md,
     },
+    // Alto fijo = lineHeight del título; el botón (~33 px) se centra dentro.
     cabeceraBarra: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: espacios.sm + 4,
-    },
-    titulosColumna: {
-      flex: 1,
+      height: tipografia.headlineLg.lineHeight,
     },
     titulo: {
       ...tipografia.headlineLg,
+      flexShrink: 1,
       color: colors.text,
+    },
+    // El encabezado separa sus filas con gap 12; el subtítulo va pegado al título (2 px).
+    filaSubtitulo: {
+      height: tipografia.bodyMd.lineHeight,
+      marginTop: -(espacios.sm + 2),
+      justifyContent: 'center',
     },
     subtitulo: {
       ...tipografia.bodyMd,
       color: colors.textSecondary,
-      marginTop: 2,
     },
     // Píldora "+ Agregar" de Stitch: fondo, borde y radio; overflow oculto para que el texto no se
     // salga mientras el ancho se anima.
