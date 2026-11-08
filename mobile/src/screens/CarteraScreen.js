@@ -26,13 +26,14 @@ import SelectorSegmentado from '../components/SelectorSegmentado';
 import TarjetaPresupuesto from '../components/TarjetaPresupuesto';
 import { useMembresiasService } from '../services/membresias';
 import { usePresupuestosService } from '../services/presupuestos';
-import { radios } from '../theme/colors';
+import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
+import { tipografia } from '../theme/tipografia';
 import { mensajeError } from '../utils/errores';
 import { mesActual } from '../utils/fechas';
 import { formatearMonto, nombreMes } from '../utils/formato';
-import { calcularTotalMensual, formatearDiaMes } from '../utils/membresias';
+import { calcularTotalMensual, formatearDiaMes, tramosSuscripciones } from '../utils/membresias';
 import { gastoPorCategoriaDePresupuestos, resumenPresupuestos } from '../utils/presupuestos';
 import { etiquetaBarraMes, nivelPorcentaje, resumenGastoMes } from '../utils/resumenMes';
 
@@ -215,6 +216,7 @@ export default function CarteraScreen({ navigation, route }) {
 
   // Resumen de Suscripciones
   const totalMensualSuscripciones = useMemo(() => calcularTotalMensual(membresias), [membresias]);
+  const tramosSubs = useMemo(() => tramosSuscripciones(membresias), [membresias]);
   const listaMembresiasLista = estadoMembresias === 'listo';
   const hayMembresias = listaMembresiasLista && membresias.length > 0;
   const proximaMembresia = hayMembresias ? membresias[0] : null;
@@ -317,20 +319,36 @@ export default function CarteraScreen({ navigation, route }) {
               </View>
             </View>
 
-            <View style={styles.resumenMontos}>
+            <View style={styles.resumenMontosSubs}>
               <Text style={styles.resumenTotalSubs} numberOfLines={1} adjustsFontSizeToFit>
                 {formatearMonto(totalMensualSuscripciones)}
               </Text>
               <Text style={styles.resumenMonedaSubs}>MXN / mes</Text>
             </View>
 
-            <Text style={styles.resumenDetalleSubs}>
-              {membresias.length}{' '}
-              {membresias.length === 1 ? 'suscripción activa' : 'suscripciones activas'}
-              {proximaMembresia
-                ? ` · Próximo cobro el ${formatearDiaMes(proximaMembresia.fecha_cobro)}`
-                : ''}
-            </Text>
+            {tramosSubs.length > 0 ? (
+              <BarraCategorias
+                tramos={tramosSubs}
+                etiqueta={`Reparto del total mensual: ${tramosSubs.map((t) => t.nombre).join(', ')}`}
+              />
+            ) : null}
+
+            <View style={styles.resumenDetalleFila}>
+              <MaterialCommunityIcons
+                name="calendar-blank-outline"
+                size={14}
+                color={colors.textSecondary}
+              />
+              <Text style={styles.resumenDetalleSubs} numberOfLines={2}>
+                <Text style={styles.resumenDetalleFuerte}>
+                  {membresias.length}{' '}
+                  {membresias.length === 1 ? 'suscripción activa' : 'suscripciones activas'}
+                </Text>
+                {proximaMembresia
+                  ? ` · Próximo cobro el ${formatearDiaMes(proximaMembresia.fecha_cobro)}`
+                  : ''}
+              </Text>
+            </View>
           </View>
 
           <View style={styles.cabeceraListaSubs}>
@@ -577,11 +595,12 @@ const crearEstilos = (colors) =>
       gap: 12,
     },
     seccionSuscripciones: {
-      gap: 14,
-      marginTop: 4,
+      gap: espacios.md,
+      marginTop: espacios.xs,
     },
+    // Misma tarjeta que el resumen de Movimientos (fondo, brillo superior, radio y sombra)
     tarjetaResumenSubs: {
-      padding: 16,
+      padding: espacios.md,
       borderRadius: radios.xl,
       borderTopWidth: 1,
       borderTopColor: colors.borderTop,
@@ -591,7 +610,7 @@ const crearEstilos = (colors) =>
       shadowRadius: 12,
       shadowOpacity: 0.5,
       elevation: 6,
-      gap: 6,
+      gap: espacios.sm + 4,
     },
     pildoraMesActual: {
       flexDirection: 'row',
@@ -611,41 +630,47 @@ const crearEstilos = (colors) =>
       backgroundColor: colors.cobroProximo,
     },
     textoMesActual: {
-      fontFamily: fonts.monoMedium,
+      ...tipografia.labelCaps,
       fontSize: 10,
-      letterSpacing: 0.8,
       color: colors.textSecondary,
     },
+    resumenMontosSubs: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: espacios.sm,
+    },
     resumenTotalSubs: {
-      fontFamily: fonts.monoSemiBold,
-      fontSize: 32,
-      lineHeight: 38,
-      letterSpacing: -0.64,
+      ...tipografia.financialMetricLg,
+      flexShrink: 1,
       color: colors.text,
     },
     resumenMonedaSubs: {
-      fontFamily: fonts.sans,
-      fontSize: 14,
+      ...tipografia.bodyMd,
       color: colors.textSecondary,
-      marginLeft: 6,
+    },
+    resumenDetalleFila: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
     },
     resumenDetalleSubs: {
-      fontFamily: fonts.sans,
-      fontSize: 12,
+      ...tipografia.bodySm,
+      flex: 1,
       color: colors.textSecondary,
-      marginTop: 4,
+    },
+    resumenDetalleFuerte: {
+      fontFamily: fonts.sansSemiBold,
+      color: colors.text,
     },
     cabeceraListaSubs: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: 2,
-      paddingTop: 4,
+      paddingTop: espacios.xs,
     },
     contadorServicios: {
-      fontFamily: fonts.monoMedium,
-      fontSize: 11,
-      letterSpacing: 0.6,
+      ...tipografia.labelCaps,
       color: colors.textVariant,
     },
     resumen: {

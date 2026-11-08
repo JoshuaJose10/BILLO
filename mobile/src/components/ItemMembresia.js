@@ -1,89 +1,62 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { radios } from '../theme/colors';
+import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
+import { tipografia } from '../theme/tipografia';
 import { formatearMonto } from '../utils/formato';
-import { esCobroProximo, estiloServicio, textoCobro } from '../utils/membresias';
+import { estiloServicio, inicialServicio, nivelCobro, textoCobro } from '../utils/membresias';
 
-// Componente para una tarjeta de membresía / suscripción en Cartera (HU-05)
-// Siguiendo el diseño de Stitch (13_cartera_subs_oscuro_brillo / 13_cartera_subs_claro_brillo).
+// Tarjeta de una membresía / suscripción en Cartera (HU-05; diseño HU-81, Stitch
+// 13_cartera_subs_oscuro_brillo / _claro_brillo): logo en squircle del color de marca (o la
+// inicial si el servicio no tiene ícono propio), nombre, plan, precio "/ mes" en mono y la pastilla
+// "Cobra en N días (D mmm)" con un punto: verde si faltan más de 3 días, ámbar si 3 o menos.
 // `opaca`: fondo sólido para permitir swipe con FilaDeslizable sin transparencia.
 export default function ItemMembresia({ membresia, opaca = false }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
   const { nombre, costo, frecuencia, fecha_cobro, dias_para_cobro } = membresia;
-  const { color: colorMarca, icono } = estiloServicio(nombre);
-  const esProximo = esCobroProximo(dias_para_cobro);
-  const textoFrecuencia = frecuencia === 'anual' ? '/ año' : '/ mes';
-  const etiquetaFrecuencia = frecuencia === 'anual' ? 'Anual' : 'Mensual';
+  const { color: colorMarca, icono, predefinido } = estiloServicio(nombre);
+  const nivel = nivelCobro(dias_para_cobro);
+  const colorPunto =
+    nivel === 'aviso' ? colors.aviso : nivel === 'exito' ? colors.exito : colors.outline;
+  const anual = frecuencia === 'anual';
 
   return (
-    <View
-      style={[
-        styles.tarjeta,
-        opaca ? styles.tarjetaOpaca : null,
-        esProximo ? styles.tarjetaProxima : null,
-      ]}
-    >
-      {/* Fila superior: Logo + Nombre + Costo */}
+    <View style={[styles.tarjeta, opaca ? styles.tarjetaOpaca : null]}>
       <View style={styles.filaSuperior}>
-        <View style={styles.infoServicio}>
-          <View
-            style={[
-              styles.squircle,
-              {
-                backgroundColor: colorMarca,
-                shadowColor: colorMarca,
-              },
-            ]}
-          >
+        <View style={[styles.squircle, { backgroundColor: colorMarca, shadowColor: colorMarca }]}>
+          {predefinido ? (
             <MaterialCommunityIcons name={icono} size={22} color={colors.textoSobreColor} />
-          </View>
-          <View style={styles.textos}>
-            <Text style={styles.nombre} numberOfLines={1}>
-              {nombre}
-            </Text>
-            <Text style={styles.frecuenciaSubtitulo} numberOfLines={1}>
-              Suscripción {etiquetaFrecuencia.toLowerCase()}
-            </Text>
-          </View>
+          ) : (
+            <Text style={styles.inicial}>{inicialServicio(nombre)}</Text>
+          )}
         </View>
-
-        <View style={styles.montoContenedor}>
+        <View style={styles.textos}>
+          <Text style={styles.nombre} numberOfLines={1}>
+            {nombre}
+          </Text>
+          <Text style={styles.plan} numberOfLines={1}>
+            {anual ? 'Plan anual' : 'Plan mensual'}
+          </Text>
+        </View>
+        <Text style={styles.montoContenedor} numberOfLines={1}>
           <Text style={styles.monto}>{formatearMonto(costo)}</Text>
-          <Text style={styles.sufijoFrecuencia}>{textoFrecuencia}</Text>
-        </View>
+          <Text style={styles.sufijo}>{anual ? ' / año' : ' / mes'}</Text>
+        </Text>
       </View>
 
-      {/* Fila inferior: Píldora de cobro relativo (resaltada en <= 3 días) */}
       <View style={styles.filaInferior}>
-        <View
-          style={[
-            styles.pildoraCobro,
-            esProximo ? styles.pildoraCobroProximo : styles.pildoraCobroNormal,
-          ]}
-        >
-          {esProximo ? (
-            <View style={styles.puntoVerde} />
-          ) : (
-            <MaterialCommunityIcons name="clock-outline" size={13} color={colors.textSecondary} />
-          )}
+        <View style={[styles.pildora, nivel === 'aviso' ? styles.pildoraAviso : null]}>
+          <View style={[styles.punto, { backgroundColor: colorPunto }]} />
           <Text
-            style={[
-              styles.textoCobro,
-              esProximo ? styles.textoCobroProximo : styles.textoCobroNormal,
-            ]}
+            style={[styles.textoCobro, nivel === 'aviso' ? styles.textoCobroAviso : null]}
             numberOfLines={1}
           >
             {textoCobro(dias_para_cobro, fecha_cobro)}
           </Text>
-        </View>
-
-        <View style={styles.pildoraMetodo}>
-          <Text style={styles.textoFrecuenciaPill}>{etiquetaFrecuencia}</Text>
         </View>
       </View>
     </View>
@@ -92,38 +65,28 @@ export default function ItemMembresia({ membresia, opaca = false }) {
 
 const crearEstilos = (colors) =>
   StyleSheet.create({
+    // rounded-2xl p-4 con borde sutil y brillo superior, como las tarjetas de Inicio
     tarjeta: {
       borderRadius: radios['2xl'],
-      padding: 16,
+      padding: espacios.md,
       backgroundColor: colors.surfaceLow,
       borderWidth: 1,
       borderColor: colors.border,
       borderTopColor: colors.borderTop,
-      gap: 12,
+      gap: espacios.sm + 4,
     },
     tarjetaOpaca: {
       backgroundColor: colors.card,
     },
-    // Resaltado sutil en el borde cuando cobra en 3 días o menos
-    tarjetaProxima: {
-      borderColor: colors.cobroProximoBordeTarjeta,
-    },
     filaSuperior: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 12,
-    },
-    infoServicio: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      flex: 1,
+      gap: espacios.sm + 4,
     },
     squircle: {
       width: 40,
       height: 40,
-      borderRadius: 12,
+      borderRadius: radios.xl,
       alignItems: 'center',
       justifyContent: 'center',
       shadowOffset: { width: 0, height: 4 },
@@ -131,95 +94,68 @@ const crearEstilos = (colors) =>
       shadowOpacity: 0.35,
       elevation: 4,
     },
+    inicial: {
+      ...tipografia.headlineSm,
+      color: colors.textoSobreColor,
+    },
     textos: {
       flex: 1,
     },
     nombre: {
+      ...tipografia.bodyLg,
       fontFamily: fonts.sansSemiBold,
-      fontSize: 16,
-      lineHeight: 22,
       color: colors.text,
-      letterSpacing: -0.2,
     },
-    frecuenciaSubtitulo: {
-      fontFamily: fonts.sans,
-      fontSize: 12,
-      lineHeight: 16,
+    plan: {
+      ...tipografia.bodySm,
       color: colors.textSecondary,
-      marginTop: 2,
     },
     montoContenedor: {
-      flexDirection: 'row',
-      alignItems: 'baseline',
-      gap: 3,
       flexShrink: 0,
     },
     monto: {
-      fontFamily: fonts.monoSemiBold,
-      fontSize: 16,
-      lineHeight: 20,
+      ...tipografia.financialMetricMd,
       color: colors.text,
     },
-    sufijoFrecuencia: {
-      fontFamily: fonts.sans,
-      fontSize: 11,
+    sufijo: {
+      ...tipografia.bodySm,
       color: colors.textSecondary,
     },
+    // Separador fino y la pastilla de cobro a la izquierda
     filaInferior: {
       flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 8,
-      paddingTop: 4,
+      paddingTop: espacios.sm + 4,
       borderTopWidth: 1,
       borderTopColor: colors.border,
     },
-    pildoraCobro: {
+    pildora: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
       paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 9999,
+      paddingVertical: espacios.xs,
+      borderRadius: radios.full,
+      backgroundColor: colors.glass05,
       borderWidth: 1,
       borderColor: colors.borderStrong,
     },
-    pildoraCobroNormal: {
-      backgroundColor: colors.glass05,
+    pildoraAviso: {
+      backgroundColor: colors.avisoSuave,
     },
-    pildoraCobroProximo: {
-      backgroundColor: colors.cobroProximoSuave,
-      borderColor: colors.cobroProximoBorde,
-    },
-    puntoVerde: {
+    punto: {
       width: 6,
       height: 6,
-      borderRadius: 3,
-      backgroundColor: colors.cobroProximo,
+      borderRadius: radios.full,
     },
+    // label-caps sin mayúsculas ni tracking: "Cobra en 9 días (17 oct)"
     textoCobro: {
-      fontFamily: fonts.monoMedium,
-      fontSize: 11,
-      lineHeight: 15,
-    },
-    textoCobroNormal: {
+      ...tipografia.labelCaps,
+      textTransform: 'none',
+      letterSpacing: 0,
       color: colors.textSecondary,
     },
-    textoCobroProximo: {
-      color: colors.text,
+    textoCobroAviso: {
       fontFamily: fonts.monoSemiBold,
-    },
-    pildoraMetodo: {
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 9999,
-      backgroundColor: colors.glass05,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    textoFrecuenciaPill: {
-      fontFamily: fonts.monoMedium,
-      fontSize: 11,
-      color: colors.textSecondary,
+      color: colors.text,
     },
   });

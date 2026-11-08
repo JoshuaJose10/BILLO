@@ -9,32 +9,45 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 
 import Boton from '../components/Boton';
 import ChipSelector from '../components/ChipSelector';
-import Etiqueta from '../components/Etiqueta';
 import HojaInferior from '../components/HojaInferior';
-import Input from '../components/Input';
-import SelectorSegmentado from '../components/SelectorSegmentado';
+import MontoGrande from '../components/MontoGrande';
+import PanelHoja from '../components/PanelHoja';
+import TecladoNumerico from '../components/TecladoNumerico';
 import { useMembresiasService } from '../services/membresias';
-import { radios } from '../theme/colors';
+import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
+import { tipografia } from '../theme/tipografia';
 import { mensajeError } from '../utils/errores';
-import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
-import { formatearMonto } from '../utils/formato';
 import { vistaLista } from '../utils/estadoCarga';
-import { estiloServicio, inicialServicio, validarMembresia } from '../utils/membresias';
+import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
+import { formatearMontoCorto, LOCALE, resumirTexto } from '../utils/formato';
+import {
+  estiloServicio,
+  formatearDiaMes,
+  inicialServicio,
+  validarMembresia,
+} from '../utils/membresias';
+import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
 
 const OPCIONES_FRECUENCIA = [
-  { valor: 'mensual', etiqueta: 'Mensual' },
-  { valor: 'anual', etiqueta: 'Anual' },
+  { valor: 'mensual', etiqueta: 'Mensual', icono: 'calendar-month-outline' },
+  { valor: 'anual', etiqueta: 'Anual', icono: 'calendar-range-outline' },
 ];
 
-// Hoja modal para agregar o editar una membresía / suscripción (RF5)
-// Soporta seleccionar desde el catálogo de servicios (con costo sugerido) o crear personalizada.
+// Límite de la columna membresias.nombre (VARCHAR(255)).
+const NOMBRE_MAX = 255;
+
+// Hoja para agregar o editar una membresía / suscripción (RF5). Mismo esquema que Nuevo gasto
+// (HU-81): chips de nombre, frecuencia y fecha arriba, el costo con MontoGrande y el teclado
+// numérico, y (al agregar) el catálogo de servicios en la fila donde Nuevo gasto pone las
+// categorías: elegir uno llena nombre, costo sugerido y servicio_id.
 export default function MembresiaScreen({ navigation, route }) {
   const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
@@ -45,14 +58,15 @@ export default function MembresiaScreen({ navigation, route }) {
   const editando = Boolean(membresiaEditada);
 
   const [nombre, setNombre] = useState(() => membresiaEditada?.nombre ?? '');
-  const [costo, setCosto] = useState(() =>
-    membresiaEditada?.costo !== undefined ? String(membresiaEditada.costo) : '',
+  const [texto, setTexto] = useState(() =>
+    editando ? textoDesdeMonto(membresiaEditada.costo) : '',
   );
   const [frecuencia, setFrecuencia] = useState(() => membresiaEditada?.frecuencia ?? 'mensual');
   const [fecha, setFecha] = useState(() =>
     membresiaEditada?.fecha_cobro ? parsearFechaLocal(membresiaEditada.fecha_cobro) : new Date(),
   );
   const [servicioId, setServicioId] = useState(() => membresiaEditada?.servicio_id ?? null);
+  const [panel, setPanel] = useState(null); // 'nombre' | 'frecuencia' | 'fecha'
 
   // Catálogo (solo al agregar): 'cargando' | 'listo' | 'error'. Un error ya no se traga en
   // silencio: se muestra con Reintentar, y una lista vacía dice que no hay servicios (HU-80).
@@ -60,7 +74,6 @@ export default function MembresiaScreen({ navigation, route }) {
   const [estadoCatalogo, setEstadoCatalogo] = useState('cargando');
   const [errorCatalogo, setErrorCatalogo] = useState('');
   const [intentoCatalogo, setIntentoCatalogo] = useState(0);
-  const [mostrarPickerIos, setMostrarPickerIos] = useState(false);
 
   const [errores, setErrores] = useState({});
   const [errorApi, setErrorApi] = useState('');
@@ -99,22 +112,30 @@ export default function MembresiaScreen({ navigation, route }) {
 
   const vistaCatalogo = vistaLista(estadoCatalogo, catalogo);
 
-  const limpiarError = (campo) => {
-    if (errores[campo]) {
-      setErrores((prev) => ({ ...prev, [campo]: undefined }));
+  const limpiarError = (...campos) => {
+    if (campos.some((c) => errores[c])) {
+      setErrores((prev) => {
+        const siguiente = { ...prev };
+        campos.forEach((c) => delete siguiente[c]);
+        return siguiente;
+      });
     }
     if (errorApi) setErrorApi('');
+  };
+
+  const alPulsarTecla = (tecla) => {
+    setTexto((actual) => aplicarTecla(actual, tecla));
+    limpiarError('costo');
   };
 
   const seleccionarDelCatalogo = (item) => {
     setServicioId(item.id);
     setNombre(item.nombre);
-    setCosto(String(item.costo_sugerido));
-    limpiarError('nombre');
-    limpiarError('costo');
+    setTexto(textoDesdeMonto(item.costo_sugerido));
+    limpiarError('nombre', 'costo');
   };
 
-  const abrirDatePicker = () => {
+  const abrirFecha = () => {
     if (Platform.OS === 'android') {
       DateTimePickerAndroid.open({
         value: fecha,
@@ -122,17 +143,18 @@ export default function MembresiaScreen({ navigation, route }) {
         onValueChange: (_evento, nueva) => setFecha(nueva),
       });
     } else {
-      setMostrarPickerIos((v) => !v);
+      setPanel('fecha');
     }
   };
 
   const guardar = async () => {
     if (enviando.current) return;
 
+    // El teclado deja textos como "12." o "": se validan como número (igual que Nuevo gasto).
     const fechaCobroISO = fechaLocalISO(fecha);
     const validacion = validarMembresia({
       nombre,
-      costoTexto: costo,
+      costoTexto: String(montoDesdeTexto(texto)),
       fechaCobro: fechaCobroISO,
     });
 
@@ -194,6 +216,12 @@ export default function MembresiaScreen({ navigation, route }) {
     ]);
   };
 
+  const frecuenciaActual =
+    OPCIONES_FRECUENCIA.find((f) => f.valor === frecuencia) || OPCIONES_FRECUENCIA[0];
+  const fechaTexto = `Cobro ${formatearDiaMes(fechaLocalISO(fecha))}`;
+  const nombreTexto = nombre.trim() ? resumirTexto(nombre) : 'Nombre';
+  const errorFormulario = errores.nombre || errores.fecha;
+
   return (
     <HojaInferior
       ref={hojaRef}
@@ -203,291 +231,333 @@ export default function MembresiaScreen({ navigation, route }) {
       bloqueada={ocupado}
     >
       <ScrollView
-        contentContainerStyle={styles.formulario}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filaScroll}
+        contentContainerStyle={styles.filaChips}
       >
-        {/* Catálogo de sugerencias (solo en modo agregar) */}
-        {!editando ? (
-          <View style={styles.seccionCatalogo}>
-            <Etiqueta style={styles.etiquetaCatalogo}>Elegir del catálogo</Etiqueta>
-            {vistaCatalogo === 'cargando' ? (
-              <View style={styles.estadoCatalogo}>
-                <ActivityIndicator size="small" color={colors.textSecondary} />
-                <Text style={styles.textoEstado}>Cargando catálogo…</Text>
-              </View>
-            ) : vistaCatalogo === 'error' ? (
-              <View style={styles.estadoCatalogo}>
-                <Text style={[styles.textoEstado, styles.textoEstadoFlexible]}>
-                  {errorCatalogo}
-                </Text>
-                <ChipSelector icono="refresh" etiqueta="Reintentar" onPress={reintentarCatalogo} />
-              </View>
-            ) : vistaCatalogo === 'vacio' ? (
-              <Text style={styles.textoEstado}>No hay servicios en el catálogo</Text>
-            ) : (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.scrollCatalogo}
-              >
-                {catalogo.map((item) => {
-                  // logo_url no se dibuja (son SVG/PNG remotos que <Image> no siempre carga); el
-                  // ícono sale del nombre y, sin ícono propio, se usa la inicial del servicio.
-                  const { color, icono, predefinido } = estiloServicio(item.nombre);
-                  const seleccionado = servicioId === item.id;
-                  return (
-                    <Pressable
-                      key={item.id}
-                      onPress={() => seleccionarDelCatalogo(item)}
-                      style={({ pressed }) => [
-                        styles.itemCatalogo,
-                        seleccionado ? styles.itemCatalogoSeleccionado : null,
-                        pressed ? styles.itemCatalogoPresionado : null,
-                      ]}
-                    >
-                      <View style={[styles.iconoCatalogo, { backgroundColor: color }]}>
-                        {predefinido ? (
-                          <MaterialCommunityIcons
-                            name={icono}
-                            size={20}
-                            color={colors.textoSobreColor}
-                          />
-                        ) : (
-                          <Text style={styles.inicialCatalogo}>{inicialServicio(item.nombre)}</Text>
-                        )}
-                      </View>
-                      <Text style={styles.nombreCatalogo} numberOfLines={1}>
-                        {item.nombre}
-                      </Text>
-                      <Text style={styles.costoCatalogo} numberOfLines={1}>
-                        {formatearMonto(item.costo_sugerido)}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-            )}
-          </View>
-        ) : null}
-
-        {/* Campos del formulario */}
-        <Input
-          etiqueta="NOMBRE DEL SERVICIO"
-          enHoja
+        <ChipSelector
           icono="card-text-outline"
-          placeholder="Ej. Netflix, Spotify, Gimnasio"
-          value={nombre}
-          onChangeText={(texto) => {
-            setNombre(texto);
-            limpiarError('nombre');
-          }}
-          error={errores.nombre}
-          autoCapitalize="words"
+          etiqueta={nombreTexto}
+          onPress={() => setPanel('nombre')}
+          accessibilityLabel={nombre.trim() ? `Nombre: ${nombre.trim()}` : 'Escribir nombre'}
         />
-
-        <Input
-          etiqueta="COSTO"
-          enHoja
-          icono="currency-usd"
-          placeholder="0.00"
-          value={costo}
-          onChangeText={(texto) => {
-            setCosto(texto);
-            limpiarError('costo');
-          }}
-          keyboardType="numeric"
-          error={errores.costo}
+        <ChipSelector
+          icono={frecuenciaActual.icono}
+          etiqueta={frecuenciaActual.etiqueta}
+          chevron
+          onPress={() => setPanel('frecuencia')}
+          accessibilityLabel={`Frecuencia de cobro: ${frecuenciaActual.etiqueta}`}
         />
-
-        <View style={styles.grupoCampo}>
-          <Etiqueta>FRECUENCIA DE COBRO</Etiqueta>
-          <SelectorSegmentado
-            opciones={OPCIONES_FRECUENCIA}
-            valor={frecuencia}
-            onCambiar={setFrecuencia}
-            accessibilityLabel="Frecuencia de cobro"
-            style={styles.selectorFrecuencia}
-          />
-        </View>
-
-        <View style={styles.grupoCampo}>
-          <Etiqueta>PRÓXIMA FECHA DE COBRO</Etiqueta>
-          <Pressable
-            onPress={abrirDatePicker}
-            accessibilityRole="button"
-            accessibilityLabel="Elegir fecha de cobro"
-            style={({ pressed }) => [
-              styles.botonFecha,
-              pressed ? styles.botonFechaPresionado : null,
-            ]}
-          >
-            <MaterialCommunityIcons name="calendar-outline" size={20} color={colors.outline} />
-            <Text style={styles.textoFecha}>{fechaLocalISO(fecha)}</Text>
-            <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textSecondary} />
-          </Pressable>
-          {errores.fecha ? <Text style={styles.errorTexto}>{errores.fecha}</Text> : null}
-        </View>
-
-        {mostrarPickerIos && Platform.OS === 'ios' ? (
-          <View style={styles.contenedorPickerIos}>
-            <DateTimePicker
-              value={fecha}
-              mode="date"
-              display="spinner"
-              onValueChange={(_evento, nueva) => setFecha(nueva)}
-              textColor={colors.text}
-              themeVariant={esOscuro ? 'dark' : 'light'}
-            />
-          </View>
-        ) : null}
-
-        {errorApi ? <Text style={styles.errorApi}>{errorApi}</Text> : null}
-
-        <View style={styles.botonesAccion}>
-          <Boton
-            titulo={editando ? 'Guardar cambios' : 'Guardar suscripción'}
-            icono="check"
-            onPress={guardar}
-            cargando={guardando}
-            disabled={ocupado}
-          />
-
-          {editando ? (
-            <Boton
-              titulo="Eliminar suscripción"
-              icono="delete-outline"
-              destructivo
-              onPress={confirmarEliminar}
-              cargando={eliminando}
-              disabled={ocupado}
-            />
-          ) : null}
-        </View>
+        <ChipSelector
+          icono="calendar-blank-outline"
+          etiqueta={fechaTexto}
+          chevron
+          onPress={abrirFecha}
+          accessibilityLabel={`Próxima fecha de cobro: ${formatearDiaMes(fechaLocalISO(fecha))}`}
+        />
       </ScrollView>
+      {errorFormulario ? <Text style={styles.errorCampo}>{errorFormulario}</Text> : null}
+
+      <View style={styles.zonaMonto}>
+        <MontoGrande texto={texto} error={!!errores.costo} etiqueta="Costo" />
+      </View>
+      {errores.costo ? <Text style={styles.errorCampo}>{errores.costo}</Text> : null}
+
+      {/* Catálogo de servicios (solo al agregar), en el lugar de las categorías de Nuevo gasto */}
+      {!editando ? (
+        <View style={styles.zonaCatalogo}>
+          {vistaCatalogo === 'cargando' ? (
+            <View style={styles.estadoCatalogo}>
+              <ActivityIndicator size="small" color={colors.textSecondary} />
+              <Text style={styles.textoEstado}>Cargando catálogo…</Text>
+            </View>
+          ) : vistaCatalogo === 'error' ? (
+            <View style={styles.estadoCatalogo}>
+              <Text style={[styles.textoEstado, styles.textoEstadoFlexible]} numberOfLines={2}>
+                {errorCatalogo}
+              </Text>
+              <ChipSelector icono="refresh" etiqueta="Reintentar" onPress={reintentarCatalogo} />
+            </View>
+          ) : vistaCatalogo === 'vacio' ? (
+            <Text style={styles.textoEstado}>No hay servicios en el catálogo</Text>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.filaScroll}
+              contentContainerStyle={styles.filaCatalogo}
+            >
+              {catalogo.map((item) => (
+                <ChipServicio
+                  key={item.id}
+                  servicio={item}
+                  seleccionado={servicioId === item.id}
+                  onPress={() => seleccionarDelCatalogo(item)}
+                />
+              ))}
+            </ScrollView>
+          )}
+        </View>
+      ) : null}
+
+      <View style={styles.zonaTeclado}>
+        <TecladoNumerico onTecla={alPulsarTecla} disabled={ocupado} />
+      </View>
+
+      {errorApi ? <Text style={styles.errorApi}>{errorApi}</Text> : null}
+      <Boton
+        titulo={editando ? 'Guardar cambios' : 'Guardar suscripción'}
+        icono="check"
+        onPress={guardar}
+        cargando={guardando}
+        disabled={eliminando}
+        compacto
+      />
+      {editando ? (
+        <View style={styles.zonaEliminar}>
+          <Boton
+            titulo="Eliminar suscripción"
+            icono="trash-can-outline"
+            destructivo
+            onPress={confirmarEliminar}
+            cargando={eliminando}
+            disabled={guardando}
+          />
+        </View>
+      ) : null}
+
+      {panel === 'nombre' ? (
+        <PanelHoja titulo="Nombre del servicio" onCerrar={() => setPanel(null)}>
+          <TextInput
+            value={nombre}
+            onChangeText={(valor) => {
+              setNombre(valor);
+              limpiarError('nombre');
+            }}
+            placeholder="Ej. Netflix, Spotify, Gimnasio"
+            placeholderTextColor={colors.textSecondary}
+            cursorColor={colors.acento}
+            selectionColor={colors.acento}
+            keyboardAppearance={esOscuro ? 'dark' : 'light'}
+            autoCapitalize="words"
+            maxLength={NOMBRE_MAX}
+            autoFocus
+            returnKeyType="done"
+            onSubmitEditing={() => setPanel(null)}
+            style={styles.inputNombre}
+          />
+          <Boton titulo="Listo" onPress={() => setPanel(null)} />
+        </PanelHoja>
+      ) : null}
+
+      {panel === 'frecuencia' ? (
+        <PanelHoja titulo="Frecuencia de cobro" onCerrar={() => setPanel(null)}>
+          {OPCIONES_FRECUENCIA.map((f) => (
+            <Pressable
+              key={f.valor}
+              onPress={() => {
+                setFrecuencia(f.valor);
+                setPanel(null);
+              }}
+              accessibilityRole="button"
+              accessibilityState={{ selected: f.valor === frecuencia }}
+              style={({ pressed }) => [styles.opcion, pressed ? styles.opcionPresionada : null]}
+            >
+              <MaterialCommunityIcons name={f.icono} size={22} color={colors.text} />
+              <Text style={styles.opcionTexto}>{f.etiqueta}</Text>
+              {f.valor === frecuencia ? (
+                <MaterialCommunityIcons name="check" size={22} color={colors.text} />
+              ) : null}
+            </Pressable>
+          ))}
+        </PanelHoja>
+      ) : null}
+
+      {panel === 'fecha' ? (
+        <PanelHoja titulo="Próxima fecha de cobro" onCerrar={() => setPanel(null)}>
+          <DateTimePicker
+            value={fecha}
+            mode="date"
+            display="inline"
+            themeVariant={esOscuro ? 'dark' : 'light'}
+            accentColor={colors.text}
+            locale={LOCALE}
+            onValueChange={(_evento, nueva) => {
+              setFecha(nueva);
+              setPanel(null);
+            }}
+          />
+        </PanelHoja>
+      ) : null}
     </HojaInferior>
+  );
+}
+
+// Chip de un servicio del catálogo: mini squircle con el color de marca (ícono o inicial),
+// nombre y costo sugerido. Seleccionado toma el acento, como el chip "Todas" de categorías.
+function ChipServicio({ servicio, seleccionado, onPress }) {
+  const { colors } = useTema();
+  const styles = useEstilos(crearEstilos);
+  const { color, icono, predefinido } = estiloServicio(servicio.nombre);
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected: seleccionado }}
+      accessibilityLabel={`${servicio.nombre}, ${formatearMontoCorto(servicio.costo_sugerido)}`}
+      style={({ pressed }) => [
+        styles.chipServicio,
+        seleccionado ? styles.chipServicioSeleccionado : null,
+        pressed && !seleccionado ? styles.chipServicioPresionado : null,
+      ]}
+    >
+      <View style={[styles.miniSquircle, { backgroundColor: color }]}>
+        {predefinido ? (
+          <MaterialCommunityIcons name={icono} size={12} color={colors.textoSobreColor} />
+        ) : (
+          <Text style={styles.miniInicial}>{inicialServicio(servicio.nombre)}</Text>
+        )}
+      </View>
+      <Text
+        style={[styles.chipServicioTexto, seleccionado ? styles.chipServicioTextoActivo : null]}
+        numberOfLines={1}
+      >
+        {servicio.nombre}
+      </Text>
+      <Text style={styles.chipServicioCosto}>{formatearMontoCorto(servicio.costo_sugerido)}</Text>
+    </Pressable>
   );
 }
 
 const crearEstilos = (colors) =>
   StyleSheet.create({
-    formulario: {
-      gap: 16,
-      paddingTop: 8,
-      paddingBottom: 24,
+    // Filas con scroll horizontal hasta el borde de la hoja (px-5), como Nuevo gasto
+    filaScroll: {
+      marginHorizontal: -espacios.margen,
+      flexGrow: 0,
     },
-    seccionCatalogo: {
-      gap: 8,
-      marginBottom: 4,
+    filaChips: {
+      gap: espacios.sm,
+      paddingHorizontal: espacios.margen,
+      paddingTop: 10,
     },
-    etiquetaCatalogo: {
-      marginBottom: 2,
-    },
-    scrollCatalogo: {
-      gap: 10,
-      paddingVertical: 4,
-    },
-    itemCatalogo: {
-      width: 100,
-      padding: 10,
-      borderRadius: radios.xl,
-      backgroundColor: colors.campoHoja,
-      borderWidth: 1,
-      borderColor: colors.campoHojaBorde,
-      alignItems: 'center',
+    filaCatalogo: {
       gap: 6,
+      paddingHorizontal: espacios.margen,
+      paddingVertical: 2,
     },
-    itemCatalogoSeleccionado: {
-      borderColor: colors.acento,
-      backgroundColor: colors.surfaceHigh,
+    zonaMonto: {
+      marginTop: espacios.sm,
+      marginBottom: espacios.sm,
     },
-    itemCatalogoPresionado: {
-      opacity: 0.8,
-    },
-    iconoCatalogo: {
-      width: 36,
-      height: 36,
-      borderRadius: 10,
-      alignItems: 'center',
+    zonaCatalogo: {
+      minHeight: 32,
       justifyContent: 'center',
-    },
-    nombreCatalogo: {
-      fontFamily: fonts.sansMedium,
-      fontSize: 12,
-      color: colors.text,
-      textAlign: 'center',
-    },
-    costoCatalogo: {
-      fontFamily: fonts.monoMedium,
-      fontSize: 11,
-      color: colors.textSecondary,
-    },
-    inicialCatalogo: {
-      fontFamily: fonts.sansSemiBold,
-      fontSize: 16,
-      color: colors.textoSobreColor,
+      marginBottom: espacios.sm,
     },
     estadoCatalogo: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
-      paddingVertical: 8,
+      gap: 10,
     },
     textoEstado: {
-      fontFamily: fonts.sans,
-      fontSize: 12,
+      ...tipografia.bodyMd,
       color: colors.textSecondary,
     },
     textoEstadoFlexible: {
       flex: 1,
     },
-    grupoCampo: {
-      gap: 6,
-    },
-    selectorFrecuencia: {
-      marginTop: 2,
-      borderColor: colors.campoHojaBorde,
-    },
-    botonFecha: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      paddingHorizontal: 16,
-      height: 52,
-      borderRadius: radios.xl,
-      backgroundColor: colors.campoHoja,
-      borderWidth: 1,
-      borderColor: colors.campoHojaBorde,
-    },
-    botonFechaPresionado: {
-      backgroundColor: colors.surfaceHigh,
-    },
-    textoFecha: {
-      flex: 1,
-      fontFamily: fonts.monoMedium,
-      fontSize: 15,
-      color: colors.text,
-    },
-    contenedorPickerIos: {
-      backgroundColor: colors.surfaceLow,
-      borderRadius: radios.xl,
-      overflow: 'hidden',
-    },
-    errorTexto: {
-      fontFamily: fonts.sans,
-      fontSize: 12,
+    errorCampo: {
+      ...tipografia.bodySm,
       color: colors.alerta,
-      marginTop: 4,
+      marginTop: espacios.xs,
+    },
+    zonaTeclado: {
+      marginBottom: 10,
+    },
+    zonaEliminar: {
+      marginTop: 10,
     },
     errorApi: {
-      fontFamily: fonts.sansMedium,
-      fontSize: 13,
+      ...tipografia.bodyMd,
       color: colors.alerta,
       textAlign: 'center',
-      marginTop: 4,
+      marginBottom: 10,
     },
-    botonesAccion: {
-      gap: 10,
-      marginTop: 12,
+    // Chip de servicio: mismas medidas que ChipCategoria (px-3 py-1.5 rounded-xl)
+    chipServicio: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: radios.xl,
+      backgroundColor: colors.glass05,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+    },
+    chipServicioSeleccionado: {
+      backgroundColor: colors.acentoSuave,
+      borderColor: colors.acento,
+    },
+    chipServicioPresionado: {
+      borderColor: colors.borderPressed,
+    },
+    miniSquircle: {
+      width: 20,
+      height: 20,
+      borderRadius: 6,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    miniInicial: {
+      fontFamily: fonts.sansSemiBold,
+      fontSize: 11,
+      lineHeight: 14,
+      color: colors.textoSobreColor,
+    },
+    chipServicioTexto: {
+      ...tipografia.labelPill,
+      color: colors.textChip,
+      maxWidth: 120,
+    },
+    chipServicioTextoActivo: {
+      fontFamily: fonts.sansSemiBold,
+      color: colors.text,
+    },
+    chipServicioCosto: {
+      ...tipografia.labelCaps,
+      textTransform: 'none',
+      letterSpacing: 0,
+      color: colors.textSecondary,
+    },
+    // Opciones del panel de frecuencia (como el de método de pago)
+    opcion: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 14,
+      paddingVertical: 12,
+      paddingHorizontal: espacios.sm,
+      borderRadius: radios.xl,
+    },
+    opcionPresionada: {
+      backgroundColor: colors.border,
+    },
+    opcionTexto: {
+      ...tipografia.bodyLg,
+      flex: 1,
+      color: colors.text,
+    },
+    inputNombre: {
+      ...tipografia.bodyLg,
+      height: 48,
+      paddingHorizontal: 14,
+      borderRadius: 14,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      color: colors.text,
+      marginBottom: 14,
     },
   });

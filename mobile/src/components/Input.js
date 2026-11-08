@@ -8,9 +8,8 @@ import { fonts } from '../theme/fonts';
 
 // Campo con etiqueta en mayúsculas, ícono a la izquierda y error debajo.
 // `password` agrega el botón de ojo; `pie` se muestra entre el campo y el error.
-// `enHoja`: fondo y borde para campos dentro de una HojaInferior (campoHoja / campoHojaBorde).
 const Input = forwardRef(function Input(
-  { etiqueta, icono, error, password, pie, enHoja, onFocus, onBlur, ...props },
+  { etiqueta, icono, error, password, pie, onFocus, onBlur, ...props },
   ref,
 ) {
   const [oculto, setOculto] = useState(true);
@@ -25,7 +24,6 @@ const Input = forwardRef(function Input(
         style={[
           styles.campo,
           password ? styles.campoPassword : null,
-          enHoja ? styles.campoEnHoja : null,
           enfocado ? styles.campoEnfocado : null,
           error ? styles.campoError : null,
         ]}
@@ -108,10 +106,6 @@ const crearEstilos = (colors) =>
     // pr-12 con el botón de ojo en right-3 (w-8 h-8)
     campoPassword: {
       paddingRight: 12,
-    },
-    campoEnHoja: {
-      backgroundColor: colors.campoHoja,
-      borderColor: colors.campoHojaBorde,
     },
     // focus:bg-surface-container-high con borde del acento
     campoEnfocado: {
