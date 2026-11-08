@@ -21,6 +21,9 @@ export const temas = {
     tinteHoja: 'rgba(99, 70, 229, 0.22)', // tinte superior de HojaInferior (08_nuevo_gasto)
     tinteHojaFin: 'rgba(99, 70, 229, 0)',
     surfaceInput: 'rgba(31, 31, 31, 0.9)', // surface-container/90 (campos de Login y Registro)
+    // Campos dentro de una HojaInferior (formulario de suscripción): fondo y borde del campo
+    campoHoja: 'rgba(31, 31, 31, 0.9)',
+    campoHojaBorde: 'rgba(255, 255, 255, 0.08)',
     surfaceChip: '#1C1C1E', // chips de la tarjeta de resumen
 
     // Superficies translúcidas (sufijo = opacidad, como el /NN de Tailwind)
@@ -178,6 +181,10 @@ export const temas = {
     tinteHoja: 'rgba(196, 181, 253, 0.55)',
     tinteHojaFin: 'rgba(196, 181, 253, 0)',
     surfaceInput: 'rgba(240, 240, 244, 0.9)',
+    // Sobre la hoja lavanda el gris de surfaceInput casi no se distingue: campo blanco con un
+    // borde lavanda grisáceo suave para que se vea dónde escribir.
+    campoHoja: '#FFFFFF',
+    campoHojaBorde: '#D9D6E6',
     surfaceChip: '#F8F8FA',
 
     // Superficies translúcidas

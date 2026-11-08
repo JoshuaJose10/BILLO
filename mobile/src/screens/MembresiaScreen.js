@@ -274,6 +274,7 @@ export default function MembresiaScreen({ navigation, route }) {
         {/* Campos del formulario */}
         <Input
           etiqueta="NOMBRE DEL SERVICIO"
+          enHoja
           icono="card-text-outline"
           placeholder="Ej. Netflix, Spotify, Gimnasio"
           value={nombre}
@@ -287,6 +288,7 @@ export default function MembresiaScreen({ navigation, route }) {
 
         <Input
           etiqueta="COSTO"
+          enHoja
           icono="currency-usd"
           placeholder="0.00"
           value={costo}
@@ -389,9 +391,9 @@ const crearEstilos = (colors) =>
       width: 100,
       padding: 10,
       borderRadius: radios.xl,
-      backgroundColor: colors.surfaceLow,
+      backgroundColor: colors.campoHoja,
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: colors.campoHojaBorde,
       alignItems: 'center',
       gap: 6,
     },
@@ -444,6 +446,7 @@ const crearEstilos = (colors) =>
     },
     selectorFrecuencia: {
       marginTop: 2,
+      borderColor: colors.campoHojaBorde,
     },
     botonFecha: {
       flexDirection: 'row',
@@ -452,9 +455,9 @@ const crearEstilos = (colors) =>
       paddingHorizontal: 16,
       height: 52,
       borderRadius: radios.xl,
-      backgroundColor: colors.surface,
+      backgroundColor: colors.campoHoja,
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: colors.campoHojaBorde,
     },
     botonFechaPresionado: {
       backgroundColor: colors.surfaceHigh,
