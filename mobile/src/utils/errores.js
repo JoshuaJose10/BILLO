@@ -42,6 +42,10 @@ const MENSAJES = {
   TOKEN_PUSH_INVALIDO: 'No se pudieron activar las notificaciones.',
 
   // Generados por la app
+  API_URL_FALTANTE:
+    'La app no tiene la dirección del servidor. Define EXPO_PUBLIC_API_URL en mobile/.env y reinicia Expo.',
+  API_URL_INVALIDA:
+    'La dirección del servidor no es válida. Revisa EXPO_PUBLIC_API_URL (ej. http://192.168.1.100:3000).',
   [SIN_CONEXION]: 'No se pudo conectar con el servidor. Revisa tu conexión e intenta de nuevo.',
   [ERROR_DESCONOCIDO]: 'Ocurrió un error inesperado. Intenta de nuevo.',
 };

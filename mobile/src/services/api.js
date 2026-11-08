@@ -1,4 +1,4 @@
-import { API_URL, TIMEOUT_MS } from '../config/api.js';
+import { API_URL, ERROR_API_URL, TIMEOUT_MS } from '../config/api.js';
 
 // Códigos que genera la app (no vienen del servidor).
 export const SIN_CONEXION = 'SIN_CONEXION';
@@ -25,6 +25,11 @@ function normalizarError(status, body) {
 // fetch con timeout y errores normalizados. Lanza siempre { code, message, status }.
 // Con `token` se envía el encabezado Authorization y un 401 dispara el cierre de sesión.
 export async function apiFetch(ruta, { method = 'GET', body, token } = {}) {
+  // Sin EXPO_PUBLIC_API_URL válida no se intenta la petición (HU-80).
+  if (ERROR_API_URL) {
+    throw { code: ERROR_API_URL, message: '', status: 0 };
+  }
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 

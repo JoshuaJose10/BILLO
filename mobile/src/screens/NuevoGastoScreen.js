@@ -21,7 +21,7 @@ import MontoGrande from '../components/MontoGrande';
 import PanelHoja from '../components/PanelHoja';
 import TecladoNumerico from '../components/TecladoNumerico';
 import { useAvisos } from '../context/AvisosContext';
-import { useCategorias } from '../context/CategoriasContext';
+import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/CategoriasContext';
 import { METODO_PAGO_DEFECTO, METODOS_PAGO, NOTA_MAX, useGastosService } from '../services/gastos';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
@@ -45,6 +45,8 @@ export default function NuevoGastoScreen({ navigation, route }) {
     recargar: reintentarCategorias,
     nombrePorId,
   } = useCategorias();
+  // Si la primera carga falló (backend apagado, recién iniciada la sesión), se reintenta al enfocar.
+  useReintentarCategoriasAlEnfocar();
   const { mostrarAviso } = useAvisos();
   const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);

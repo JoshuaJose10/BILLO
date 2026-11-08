@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 
 import Boton from '../components/Boton';
+import ChipSelector from '../components/ChipSelector';
 import Etiqueta from '../components/Etiqueta';
 import HojaInferior from '../components/HojaInferior';
 import Input from '../components/Input';
@@ -24,7 +25,8 @@ import { fonts } from '../theme/fonts';
 import { mensajeError } from '../utils/errores';
 import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
 import { formatearMonto } from '../utils/formato';
-import { estiloServicio, validarMembresia } from '../utils/membresias';
+import { vistaLista } from '../utils/estadoCarga';
+import { estiloServicio, inicialServicio, validarMembresia } from '../utils/membresias';
 
 const OPCIONES_FRECUENCIA = [
   { valor: 'mensual', etiqueta: 'Mensual' },
@@ -52,8 +54,12 @@ export default function MembresiaScreen({ navigation, route }) {
   );
   const [servicioId, setServicioId] = useState(() => membresiaEditada?.servicio_id ?? null);
 
+  // Catálogo (solo al agregar): 'cargando' | 'listo' | 'error'. Un error ya no se traga en
+  // silencio: se muestra con Reintentar, y una lista vacía dice que no hay servicios (HU-80).
   const [catalogo, setCatalogo] = useState([]);
-  const [cargandoCatalogo, setCargandoCatalogo] = useState(() => !editando);
+  const [estadoCatalogo, setEstadoCatalogo] = useState('cargando');
+  const [errorCatalogo, setErrorCatalogo] = useState('');
+  const [intentoCatalogo, setIntentoCatalogo] = useState(0);
   const [mostrarPickerIos, setMostrarPickerIos] = useState(false);
 
   const [errores, setErrores] = useState({});
@@ -73,17 +79,25 @@ export default function MembresiaScreen({ navigation, route }) {
       .then((items) => {
         if (!activo) return;
         setCatalogo(items);
-        setCargandoCatalogo(false);
+        setEstadoCatalogo('listo');
       })
-      .catch(() => {
+      .catch((error) => {
         if (!activo) return;
-        setCargandoCatalogo(false);
+        setErrorCatalogo(mensajeError(error?.code, error?.message));
+        setEstadoCatalogo('error');
       });
 
     return () => {
       activo = false;
     };
-  }, [editando, listarCatalogo]);
+  }, [editando, listarCatalogo, intentoCatalogo]);
+
+  const reintentarCatalogo = () => {
+    setEstadoCatalogo('cargando');
+    setIntentoCatalogo((n) => n + 1);
+  };
+
+  const vistaCatalogo = vistaLista(estadoCatalogo, catalogo);
 
   const limpiarError = (campo) => {
     if (errores[campo]) {
@@ -194,47 +208,66 @@ export default function MembresiaScreen({ navigation, route }) {
         keyboardShouldPersistTaps="handled"
       >
         {/* Catálogo de sugerencias (solo en modo agregar) */}
-        {!editando && catalogo.length > 0 ? (
+        {!editando ? (
           <View style={styles.seccionCatalogo}>
             <Etiqueta style={styles.etiquetaCatalogo}>Elegir del catálogo</Etiqueta>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.scrollCatalogo}
-            >
-              {catalogo.map((item) => {
-                const { color, icono } = estiloServicio(item.nombre);
-                const seleccionado = servicioId === item.id;
-                return (
-                  <Pressable
-                    key={item.id}
-                    onPress={() => seleccionarDelCatalogo(item)}
-                    style={({ pressed }) => [
-                      styles.itemCatalogo,
-                      seleccionado ? styles.itemCatalogoSeleccionado : null,
-                      pressed ? styles.itemCatalogoPresionado : null,
-                    ]}
-                  >
-                    <View style={[styles.iconoCatalogo, { backgroundColor: color }]}>
-                      <MaterialCommunityIcons name={icono} size={20} color="#FFFFFF" />
-                    </View>
-                    <Text style={styles.nombreCatalogo} numberOfLines={1}>
-                      {item.nombre}
-                    </Text>
-                    <Text style={styles.costoCatalogo} numberOfLines={1}>
-                      {formatearMonto(item.costo_sugerido)}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-          </View>
-        ) : null}
-
-        {cargandoCatalogo ? (
-          <View style={styles.cargandoCatalogo}>
-            <ActivityIndicator size="small" color={colors.textSecondary} />
-            <Text style={styles.textoCargando}>Cargando catálogo…</Text>
+            {vistaCatalogo === 'cargando' ? (
+              <View style={styles.estadoCatalogo}>
+                <ActivityIndicator size="small" color={colors.textSecondary} />
+                <Text style={styles.textoEstado}>Cargando catálogo…</Text>
+              </View>
+            ) : vistaCatalogo === 'error' ? (
+              <View style={styles.estadoCatalogo}>
+                <Text style={[styles.textoEstado, styles.textoEstadoFlexible]}>
+                  {errorCatalogo}
+                </Text>
+                <ChipSelector icono="refresh" etiqueta="Reintentar" onPress={reintentarCatalogo} />
+              </View>
+            ) : vistaCatalogo === 'vacio' ? (
+              <Text style={styles.textoEstado}>No hay servicios en el catálogo</Text>
+            ) : (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.scrollCatalogo}
+              >
+                {catalogo.map((item) => {
+                  // logo_url no se dibuja (son SVG/PNG remotos que <Image> no siempre carga); el
+                  // ícono sale del nombre y, sin ícono propio, se usa la inicial del servicio.
+                  const { color, icono, predefinido } = estiloServicio(item.nombre);
+                  const seleccionado = servicioId === item.id;
+                  return (
+                    <Pressable
+                      key={item.id}
+                      onPress={() => seleccionarDelCatalogo(item)}
+                      style={({ pressed }) => [
+                        styles.itemCatalogo,
+                        seleccionado ? styles.itemCatalogoSeleccionado : null,
+                        pressed ? styles.itemCatalogoPresionado : null,
+                      ]}
+                    >
+                      <View style={[styles.iconoCatalogo, { backgroundColor: color }]}>
+                        {predefinido ? (
+                          <MaterialCommunityIcons
+                            name={icono}
+                            size={20}
+                            color={colors.textoSobreColor}
+                          />
+                        ) : (
+                          <Text style={styles.inicialCatalogo}>{inicialServicio(item.nombre)}</Text>
+                        )}
+                      </View>
+                      <Text style={styles.nombreCatalogo} numberOfLines={1}>
+                        {item.nombre}
+                      </Text>
+                      <Text style={styles.costoCatalogo} numberOfLines={1}>
+                        {formatearMonto(item.costo_sugerido)}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            )}
           </View>
         ) : null}
 
@@ -387,16 +420,24 @@ const crearEstilos = (colors) =>
       fontSize: 11,
       color: colors.textSecondary,
     },
-    cargandoCatalogo: {
+    inicialCatalogo: {
+      fontFamily: fonts.sansSemiBold,
+      fontSize: 16,
+      color: colors.textoSobreColor,
+    },
+    estadoCatalogo: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
       paddingVertical: 8,
     },
-    textoCargando: {
+    textoEstado: {
       fontFamily: fonts.sans,
       fontSize: 12,
       color: colors.textSecondary,
+    },
+    textoEstadoFlexible: {
+      flex: 1,
     },
     grupoCampo: {
       gap: 6,

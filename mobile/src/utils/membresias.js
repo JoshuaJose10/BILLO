@@ -45,10 +45,19 @@ const DEFAULT_SERVICIO = {
   icono: 'calendar-sync',
 };
 
-// Obtiene el color e ícono distintivo de una membresía según su nombre
+// Obtiene el color e ícono distintivo de una membresía según su nombre.
+// `predefinido` es false cuando no hay ícono propio: el catálogo muestra la inicial (HU-80).
 export function estiloServicio(nombre = '') {
-  const encontrado = SERVICIOS_PREDEFINIDOS.find((s) => s.match.test(nombre));
-  return encontrado ? { color: encontrado.color, icono: encontrado.icono } : DEFAULT_SERVICIO;
+  const encontrado = SERVICIOS_PREDEFINIDOS.find((s) => s.match.test(nombre || ''));
+  return encontrado
+    ? { color: encontrado.color, icono: encontrado.icono, predefinido: true }
+    : { ...DEFAULT_SERVICIO, predefinido: false };
+}
+
+// Inicial del servicio en mayúscula ('?' sin nombre): respaldo cuando no hay logo/ícono propio.
+export function inicialServicio(nombre) {
+  const texto = typeof nombre === 'string' ? nombre.trim() : '';
+  return texto ? texto[0].toLocaleUpperCase('es') : '?';
 }
 
 // Suma el gasto fijo mensual: membresías mensuales aportan su costo completo,
