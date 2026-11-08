@@ -18,9 +18,9 @@ import FondoDegradado from '../components/FondoDegradado';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
 import SelectorMes from '../components/SelectorMes';
 import { useReportesService } from '../services/reportes';
-import { radios } from '../theme/colors';
+import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
-import { fonts } from '../theme/fonts';
+import { tipografia } from '../theme/tipografia';
 import { mensajeError } from '../utils/errores';
 import { mesActual } from '../utils/fechas';
 import { formatearMonto } from '../utils/formato';
@@ -120,7 +120,7 @@ export default function ReportesScreen() {
         </View>
         <TarjetaMonto etiqueta="Total del mes" monto={resumen.total} destacada />
 
-        <View style={styles.tarjeta}>
+        <View style={[styles.tarjeta, styles.tarjetaDona]}>
           <View style={styles.tarjetaCabecera}>
             <Text style={styles.seccionTitulo} accessibilityRole="header">
               Gasto por categoría
@@ -194,40 +194,42 @@ const crearEstilos = (colors) =>
       flex: 1,
       backgroundColor: colors.background,
     },
+    // px-margin, gap-space-sm + 4 entre bloques (como el encabezado de Movimientos)
     lista: {
-      paddingHorizontal: 20,
-      gap: 12,
+      paddingHorizontal: espacios.margen,
+      gap: espacios.sm + 4,
     },
     titulo: {
-      fontFamily: fonts.sansBold,
-      fontSize: 28,
-      lineHeight: 34,
-      letterSpacing: -0.56,
+      ...tipografia.headlineLg,
       color: colors.text,
-      marginTop: 4,
+      marginTop: espacios.xs,
     },
     contenido: {
-      gap: 12,
+      gap: espacios.sm + 4,
     },
     atenuado: {
       opacity: 0.45,
     },
     filaTarjetas: {
       flexDirection: 'row',
-      gap: 12,
+      gap: espacios.sm + 4,
     },
-    // Fondo opaco: el centro de la dona se pinta con este mismo color (ver DonaCategorias).
+    // La tarjeta de vidrio de Inicio (TarjetaResumen): radio 22, brillo superior y sombra suave.
     tarjeta: {
-      padding: 16,
-      borderRadius: radios.xl,
+      padding: 14,
+      borderRadius: radios.tarjeta,
       borderTopWidth: 1,
       borderTopColor: colors.borderTop,
-      backgroundColor: colors.surfaceLow,
+      backgroundColor: colors.surfaceLow70,
       shadowColor: colors.sombra,
       shadowOffset: { width: 0, height: 8 },
-      shadowRadius: 12,
-      shadowOpacity: 0.5,
+      shadowRadius: 14,
+      shadowOpacity: 0.35,
       elevation: 6,
+    },
+    // El centro de la dona se pinta con este mismo color opaco (ver DonaCategorias).
+    tarjetaDona: {
+      backgroundColor: colors.tarjetaResumenOpaca,
     },
     tarjetaMitad: {
       flex: 1,
@@ -236,18 +238,12 @@ const crearEstilos = (colors) =>
       color: colors.outline,
     },
     monto: {
-      fontFamily: fonts.monoSemiBold,
-      fontSize: 18,
-      lineHeight: 24,
-      letterSpacing: -0.36,
+      ...tipografia.financialMetricMd,
       color: colors.text,
       marginTop: 6,
     },
     montoDestacado: {
-      fontFamily: fonts.monoSemiBold,
-      fontSize: 32,
-      lineHeight: 36,
-      letterSpacing: -0.64,
+      ...tipografia.financialMetricLg,
       color: colors.text,
       marginTop: 6,
     },
@@ -255,44 +251,40 @@ const crearEstilos = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      gap: 12,
-      marginBottom: 16,
+      gap: espacios.sm + 4,
+      marginBottom: espacios.md,
     },
+    // Títulos de sección de Inicio (headline-sm)
     seccionTitulo: {
-      fontFamily: fonts.sansSemiBold,
-      fontSize: 18,
-      lineHeight: 24,
-      letterSpacing: -0.45,
+      ...tipografia.headlineSm,
       color: colors.text,
     },
     vacio: {
       alignItems: 'center',
       gap: 10,
-      paddingVertical: 24,
+      paddingVertical: espacios.lg,
     },
+    // Estados de carga, error y vacío: los de Inicio y Movimientos
     estado: {
       alignItems: 'center',
       gap: 10,
       paddingVertical: 48,
-      paddingHorizontal: 12,
+      paddingHorizontal: espacios.sm + 4,
     },
     estadoTitulo: {
-      fontFamily: fonts.sansSemiBold,
+      ...tipografia.headlineSm,
+      letterSpacing: 0,
       color: colors.text,
-      fontSize: 18,
-      lineHeight: 24,
       textAlign: 'center',
-      marginTop: 8,
+      marginTop: espacios.sm,
     },
     estadoTexto: {
-      fontFamily: fonts.sans,
+      ...tipografia.bodyMd,
       color: colors.textSecondary,
-      fontSize: 14,
-      lineHeight: 20,
       textAlign: 'center',
     },
     estadoBoton: {
       alignSelf: 'stretch',
-      marginTop: 12,
+      marginTop: espacios.sm + 4,
     },
   });

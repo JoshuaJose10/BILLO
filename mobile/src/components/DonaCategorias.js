@@ -1,10 +1,13 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 
-import { radios } from '../theme/colors';
+import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
-import { formatearMonto } from '../utils/formato';
+import { tipografia } from '../theme/tipografia';
+import { iconoCategoria } from '../utils/categorias';
+import { formatearMonto, formatearMontoCorto } from '../utils/formato';
 import { descripcionDona, formatearPorcentaje } from '../utils/reportes';
 import Etiqueta from './Etiqueta';
 
@@ -12,10 +15,13 @@ const RADIO = 96;
 const RADIO_INTERIOR = 66;
 
 // Dona del gasto por categoría (RF8) con el gasto del mes al centro y la leyenda debajo.
-// - `datos`: de armarDatosDona; debe traer al menos una categoría.
+// - `datos`: de armarDatosDona; debe traer al menos una categoría. Cada rebanada ya trae
+//   colorCategoria(nombre, esOscuro), el mismo color que la categoría en Inicio.
 // - `total`: gasto_variable del mes. La dona solo reparte los gastos, no las membresías.
+// La leyenda usa los chips de la tarjeta de Inicio (HU-81): punto del color, ícono y monto, más el
+// porcentaje en tono secundario.
 // PieChart pinta el centro encima de las rebanadas, así que `innerCircleColor` debe ser opaco e
-// igual al fondo de la tarjeta (`surfaceLow`).
+// igual al fondo de la tarjeta (`tarjetaResumenOpaca`).
 export default function DonaCategorias({ datos, total }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
@@ -28,8 +34,8 @@ export default function DonaCategorias({ datos, total }) {
           data={datos}
           radius={RADIO}
           innerRadius={RADIO_INTERIOR}
-          innerCircleColor={colors.surfaceLow}
-          strokeColor={colors.surfaceLow}
+          innerCircleColor={colors.tarjetaResumenOpaca}
+          strokeColor={colors.tarjetaResumenOpaca}
           strokeWidth={2}
           centerLabelComponent={() => (
             <View style={styles.centro}>
@@ -42,19 +48,22 @@ export default function DonaCategorias({ datos, total }) {
         />
       </View>
 
-      <View style={styles.leyenda}>
+      <View style={styles.chips}>
         {datos.map((d) => (
-          <View key={d.id} style={styles.fila}>
+          <View
+            key={d.id}
+            style={styles.chip}
+            accessible
+            accessibilityLabel={`${d.etiqueta}: ${formatearMonto(d.value)}, ${formatearPorcentaje(d.porcentaje)}`}
+          >
             <View style={[styles.punto, { backgroundColor: d.color }]} />
-            <Text style={styles.nombre} numberOfLines={1}>
-              {d.etiqueta}
-            </Text>
-            <Text style={styles.monto} numberOfLines={1}>
-              {formatearMonto(d.value)}
-            </Text>
-            <Text style={styles.porcentaje} numberOfLines={1}>
-              {formatearPorcentaje(d.porcentaje)}
-            </Text>
+            <MaterialCommunityIcons
+              name={iconoCategoria(d.etiqueta)}
+              size={14}
+              color={colors.text}
+            />
+            <Text style={styles.chipMonto}>{formatearMontoCorto(d.value)}</Text>
+            <Text style={styles.chipPorcentaje}>{formatearPorcentaje(d.porcentaje)}</Text>
           </View>
         ))}
       </View>
@@ -66,56 +75,54 @@ const crearEstilos = (colors) =>
   StyleSheet.create({
     contenedor: {
       alignItems: 'center',
-      gap: 20,
+      gap: espacios.lg,
     },
     centro: {
       alignItems: 'center',
-      gap: 4,
+      gap: espacios.xs,
       width: RADIO_INTERIOR * 2 - 20,
     },
     centroEtiqueta: {
       color: colors.outline,
     },
     centroTotal: {
-      fontFamily: fonts.monoSemiBold,
-      fontSize: 16,
-      lineHeight: 20,
-      letterSpacing: -0.32,
+      ...tipografia.financialMetricMd,
       color: colors.text,
     },
-    leyenda: {
+    // Chips de Inicio (TarjetaResumen): flex-wrap gap-2
+    chips: {
       alignSelf: 'stretch',
-      gap: 12,
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: espacios.sm,
     },
-    fila: {
+    chip: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 6,
+      paddingHorizontal: 10,
+      paddingVertical: espacios.xs,
+      borderRadius: radios.full,
+      backgroundColor: colors.surfaceChip,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
     },
     punto: {
-      width: 10,
-      height: 10,
+      width: 6,
+      height: 6,
       borderRadius: radios.full,
     },
-    nombre: {
-      flex: 1,
-      fontFamily: fonts.sansMedium,
-      fontSize: 14,
-      lineHeight: 20,
-      color: colors.onSurface,
-    },
-    monto: {
-      fontFamily: fonts.monoMedium,
-      fontSize: 13,
-      lineHeight: 18,
-      color: colors.text,
-    },
-    porcentaje: {
+    // Igual que chipMonto de Inicio: JetBrains Mono 500, 12 px
+    chipMonto: {
       fontFamily: fonts.monoMedium,
       fontSize: 12,
-      lineHeight: 18,
-      minWidth: 56,
-      textAlign: 'right',
+      lineHeight: 16,
+      color: colors.text,
+    },
+    chipPorcentaje: {
+      ...tipografia.labelCaps,
+      textTransform: 'none',
+      letterSpacing: 0,
       color: colors.textSecondary,
     },
   });

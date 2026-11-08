@@ -28,6 +28,9 @@ export const temas = {
     surfaceLow50: 'rgba(27, 27, 27, 0.5)', // fila de gasto
     filaOpaca: '#151515', // fila de gasto deslizable: surfaceLow50 compuesto sobre el panel de Inicio
     surfaceLow70: 'rgba(27, 27, 27, 0.7)', // tarjeta de resumen
+    // surfaceLow70 compuesto sobre background: tarjeta de Reportes con la dona (su centro debe
+    // ser opaco e igual al fondo de la tarjeta; ver DonaCategorias)
+    tarjetaResumenOpaca: '#191919',
     surfaceLowest80: 'rgba(14, 14, 14, 0.8)', // panel de Inicio
     surfaceHigh80: 'rgba(42, 42, 42, 0.8)', // botones de ícono e ícono de Login y Registro
     surfaceBright40: 'rgba(57, 57, 57, 0.4)', // monolito del fondo de Login y Registro
@@ -182,6 +185,7 @@ export const temas = {
     surfaceLow50: 'rgba(240, 240, 244, 0.5)', // sobre el panel blanco queda en #F8F8FA
     filaOpaca: '#F7F7F9',
     surfaceLow70: 'rgba(255, 255, 255, 0.85)',
+    tarjetaResumenOpaca: '#FDFDFE', // surfaceLow70 sobre background
     surfaceLowest80: 'rgba(255, 255, 255, 0.85)',
     surfaceHigh80: 'rgba(255, 255, 255, 0.8)',
     surfaceBright40: 'rgba(226, 226, 234, 0.4)',
