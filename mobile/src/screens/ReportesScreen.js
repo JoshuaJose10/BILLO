@@ -18,7 +18,9 @@ import Etiqueta from '../components/Etiqueta';
 import FondoDegradado from '../components/FondoDegradado';
 import IconoCategoria from '../components/IconoCategoria';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
+import PantallaProximamente from '../components/PantallaProximamente';
 import SelectorMes from '../components/SelectorMes';
+import SelectorSegmentado from '../components/SelectorSegmentado';
 import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/CategoriasContext';
 import { useGastosService } from '../services/gastos';
 import { usePresupuestosService } from '../services/presupuestos';
@@ -41,6 +43,27 @@ import { resumenPresupuestos } from '../utils/presupuestos';
 import { armarDatosDona, esMesSinDatos, formatearPorcentaje } from '../utils/reportes';
 import { etiquetaBarraMes, nivelPorcentaje, resumenGastoMes } from '../utils/resumenMes';
 
+// Vistas del segmentado bajo el mes. Solo hay gastos en la app: Ingresos y Balance llevan la
+// insignia "Pronto" (como Tarjetas en Cartera) y muestran PantallaProximamente.
+const VISTAS = [
+  { valor: 'gastos', etiqueta: 'Gastos' },
+  { valor: 'ingresos', etiqueta: 'Ingresos', insignia: 'Pronto' },
+  { valor: 'balance', etiqueta: 'Balance', insignia: 'Pronto' },
+];
+
+const PROXIMAMENTE = {
+  ingresos: {
+    icono: 'cash-plus',
+    titulo: 'Ingresos',
+    mensaje: 'Pronto podrás registrar ingresos',
+  },
+  balance: {
+    icono: 'scale-balance',
+    titulo: 'Balance',
+    mensaje: 'Pronto verás tu balance del mes',
+  },
+};
+
 // Reportes (RF6, RF8; HU-37; diseño HU-81 con el Stitch reportes_modo_oscuro/_claro).
 // Por mes, en paralelo: GET /reportes/resumen y /gastos del mes (obligatorios: si fallan, error con
 // Reintentar), y /gastos del mes anterior y /presupuestos (opcionales: si fallan, se oculta lo que
@@ -60,6 +83,7 @@ export default function ReportesScreen() {
   const styles = useEstilos(crearEstilos);
 
   const [mes, setMes] = useState(mesActual);
+  const [vista, setVista] = useState('gastos');
   // Última respuesta válida, junta para no mezclar dos meses:
   // { mes, resumen, gastos, anterior (null si falló), presupuestos (null si falló) }.
   const [datos, setDatos] = useState(null);
@@ -170,7 +194,8 @@ export default function ReportesScreen() {
     contenido = (
       <View style={[styles.contenido, cambiandoMes ? styles.atenuado : null]}>
         {/* c) Dona con el total gastado (gasto variable) */}
-        <View style={[styles.tarjeta, styles.tarjetaDona]}>
+        {/* Sin tarjeta: la dona va directo sobre el fondo con brillo (Stitch). */}
+        <View style={styles.zonaDona}>
           {cambiandoMes ? (
             <ActivityIndicator
               size="small"
@@ -183,6 +208,7 @@ export default function ReportesScreen() {
               datos={dona}
               total={resumen.gasto_variable}
               nombreMes={nombreMes(datos.mes)}
+              animacion={datos.mes}
             />
           ) : (
             <View style={styles.vacio}>
@@ -264,7 +290,25 @@ export default function ReportesScreen() {
         </View>
         {/* b) Mes, con el estilo del Stitch (calendario y flechas) */}
         <SelectorMes mes={mes} onCambiar={cambiarMes} calendario />
-        {contenido}
+        {/* Gastos | Ingresos | Balance: solo Gastos tiene datos por ahora */}
+        <SelectorSegmentado
+          opciones={VISTAS}
+          valor={vista}
+          onCambiar={setVista}
+          accessibilityLabel="Tipo de reporte"
+          style={styles.selectorVista}
+        />
+        {vista === 'gastos' ? (
+          contenido
+        ) : (
+          <PantallaProximamente
+            key={vista}
+            icono={PROXIMAMENTE[vista].icono}
+            titulo={PROXIMAMENTE[vista].titulo}
+            mensaje={PROXIMAMENTE[vista].mensaje}
+            incrustada
+          />
+        )}
       </ScrollView>
     </View>
   );
@@ -277,7 +321,7 @@ function Dato({ etiqueta, nota, monto }) {
   return (
     <View style={styles.dato} accessible accessibilityLabel={`${etiqueta} (${nota}): ${texto}`}>
       <Etiqueta style={styles.datoEtiqueta}>{etiqueta}</Etiqueta>
-      <Text style={styles.datoMonto} numberOfLines={1} adjustsFontSizeToFit>
+      <Text style={styles.datoMonto} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
         {texto}
       </Text>
       <Text style={styles.datoNota} numberOfLines={1}>
@@ -437,15 +481,17 @@ const crearEstilos = (colors) =>
       shadowOpacity: 0.35,
       elevation: 6,
     },
-    // El centro de la dona se pinta con este mismo color opaco (ver DonaCategorias).
-    tarjetaDona: {
-      backgroundColor: colors.tarjetaResumenOpaca,
-      paddingVertical: espacios.lg,
+    // Las insignias "Pronto" sobresalen 10 px por arriba del segmentado.
+    selectorVista: {
+      marginTop: 10,
+    },
+    zonaDona: {
+      paddingVertical: espacios.sm,
     },
     indicadorMes: {
       position: 'absolute',
-      top: 14,
-      right: 14,
+      top: 0,
+      right: 0,
     },
     // d) tres datos con divisores verticales
     filaDatos: {
