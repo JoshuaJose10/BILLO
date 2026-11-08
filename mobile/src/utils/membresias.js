@@ -1,5 +1,7 @@
 // Reglas de negocio y utilidades para Membresías / Suscripciones (RF5)
-// Sin imports externos para compatibilidad directa con Metro y node --test.
+// Sin dependencias de React Native para compatibilidad directa con Metro y node --test.
+
+import { coloresServicio } from '../theme/servicios.js';
 
 const MESES_CORTOS = [
   'ene',
@@ -26,29 +28,38 @@ export function formatearDiaMes(fechaStr) {
 }
 
 const SERVICIOS_PREDEFINIDOS = [
-  { match: /netflix/i, color: '#E50914', icono: 'movie-open' },
-  { match: /spotify/i, color: '#1DB954', icono: 'spotify' },
-  { match: /youtube/i, color: '#FF0000', icono: 'youtube' },
-  { match: /apple music/i, color: '#FC3C44', icono: 'apple' },
-  { match: /disney/i, color: '#113CCF', icono: 'movie-play' },
-  { match: /hbo/i, color: '#5822B4', icono: 'television-play' },
-  { match: /prime/i, color: '#00A8E1', icono: 'video' },
-  { match: /xbox/i, color: '#107C10', icono: 'microsoft-xbox' },
-  { match: /canva/i, color: '#00C4CC', icono: 'palette' },
-  { match: /chatgpt/i, color: '#10A37F', icono: 'robot' },
-  { match: /google/i, color: '#4285F4', icono: 'google-cloud' },
-  { match: /icloud/i, color: '#3699FF', icono: 'apple-icloud' },
+  { match: /netflix/i, color: coloresServicio.netflix, icono: 'movie-open' },
+  { match: /spotify/i, color: coloresServicio.spotify, icono: 'spotify' },
+  { match: /youtube/i, color: coloresServicio.youtube, icono: 'youtube' },
+  { match: /apple music/i, color: coloresServicio.appleMusic, icono: 'apple' },
+  { match: /disney/i, color: coloresServicio.disney, icono: 'movie-play' },
+  { match: /hbo/i, color: coloresServicio.hbo, icono: 'television-play' },
+  { match: /prime/i, color: coloresServicio.prime, icono: 'video' },
+  { match: /xbox/i, color: coloresServicio.xbox, icono: 'microsoft-xbox' },
+  { match: /canva/i, color: coloresServicio.canva, icono: 'palette' },
+  { match: /chatgpt/i, color: coloresServicio.chatgpt, icono: 'robot' },
+  { match: /google/i, color: coloresServicio.google, icono: 'google-cloud' },
+  { match: /icloud/i, color: coloresServicio.icloud, icono: 'apple-icloud' },
 ];
 
 const DEFAULT_SERVICIO = {
-  color: '#8B5CF6',
+  color: coloresServicio.defecto,
   icono: 'calendar-sync',
 };
 
-// Obtiene el color e ícono distintivo de una membresía según su nombre
+// Obtiene el color e ícono distintivo de una membresía según su nombre.
+// `predefinido` es false cuando no hay ícono propio: el catálogo muestra la inicial (HU-80).
 export function estiloServicio(nombre = '') {
-  const encontrado = SERVICIOS_PREDEFINIDOS.find((s) => s.match.test(nombre));
-  return encontrado ? { color: encontrado.color, icono: encontrado.icono } : DEFAULT_SERVICIO;
+  const encontrado = SERVICIOS_PREDEFINIDOS.find((s) => s.match.test(nombre || ''));
+  return encontrado
+    ? { color: encontrado.color, icono: encontrado.icono, predefinido: true }
+    : { ...DEFAULT_SERVICIO, predefinido: false };
+}
+
+// Inicial del servicio en mayúscula ('?' sin nombre): respaldo cuando no hay logo/ícono propio.
+export function inicialServicio(nombre) {
+  const texto = typeof nombre === 'string' ? nombre.trim() : '';
+  return texto ? texto[0].toLocaleUpperCase('es') : '?';
 }
 
 // Suma el gasto fijo mensual: membresías mensuales aportan su costo completo,

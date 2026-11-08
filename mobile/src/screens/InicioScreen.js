@@ -22,7 +22,7 @@ import { useAlturaNavbar } from '../components/NavbarFlotante';
 import TarjetaPresupuesto, { NOMBRE_ESTADO } from '../components/TarjetaPresupuesto';
 import TarjetaResumen from '../components/TarjetaResumen';
 import { useAuth } from '../context/AuthContext';
-import { useCategorias } from '../context/CategoriasContext';
+import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/CategoriasContext';
 import { useGastosService } from '../services/gastos';
 import { usePresupuestosService } from '../services/presupuestos';
 import { useReportesService } from '../services/reportes';
@@ -59,6 +59,8 @@ export default function InicioScreen({ navigation }) {
     recargar: recargarCategorias,
     nombrePorId,
   } = useCategorias();
+  // Si la primera carga falló (backend apagado, recién iniciada la sesión), se reintenta al enfocar.
+  useReintentarCategoriasAlEnfocar();
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 

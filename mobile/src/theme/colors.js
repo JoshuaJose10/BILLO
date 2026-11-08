@@ -21,6 +21,9 @@ export const temas = {
     tinteHoja: 'rgba(99, 70, 229, 0.22)', // tinte superior de HojaInferior (08_nuevo_gasto)
     tinteHojaFin: 'rgba(99, 70, 229, 0)',
     surfaceInput: 'rgba(31, 31, 31, 0.9)', // surface-container/90 (campos de Login y Registro)
+    // Campos dentro de una HojaInferior (formulario de suscripción): fondo y borde del campo
+    campoHoja: 'rgba(31, 31, 31, 0.9)',
+    campoHojaBorde: 'rgba(255, 255, 255, 0.08)',
     surfaceChip: '#1C1C1E', // chips de la tarjeta de resumen
 
     // Superficies translúcidas (sufijo = opacidad, como el /NN de Tailwind)
@@ -146,6 +149,11 @@ export const temas = {
     exito: '#10B981', // en meta / ingresos
     exitoSuave: 'rgba(16, 185, 129, 0.15)',
     exitoTexto: '#10B981', // texto de estado sobre exitoSuave (pastilla "En meta")
+    // Cobro de membresía en 3 días o menos (Cartera, HU-05): punto, pastilla y borde de tarjeta
+    cobroProximo: '#34C77B',
+    cobroProximoSuave: 'rgba(52, 199, 123, 0.12)',
+    cobroProximoBorde: 'rgba(52, 199, 123, 0.4)',
+    cobroProximoBordeTarjeta: 'rgba(52, 199, 123, 0.35)',
     aviso: '#FF9F0A', // cerca del límite
     avisoSuave: 'rgba(255, 159, 10, 0.15)',
     avisoTexto: '#FF9F0A', // aviso como texto (porcentaje de Inicio, pastilla "Cerca del límite")
@@ -173,6 +181,10 @@ export const temas = {
     tinteHoja: 'rgba(196, 181, 253, 0.55)',
     tinteHojaFin: 'rgba(196, 181, 253, 0)',
     surfaceInput: 'rgba(240, 240, 244, 0.9)',
+    // Sobre la hoja lavanda el gris de surfaceInput casi no se distingue: campo blanco con un
+    // borde lavanda grisáceo suave para que se vea dónde escribir.
+    campoHoja: '#FFFFFF',
+    campoHojaBorde: '#D9D6E6',
     surfaceChip: '#F8F8FA',
 
     // Superficies translúcidas
@@ -289,6 +301,11 @@ export const temas = {
     exito: '#22A866',
     exitoSuave: 'rgba(34, 168, 102, 0.12)',
     exitoTexto: '#137343', // >= 4.5:1 sobre exitoSuave (exito da 2.54)
+    // Cobro de membresía en 3 días o menos (Cartera, HU-05): punto, pastilla y borde de tarjeta
+    cobroProximo: '#34C77B',
+    cobroProximoSuave: 'rgba(52, 199, 123, 0.12)',
+    cobroProximoBorde: 'rgba(52, 199, 123, 0.4)',
+    cobroProximoBordeTarjeta: 'rgba(52, 199, 123, 0.35)',
     aviso: '#D97706',
     avisoSuave: 'rgba(217, 119, 6, 0.12)',
     avisoTexto: '#A3470A', // >= 4.5:1 sobre avisoSuave y sobre blanco (aviso da 3.19)

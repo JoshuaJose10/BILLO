@@ -20,7 +20,7 @@ import FondoDegradado from '../components/FondoDegradado';
 import ItemGasto from '../components/ItemGasto';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
 import SelectorMes from '../components/SelectorMes';
-import { useCategorias } from '../context/CategoriasContext';
+import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/CategoriasContext';
 import { etiquetaMetodoPago, useGastosService } from '../services/gastos';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
@@ -60,6 +60,8 @@ export default function MovimientosScreen({ navigation }) {
     recargar: recargarCategorias,
     nombrePorId,
   } = useCategorias();
+  // Si la primera carga falló (backend apagado, recién iniciada la sesión), se reintenta al enfocar.
+  useReintentarCategoriasAlEnfocar();
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 

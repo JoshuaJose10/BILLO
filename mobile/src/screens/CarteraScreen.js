@@ -608,7 +608,7 @@ const crearEstilos = (colors) =>
       width: 6,
       height: 6,
       borderRadius: 3,
-      backgroundColor: '#34C77B',
+      backgroundColor: colors.cobroProximo,
     },
     textoMesActual: {
       fontFamily: fonts.monoMedium,

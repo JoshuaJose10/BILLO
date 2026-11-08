@@ -9,7 +9,7 @@ import HojaInferior from '../components/HojaInferior';
 import IconoCategoria from '../components/IconoCategoria';
 import MontoGrande from '../components/MontoGrande';
 import TecladoNumerico from '../components/TecladoNumerico';
-import { useCategorias } from '../context/CategoriasContext';
+import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/CategoriasContext';
 import { usePresupuestosService } from '../services/presupuestos';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
@@ -50,6 +50,8 @@ export default function PresupuestoScreen({ navigation, route }) {
     estado: estadoCache,
     recargar: recargarCategorias,
   } = useCategorias();
+  // Si la primera carga falló (backend apagado, recién iniciada la sesión), se reintenta al enfocar.
+  useReintentarCategoriasAlEnfocar();
   const [existentes, setExistentes] = useState([]);
   const [estadoExistentes, setEstadoExistentes] = useState('cargando'); // 'cargando' | 'listo' | 'error'
   const [intento, setIntento] = useState(0);

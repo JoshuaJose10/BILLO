@@ -40,7 +40,7 @@ export default function ItemMembresia({ membresia, opaca = false }) {
               },
             ]}
           >
-            <MaterialCommunityIcons name={icono} size={22} color="#FFFFFF" />
+            <MaterialCommunityIcons name={icono} size={22} color={colors.textoSobreColor} />
           </View>
           <View style={styles.textos}>
             <Text style={styles.nombre} numberOfLines={1}>
@@ -106,7 +106,7 @@ const crearEstilos = (colors) =>
     },
     // Resaltado sutil en el borde cuando cobra en 3 días o menos
     tarjetaProxima: {
-      borderColor: 'rgba(52, 199, 123, 0.35)',
+      borderColor: colors.cobroProximoBordeTarjeta,
     },
     filaSuperior: {
       flexDirection: 'row',
@@ -188,14 +188,14 @@ const crearEstilos = (colors) =>
       backgroundColor: colors.glass05,
     },
     pildoraCobroProximo: {
-      backgroundColor: 'rgba(52, 199, 123, 0.12)',
-      borderColor: 'rgba(52, 199, 123, 0.4)',
+      backgroundColor: colors.cobroProximoSuave,
+      borderColor: colors.cobroProximoBorde,
     },
     puntoVerde: {
       width: 6,
       height: 6,
       borderRadius: 3,
-      backgroundColor: '#34C77B',
+      backgroundColor: colors.cobroProximo,
     },
     textoCobro: {
       fontFamily: fonts.monoMedium,

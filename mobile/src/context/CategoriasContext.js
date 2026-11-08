@@ -7,9 +7,12 @@ import {
   useRef,
   useState,
 } from 'react';
+import { AppState } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { useGastosService } from '../services/gastos';
 import { nombreCategoriaPorId } from '../utils/avisos';
+import { debeReintentar } from '../utils/estadoCarga';
 import { categoriasDeGasto } from '../utils/presupuestos';
 import { useAuth } from './AuthContext';
 
@@ -23,7 +26,9 @@ const SIN_DATOS = { token: null, lista: [], estado: 'cargando' };
 // usuario) dejan de exponerse en ese mismo render y la siguiente sesión vuelve a pedirlas.
 //   const { categorias, categoriasGasto, estado, recargar, nombrePorId } = useCategorias();
 // - estado: 'cargando' | 'listo' | 'error' ('inactivo' sin sesión). Si falla, cada pantalla
-//   ofrece Reintentar, que llama a recargar().
+//   ofrece Reintentar, que llama a recargar(). Además se reintenta solo (HU-80) al volver la app a
+//   primer plano y al enfocar una pantalla que use useReintentarCategoriasAlEnfocar(): así una
+//   primera carga fallida (backend apagado, sin red justo después del login) no queda en error.
 // - categoriasGasto: solo las de tipo gasto (las que no traen tipo se aceptan; ver
 //   categoriasDeGasto).
 export function CategoriasProvider({ children }) {
@@ -63,6 +68,25 @@ export function CategoriasProvider({ children }) {
   const categorias = vigentes ? datos.lista : SIN_DATOS.lista;
   const estado = !token ? 'inactivo' : vigentes ? datos.estado : 'cargando';
 
+  // El estado actual en una ref: los reintentos automáticos lo leen sin volver a suscribirse en
+  // cada cambio (si dependieran de `estado`, un error persistente se reintentaría en bucle).
+  const estadoRef = useRef(estado);
+  useEffect(() => {
+    estadoRef.current = estado;
+  }, [estado]);
+
+  const reintentarSiFallo = useCallback(() => {
+    if (debeReintentar(estadoRef.current)) recargar();
+  }, [recargar]);
+
+  // Al volver a primer plano (p. ej. tras encender el backend o recuperar la red).
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (estadoApp) => {
+      if (estadoApp === 'active') reintentarSiFallo();
+    });
+    return () => sub.remove();
+  }, [reintentarSiFallo]);
+
   const valor = useMemo(
     () => ({
       categorias,
@@ -71,8 +95,9 @@ export function CategoriasProvider({ children }) {
       recargar,
       // Nombre de la categoría con ese id (número o texto); undefined si no está.
       nombrePorId: (id) => nombreCategoriaPorId(categorias, id),
+      reintentarSiFallo,
     }),
-    [categorias, estado, recargar],
+    [categorias, estado, recargar, reintentarSiFallo],
   );
 
   return <CategoriasContext.Provider value={valor}>{children}</CategoriasContext.Provider>;
@@ -85,4 +110,10 @@ export function useCategorias() {
     throw new Error('useCategorias debe usarse dentro de <CategoriasProvider>');
   }
   return ctx;
+}
+
+// Para las pantallas que muestran categorías: al ganar foco las vuelve a pedir si quedaron en error.
+export function useReintentarCategoriasAlEnfocar() {
+  const { reintentarSiFallo } = useCategorias();
+  useFocusEffect(reintentarSiFallo);
 }
