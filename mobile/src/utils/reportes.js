@@ -32,7 +32,7 @@ export function normalizarPorCategoria(lista) {
 // Reparte el 100% entre montos positivos (en centavos) con un decimal, sumando exactamente 100:
 // cada uno baja a la décima y las décimas que sobran van a los de mayor residuo. Ningún monto queda
 // en 0.0: el mínimo es 0.1, descontado del mayor.
-function repartirPorcentajes(centavos) {
+export function repartirPorcentajes(centavos) {
   const suma = centavos.reduce((acc, c) => acc + c, 0);
   const exactas = centavos.map((c) => (c * 1000) / suma);
   const decimas = exactas.map((e) => Math.max(1, Math.floor(e)));
