@@ -93,6 +93,119 @@ export function textoCobro(diasParaCobro, fechaCobro) {
   return `Venció hace ${Math.abs(diasParaCobro)} días${detalleFecha}`;
 }
 
+// Obtiene la fecha actual en formato local 'YYYY-MM-DD'
+export function obtenerFechaHoyLocal() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dia = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dia}`;
+}
+
+// Devuelve el número de días en un mes dado (mes 1-12) de un año
+export function diasEnMes(anio, mes) {
+  return new Date(anio, mes, 0).getDate();
+}
+
+/**
+ * Avanza la fecha de cobro al siguiente ciclo si ya venció (HU-51 / BUG-01).
+ * Si la fecha es pasada, suma 1 mes o 1 año (según frecuencia) de forma recurrente
+ * hasta alcanzar una fecha mayor o igual a la fecha de referencia (hoy por defecto).
+ * Respeta el día del mes original cuando el mes destino tiene suficientes días.
+ */
+export function avanzarFechaCobro(fechaCobroStr, frecuencia = 'mensual', fechaReferenciaStr) {
+  if (
+    !fechaCobroStr ||
+    typeof fechaCobroStr !== 'string' ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(fechaCobroStr)
+  ) {
+    return fechaCobroStr;
+  }
+
+  const hoyStr =
+    fechaReferenciaStr && /^\d{4}-\d{2}-\d{2}$/.test(fechaReferenciaStr)
+      ? fechaReferenciaStr
+      : obtenerFechaHoyLocal();
+
+  if (fechaCobroStr >= hoyStr) {
+    return fechaCobroStr;
+  }
+
+  const [anioInicial, mesInicial, diaInicial] = fechaCobroStr.split('-').map(Number);
+  let anio = anioInicial;
+  let mes = mesInicial;
+  const diaOriginal = diaInicial;
+  let fechaActual = fechaCobroStr;
+
+  const esAnual = frecuencia === 'anual';
+  let iteraciones = 0;
+  const maxIteraciones = esAnual ? 100 : 1200;
+
+  while (fechaActual < hoyStr && iteraciones < maxIteraciones) {
+    iteraciones++;
+    if (esAnual) {
+      anio += 1;
+    } else {
+      mes += 1;
+      if (mes > 12) {
+        mes = 1;
+        anio += 1;
+      }
+    }
+    const maxDias = diasEnMes(anio, mes);
+    const diaAjustado = Math.min(diaOriginal, maxDias);
+    const mm = String(mes).padStart(2, '0');
+    const dd = String(diaAjustado).padStart(2, '0');
+    fechaActual = `${anio}-${mm}-${dd}`;
+  }
+
+  return fechaActual;
+}
+
+/**
+ * Calcula los días enteros entre la fecha de referencia (hoy) y la fecha de cobro.
+ */
+export function calcularDiasParaCobro(fechaCobroStr, fechaReferenciaStr) {
+  if (
+    !fechaCobroStr ||
+    typeof fechaCobroStr !== 'string' ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(fechaCobroStr)
+  ) {
+    return undefined;
+  }
+  const hoyStr =
+    fechaReferenciaStr && /^\d{4}-\d{2}-\d{2}$/.test(fechaReferenciaStr)
+      ? fechaReferenciaStr
+      : obtenerFechaHoyLocal();
+
+  const [yCobro, mCobro, dCobro] = fechaCobroStr.split('-').map(Number);
+  const [yHoy, mHoy, dHoy] = hoyStr.split('-').map(Number);
+
+  const utcCobro = Date.UTC(yCobro, mCobro - 1, dCobro);
+  const utcHoy = Date.UTC(yHoy, mHoy - 1, dHoy);
+
+  return Math.round((utcCobro - utcHoy) / (1000 * 60 * 60 * 24));
+}
+
+/**
+ * Ajusta una membresía al siguiente ciclo si su fecha ya venció (HU-51 / BUG-01).
+ * Conserva la fecha de cobro original en `fecha_cobro_original` por trazabilidad.
+ */
+export function ajustarAlSiguienteCiclo(membresia, fechaReferenciaStr) {
+  if (!membresia || typeof membresia !== 'object') return membresia;
+  const fechaOriginal = membresia.fecha_cobro;
+  const frecuencia = membresia.frecuencia || 'mensual';
+  const proximaFecha = avanzarFechaCobro(fechaOriginal, frecuencia, fechaReferenciaStr);
+  const dias = calcularDiasParaCobro(proximaFecha, fechaReferenciaStr);
+
+  return {
+    ...membresia,
+    fecha_cobro: proximaFecha,
+    dias_para_cobro: dias !== undefined ? dias : membresia.dias_para_cobro,
+    fecha_cobro_original: membresia.fecha_cobro_original ?? fechaOriginal,
+  };
+}
+
 // Validaciones de formulario del lado del cliente
 export function validarMembresia({ nombre, costoTexto, fechaCobro }) {
   const errores = {};

@@ -217,7 +217,14 @@ export default function CarteraScreen({ navigation, route }) {
   const totalMensualSuscripciones = useMemo(() => calcularTotalMensual(membresias), [membresias]);
   const listaMembresiasLista = estadoMembresias === 'listo';
   const hayMembresias = listaMembresiasLista && membresias.length > 0;
-  const proximaMembresia = hayMembresias ? membresias[0] : null;
+  const proximaMembresia = useMemo(() => {
+    if (!hayMembresias) return null;
+    return membresias.reduce((min, m) => {
+      const diasMin = typeof min?.dias_para_cobro === 'number' ? min.dias_para_cobro : Infinity;
+      const diasM = typeof m?.dias_para_cobro === 'number' ? m.dias_para_cobro : Infinity;
+      return diasM < diasMin ? m : min;
+    }, membresias[0]);
+  }, [hayMembresias, membresias]);
 
   const subtituloCartera = enSuscripciones
     ? 'Gestión de cobros recurrentes'
