@@ -4,6 +4,9 @@ import test, { describe } from 'node:test';
 import { coloresServicio } from '../theme/servicios.js';
 
 import {
+  ajustarAlSiguienteCiclo,
+  avanzarFechaCobro,
+  calcularDiasParaCobro,
   calcularTotalMensual,
   esCobroProximo,
   estiloServicio,
@@ -139,6 +142,124 @@ describe('utils/membresias', () => {
       });
       assert.equal(res.valido, false);
       assert.equal(res.errores.costo, 'El costo puede tener hasta 2 decimales');
+    });
+  });
+
+  describe('avanzarFechaCobro (HU-51 / BUG-01)', () => {
+    const hoyFijo = '2026-11-08';
+
+    test('mensual con cobro hace 30 días avanza al ciclo futuro', () => {
+      // 30 días antes de 2026-11-08 fue 2026-10-09
+      const proximo = avanzarFechaCobro('2026-10-09', 'mensual', hoyFijo);
+      assert.equal(proximo, '2026-11-09');
+    });
+
+    test('mensual con cobro en la fecha de hoy no avanza (cobra hoy)', () => {
+      const proximo = avanzarFechaCobro(hoyFijo, 'mensual', hoyFijo);
+      assert.equal(proximo, hoyFijo);
+    });
+
+    test('mensual con fecha futura no se modifica', () => {
+      const proximo = avanzarFechaCobro('2026-11-20', 'mensual', hoyFijo);
+      assert.equal(proximo, '2026-11-20');
+    });
+
+    test('mensual con cobro de hace 3 meses avanza múltiples ciclos', () => {
+      const proximo = avanzarFechaCobro('2026-08-15', 'mensual', hoyFijo);
+      assert.equal(proximo, '2026-11-15');
+    });
+
+    test('mensual que ya pasó en el mes actual avanza al mes siguiente', () => {
+      const proximo = avanzarFechaCobro('2026-10-05', 'mensual', hoyFijo);
+      assert.equal(proximo, '2026-12-05');
+    });
+
+    test('mensual en fin de mes (día 31) ajusta según días del mes', () => {
+      // Enero 31 -> Febrero (28 días en 2026) -> Marzo 31
+      const enFeb = avanzarFechaCobro('2026-01-31', 'mensual', '2026-02-15');
+      assert.equal(enFeb, '2026-02-28');
+
+      const enMar = avanzarFechaCobro('2026-01-31', 'mensual', '2026-03-01');
+      assert.equal(enMar, '2026-03-31');
+    });
+
+    test('anual con cobro hace 1 año avanza al ciclo futuro', () => {
+      const proximo = avanzarFechaCobro('2025-10-15', 'anual', hoyFijo);
+      assert.equal(proximo, '2027-10-15');
+    });
+
+    test('anual que cobra más tarde en el año en curso avanza al año actual', () => {
+      const proximo = avanzarFechaCobro('2025-12-01', 'anual', hoyFijo);
+      assert.equal(proximo, '2026-12-01');
+    });
+
+    test('anual con cobro futuro no se modifica', () => {
+      const proximo = avanzarFechaCobro('2027-05-10', 'anual', hoyFijo);
+      assert.equal(proximo, '2027-05-10');
+    });
+
+    test('tolera entradas inválidas devolviendo la entrada original', () => {
+      assert.equal(avanzarFechaCobro(null), null);
+      assert.equal(avanzarFechaCobro(''), '');
+      assert.equal(avanzarFechaCobro('invalida'), 'invalida');
+    });
+  });
+
+  describe('calcularDiasParaCobro', () => {
+    const hoyFijo = '2026-11-08';
+
+    test('devuelve 0 si la fecha es hoy', () => {
+      assert.equal(calcularDiasParaCobro('2026-11-08', hoyFijo), 0);
+    });
+
+    test('devuelve 1 si la fecha es mañana', () => {
+      assert.equal(calcularDiasParaCobro('2026-11-09', hoyFijo), 1);
+    });
+
+    test('devuelve 30 si la fecha es en 30 días', () => {
+      assert.equal(calcularDiasParaCobro('2026-12-08', hoyFijo), 30);
+    });
+
+    test('devuelve undefined con formato inválido', () => {
+      assert.equal(calcularDiasParaCobro(null), undefined);
+      assert.equal(calcularDiasParaCobro(''), undefined);
+    });
+  });
+
+  describe('ajustarAlSiguienteCiclo y calcularTotalMensual (Aceptación HU-51)', () => {
+    const hoyFijo = '2026-11-08';
+
+    test('una membresía mensual con cobro hace 30 días muestra su próximo cobro futuro y dias_para_cobro >= 0', () => {
+      const membresiaOriginal = {
+        id: 1,
+        nombre: 'Spotify',
+        costo: 129,
+        frecuencia: 'mensual',
+        fecha_cobro: '2026-10-09', // 30 días atrás
+        dias_para_cobro: -30,
+      };
+
+      const ajustada = ajustarAlSiguienteCiclo(membresiaOriginal, hoyFijo);
+
+      assert.equal(ajustada.fecha_cobro, '2026-11-09');
+      assert.equal(ajustada.dias_para_cobro, 1);
+      assert.equal(ajustada.fecha_cobro_original, '2026-10-09');
+    });
+
+    test('el total mensual no cambia al avanzar de ciclo', () => {
+      const listaOriginal = [
+        { id: 1, nombre: 'Spotify', costo: 129, frecuencia: 'mensual', fecha_cobro: '2026-10-09' },
+        { id: 2, nombre: 'Disney+', costo: 1200, frecuencia: 'anual', fecha_cobro: '2025-10-08' },
+        { id: 3, nombre: 'Netflix', costo: 219, frecuencia: 'mensual', fecha_cobro: '2026-11-20' },
+      ];
+
+      const totalAntes = calcularTotalMensual(listaOriginal);
+      const listaAjustada = listaOriginal.map((m) => ajustarAlSiguienteCiclo(m, hoyFijo));
+      const totalDespues = calcularTotalMensual(listaAjustada);
+
+      assert.equal(totalAntes, 129 + 100 + 219);
+      assert.equal(totalDespues, totalAntes);
+      assert.equal(totalDespues, 448);
     });
   });
 });

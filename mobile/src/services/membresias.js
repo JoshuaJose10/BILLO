@@ -2,16 +2,22 @@ import { useMemo } from 'react';
 
 import { useApi } from '../context/AuthContext';
 import { aNumero } from '../utils/formato';
+import { ajustarAlSiguienteCiclo } from '../utils/membresias';
 
-// Normaliza los campos de una membresía proveniente de la API (costo y dias_para_cobro como número).
-export const normalizarMembresia = (membresia) => ({
-  ...membresia,
-  costo: aNumero(membresia.costo),
-  dias_para_cobro:
-    membresia.dias_para_cobro !== undefined && membresia.dias_para_cobro !== null
-      ? Number(membresia.dias_para_cobro)
-      : undefined,
-});
+// Normaliza los campos de una membresía proveniente de la API (costo numérico)
+// y avanza la fecha de cobro al siguiente ciclo si ya venció (HU-51 / BUG-01).
+export const normalizarMembresia = (membresia) => {
+  if (!membresia || typeof membresia !== 'object') return membresia;
+  const base = {
+    ...membresia,
+    costo: aNumero(membresia.costo),
+    dias_para_cobro:
+      membresia.dias_para_cobro !== undefined && membresia.dias_para_cobro !== null
+        ? Number(membresia.dias_para_cobro)
+        : undefined,
+  };
+  return ajustarAlSiguienteCiclo(base);
+};
 
 // Normaliza un elemento del catálogo de servicios.
 export const normalizarCatalogo = (item) => ({
@@ -28,7 +34,12 @@ export function useMembresiasService() {
       // GET /membresias → [{ id, servicio_id, nombre, costo, frecuencia, fecha_cobro, dias_para_cobro }]
       listarMembresias: async () => {
         const lista = await api('/membresias');
-        return (lista || []).map(normalizarMembresia);
+        const normalizadas = (lista || []).map(normalizarMembresia);
+        return normalizadas.sort((a, b) => {
+          const diasA = typeof a.dias_para_cobro === 'number' ? a.dias_para_cobro : Infinity;
+          const diasB = typeof b.dias_para_cobro === 'number' ? b.dias_para_cobro : Infinity;
+          return diasA - diasB;
+        });
       },
 
       // POST /membresias { servicio_id?, nombre, costo, frecuencia, fecha_cobro } → 201 { membresia }
