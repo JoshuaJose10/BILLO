@@ -21,8 +21,8 @@ const authMiddleware = (req, res, next) => {
     // 2. Verificar que el token sea válido y no haya expirado
     const decoded = jwt.verify(token, jwtSecret);
 
-    // 3. Guardar el id del usuario en la petición y continuar
-    req.usuario = { id: decoded.id };
+    // 3. Guardar el id y el rol del usuario en la petición y continuar
+    req.usuario = { id: decoded.id, rol: decoded.rol || 'usuario' };
     return next();
   } catch {
     return res.status(401).json({

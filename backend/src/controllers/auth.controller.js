@@ -61,7 +61,7 @@ const register = async (req, res) => {
     const insertQuery = `
       INSERT INTO usuarios (nombre, email, password_hash)
       VALUES ($1, $2, $3)
-      RETURNING id, nombre, email
+      RETURNING id, nombre, email, rol
     `;
     const result = await pool.query(insertQuery, [
       nombre,
@@ -71,9 +71,13 @@ const register = async (req, res) => {
 
     // 5. Generar el JWT firmado y responder con { usuario, token }
     const newUser = result.rows[0];
-    const token = jwt.sign({ id: newUser.id }, jwtSecret, {
-      expiresIn: jwtExpiresIn,
-    });
+    const token = jwt.sign(
+      { id: newUser.id, rol: newUser.rol },
+      jwtSecret,
+      {
+        expiresIn: jwtExpiresIn,
+      }
+    );
 
     return res.status(201).json({
       usuario: {
@@ -117,7 +121,7 @@ const login = async (req, res) => {
 
     // 1. Buscar al usuario por correo
     const query =
-      'SELECT id, nombre, email, password_hash FROM usuarios WHERE LOWER(email) = $1';
+      'SELECT id, nombre, email, password_hash, rol FROM usuarios WHERE LOWER(email) = $1';
     const result = await pool.query(query, [email.trim().toLowerCase()]);
 
     const user = result.rows[0];
@@ -146,7 +150,7 @@ const login = async (req, res) => {
     }
 
     // 4. Generar el JWT firmado
-    const token = jwt.sign({ id: user.id }, jwtSecret, {
+    const token = jwt.sign({ id: user.id, rol: user.rol }, jwtSecret, {
       expiresIn: jwtExpiresIn,
     });
 
