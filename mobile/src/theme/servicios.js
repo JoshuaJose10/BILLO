@@ -14,5 +14,13 @@ export const coloresServicio = {
   chatgpt: '#10A37F',
   google: '#4285F4',
   icloud: '#3699FF',
+  paramount: '#0064FF',
+  crunchyroll: '#F47521',
+  duolingo: '#58CC02',
+  microsoft: '#D83B01',
+  playstation: '#003791',
+  vix: '#FF5A00',
+  mubi: '#00263E',
+  appleTv: '#000000',
   defecto: '#8B5CF6', // servicios personalizados o sin color propio
 };

@@ -74,6 +74,10 @@ describe('utils/membresias', () => {
       assert.equal(estiloServicio('Netflix').color, coloresServicio.netflix);
       assert.equal(estiloServicio('Spotify Individual').color, coloresServicio.spotify);
       assert.equal(estiloServicio('YouTube Premium').color, coloresServicio.youtube);
+      assert.equal(estiloServicio('Paramount+ Estándar').color, coloresServicio.paramount);
+      assert.equal(estiloServicio('Crunchyroll Mega Fan').color, coloresServicio.crunchyroll);
+      assert.equal(estiloServicio('Duolingo Super Mensual').color, coloresServicio.duolingo);
+      assert.equal(estiloServicio('Microsoft 365 Personal').color, coloresServicio.microsoft);
     });
 
     test('usa valores por defecto para nombres desconocidos', () => {

@@ -84,6 +84,40 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
     await conciliar(ctx.a, 0, 219, 219);
     assert.deepEqual(await get('/catalogo'), catalogo);
   });
+  it('HU-63: catálogo ampliado con planes y precios de México (RF5/RF9)', async () => {
+    const catalogo = await get('/catalogo');
+    assert.ok(catalogo.length >= 25, `El catálogo debe tener al menos 25 servicios, tiene ${catalogo.length}`);
+
+    // Verificar servicios y planes clave de México
+    const serviciosEsperados = [
+      'Spotify Individual',
+      'Spotify Duo',
+      'Spotify Familiar',
+      'Netflix Estándar',
+      'Netflix Premium',
+      'Paramount+ Estándar',
+      'Crunchyroll Fan',
+      'Microsoft 365 Personal',
+      'Amazon Prime',
+    ];
+
+    for (const nombre of serviciosEsperados) {
+      const item = catalogo.find((s) => s.nombre === nombre);
+      assert.ok(item, `El plan '${nombre}' debe existir en el catálogo`);
+      assert.ok(typeof item.costo_sugerido === 'number' && item.costo_sugerido > 0);
+      assert.ok(typeof item.logo_url === 'string' && item.logo_url.startsWith('https://'));
+    }
+
+    // Crear membresía desde el catálogo heredando nombre y costo del plan
+    const spotifyDuo = catalogo.find((s) => s.nombre === 'Spotify Duo');
+    const membresiaDuo = await crear({
+      servicio_id: spotifyDuo.id,
+      frecuencia: 'mensual',
+      fecha_cobro: '2026-11-20',
+    });
+    assert.equal(membresiaDuo.nombre, 'Spotify Duo');
+    assert.equal(membresiaDuo.costo, spotifyDuo.costo_sugerido);
+  });
   it('CP-RF6-01: variable 500 + fijo 300 = total 800', async () => {
     await ctx.crearGasto(ctx.a, { monto: 350 });
     await ctx.crearGasto(ctx.a, { monto: 150 });
