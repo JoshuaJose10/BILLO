@@ -198,10 +198,10 @@ La confirmación de Oscar en el PR sigue siendo necesaria para completar QA.
   npm run lint
   ```
 
-## Endpoints experimentales
+## Tipo de cambio (RF11)
 
-- `GET /tipo-cambio?de=USD&a=MXN` — **experimental (HU-23, spike RF11)**. Devuelve el tipo de cambio desde [Frankfurter](https://frankfurter.dev) (gratis, sin clave) y lo guarda en memoria una hora. No requiere token y no forma parte del contrato de la API; puede cambiar o eliminarse en el Sprint 3. Ver [docs/spike-rf11-rf13.md](../docs/spike-rf11-rf13.md).
+- `GET /divisas/tipo-cambio?moneda=USD` — Devuelve el tipo de cambio hacia `MXN` desde [Frankfurter](https://frankfurter.dev) (gratis, sin clave) y lo guarda en caché en memoria durante 5 minutos. Requiere `Authorization: Bearer <token>`. Ver [docs/api-contrato.md](../docs/api-contrato.md).
   ```bash
-  curl "http://localhost:3000/tipo-cambio?de=USD&a=MXN"
-  # {"de":"USD","a":"MXN","tasa":18.6311,"fecha":"2026-10-28","fuente":"frankfurter.dev (BCE)","cache":false}
+  curl -H "Authorization: Bearer <token>" "http://localhost:3000/divisas/tipo-cambio?moneda=USD"
+  # {"moneda":"USD","tipo_cambio":18.6311,"fecha":"2026-10-28"}
   ```

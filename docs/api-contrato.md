@@ -1,4 +1,4 @@
-# Contrato de API — Billo (v1.2)
+# Contrato de API — Billo (v1.3)
 
 Estado: **esquema de BD congelado desde el 2026-10-13** (ver «Congelamiento del esquema»). Cualquier cambio al contrato o al esquema se acuerda con el equipo y se anota en el **Registro de cambios**.
 
@@ -15,14 +15,14 @@ Verificado con `curl` contra el backend de `develop` (commit `ec43600`), Postgre
 | `POST /auth/register`, `POST /auth/login` | Sí | Sí (`{ usuario, token }`; correo sin distinguir mayúsculas). Detalle: el registro sin cuerpo responde `NOMBRE_REQUERIDO`, no `CAMPOS_REQUERIDOS` |
 | `GET /auth/perfil` | Sí | Sí |
 | `GET /categorias?tipo=gasto` | Sí | Sí (incluye `tipo` y `es_predefinida`) |
-| `POST/GET/PUT/DELETE /gastos` | Sí | Sí (validación de monto y categoría; JSON malformado → `JSON_INVALIDO`) |
+| `POST/GET/PUT/DELETE /gastos` | Sí (S1/S3) | Sí (validación de monto, moneda, `monto_original × tipo_cambio = monto` y categoría; JSON malformado → `JSON_INVALIDO`) |
 | `POST/GET/PUT/DELETE /presupuestos` y aviso `alerta` | Sí (S2) | Sí |
 | `GET /catalogo` | Sí (S2) | Sí |
 | `POST/PUT/DELETE /catalogo` | No (404 `RUTA_NO_ENCONTRADA`) | Pendiente de S3 (RF9) |
 | `POST/GET/PUT/DELETE /membresias` | Sí (S2) | Sí |
 | `GET /reportes/resumen`, `GET /reportes/por-categoria` | Sí (S2) | Sí |
-| `GET /tipo-cambio?moneda=USD` | Sí, **experimental** (spike HU-23) | Fuera de contrato: sin token y con otra ruta que la propuesta en X-01 (`/divisas/tipo-cambio`). Se normaliza en S3 (RF11) |
-| `POST /notificaciones/token` | No (404) | Pendiente de S3 (RF7) |
+| `GET /divisas/tipo-cambio?moneda=USD` | Sí (S3) | Sí (con token, caché de 5 minutos y 502 `FUENTE_NO_DISPONIBLE`) |
+| `POST /notificaciones/token` | Sí (S3) | Sí (200 `{ registrado: true }`, 400 `TOKEN_PUSH_INVALIDO`) |
 | Token con `rol` y rutas de administración | No | Pendiente de S3 (RF9) |
 
 ## Convenciones
@@ -110,14 +110,20 @@ Lista inicial (cargada por migración o seed): Comida, Transporte, Entretenimien
 
 > **Diferencia histórica (corregida en HU-18):** responde 200 `[ { "id": 1, "nombre": "Entretenimiento" }, ... ]`, sin `tipo` ni `es_predefinida`; el parámetro `tipo` se ignora (también un valor inválido devuelve 200 con todas las categorías, en lugar de 400 `TIPO_INVALIDO`).
 
-## Gastos (todas requieren token) (S1)
+## Gastos (todas requieren token) (S1 / moneda S3 — RF2, RF11)
 
-`metodo_pago` acepta: `efectivo`, `tarjeta`, `transferencia`, `otro`. `nota` es opcional (máximo 200 caracteres; si se omite, se guarda `null`). `monto` debe ser un número JSON (no una cadena) y `categoria_id` un entero positivo de una categoría existente.
+`metodo_pago` acepta: `efectivo`, `tarjeta`, `transferencia`, `otro`. `nota` es opcional (máximo 200 caracteres; si se omite, se guarda `null`). `monto` siempre se expresa en `MXN` y debe ser un número JSON (no una cadena), y `categoria_id` un entero positivo de una categoría existente.
+
+`moneda`, `monto_original` y `tipo_cambio` son opcionales (S3, RF11):
+- Si `moneda` se omite o es `"MXN"`, el gasto se guarda con `"moneda": "MXN"`, `"monto_original": null` y `"tipo_cambio": null`.
+- Si `moneda` es otro código ISO 4217 de 3 letras conocido (por ejemplo `"USD"` o `"EUR"`), `monto_original` (hasta 2 decimales) y `tipo_cambio` (hasta 6 decimales) son obligatorios y `monto_original × tipo_cambio` redondeado a 2 decimales debe coincidir con `monto`.
+- Presupuestos y reportes siempre suman `monto` en `MXN`.
 
 ### POST /gastos
-Body: { "monto": 85.50, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago": "efectivo", "nota": "Tacos" }
-- 201 → { "gasto": { "id": 41, "monto": 85.5, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago": "efectivo", "nota": "Tacos" } }
-- 400 → MONTO_INVALIDO, CATEGORIA_INEXISTENTE, FECHA_INVALIDA, METODO_PAGO_INVALIDO, NOTA_INVALIDA. Sin cuerpo se valida como campos vacíos (400, no 500).
+Body (en MXN): { "monto": 85.50, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago": "efectivo", "nota": "Tacos" }
+Body (en otra moneda): { "monto": 186.31, "moneda": "USD", "monto_original": 10, "tipo_cambio": 18.6311, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago": "tarjeta", "nota": "Libro" }
+- 201 → { "gasto": { "id": 41, "monto": 85.5, "moneda": "MXN", "monto_original": null, "tipo_cambio": null, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago": "efectivo", "nota": "Tacos" } }
+- 400 → MONTO_INVALIDO, MONEDA_INVALIDA, CATEGORIA_INEXISTENTE, FECHA_INVALIDA, METODO_PAGO_INVALIDO, NOTA_INVALIDA. Sin cuerpo se valida como campos vacíos (400, no 500).
 
 Ejemplo 400 → { "error": { "code": "MONTO_INVALIDO", "message": "El monto debe ser un número mayor a 0" } }
 
@@ -129,13 +135,13 @@ Ejemplo 400 → { "error": { "code": "MONTO_INVALIDO", "message": "El monto debe
 
 ### GET /gastos?mes=2026-10&categoria_id=3
 Los filtros `mes` y `categoria_id` son opcionales. Orden: fecha descendente y, con la misma fecha, el más reciente primero (`id` descendente). Sin gastos: 200 `[]`.
-- 200 → [ { "id": 41, "monto": 85.5, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago": "efectivo", "nota": "Tacos" }, ... ]
+- 200 → [ { "id": 41, "monto": 85.5, "moneda": "MXN", "monto_original": null, "tipo_cambio": null, "categoria_id": 3, "fecha": "2026-10-05", "metodo_pago": "efectivo", "nota": "Tacos" }, ... ]
 - 400 → MES_INVALIDO, CATEGORIA_INEXISTENTE (`categoria_id` no es un entero positivo)
 
 ### PUT /gastos/:id
 Body: igual que POST (se reemplazan todos los campos)
 - 200 → { "gasto": { ... } } (gasto actualizado)
-- 400 → MONTO_INVALIDO, CATEGORIA_INEXISTENTE, FECHA_INVALIDA, METODO_PAGO_INVALIDO, NOTA_INVALIDA
+- 400 → MONTO_INVALIDO, MONEDA_INVALIDA, CATEGORIA_INEXISTENTE, FECHA_INVALIDA, METODO_PAGO_INVALIDO, NOTA_INVALIDA
 - 404 → GASTO_NO_ENCONTRADO (no existe, no pertenece al usuario o el `id` no es un entero positivo)
 
 Ejemplo 404 → { "error": { "code": "GASTO_NO_ENCONTRADO", "message": "Gasto no encontrado" } }
@@ -256,6 +262,16 @@ Body: { "expo_push_token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]" }
 - 200 → { "registrado": true }
 - 400 → TOKEN_PUSH_INVALIDO
 
+## Divisas (requiere token) (S3) — RF11
+
+Consulta el tipo de cambio hacia `MXN` desde Frankfurter (BCE) y lo guarda en caché en memoria durante unos minutos (5 min).
+
+### GET /divisas/tipo-cambio?moneda=USD  (requiere token)
+`moneda` es obligatorio (código ISO 4217 de 3 letras conocido, distinto de `MXN`).
+- 200 → { "moneda": "USD", "tipo_cambio": 18.6311, "fecha": "2026-10-28" }
+- 400 → MONEDA_INVALIDA
+- 502 → FUENTE_NO_DISPONIBLE
+
 ## Modo exploración (RF10)
 
 No usa la API: la app muestra datos de ejemplo guardados en el propio teléfono, sin llamar al servidor y sin crear usuario. Así no existen rutas públicas con datos de ejemplo.
@@ -270,8 +286,8 @@ Son campos nuevos y opcionales (no rompen nada de lo existente). Se aplican en u
 
 | ID | Cambio | Para qué | Estado |
 |---|---|---|---|
-| C-01 | `usuarios.expo_push_token` (varchar, nulo) | Guardar el token de Expo del teléfono para enviar el aviso de cobro (RF7). | Recomendado; pendiente de aprobar Oscar (ver `docs/decisiones-esquema-sprint3.md`) |
-| C-02 | `membresias.ultima_notificacion` (date, nulo) | Evitar mandar el mismo aviso más de una vez por cobro (RF7). | Recomendado; pendiente de aprobar Oscar |
+| C-01 | `usuarios.expo_push_token` (varchar, nulo) | Guardar el token de Expo del teléfono para enviar el aviso de cobro (RF7). | Aplicado en migración 011 (S3) |
+| C-02 | `membresias.ultima_notificacion` (date, nulo) | Evitar mandar el mismo aviso más de una vez por cobro (RF7). | Aplicado en migración 011 (S3) |
 
 ### Extensiones propuestas, fuera del congelamiento
 
@@ -279,7 +295,7 @@ Provienen de la ampliación del Canvas. La HU-23 recomendó **IR** en RF11, RF12
 
 | ID | Requisito | Cambio en esquema | Cambio en API |
 |---|---|---|---|
-| X-01 | RF11 Cambio de moneda | `gastos.moneda` (varchar), `gastos.monto_original` (decimal), `gastos.tipo_cambio` (decimal) | Campos opcionales `moneda` y `monto_original` en `POST/PUT /gastos` y `GET /divisas/tipo-cambio?moneda=USD` |
+| X-01 | RF11 Cambio de moneda | `gastos.moneda` (varchar), `gastos.monto_original` (decimal), `gastos.tipo_cambio` (decimal) — aplicado en migración 011 | Campos opcionales `moneda`, `monto_original` y `tipo_cambio` en `POST/PUT/GET /gastos` y `GET /divisas/tipo-cambio?moneda=USD` (implementado en S3) |
 | X-02 | RF12 Captura por voz | Ninguno | Ninguno (la app transcribe y manda `POST /gastos` normal) |
 | X-03 | RF13 Widgets | Ninguno | Reutiliza `GET /reportes/resumen` |
 
@@ -307,3 +323,4 @@ Pendiente en la colección Postman (**HU-22**, Luis Dorian): agregar las asercio
 - 2026-10-13 — v1.0 — Se agregan convenciones (encabezado de token, formatos, rol), categorías, presupuestos con estados de alerta, catálogo de servicios, membresías, reportes (resumen y por categoría), registro de token push y modo exploración sin API. En gastos se explicitan `metodo_pago` y `nota` (ya existían en el esquema). Se congela el esquema de seis tablas. Se proponen C-01 y C-02 y se dejan X-01 a X-03 como extensiones. Autor: Joshua. Aprobación: pendiente de Fernando y Oscar.
 - 2026-10-23 — v1.1 — Alineación con el backend de S1 (HU-16), verificada con `curl` sobre `develop` (`30707e5`). Errores con `{ "error": { "code", "message" } }` en todos los ejemplos (antes `codigo/mensaje`); 500 con `ERROR_SERVIDOR` (antes `ERROR_INTERNO`); se agregan `JSON_INVALIDO` y `RUTA_NO_ENCONTRADA` para que todo error sea JSON. El 401 por token ausente, inválido o vencido usa siempre `NO_AUTORIZADO`. Registro y login devuelven `{ usuario, token }`. `GET /auth/perfil` queda como ruta oficial y `GET /auth/profile` como alias temporal; se documenta la respuesta real del perfil y su 404 `USUARIO_NO_ENCONTRADO`. Se agregan los códigos que el backend ya usa: `NOMBRE_REQUERIDO`, `CAMPOS_REQUERIDOS`, `NOTA_INVALIDA` y `CATEGORIA_INEXISTENTE` en el filtro de `GET /gastos`. Se definen el correo sin distinción de mayúsculas, el monto como número JSON y el cuerpo ausente como 400. Se añaden la tabla de estado de implementación, las diferencias actuales marcadas «se corrige en HU-18» (o HU-17 para validaciones de gastos) y la trazabilidad con los reportes QA (aserciones pendientes de Postman en HU-22). Sin cambios en el esquema ni en S2/S3. Autor: Joshua.
 - 2026-11-05 — v1.2 — Cierre del Sprint 2 (HU-41). Se actualiza la tabla de estado de implementación (verificada con `curl` sobre `develop` `ec43600`): presupuestos, catálogo (lectura), membresías y reportes quedan implementados y las diferencias de v1.1 (HU-17, HU-18) pasan a «históricas». Se documenta `GET /tipo-cambio` como experimental y fuera de contrato. C-01, C-02 y X-01 pasan a recomendados, a la espera de la aprobación de Oscar. Sin cambios en rutas ni en el esquema vigente. Autor: Joshua. Aprobación: pendiente de Oscar.
+- 2026-11-08 — v1.3 — Sprint 3 (RF7 y RF11). Se aplica la migración 011 (C-01, C-02 y X-01) y se implementa `POST /notificaciones/token`. En `POST/PUT/GET /gastos` se agregan `moneda` (por defecto `MXN`), `monto_original` y `tipo_cambio` (opcionales; cuando `moneda` es distinta de `MXN` se valida código ISO de 3 letras conocido y que `monto_original × tipo_cambio` coincida con `monto` en `MXN`; 400 `MONEDA_INVALIDA` / `MONTO_INVALIDO`). Se mueve el endpoint experimental `GET /tipo-cambio` a `GET /divisas/tipo-cambio?moneda=USD` con token, caché en memoria de 5 minutos y 502 `FUENTE_NO_DISPONIBLE`. Autor: Joshua.

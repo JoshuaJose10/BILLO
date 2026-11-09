@@ -1,5 +1,6 @@
 const { pool } = require('../db');
 const { calcularAlertaPresupuesto } = require('./presupuestos.controller');
+const { esMonedaValida } = require('./tipoCambio.controller');
 
 const METODOS_PAGO_VALIDOS = ['efectivo', 'tarjeta', 'transferencia', 'otro'];
 
@@ -25,13 +26,37 @@ const esMontoValido = (monto) => {
     typeof monto === 'number' &&
     Number.isFinite(monto) &&
     monto >= 0.01 &&
-    /^\d+(\.\d{1,2})?$/.test(String(monto))
+    monto <= 9999999999.99 &&
+    /^\d{1,10}(\.\d{1,2})?$/.test(String(monto))
   );
+};
+
+const esTipoCambioValido = (tipoCambio) => {
+  return (
+    typeof tipoCambio === 'number' &&
+    Number.isFinite(tipoCambio) &&
+    tipoCambio > 0 &&
+    tipoCambio <= 999999.999999 &&
+    /^\d{1,6}(\.\d{1,6})?$/.test(String(tipoCambio))
+  );
+};
+
+const coincideConversion = (montoOriginal, tipoCambio, monto) => {
+  return Math.abs(montoOriginal * tipoCambio - monto) <= 0.005 + 1e-9;
 };
 
 const formatearGasto = (row) => ({
   id: row.id,
   monto: Number(row.monto),
+  moneda: row.moneda,
+  monto_original:
+    row.monto_original === null || row.monto_original === undefined
+      ? null
+      : Number(row.monto_original),
+  tipo_cambio:
+    row.tipo_cambio === null || row.tipo_cambio === undefined
+      ? null
+      : Number(row.tipo_cambio),
   categoria_id: row.categoria_id,
   fecha: row.fecha,
   metodo_pago: row.metodo_pago,
@@ -39,8 +64,16 @@ const formatearGasto = (row) => ({
 });
 
 const validarDatosGasto = async (body) => {
-  const { monto, categoria_id, fecha, metodo_pago, nota } =
-    body && typeof body === 'object' ? body : {};
+  const {
+    monto,
+    moneda,
+    monto_original,
+    tipo_cambio,
+    categoria_id,
+    fecha,
+    metodo_pago,
+    nota,
+  } = body && typeof body === 'object' ? body : {};
 
   if (!esMontoValido(monto)) {
     return {
@@ -49,6 +82,63 @@ const validarDatosGasto = async (body) => {
         message: 'El monto debe ser un número mayor a 0',
       },
     };
+  }
+
+  let monedaFinal = 'MXN';
+  if (moneda !== undefined && moneda !== null) {
+    if (!esMonedaValida(moneda)) {
+      return {
+        error: {
+          code: 'MONEDA_INVALIDA',
+          message: 'La moneda debe ser un código válido de 3 letras',
+        },
+      };
+    }
+    monedaFinal = moneda;
+  }
+
+  let montoOriginalFinal = null;
+  let tipoCambioFinal = null;
+
+  if (monedaFinal === 'MXN') {
+    const tieneMontoOriginal =
+      monto_original !== undefined && monto_original !== null;
+    const tieneTipoCambio = tipo_cambio !== undefined && tipo_cambio !== null;
+
+    if (tieneMontoOriginal || tieneTipoCambio) {
+      if (
+        !esMontoValido(monto_original) ||
+        !esTipoCambioValido(tipo_cambio) ||
+        tipo_cambio !== 1 ||
+        monto_original !== monto
+      ) {
+        return {
+          error: {
+            code: 'MONTO_INVALIDO',
+            message:
+              'Para gastos en MXN, monto_original debe coincidir con monto y tipo_cambio debe ser 1',
+          },
+        };
+      }
+      montoOriginalFinal = monto_original;
+      tipoCambioFinal = tipo_cambio;
+    }
+  } else {
+    if (
+      !esMontoValido(monto_original) ||
+      !esTipoCambioValido(tipo_cambio) ||
+      !coincideConversion(monto_original, tipo_cambio, monto)
+    ) {
+      return {
+        error: {
+          code: 'MONTO_INVALIDO',
+          message:
+            'El monto original multiplicado por el tipo de cambio debe coincidir con el monto en MXN',
+        },
+      };
+    }
+    montoOriginalFinal = monto_original;
+    tipoCambioFinal = tipo_cambio;
   }
 
   if (!esFechaValida(fecha)) {
@@ -113,6 +203,9 @@ const validarDatosGasto = async (body) => {
   return {
     datos: {
       monto,
+      moneda: monedaFinal,
+      monto_original: montoOriginalFinal,
+      tipo_cambio: tipoCambioFinal,
       categoria_id,
       fecha,
       metodo_pago,
@@ -131,17 +224,29 @@ const crearGasto = async (req, res) => {
       return res.status(400).json({ error: validacion.error });
     }
 
-    const { monto, categoria_id, fecha, metodo_pago, nota } = validacion.datos;
+    const {
+      monto,
+      moneda,
+      monto_original,
+      tipo_cambio,
+      categoria_id,
+      fecha,
+      metodo_pago,
+      nota,
+    } = validacion.datos;
 
     const insertQuery = `
-      INSERT INTO gastos (usuario_id, categoria_id, monto, fecha, metodo_pago, nota)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING id, monto, categoria_id, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, metodo_pago, nota
+      INSERT INTO gastos (usuario_id, categoria_id, monto, moneda, monto_original, tipo_cambio, fecha, metodo_pago, nota)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING id, monto, moneda, monto_original, tipo_cambio, categoria_id, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, metodo_pago, nota
     `;
     const { rows } = await pool.query(insertQuery, [
       usuarioId,
       categoria_id,
       monto,
+      moneda,
+      monto_original,
+      tipo_cambio,
       fecha,
       metodo_pago,
       nota,
@@ -208,7 +313,7 @@ const listarGastos = async (req, res) => {
     }
 
     const query = `
-      SELECT id, monto, categoria_id, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, metodo_pago, nota
+      SELECT id, monto, moneda, monto_original, tipo_cambio, categoria_id, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, metodo_pago, nota
       FROM gastos
       WHERE ${condiciones.join(' AND ')}
       ORDER BY fecha DESC, id DESC
@@ -247,23 +352,38 @@ const actualizarGasto = async (req, res) => {
       return res.status(400).json({ error: validacion.error });
     }
 
-    const { monto, categoria_id, fecha, metodo_pago, nota } = validacion.datos;
+    const {
+      monto,
+      moneda,
+      monto_original,
+      tipo_cambio,
+      categoria_id,
+      fecha,
+      metodo_pago,
+      nota,
+    } = validacion.datos;
 
     const updateQuery = `
       UPDATE gastos
       SET monto = $3,
-          categoria_id = $4,
-          fecha = $5,
-          metodo_pago = $6,
-          nota = $7
+          moneda = $4,
+          monto_original = $5,
+          tipo_cambio = $6,
+          categoria_id = $7,
+          fecha = $8,
+          metodo_pago = $9,
+          nota = $10
       WHERE id = $1 AND usuario_id = $2
-      RETURNING id, monto, categoria_id, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, metodo_pago, nota
+      RETURNING id, monto, moneda, monto_original, tipo_cambio, categoria_id, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, metodo_pago, nota
     `;
 
     const { rows } = await pool.query(updateQuery, [
       gastoId,
       usuarioId,
       monto,
+      moneda,
+      monto_original,
+      tipo_cambio,
       categoria_id,
       fecha,
       metodo_pago,

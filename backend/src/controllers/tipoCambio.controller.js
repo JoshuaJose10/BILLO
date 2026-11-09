@@ -1,62 +1,108 @@
-// EXPERIMENTAL (HU-23, spike RF11): prueba de que el servidor puede consultar el tipo de
-// cambio. No es parte del contrato de la API (docs/api-contrato.md) y puede cambiar o
-// eliminarse en el Sprint 3. Detalles en docs/spike-rf11-rf13.md.
-//
-// Fuente: Frankfurter (https://frankfurter.dev), gratis, sin clave y con datos del Banco
-// Central Europeo que se actualizan una vez al día hábil. Por eso se guarda en memoria una hora.
-
-const URL_FUENTE = 'https://api.frankfurter.dev/v1/latest';
-const DURACION_CACHE_MS = 60 * 60 * 1000;
+const URL_FUENTE_DEFAULT = 'https://api.frankfurter.dev/v1/latest';
+const DURACION_CACHE_MS = 5 * 60 * 1000;
 const TIEMPO_MAXIMO_MS = 5000;
+
+const MONEDAS_SOPORTADAS = new Set([
+  'AUD',
+  'BGN',
+  'BRL',
+  'CAD',
+  'CHF',
+  'CNY',
+  'CZK',
+  'DKK',
+  'EUR',
+  'GBP',
+  'HKD',
+  'HUF',
+  'IDR',
+  'ILS',
+  'INR',
+  'ISK',
+  'JPY',
+  'KRW',
+  'MXN',
+  'MYR',
+  'NOK',
+  'NZD',
+  'PHP',
+  'PLN',
+  'RON',
+  'SEK',
+  'SGD',
+  'THB',
+  'TRY',
+  'USD',
+  'ZAR',
+]);
 
 const cache = new Map();
 
-const esCodigoMoneda = (codigo) => typeof codigo === 'string' && /^[A-Z]{3}$/.test(codigo);
+const esMonedaValida = (codigo) =>
+  typeof codigo === 'string' && MONEDAS_SOPORTADAS.has(codigo);
 
+const limpiarCacheTipoCambio = () => {
+  cache.clear();
+};
+
+// GET /divisas/tipo-cambio?moneda=USD
 const obtenerTipoCambio = async (req, res) => {
-  const de = String(req.query.de || 'USD').toUpperCase();
-  const a = String(req.query.a || 'MXN').toUpperCase();
+  const { moneda } = req.query;
 
-  if (!esCodigoMoneda(de) || !esCodigoMoneda(a) || de === a) {
+  if (!esMonedaValida(moneda) || moneda === 'MXN') {
     return res.status(400).json({
       error: {
         code: 'MONEDA_INVALIDA',
-        message: 'Usa dos códigos de moneda distintos de 3 letras (ej. ?de=USD&a=MXN)',
+        message:
+          'La moneda debe ser un código de 3 letras soportado distinto de MXN',
       },
     });
   }
 
-  const clave = `${de}-${a}`;
-  const guardado = cache.get(clave);
+  const guardado = cache.get(moneda);
   if (guardado && Date.now() - guardado.consultadoEn < DURACION_CACHE_MS) {
-    return res.status(200).json({ ...guardado.datos, cache: true });
+    return res.status(200).json(guardado.datos);
   }
 
+  const urlFuente = process.env.TIPO_CAMBIO_URL || URL_FUENTE_DEFAULT;
+
   try {
-    const respuesta = await fetch(`${URL_FUENTE}?base=${de}&symbols=${a}`, {
+    const respuesta = await fetch(`${urlFuente}?base=${moneda}&symbols=MXN`, {
       signal: AbortSignal.timeout(TIEMPO_MAXIMO_MS),
     });
 
     if (respuesta.status === 404) {
       return res.status(400).json({
-        error: { code: 'MONEDA_NO_SOPORTADA', message: 'La fuente no tiene esa moneda' },
+        error: {
+          code: 'MONEDA_INVALIDA',
+          message: 'La moneda solicitada no está soportada',
+        },
       });
     }
+
     if (!respuesta.ok) {
       throw new Error(`La fuente respondió ${respuesta.status}`);
     }
 
     const cuerpo = await respuesta.json();
-    const tasa = cuerpo.rates?.[a];
-    if (typeof tasa !== 'number') {
-      throw new Error('La fuente no devolvió la tasa');
+    const tasa = cuerpo?.rates?.MXN;
+    if (typeof tasa !== 'number' || !Number.isFinite(tasa) || tasa <= 0) {
+      throw new Error('La fuente no devolvió una tasa válida');
     }
 
-    const datos = { de, a, tasa, fecha: cuerpo.date, fuente: 'frankfurter.dev (BCE)' };
-    cache.set(clave, { datos, consultadoEn: Date.now() });
-    return res.status(200).json({ ...datos, cache: false });
+    const tipo_cambio = Number(tasa.toFixed(6));
+    const datos = {
+      moneda,
+      tipo_cambio,
+      fecha: cuerpo.date,
+    };
+
+    cache.set(moneda, { datos, consultadoEn: Date.now() });
+    return res.status(200).json(datos);
   } catch (err) {
-    console.error('Error al consultar el tipo de cambio:', err.message);
+    if (process.env.NODE_ENV !== 'test') {
+      console.error('Error al consultar el tipo de cambio:', err.message);
+    }
     return res.status(502).json({
       error: {
         code: 'FUENTE_NO_DISPONIBLE',
@@ -66,4 +112,9 @@ const obtenerTipoCambio = async (req, res) => {
   }
 };
 
-module.exports = { obtenerTipoCambio };
+module.exports = {
+  MONEDAS_SOPORTADAS,
+  esMonedaValida,
+  limpiarCacheTipoCambio,
+  obtenerTipoCambio,
+};
