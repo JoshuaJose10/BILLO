@@ -29,27 +29,30 @@ export function normalizarPorCategoria(lista) {
   }));
 }
 
-// Reparte el 100% entre montos positivos (en centavos) con un decimal, sumando exactamente 100:
-// cada uno baja a la décima y las décimas que sobran van a los de mayor residuo. Ningún monto queda
-// en 0.0: el mínimo es 0.1, descontado del mayor.
-export function repartirPorcentajes(centavos) {
+// Reparte el 100% entre montos positivos (en centavos) con `decimales` decimales (1 por defecto;
+// 0 para enteros), sumando exactamente 100: cada uno baja a la unidad mínima (0.1 o 1) y las que
+// sobran van a los de mayor residuo. Ningún monto queda en 0: el mínimo es una unidad, descontada
+// del mayor.
+export function repartirPorcentajes(centavos, decimales = 1) {
+  const escala = 10 ** decimales;
+  const totalUnidades = 100 * escala;
   const suma = centavos.reduce((acc, c) => acc + c, 0);
-  const exactas = centavos.map((c) => (c * 1000) / suma);
-  const decimas = exactas.map((e) => Math.max(1, Math.floor(e)));
-  const resto = 1000 - decimas.reduce((acc, d) => acc + d, 0);
+  const exactas = centavos.map((c) => (c * totalUnidades) / suma);
+  const unidades = exactas.map((e) => Math.max(1, Math.floor(e)));
+  const resto = totalUnidades - unidades.reduce((acc, d) => acc + d, 0);
 
   if (resto < 0) {
-    decimas[decimas.indexOf(Math.max(...decimas))] += resto;
+    unidades[unidades.indexOf(Math.max(...unidades))] += resto;
   } else {
     exactas
       .map((e, i) => ({ i, residuo: e - Math.floor(e) }))
       .sort((a, b) => b.residuo - a.residuo)
       .slice(0, resto)
       .forEach(({ i }) => {
-        decimas[i] += 1;
+        unidades[i] += 1;
       });
   }
-  return decimas.map((d) => d / 10);
+  return unidades.map((d) => d / escala);
 }
 
 // Datos de la dona a partir de normalizarPorCategoria, en el mismo orden (de mayor a menor):

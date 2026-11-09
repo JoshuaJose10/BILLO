@@ -64,8 +64,8 @@ export function periodoComparacion(mes, hoy = new Date()) {
 }
 
 // Desglose del mes: [{ categoria_id, categoria, total, cantidad, porcentaje }] de mayor a menor
-// total (empate: por nombre). `porcentaje` con un decimal, sumando exactamente 100 (el mismo
-// reparto que la dona). La forma sirve directo para armarDatosDona.
+// total (empate: por nombre). `porcentaje` entero, sumando exactamente 100 por mayor residuo
+// ("91% del total"). La forma sirve directo para armarDatosDona.
 export function desglosePorCategoria(gastos, nombrePorId = () => undefined) {
   const porId = new Map();
   (gastos || []).forEach((g) => {
@@ -86,7 +86,10 @@ export function desglosePorCategoria(gastos, nombrePorId = () => undefined) {
     .sort((a, b) => b.total - a.total || a.categoria.localeCompare(b.categoria, 'es'));
   if (filas.length === 0) return [];
 
-  const porcentajes = repartirPorcentajes(filas.map((f) => Math.round(f.total * 100)));
+  const porcentajes = repartirPorcentajes(
+    filas.map((f) => Math.round(f.total * 100)),
+    0,
+  );
   return filas.map((f, i) => ({ ...f, porcentaje: porcentajes[i] }));
 }
 

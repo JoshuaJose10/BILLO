@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test, { describe } from 'node:test';
 
+import { repartirPorcentajes } from './reportes.js';
 import {
   compararConMesAnterior,
   consejoDelMes,
@@ -57,6 +58,32 @@ describe('desglosePorCategoria', () => {
     );
     const suma = filas.reduce((s, f) => s + f.porcentaje, 0);
     assert.equal(Math.round(suma * 10) / 10, 100);
+  });
+
+  test('porcentajes enteros que suman 100 por mayor residuo', () => {
+    // 1/3, 1/3, 1/3 → 34, 33, 33 (el sobrante va al primero por residuo y orden)
+    const filas = desglosePorCategoria(
+      [
+        gasto(1, 100, 1, '2026-11-01'),
+        gasto(2, 100, 2, '2026-11-02'),
+        gasto(3, 100, 3, '2026-11-03'),
+      ],
+      nombrePorId,
+    );
+    assert.ok(filas.every((f) => Number.isInteger(f.porcentaje)));
+    assert.equal(
+      filas.reduce((s, f) => s + f.porcentaje, 0),
+      100,
+    );
+    // 91 / 9: sin decimales
+    const dos = desglosePorCategoria(
+      [gasto(1, 910, 1, '2026-11-01'), gasto(2, 90, 2, '2026-11-02')],
+      nombrePorId,
+    );
+    assert.deepEqual(
+      dos.map((f) => f.porcentaje),
+      [91, 9],
+    );
   });
 
   test('sin nombre en la caché usa "Sin categoría"; sin gastos, lista vacía', () => {
@@ -188,5 +215,17 @@ describe('consejoDelMes', () => {
       }),
       null,
     );
+  });
+});
+
+describe('repartirPorcentajes', () => {
+  test('con 0 decimales: enteros, mínimo 1 y suma 100', () => {
+    const r = repartirPorcentajes([99800, 100, 100], 0);
+    assert.deepEqual(r, [98, 1, 1]);
+  });
+
+  test('por defecto conserva un decimal (dona)', () => {
+    const r = repartirPorcentajes([1, 1, 1]);
+    assert.deepEqual(r, [33.4, 33.3, 33.3]);
   });
 });

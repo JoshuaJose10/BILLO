@@ -139,6 +139,9 @@ export const temas = {
     brilloIcono: 'rgba(255, 255, 255, 0.22)',
     brilloIconoFin: 'rgba(255, 255, 255, 0)',
     iconoSombraOpacidad: 0.35,
+    // Brillo difuso de la dona de Reportes: dos copias de cada tramo, a 1.5x y 2.2x el grosor
+    donaBrilloCerca: 0.14,
+    donaBrilloLejos: 0.05,
     iconoSombraRadio: 8,
     iconoSombraY: 4,
 
@@ -284,6 +287,9 @@ export const temas = {
     brilloIcono: 'rgba(255, 255, 255, 0.32)',
     brilloIconoFin: 'rgba(255, 255, 255, 0)',
     iconoSombraOpacidad: 0.2,
+    // En claro, la mitad: sobre fondo claro el color pesa más
+    donaBrilloCerca: 0.07,
+    donaBrilloLejos: 0.025,
     iconoSombraRadio: 10,
     iconoSombraY: 6,
 

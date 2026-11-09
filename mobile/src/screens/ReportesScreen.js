@@ -40,7 +40,7 @@ import { mensajeError } from '../utils/errores';
 import { mesActual, sumarMeses } from '../utils/fechas';
 import { formatearMonto, MONEDA, nombreMes } from '../utils/formato';
 import { resumenPresupuestos } from '../utils/presupuestos';
-import { armarDatosDona, esMesSinDatos, formatearPorcentaje } from '../utils/reportes';
+import { armarDatosDona, esMesSinDatos } from '../utils/reportes';
 import { etiquetaBarraMes, nivelPorcentaje, resumenGastoMes } from '../utils/resumenMes';
 
 // Vistas del segmentado bajo el mes. Solo hay gastos en la app: Ingresos y Balance llevan la
@@ -275,7 +275,8 @@ export default function ReportesScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.lista,
-          { paddingTop: insets.top + 4, paddingBottom: alturaNavbar + 16 },
+          // El último bloque queda por encima de la navbar flotante con aire de sobra.
+          { paddingTop: insets.top + 4, paddingBottom: alturaNavbar + espacios.xl },
         ]}
         refreshControl={
           <RefreshControl refreshing={refrescando} onRefresh={refrescar} tintColor={colors.text} />
@@ -417,15 +418,16 @@ function FilaCategoria({ categoria }) {
     <View
       style={styles.fila}
       accessible
-      accessibilityLabel={`${nombre}: ${formatearMonto(total)}, ${formatearPorcentaje(porcentaje)} del total, ${textoCantidad}`}
+      accessibilityLabel={`${nombre}: ${formatearMonto(total)}, ${porcentaje}% del total, ${textoCantidad}`}
     >
       <IconoCategoria nombre={nombre} />
       <View style={styles.filaTextos}>
         <Text style={styles.filaNombre} numberOfLines={1}>
           {nombre}
         </Text>
-        <Text style={styles.filaDetalle} numberOfLines={1}>
-          <Text style={styles.filaPorcentaje}>{formatearPorcentaje(porcentaje)} del total</Text>
+        {/* Si no cabe en una línea pasa a dos (sin "…"). */}
+        <Text style={styles.filaDetalle} numberOfLines={2}>
+          <Text style={styles.filaPorcentaje}>{porcentaje}% del total</Text>
           {'  •  '}
           {textoCantidad}
         </Text>
@@ -485,8 +487,12 @@ const crearEstilos = (colors) =>
     selectorVista: {
       marginTop: 10,
     },
+    // espacios.lg entre el selector y la dona, y entre la dona y la fila variable / fijo / total.
+    // Arriba ya suman el gap de la lista (sm + 4) y el margen de `contenido` (xs); abajo, el gap
+    // de `contenido` (md).
     zonaDona: {
-      paddingVertical: espacios.sm,
+      marginTop: espacios.lg - (espacios.sm + 4) - espacios.xs,
+      marginBottom: espacios.lg - espacios.md,
     },
     indicadorMes: {
       position: 'absolute',
