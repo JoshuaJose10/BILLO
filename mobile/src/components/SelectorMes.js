@@ -10,35 +10,52 @@ import { MONEDA, nombreMesAnio } from '../utils/formato';
 // "< Octubre 2026 · MXN >" (Stitch: movimientos_modo_oscuro, "Month Switcher").
 // `mes` es "YYYY-MM". El botón siguiente se deshabilita en `mesMaximo` (por defecto el
 // mes actual: no hay meses futuros).
-export default function SelectorMes({ mes, onCambiar, mesMaximo = mesActual() }) {
+// `calendario` (Reportes, HU-81): estilo del Stitch reportes_modo_oscuro/_claro, con ícono de
+// calendario antes del mes y flechas sin fondo, en lugar del punto y "MXN".
+export default function SelectorMes({
+  mes,
+  onCambiar,
+  mesMaximo = mesActual(),
+  calendario = false,
+}) {
   const haySiguiente = mes < mesMaximo;
   const titulo = nombreMesAnio(mes);
+  const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
   return (
-    <View style={styles.barra}>
+    <View style={[styles.barra, calendario ? styles.barraCalendario : null]}>
       <BotonMes
         icono="chevron-left"
         etiqueta="Mes anterior"
         activo
+        sinFondo={calendario}
         onPress={() => onCambiar(sumarMeses(mes, -1))}
       />
       <View style={styles.centro} accessibilityRole="header" accessibilityLabel={titulo}>
+        {calendario ? (
+          <MaterialCommunityIcons name="calendar-today" size={16} color={colors.textVariant} />
+        ) : null}
         <Text style={styles.titulo}>{titulo}</Text>
-        <View style={styles.punto} />
-        <Text style={styles.moneda}>{MONEDA}</Text>
+        {calendario ? null : (
+          <>
+            <View style={styles.punto} />
+            <Text style={styles.moneda}>{MONEDA}</Text>
+          </>
+        )}
       </View>
       <BotonMes
         icono="chevron-right"
         etiqueta="Mes siguiente"
         activo={haySiguiente}
+        sinFondo={calendario}
         onPress={() => onCambiar(sumarMeses(mes, 1))}
       />
     </View>
   );
 }
 
-function BotonMes({ icono, etiqueta, activo, onPress }) {
+function BotonMes({ icono, etiqueta, activo, sinFondo = false, onPress }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
   return (
@@ -51,6 +68,7 @@ function BotonMes({ icono, etiqueta, activo, onPress }) {
       accessibilityState={{ disabled: !activo }}
       style={({ pressed }) => [
         styles.boton,
+        sinFondo ? styles.botonSinFondo : null,
         !activo ? styles.botonInactivo : null,
         pressed && activo ? styles.botonPresionado : null,
       ]}
@@ -73,6 +91,13 @@ const crearEstilos = (colors) =>
       backgroundColor: colors.surfaceLow,
     },
     // w-8 h-8 rounded-full (con fondo para que se lea como botón circular)
+    // px-space-md py-space-xs rounded-full bg-surface-container-low con brillo interior
+    barraCalendario: {
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderTopWidth: 1,
+      borderTopColor: colors.borderTop,
+    },
     boton: {
       width: 32,
       height: 32,
@@ -82,6 +107,9 @@ const crearEstilos = (colors) =>
       backgroundColor: colors.glass05,
       borderWidth: 1,
       borderColor: 'transparent',
+    },
+    botonSinFondo: {
+      backgroundColor: 'transparent',
     },
     botonInactivo: {
       opacity: 0.3,

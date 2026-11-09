@@ -84,6 +84,39 @@ export function calcularTotalMensual(membresias = []) {
   return Math.round(suma * 100) / 100;
 }
 
+// Costo mensual de una membresía: las anuales se reparten en 12 meses.
+const costoMensual = (m) => {
+  const costo = Number(m?.costo) || 0;
+  return m?.frecuencia === 'anual' ? costo / 12 : costo;
+};
+
+// Tramos de la barra "Total mensual" de Cartera (HU-81), para BarraCategorias:
+// [{ id, nombre, fraccion, color }] con el color de marca de cada servicio, de mayor a menor costo
+// mensual. Las fracciones suman 1 (la barra se llena: no hay límite como en presupuestos). Las
+// membresías sin costo no generan tramo.
+export function tramosSuscripciones(membresias = []) {
+  const conCosto = (Array.isArray(membresias) ? membresias : [])
+    .map((m) => ({ m, mensual: costoMensual(m) }))
+    .filter((x) => x.mensual > 0);
+  const total = conCosto.reduce((suma, x) => suma + x.mensual, 0);
+  if (total <= 0) return [];
+  return conCosto
+    .sort((a, b) => b.mensual - a.mensual)
+    .map(({ m, mensual }) => ({
+      id: m.id,
+      nombre: m.nombre,
+      fraccion: mensual / total,
+      color: estiloServicio(m.nombre).color,
+    }));
+}
+
+// Color del punto de la pastilla de cobro (HU-81): 'aviso' si cobra en 3 días o menos (o ya
+// venció), 'exito' si falta más. Sin días conocidos: 'neutro'.
+export function nivelCobro(diasParaCobro) {
+  if (typeof diasParaCobro !== 'number' || Number.isNaN(diasParaCobro)) return 'neutro';
+  return diasParaCobro <= 3 ? 'aviso' : 'exito';
+}
+
 // Devuelve true si la membresía cobra en 3 días o menos (criterio de aceptación HU-05)
 export function esCobroProximo(diasParaCobro) {
   return typeof diasParaCobro === 'number' && diasParaCobro >= 0 && diasParaCobro <= 3;

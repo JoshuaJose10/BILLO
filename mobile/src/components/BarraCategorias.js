@@ -35,7 +35,8 @@ function Tramo({ ancho, indice, color, reducirMovimiento }) {
 
 // Barra del mes dividida por categoría (Stitch 13_cartera_subs, "Total mensual"): un tramo por
 // categoría con su color, de mayor a menor, separados 2 px. `tramos` = [{ id, nombre, fraccion }]
-// (de resumenGastoMes). El hueco que queda es lo que falta del presupuesto.
+// (de resumenGastoMes). El hueco que queda es lo que falta del presupuesto. Un tramo con `color`
+// usa ese color en vez del de la categoría (Suscripciones: color de marca, tramosSuscripciones).
 // `etiqueta` y `porcentaje` son para el lector de pantalla.
 export default function BarraCategorias({ tramos, etiqueta, porcentaje }) {
   const { esOscuro } = useTema();
@@ -63,7 +64,7 @@ export default function BarraCategorias({ tramos, etiqueta, porcentaje }) {
               key={t.id}
               ancho={t.fraccion * disponible}
               indice={i}
-              color={colorCategoria(t.nombre, esOscuro)}
+              color={t.color ?? colorCategoria(t.nombre, esOscuro)}
               reducirMovimiento={reducirMovimiento}
             />
           ))

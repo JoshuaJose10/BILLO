@@ -10,7 +10,12 @@ import {
   Text,
   View,
 } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+  useReducedMotion,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import BarraCategorias from '../components/BarraCategorias';
@@ -26,13 +31,14 @@ import SelectorSegmentado from '../components/SelectorSegmentado';
 import TarjetaPresupuesto from '../components/TarjetaPresupuesto';
 import { useMembresiasService } from '../services/membresias';
 import { usePresupuestosService } from '../services/presupuestos';
-import { radios } from '../theme/colors';
+import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
+import { tipografia } from '../theme/tipografia';
 import { mensajeError } from '../utils/errores';
 import { mesActual } from '../utils/fechas';
 import { formatearMonto, nombreMes } from '../utils/formato';
-import { calcularTotalMensual, formatearDiaMes } from '../utils/membresias';
+import { calcularTotalMensual, formatearDiaMes, tramosSuscripciones } from '../utils/membresias';
 import { gastoPorCategoriaDePresupuestos, resumenPresupuestos } from '../utils/presupuestos';
 import { etiquetaBarraMes, nivelPorcentaje, resumenGastoMes } from '../utils/resumenMes';
 
@@ -53,6 +59,11 @@ const PROXIMAMENTE = {
 
 // Fundido corto al cambiar de sección y al aparecer las filas.
 const APARECER = FadeIn.duration(180);
+// Botón píldora del encabezado: el texto entra con fundido, el ancho se ajusta con una transición
+// lineal y en "Próximamente" se va con fundido. Con "Reducir movimiento" no se anima.
+const TEXTO_BOTON = FadeIn.duration(180);
+const SALIR_BOTON = FadeOut.duration(150);
+const ANCHO_BOTON = LinearTransition.duration(220);
 
 // Parámetros opcionales (los manda el aviso de presupuesto, HU-35): `seccion`, `mes` y `solicitud`
 // (marca de tiempo para volver a aplicarlos aunque Cartera ya esté abierta).
@@ -61,6 +72,7 @@ export default function CarteraScreen({ navigation, route }) {
   const alturaNavbar = useAlturaNavbar();
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
+  const reducirMovimiento = useReducedMotion();
   const { listarPresupuestos, eliminarPresupuesto } = usePresupuestosService();
   const { listarMembresias, eliminarMembresia } = useMembresiasService();
 
@@ -215,6 +227,7 @@ export default function CarteraScreen({ navigation, route }) {
 
   // Resumen de Suscripciones
   const totalMensualSuscripciones = useMemo(() => calcularTotalMensual(membresias), [membresias]);
+  const tramosSubs = useMemo(() => tramosSuscripciones(membresias), [membresias]);
   const listaMembresiasLista = estadoMembresias === 'listo';
   const hayMembresias = listaMembresiasLista && membresias.length > 0;
   const proximaMembresia = useMemo(() => {
@@ -226,35 +239,69 @@ export default function CarteraScreen({ navigation, route }) {
     }, membresias[0]);
   }, [hayMembresias, membresias]);
 
+  // Acción del botón píldora según la sección; null en "Próximamente" (se oculta).
+  const accionEncabezado = enPresupuestos
+    ? { texto: 'Nuevo', etiqueta: 'Nuevo presupuesto', onPress: crearPresupuesto }
+    : enSuscripciones
+      ? { texto: 'Agregar', etiqueta: 'Agregar suscripción', onPress: crearMembresia }
+      : null;
+  const animar = (animacion) => (reducirMovimiento ? undefined : animacion);
+
   const subtituloCartera = enSuscripciones
     ? 'Gestión de cobros recurrentes'
     : 'Límites de gasto y control mensual';
 
   const encabezado = (
     <View style={styles.encabezado}>
-      {/* Header con título y botón de agregar */}
+      {/* Fila 1: título y botón, centrados en una fila de alto fijo (el del título), así el
+          botón no se mueve al cambiar el subtítulo ni al ocultarse en "Próximamente". */}
       <View style={styles.cabeceraBarra}>
-        <View style={styles.titulosColumna}>
-          <Text style={styles.titulo} accessibilityRole="header">
-            Cartera
-          </Text>
-          <Text style={styles.subtitulo}>{subtituloCartera}</Text>
-        </View>
+        <Text style={styles.titulo} accessibilityRole="header">
+          Cartera
+        </Text>
 
-        {enSuscripciones && hayMembresias ? (
-          <Pressable
-            style={({ pressed }) => [
-              styles.botonAgregarTop,
-              pressed ? styles.botonAgregarTopPresionado : null,
-            ]}
-            onPress={crearMembresia}
-            accessibilityRole="button"
-            accessibilityLabel="Agregar suscripción"
+        {/* La píldora lleva el fondo y anima su ancho; el Pressable va dentro (el texto nuevo
+            entra con fundido gracias a `key`). */}
+        {accionEncabezado ? (
+          <Animated.View
+            entering={animar(TEXTO_BOTON)}
+            exiting={animar(SALIR_BOTON)}
+            layout={animar(ANCHO_BOTON)}
+            style={styles.botonAgregarTop}
           >
-            <MaterialCommunityIcons name="plus" size={17} color={colors.text} />
-            <Text style={styles.textoBotonAgregarTop}>Agregar</Text>
-          </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.botonAgregarContenido,
+                pressed ? styles.botonAgregarTopPresionado : null,
+              ]}
+              onPress={accionEncabezado.onPress}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel={accionEncabezado.etiqueta}
+            >
+              <MaterialCommunityIcons name="plus" size={17} color={colors.text} />
+              <Animated.Text
+                key={accionEncabezado.texto}
+                entering={animar(TEXTO_BOTON)}
+                style={styles.textoBotonAgregarTop}
+              >
+                {accionEncabezado.texto}
+              </Animated.Text>
+            </Pressable>
+          </Animated.View>
         ) : null}
+      </View>
+
+      {/* Fila 2: subtítulo a todo el ancho, una línea y alto fijo; cambia con fundido corto. */}
+      <View style={styles.filaSubtitulo}>
+        <Animated.Text
+          key={subtituloCartera}
+          entering={animar(TEXTO_BOTON)}
+          style={styles.subtitulo}
+          numberOfLines={1}
+        >
+          {subtituloCartera}
+        </Animated.Text>
       </View>
 
       <SelectorSegmentado
@@ -305,10 +352,6 @@ export default function CarteraScreen({ navigation, route }) {
               ) : null}
             </View>
           ) : null}
-
-          {hayPresupuestos ? (
-            <Boton titulo="Agregar presupuesto" icono="plus" onPress={crearPresupuesto} compacto />
-          ) : null}
         </Animated.View>
       ) : null}
 
@@ -324,20 +367,36 @@ export default function CarteraScreen({ navigation, route }) {
               </View>
             </View>
 
-            <View style={styles.resumenMontos}>
+            <View style={styles.resumenMontosSubs}>
               <Text style={styles.resumenTotalSubs} numberOfLines={1} adjustsFontSizeToFit>
                 {formatearMonto(totalMensualSuscripciones)}
               </Text>
               <Text style={styles.resumenMonedaSubs}>MXN / mes</Text>
             </View>
 
-            <Text style={styles.resumenDetalleSubs}>
-              {membresias.length}{' '}
-              {membresias.length === 1 ? 'suscripción activa' : 'suscripciones activas'}
-              {proximaMembresia
-                ? ` · Próximo cobro el ${formatearDiaMes(proximaMembresia.fecha_cobro)}`
-                : ''}
-            </Text>
+            {tramosSubs.length > 0 ? (
+              <BarraCategorias
+                tramos={tramosSubs}
+                etiqueta={`Reparto del total mensual: ${tramosSubs.map((t) => t.nombre).join(', ')}`}
+              />
+            ) : null}
+
+            <View style={styles.resumenDetalleFila}>
+              <MaterialCommunityIcons
+                name="calendar-blank-outline"
+                size={14}
+                color={colors.textSecondary}
+              />
+              <Text style={styles.resumenDetalleSubs} numberOfLines={2}>
+                <Text style={styles.resumenDetalleFuerte}>
+                  {membresias.length}{' '}
+                  {membresias.length === 1 ? 'suscripción activa' : 'suscripciones activas'}
+                </Text>
+                {proximaMembresia
+                  ? ` · Próximo cobro el ${formatearDiaMes(proximaMembresia.fecha_cobro)}`
+                  : ''}
+              </Text>
+            </View>
           </View>
 
           <View style={styles.cabeceraListaSubs}>
@@ -530,65 +589,70 @@ const crearEstilos = (colors) =>
       paddingHorizontal: 20,
     },
     encabezado: {
-      gap: 12,
-      paddingTop: 4,
-      marginBottom: 16,
+      gap: espacios.sm + 4,
+      paddingTop: espacios.xs,
+      marginBottom: espacios.md,
     },
+    // Alto fijo = lineHeight del título; el botón (~33 px) se centra dentro.
     cabeceraBarra: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-    },
-    titulosColumna: {
-      flex: 1,
+      gap: espacios.sm + 4,
+      height: tipografia.headlineLg.lineHeight,
     },
     titulo: {
-      fontFamily: fonts.sansBold,
-      fontSize: 28,
-      lineHeight: 34,
-      letterSpacing: -0.56,
+      ...tipografia.headlineLg,
+      flexShrink: 1,
       color: colors.text,
     },
-    subtitulo: {
-      fontFamily: fonts.sans,
-      fontSize: 13,
-      lineHeight: 18,
-      color: colors.textSecondary,
-      marginTop: 2,
+    // El encabezado separa sus filas con gap 12; el subtítulo va pegado al título (2 px).
+    filaSubtitulo: {
+      height: tipografia.bodyMd.lineHeight,
+      marginTop: -(espacios.sm + 2),
+      justifyContent: 'center',
     },
+    subtitulo: {
+      ...tipografia.bodyMd,
+      color: colors.textSecondary,
+    },
+    // Píldora "+ Agregar" de Stitch: fondo, borde y radio; overflow oculto para que el texto no se
+    // salga mientras el ancho se anima.
     botonAgregarTop: {
+      borderRadius: radios.full,
+      backgroundColor: colors.surfaceHigh,
+      borderWidth: 1,
+      borderColor: colors.borderTopStrong,
+      overflow: 'hidden',
+    },
+    botonAgregarContenido: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
       paddingHorizontal: 14,
       paddingVertical: 7,
-      borderRadius: 9999,
-      backgroundColor: colors.surfaceHigh,
-      borderWidth: 1,
-      borderColor: colors.borderTopStrong,
     },
     botonAgregarTopPresionado: {
-      opacity: 0.8,
       backgroundColor: colors.surfaceHighest,
     },
     textoBotonAgregarTop: {
-      fontFamily: fonts.sansMedium,
+      ...tipografia.labelPill,
       fontSize: 13,
       color: colors.text,
-      letterSpacing: -0.1,
     },
     selectorSecciones: {
-      marginTop: 4,
+      marginTop: espacios.xs,
     },
     seccionPresupuestos: {
-      gap: 12,
+      gap: espacios.sm + 4,
     },
     seccionSuscripciones: {
-      gap: 14,
-      marginTop: 4,
+      gap: espacios.md,
+      marginTop: espacios.xs,
     },
+    // Misma tarjeta que el resumen de Movimientos (fondo, brillo superior, radio y sombra)
     tarjetaResumenSubs: {
-      padding: 16,
+      padding: espacios.md,
       borderRadius: radios.xl,
       borderTopWidth: 1,
       borderTopColor: colors.borderTop,
@@ -598,7 +662,7 @@ const crearEstilos = (colors) =>
       shadowRadius: 12,
       shadowOpacity: 0.5,
       elevation: 6,
-      gap: 6,
+      gap: espacios.sm + 4,
     },
     pildoraMesActual: {
       flexDirection: 'row',
@@ -618,41 +682,47 @@ const crearEstilos = (colors) =>
       backgroundColor: colors.cobroProximo,
     },
     textoMesActual: {
-      fontFamily: fonts.monoMedium,
+      ...tipografia.labelCaps,
       fontSize: 10,
-      letterSpacing: 0.8,
       color: colors.textSecondary,
     },
+    resumenMontosSubs: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: espacios.sm,
+    },
     resumenTotalSubs: {
-      fontFamily: fonts.monoSemiBold,
-      fontSize: 32,
-      lineHeight: 38,
-      letterSpacing: -0.64,
+      ...tipografia.financialMetricLg,
+      flexShrink: 1,
       color: colors.text,
     },
     resumenMonedaSubs: {
-      fontFamily: fonts.sans,
-      fontSize: 14,
+      ...tipografia.bodyMd,
       color: colors.textSecondary,
-      marginLeft: 6,
+    },
+    resumenDetalleFila: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
     },
     resumenDetalleSubs: {
-      fontFamily: fonts.sans,
-      fontSize: 12,
+      ...tipografia.bodySm,
+      flex: 1,
       color: colors.textSecondary,
-      marginTop: 4,
+    },
+    resumenDetalleFuerte: {
+      fontFamily: fonts.sansSemiBold,
+      color: colors.text,
     },
     cabeceraListaSubs: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: 2,
-      paddingTop: 4,
+      paddingTop: espacios.xs,
     },
     contadorServicios: {
-      fontFamily: fonts.monoMedium,
-      fontSize: 11,
-      letterSpacing: 0.6,
+      ...tipografia.labelCaps,
       color: colors.textVariant,
     },
     resumen: {
