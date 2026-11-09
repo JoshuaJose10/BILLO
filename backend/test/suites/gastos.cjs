@@ -8,7 +8,13 @@ module.exports = getContext => describe('Gastos (Postman 03 / RF2)', () => {
 
   it('crea un gasto con la forma y los tipos del contrato', async () => {
     const gasto = await ctx.crearGasto();
-    assert.deepEqual(gasto, { id: gasto.id, ...ctx.gasto() });
+    assert.deepEqual(gasto, {
+      id: gasto.id,
+      moneda: 'MXN',
+      monto_original: null,
+      tipo_cambio: null,
+      ...ctx.gasto(),
+    });
     assert.equal(typeof gasto.id, 'number');
     assert.equal(typeof gasto.monto, 'number');
     assert.deepEqual(await ctx.listar(), [gasto]);
@@ -72,7 +78,13 @@ module.exports = getContext => describe('Gastos (Postman 03 / RF2)', () => {
       fecha: '2026-11-01', metodo_pago: 'tarjeta', nota: 'Actualizado' });
     const { body } = await ctx.api.put(`/gastos/${gasto.id}`).auth(ctx.a.token, { type: 'bearer' })
       .send(changes).expect(200);
-    assert.deepEqual(body.gasto, { id: gasto.id, ...changes });
+    assert.deepEqual(body.gasto, {
+      id: gasto.id,
+      moneda: 'MXN',
+      monto_original: null,
+      tipo_cambio: null,
+      ...changes,
+    });
     assert.deepEqual(await ctx.listar(), [body.gasto]);
   });
   it('DELETE elimina, persiste la ausencia y un segundo borrado da 404', async () => {

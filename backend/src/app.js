@@ -34,8 +34,7 @@ app.use('/catalogo', catalogoRoutes);
 app.use('/membresias', membresiasRoutes);
 app.use('/reportes', reportesRoutes);
 app.use('/notificaciones', notificacionesRoutes);
-// EXPERIMENTAL (HU-23, spike RF11): ver docs/spike-rf11-rf13.md
-app.use('/tipo-cambio', tipoCambioRoutes);
+app.use('/divisas', tipoCambioRoutes);
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', uptime: process.uptime() });
