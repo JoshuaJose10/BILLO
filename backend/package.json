@@ -8,6 +8,7 @@
     "dev": "nodemon src/index.js",
     "lint": "eslint .",
     "migrate": "node src/db/migrate.js",
+    "seed:admin": "node src/db/seed-admin.js",
     "qa:baseline": "node qa/gastos.cjs",
     "qa:reportes": "node qa/reportes.cjs",
     "test:membresias-reportes": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test test/membresias-reportes.test.cjs",

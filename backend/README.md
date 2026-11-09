@@ -39,8 +39,56 @@ npm run migrate
 ### ¿Qué hace `npm run migrate`?
 1. Crea la tabla de control `schema_migrations` si no existe.
 2. Si detecta una base de datos preexistente (con la tabla `usuarios`), registra automáticamente las migraciones `001` a `007` como aplicadas para evitar duplicación de datos o errores.
-3. En una base de datos vacía, ejecuta secuencialmente todas las migraciones (`001` a `009`) en orden alfabético dentro de transacciones individuales.
+3. En una base de datos vacía, ejecuta secuencialmente todas las migraciones (`001` a `011`) en orden alfabético dentro de transacciones individuales.
 4. Es completamente **idempotente**: ejecutar `npm run migrate` varias veces seguidas no falla ni duplica registros.
+
+## Crear o promover la cuenta de administrador (RF9)
+
+El endpoint público `POST /auth/register` siempre crea cuentas con `rol = 'usuario'`. Para crear o promover una cuenta con `rol = 'admin'` de forma segura (sin guardar contraseñas en el repositorio), usa el script `src/db/seed-admin.js`:
+
+### Variables de entorno requeridas
+
+- `ADMIN_EMAIL` — Correo de la cuenta administradora (obligatorio, formato válido).
+- `ADMIN_PASSWORD` — Contraseña del administrador (obligatoria, mínimo 8 caracteres).
+- `ADMIN_NOMBRE` — Nombre visible (opcional; por defecto `Administrador`).
+
+> **Seguridad:** Nunca subas contraseñas ni archivos `.env` al repositorio. Para pruebas de QA (RF9), comparte las credenciales de la cuenta administradora con el equipo (Luis) únicamente por un canal privado.
+
+### 1. En entorno local
+
+Define `ADMIN_EMAIL` y `ADMIN_PASSWORD` en tu archivo `backend/.env` (no versionado) o pásalas al ejecutar el comando:
+
+```bash
+cd backend
+ADMIN_EMAIL="admin@billo.app" ADMIN_PASSWORD="<contraseña-segura>" npm run seed:admin
+```
+
+En PowerShell:
+
+```powershell
+cd backend
+$env:ADMIN_EMAIL="admin@billo.app"; $env:ADMIN_PASSWORD="<contraseña-segura>"; npm run seed:admin
+Remove-Item Env:\ADMIN_EMAIL, Env:\ADMIN_PASSWORD
+```
+
+### 2. En la API en línea (HU-52)
+
+- **Desde la consola/shell del servicio en línea (Render / Railway):**
+  Configura `ADMIN_EMAIL` y `ADMIN_PASSWORD` en las variables de entorno del servicio (o pásalas en la sesión de consola) y ejecuta:
+  ```bash
+  npm run seed:admin
+  ```
+- **Desde tu máquina apuntando a la base de datos remota:**
+  Ejecuta el comando pasando las variables de conexión de la base en línea junto con `ADMIN_EMAIL` y `ADMIN_PASSWORD` sin guardarlas en archivos del repositorio:
+  ```bash
+  DB_HOST="<host-remoto>" DB_PORT="5432" DB_USER="<usuario>" DB_PASSWORD="<clave-bd>" DB_NAME="<bd>" \
+  ADMIN_EMAIL="admin@billo.app" ADMIN_PASSWORD="<contraseña-segura>" npm run seed:admin
+  ```
+
+El script es **idempotente**:
+- Si el correo no existe, crea el usuario con `rol = 'admin'`.
+- Si el correo ya existe (incluso si se registró antes como `usuario`), actualiza su contraseña y lo promueve a `rol = 'admin'` sin duplicar la cuenta.
+- Al iniciar sesión en `POST /auth/login` con esa cuenta, el JWT devuelto incluye `{ id, rol: "admin" }`.
 
 ## QA · Sprint 2
 
