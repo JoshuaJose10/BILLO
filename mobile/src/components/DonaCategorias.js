@@ -109,7 +109,7 @@ export default function DonaCategorias({ datos, total, nombreMes, animacion }) {
       accessibilityRole="image"
       accessibilityLabel={`Total gastado ${texto}. ${descripcionDona(datos)}`}
     >
-      <Svg style={StyleSheet.absoluteFill} viewBox={`0 0 ${g.lado} ${g.lado}`}>
+      <Svg width={g.lado} height={g.lado} style={styles.lienzo} viewBox={`0 0 ${g.lado} ${g.lado}`}>
         <Circle
           cx={g.centro}
           cy={g.centro}
@@ -229,8 +229,15 @@ const crearEstilos = (colors) =>
       position: 'relative',
       alignSelf: 'center',
     },
+    // El Svg con width/height explícitos: sin ellos se dimensiona aparte del contenedor y el anillo
+    // queda más grande y desplazado respecto al centro.
+    lienzo: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+    },
     capaCentro: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       alignItems: 'center',
       justifyContent: 'center',
     },
