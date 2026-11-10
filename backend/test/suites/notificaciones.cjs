@@ -136,4 +136,162 @@ module.exports = (getContext) =>
 
       expectError(res, 404, 'USUARIO_NO_ENCONTRADO');
     });
+
+    // ── Migración 013: el token pertenece a una sola cuenta ──
+    const T = 'ExponentPushToken[telefono-compartido-1]';
+    const registrar = (usuario, token = T) =>
+      ctx.api
+        .post('/notificaciones/token')
+        .auth(usuario.token, { type: 'bearer' })
+        .send({ expo_push_token: token });
+    const eliminar = (usuario, token = T) =>
+      ctx.api
+        .delete('/notificaciones/token')
+        .auth(usuario.token, { type: 'bearer' })
+        .send({ expo_push_token: token });
+
+    it('POST /notificaciones/token transfiere el token: A registra T, B registra T → A queda NULL y B con T', async () => {
+      await registrar(ctx.a).expect(200);
+      const { body } = await registrar(ctx.b).expect(200);
+
+      assert.deepEqual(body, { registrado: true });
+      assert.equal(await obtenerTokenUsuario(ctx.a.usuario.id), null);
+      assert.equal(await obtenerTokenUsuario(ctx.b.usuario.id), T);
+    });
+
+    it('POST /notificaciones/token concurrente de A y B con el mismo token deja un solo dueño', async () => {
+      const respuestas = await Promise.all([registrar(ctx.a), registrar(ctx.b)]);
+      assert.deepEqual(
+        respuestas.map((r) => r.status),
+        [200, 200]
+      );
+      const { rows } = await ctx.pool.query(
+        'SELECT id FROM usuarios WHERE expo_push_token = $1',
+        [T]
+      );
+      assert.equal(rows.length, 1);
+    });
+
+    it('POST /notificaciones/token de usuario eliminado no le quita el token a otra cuenta', async () => {
+      await registrar(ctx.b).expect(200);
+      await ctx.pool.query('DELETE FROM usuarios WHERE id = $1', [ctx.a.usuario.id]);
+
+      expectError(await registrar(ctx.a), 404, 'USUARIO_NO_ENCONTRADO');
+      assert.equal(await obtenerTokenUsuario(ctx.b.usuario.id), T);
+    });
+
+    it('DELETE /notificaciones/token borra el token del usuario autenticado', async () => {
+      await registrar(ctx.a).expect(200);
+      const { body } = await eliminar(ctx.a).expect(200);
+
+      assert.deepEqual(body, { eliminado: true });
+      assert.equal(await obtenerTokenUsuario(ctx.a.usuario.id), null);
+    });
+
+    it('DELETE /notificaciones/token de A no toca el token de B (ya transferido)', async () => {
+      await registrar(ctx.a).expect(200);
+      await registrar(ctx.b).expect(200);
+
+      const { body } = await eliminar(ctx.a).expect(200);
+      assert.deepEqual(body, { eliminado: true });
+      assert.equal(await obtenerTokenUsuario(ctx.b.usuario.id), T);
+    });
+
+    it('DELETE /notificaciones/token con un token distinto al guardado responde 200 sin cambios', async () => {
+      await registrar(ctx.a).expect(200);
+      await eliminar(ctx.a, 'ExponentPushToken[otro-telefono]').expect(200);
+      assert.equal(await obtenerTokenUsuario(ctx.a.usuario.id), T);
+    });
+
+    it('DELETE /notificaciones/token repetido es idempotente', async () => {
+      await registrar(ctx.a).expect(200);
+      for (let i = 0; i < 2; i++) {
+        const { body } = await eliminar(ctx.a).expect(200);
+        assert.deepEqual(body, { eliminado: true });
+      }
+      assert.equal(await obtenerTokenUsuario(ctx.a.usuario.id), null);
+    });
+
+    for (const [nombre, body] of [
+      ['sin cuerpo', undefined],
+      ['formato ajeno a Expo', { expo_push_token: 'fcm-token-123456' }],
+      ['nulo', { expo_push_token: null }],
+    ]) {
+      it(`DELETE /notificaciones/token rechaza token inválido (${nombre}) con 400 TOKEN_PUSH_INVALIDO`, async () => {
+        await registrar(ctx.a).expect(200);
+        const req = ctx.api
+          .delete('/notificaciones/token')
+          .auth(ctx.a.token, { type: 'bearer' });
+        expectError(await (body === undefined ? req : req.send(body)), 400, 'TOKEN_PUSH_INVALIDO');
+        assert.equal(await obtenerTokenUsuario(ctx.a.usuario.id), T);
+      });
+    }
+
+    it('DELETE /notificaciones/token sin JWT devuelve 401 NO_AUTORIZADO', async () => {
+      await registrar(ctx.a).expect(200);
+      const res = await ctx.api.delete('/notificaciones/token').send({ expo_push_token: T });
+      expectError(res, 401, 'NO_AUTORIZADO');
+      assert.equal(await obtenerTokenUsuario(ctx.a.usuario.id), T);
+    });
+
+    it('Migración 013: el índice único impide que dos cuentas guarden el mismo token', async () => {
+      await ctx.pool.query('UPDATE usuarios SET expo_push_token = $1 WHERE id = $2', [
+        T,
+        ctx.a.usuario.id,
+      ]);
+      await assert.rejects(
+        ctx.pool.query('UPDATE usuarios SET expo_push_token = $1 WHERE id = $2', [
+          T,
+          ctx.b.usuario.id,
+        ]),
+        { code: '23505' }
+      );
+      // Varios NULL siguen permitidos (índice parcial).
+      const { rows } = await ctx.pool.query(
+        'SELECT count(*)::int AS n FROM usuarios WHERE expo_push_token IS NULL'
+      );
+      assert.ok(rows[0].n >= 1);
+    });
+
+    it('Migración 013: limpia duplicados existentes (NULL) y conserva tokens únicos', async () => {
+      const fs = require('node:fs');
+      const path = require('node:path');
+      const sql = fs.readFileSync(
+        path.resolve(__dirname, '../../migrations/013_token_push_unico.sql'),
+        'utf8'
+      );
+      const unico = 'ExponentPushToken[solo-de-a]';
+      const client = await ctx.pool.connect();
+      try {
+        // Se simula una base anterior a 013 dentro de una transacción que se revierte.
+        await client.query('BEGIN');
+        await client.query('DROP INDEX idx_usuarios_expo_push_token_unico');
+        await client.query('UPDATE usuarios SET expo_push_token = $1 WHERE id = ANY($2)', [
+          T,
+          [ctx.a.usuario.id, ctx.b.usuario.id],
+        ]);
+        const c = await client.query(
+          `INSERT INTO usuarios (nombre, email, password_hash, expo_push_token)
+           VALUES ('Usuario C', 'c@example.com', 'x', $1) RETURNING id`,
+          [unico]
+        );
+        await client.query(sql);
+
+        const { rows } = await client.query(
+          'SELECT expo_push_token FROM usuarios WHERE id = ANY($1) ORDER BY id',
+          [[ctx.a.usuario.id, ctx.b.usuario.id, c.rows[0].id]]
+        );
+        assert.deepEqual(
+          rows.map((r) => r.expo_push_token),
+          [null, null, unico]
+        );
+        const indice = await client.query(
+          "SELECT indexdef FROM pg_indexes WHERE indexname = 'idx_usuarios_expo_push_token_unico'"
+        );
+        assert.match(indice.rows[0].indexdef, /UNIQUE INDEX .*WHERE \(expo_push_token IS NOT NULL\)/);
+      } finally {
+        await client.query('ROLLBACK');
+        client.release();
+      }
+    });
   });

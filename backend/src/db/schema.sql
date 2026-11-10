@@ -1,5 +1,5 @@
 -- Esquema de base de datos de BILLO
--- Resultado consolidado de las migraciones (001 a 011)
+-- Resultado consolidado de las migraciones (001 a 013)
 -- Fuente de verdad para cambios de esquema: backend/migrations/
 
 CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -19,6 +19,11 @@ CREATE TABLE IF NOT EXISTS usuarios (
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_usuarios_email_lower
 ON usuarios (LOWER(email));
+
+-- Un token push pertenece a una sola cuenta (migración 013).
+CREATE UNIQUE INDEX IF NOT EXISTS idx_usuarios_expo_push_token_unico
+ON usuarios (expo_push_token)
+WHERE expo_push_token IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS categorias (
   id             SERIAL PRIMARY KEY,

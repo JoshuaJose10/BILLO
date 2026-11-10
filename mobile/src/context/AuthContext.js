@@ -12,6 +12,7 @@ import { Platform } from 'react-native';
 
 import { apiFetch, setAlNoAutorizado } from '../services/api';
 import * as authService from '../services/auth';
+import { vinculoPush } from '../services/tokenPush';
 
 const CLAVE_TOKEN = 'billo_token';
 const CLAVE_USUARIO = 'billo_usuario';
@@ -93,6 +94,11 @@ export function AuthProvider({ children }) {
   }, []);
 
   const terminarSesion = useCallback(async (motivo) => {
+    // Un registro push pendiente de esta sesión ya no debe aplicarse.
+    vinculoPush.descartar();
+    // Se suelta ya (sin esperar al efecto): un 401 tardío de este JWT, como el DELETE del token
+    // push en segundo plano, no debe tomarse como "sesión vencida" de la sesión siguiente.
+    tokenRef.current = null;
     setMotivoCierre(motivo);
     setToken(null);
     setUsuario(null);
@@ -111,8 +117,13 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  // Cierre pedido por el usuario: no deja aviso en Login.
-  const cerrarSesion = useCallback(() => terminarSesion(null), [terminarSesion]);
+  // Cierre pedido por el usuario: no deja aviso en Login y es inmediato. El token push se
+  // desvincula en segundo plano con el JWT de esta sesión (capturado aquí); sus errores se ignoran.
+  const cerrarSesion = useCallback(() => {
+    const sesion = tokenRef.current;
+    if (sesion) vinculoPush.desvincular(sesion);
+    return terminarSesion(null);
+  }, [terminarSesion]);
 
   const limpiarMotivoCierre = useCallback(() => setMotivoCierre(null), []);
 

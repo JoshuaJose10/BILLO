@@ -262,6 +262,16 @@ Body: { "expo_push_token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]" }
 - 200 → { "registrado": true }
 - 400 → TOKEN_PUSH_INVALIDO
 
+Un token identifica un teléfono, así que pertenece a **una sola cuenta** (índice único parcial, migración 013). Si otra cuenta ya lo tenía (por ejemplo, se cambió de usuario en el mismo teléfono), en la misma transacción se le quita y queda solo en el usuario autenticado (**transferencia**).
+
+### DELETE /notificaciones/token  (requiere token)
+La app lo llama al cerrar sesión para dejar de recibir avisos de esa cuenta en el teléfono.
+Body: { "expo_push_token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]" }
+- 200 → { "eliminado": true }
+- 400 → TOKEN_PUSH_INVALIDO
+
+Solo pone `expo_push_token` en nulo para el usuario autenticado y solo si coincide con el del body. Si no coincide (ya se transfirió a otra cuenta o ya se había borrado) responde 200 sin cambios: es idempotente y nunca toca el token de otra cuenta.
+
 ## Divisas (requiere token) (S3) — RF11
 
 Consulta el tipo de cambio hacia `MXN` desde Frankfurter (BCE) y lo guarda en caché en memoria durante unos minutos (5 min).
