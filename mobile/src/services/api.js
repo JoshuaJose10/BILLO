@@ -3,6 +3,16 @@ import { API_URL, ERROR_API_URL, TIMEOUT_MS } from '../config/api.js';
 // Códigos que genera la app (no vienen del servidor).
 export const SIN_CONEXION = 'SIN_CONEXION';
 export const ERROR_DESCONOCIDO = 'ERROR_DESCONOCIDO';
+// Petición rechazada porque la app está en modo exploración (HU-50): nunca llega a la red.
+export const MODO_VISITANTE = 'MODO_VISITANTE';
+
+// Lo activa AuthContext al entrar al modo exploración y lo apaga al salir. Mientras está activo
+// apiFetch no hace ninguna petición; los datos de ejemplo salen de src/datos/ejemplo.js.
+let modoVisitante = false;
+
+export function setModoVisitante(activo) {
+  modoVisitante = activo;
+}
 
 // Se registra desde AuthContext: cualquier 401 en una ruta con token cierra la sesión.
 // Recibe el token con el que se hizo la petición.
@@ -26,6 +36,11 @@ function normalizarError(status, body) {
 // Con `token` se envía el encabezado Authorization y un 401 dispara el cierre de sesión.
 // Con `signal` quien llama puede cancelar la petición (se reporta como SIN_CONEXION).
 export async function apiFetch(ruta, { method = 'GET', body, token, signal } = {}) {
+  // Guardia del modo exploración: ni el token push ni ninguna otra ruta sale a la red.
+  if (modoVisitante) {
+    throw { code: MODO_VISITANTE, message: '', status: 0 };
+  }
+
   // Sin EXPO_PUBLIC_API_URL válida no se intenta la petición (HU-80).
   if (ERROR_API_URL) {
     throw { code: ERROR_API_URL, message: '', status: 0 };

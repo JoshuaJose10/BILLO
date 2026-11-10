@@ -1,4 +1,4 @@
-import { ERROR_DESCONOCIDO, SIN_CONEXION } from '../services/api';
+import { ERROR_DESCONOCIDO, MODO_VISITANTE, SIN_CONEXION } from '../services/api';
 
 // Mensaje para el usuario de cada `code` de docs/api-contrato.md (v1.1), más los que genera
 // la app (SIN_CONEXION y ERROR_DESCONOCIDO).
@@ -46,6 +46,7 @@ const MENSAJES = {
     'La app no tiene la dirección del servidor. Define EXPO_PUBLIC_API_URL en mobile/.env y reinicia Expo.',
   API_URL_INVALIDA:
     'La dirección del servidor no es válida. Revisa EXPO_PUBLIC_API_URL (ej. http://192.168.1.100:3000).',
+  [MODO_VISITANTE]: 'Estás explorando con datos de ejemplo. Crea tu cuenta para guardar.',
   [SIN_CONEXION]: 'No se pudo conectar con el servidor. Revisa tu conexión e intenta de nuevo.',
   [ERROR_DESCONOCIDO]: 'Ocurrió un error inesperado. Intenta de nuevo.',
 };
