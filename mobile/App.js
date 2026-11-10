@@ -25,12 +25,19 @@ import { AvisosProvider } from './src/context/AvisosContext';
 import { CategoriasProvider } from './src/context/CategoriasContext';
 import RootNavigator from './src/navigation/RootNavigator';
 import { navegacionRef } from './src/navigation/navegacionRef';
+import {
+  useAperturaDesdeNotificacion,
+  useRegistroNotificaciones,
+} from './src/services/notificaciones';
 import { TemaProvider, useTema } from './src/theme/TemaContext';
 
 // NavigationContainer con el fondo, la tarjeta y el texto del tema activo, para que al navegar no
 // aparezcan destellos blancos o negros. La barra de estado va clara en oscuro y oscura en claro.
 // AvisosProvider va dentro para que el aviso de presupuesto se dibuje encima de todo y navegue.
+// Aquí también se registra el token push de la sesión y se atiende el toque de un aviso (HU-47).
 function Navegacion() {
+  useRegistroNotificaciones();
+  useAperturaDesdeNotificacion();
   const { colors, esOscuro } = useTema();
   const temaNavegacion = useMemo(() => {
     const base = esOscuro ? DarkTheme : DefaultTheme;

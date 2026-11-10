@@ -1,6 +1,7 @@
 import { registerRootComponent } from 'expo';
 
 import App from './App';
+import { configurarNotificaciones } from './src/services/notificaciones';
 import { registrarWidget } from './src/spike/modulosNativos';
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);
@@ -10,3 +11,6 @@ registerRootComponent(App);
 
 // HU-23 (spike RF13): tarea en segundo plano del widget; no hace nada en Expo Go.
 registrarWidget();
+
+// HU-47 (RF7): los avisos de cobro también se muestran con la app abierta.
+configurarNotificaciones();
