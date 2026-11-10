@@ -55,6 +55,14 @@ Los resultados del [spike de SDK 57](../docs/spike-rf11-rf13.md) son históricos
 repite voz, widget y reinicio en SDK 58 siguiendo la
 [guía de migración](../docs/qa/sdk58-migracion.md).
 
+### Notificaciones push (HU-47, RF7)
+
+`expo-notifications` necesita Firebase Cloud Messaging en Android. **Paso pendiente:**
+quien administre el proyecto de Firebase genera `google-services.json` para la app
+`com.billo.app`, lo coloca en `mobile/` y agrega a `app.json`
+`"android": { "googleServicesFile": "./google-services.json" }` antes del build.
+Sin ese archivo la app funciona igual, solo que no obtiene token push.
+
 ## Mapa de pantallas
 
 ```
