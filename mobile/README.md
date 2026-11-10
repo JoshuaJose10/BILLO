@@ -63,6 +63,27 @@ quien administre el proyecto de Firebase genera `google-services.json` para la a
 `"android": { "googleServicesFile": "./google-services.json" }` antes del build.
 Sin ese archivo la app funciona igual, solo que no obtiene token push.
 
+## APK de entrega (HU-53)
+
+El perfil `release` de `eas.json` genera un APK instalable que ya apunta a la API en línea
+(`EXPO_PUBLIC_API_URL=https://billo-api-v30t.onrender.com`, ver «API en línea» en el README de la raíz). No usa
+el `.env` local: la URL va en el propio perfil.
+
+```bash
+cd mobile
+npx eas-cli build --profile release --platform android
+```
+
+Al terminar, EAS muestra un enlace de la compilación con el botón de descarga del APK. Para instalarlo en el
+teléfono Android, abre ese enlace desde el teléfono (o descarga el archivo y ábrelo) y permite instalar apps de
+orígenes desconocidos cuando el sistema lo pida.
+
+- **Enlace de descarga del APK vigente:** _(pendiente: pegar aquí el enlace de EAS después de compilar)_
+- **Antes de probar:** abre `https://billo-api-v30t.onrender.com/health` y espera la respuesta; la API gratuita
+  se duerme tras unos 15 minutos sin uso y tarda cerca de un minuto en despertar.
+- **Notificaciones push:** sin `google-services.json` (ver sección anterior) la app funciona igual, solo que no
+  obtiene token push.
+
 ## Mapa de pantallas
 
 ```
