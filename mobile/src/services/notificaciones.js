@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import { navegacionRef } from '../navigation/navegacionRef';
 import {
   debeRegistrar,
+  describirFallo,
   destinoNotificacion,
   registrarNotificaciones,
 } from '../utils/notificaciones';
@@ -22,8 +23,8 @@ import { apiFetch } from './api';
 // Mismo id que `defaultChannel` del plugin en app.json.
 const CANAL = 'default';
 
-function avisarEnDesarrollo(error) {
-  if (__DEV__) console.warn('[notificaciones]', error?.code ?? error?.message ?? error);
+function avisarEnDesarrollo(etapa, error) {
+  if (__DEV__) console.warn(describirFallo(etapa, error));
 }
 
 // Se llama una vez al arrancar (index.js): con la app abierta el aviso también se muestra.
@@ -38,7 +39,7 @@ export function configurarNotificaciones() {
       }),
     });
   } catch (error) {
-    avisarEnDesarrollo(error);
+    avisarEnDesarrollo('configuracion', error);
   }
 }
 
@@ -79,7 +80,7 @@ export async function obtenerTokenPush() {
     return data;
   } catch (error) {
     // Sin FCM (falta google-services.json), sin red o módulo no disponible.
-    avisarEnDesarrollo(error);
+    avisarEnDesarrollo('token', error);
     return null;
   }
 }

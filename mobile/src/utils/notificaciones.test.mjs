@@ -4,6 +4,7 @@ import { describe, it } from 'node:test';
 
 import {
   debeRegistrar,
+  describirFallo,
   destinoNotificacion,
   esTokenPushValido,
   registrarNotificaciones,
@@ -73,10 +74,10 @@ describe('registrarNotificaciones', () => {
         throw new Error('sin FCM');
       },
       registrar: async () => assert.fail('no debe registrar'),
-      avisar: (e) => avisos.push(e.message),
+      avisar: (etapa, e) => avisos.push(`${etapa} ${e.message}`),
     });
     assert.equal(resultado, null);
-    assert.deepEqual(avisos, ['sin FCM']);
+    assert.deepEqual(avisos, ['token sin FCM']);
   });
 
   it('un error del backend (TOKEN_PUSH_INVALIDO, sin conexión) no lanza', async () => {
@@ -87,11 +88,50 @@ describe('registrarNotificaciones', () => {
         registrar: async () => {
           throw { code, message: '', status: 400 };
         },
-        avisar: (e) => avisos.push(e.code),
+        avisar: (etapa, e) => avisos.push(`${etapa} ${e.code}`),
       });
       assert.equal(resultado, null);
-      assert.deepEqual(avisos, [code]);
+      assert.deepEqual(avisos, [`registro ${code}`]);
     }
+  });
+});
+
+describe('describirFallo', () => {
+  it('error de la API: etapa, code y message', () => {
+    assert.equal(
+      describirFallo('registro', {
+        code: 'TOKEN_PUSH_INVALIDO',
+        message: 'El token de notificaciones push no es válido',
+        status: 400,
+      }),
+      '[notificaciones] registro: TOKEN_PUSH_INVALIDO El token de notificaciones push no es válido',
+    );
+  });
+
+  it('error de la API sin message: usa el estado HTTP', () => {
+    assert.equal(
+      describirFallo('registro', { code: 'ERROR_DESCONOCIDO', message: '', status: 502 }),
+      '[notificaciones] registro: ERROR_DESCONOCIDO HTTP 502',
+    );
+  });
+
+  it('error de Expo con code', () => {
+    const error = Object.assign(new Error('Default FirebaseApp is not initialized'), {
+      code: 'E_REGISTRATION_FAILED',
+    });
+    assert.equal(
+      describirFallo('token', error),
+      '[notificaciones] token: E_REGISTRATION_FAILED Default FirebaseApp is not initialized',
+    );
+  });
+
+  it('Error sin code usa su nombre; un valor suelto se imprime tal cual', () => {
+    assert.equal(
+      describirFallo('token', new TypeError('x is undefined')),
+      '[notificaciones] token: TypeError x is undefined',
+    );
+    assert.equal(describirFallo('token', 'raro'), '[notificaciones] token: ERROR raro');
+    assert.equal(describirFallo('token', undefined), '[notificaciones] token: ERROR');
   });
 });
 
