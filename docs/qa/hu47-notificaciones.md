@@ -12,11 +12,12 @@ prueba; sin permiso no hay errores.
 - **Un token pertenece a una sola cuenta.** Si otra cuenta ya lo tenía (mismo
   teléfono), el backend se lo quita al registrarlo la nueva (migración 013,
   índice único).
-- **Al cerrar sesión** la app espera el registro en curso (máx. ~3 s), llama a
-  `DELETE /notificaciones/token` con la sesión todavía vigente (máx. ~3 s) y
-  cierra la sesión pase lo que pase: sin red o con el backend apagado el cierre
-  tarda como mucho ~6 s y no muestra errores. Un registro que siga pendiente de
-  una sesión ya cerrada o cambiada se descarta.
+- **Al cerrar sesión** la app vuelve a Login al instante. En segundo plano, con el
+  JWT de la sesión que se cerró, espera el registro en curso (máx. ~3 s) y llama a
+  `DELETE /notificaciones/token` (máx. ~3 s). Sin red, con el backend apagado o
+  con 401 no se muestra nada. Si entra otro usuario mientras tanto, su registro
+  funciona normal: el POST pendiente de la sesión anterior se cancela y su DELETE
+  no toca el token del nuevo usuario.
 - En Android crea antes el canal `default` («Avisos de cobro», importancia alta):
   Android 13+ no muestra el diálogo de permiso sin canal.
 - **El permiso se pide solo la primera vez** (estado `undetermined`). Si el
@@ -91,7 +92,7 @@ que generar uno.
 | 6 | Negar el permiso, cerrar sesión y volver a entrar (dos veces) | No vuelve a aparecer el diálogo |
 | 7 | Permiso concedido, cerrar sesión y volver a entrar | No aparece el diálogo; el token se registra |
 | 8 | Cerrar sesión | En la BD `expo_push_token` del usuario queda `NULL`; un aviso enviado a ese usuario ya no llega |
-| 9 | Cerrar sesión con el backend apagado o sin red | La sesión se cierra (en ~6 s como máximo) sin mensajes de error |
+| 9 | Cerrar sesión con el backend apagado o sin red | Vuelve a Login al instante, sin mensajes de error |
 | 10 | Usuario A entra, cierra sesión; entra B en el mismo teléfono | El token queda solo en B (consulta abajo); un aviso para A no llega |
 | 11 | Cerrar sesión justo después de entrar (antes de que termine el registro) | La sesión se cierra; A no queda con el token |
 | 12 | Backend apagado al iniciar sesión | El login no se bloquea ni muestra error por esto |

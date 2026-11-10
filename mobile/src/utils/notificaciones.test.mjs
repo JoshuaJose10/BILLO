@@ -142,7 +142,7 @@ describe('crearVinculoPush: cerrar sesión y cambio de cuenta', () => {
     assert.deepEqual(api.llamadas, []);
   });
 
-  it('logout con registro pendiente: espera el POST y luego desvincula', async () => {
+  it('logout no espera: el vínculo queda libre al instante y la desvinculación sigue en segundo plano', async () => {
     const api = backendFalso();
     const post = diferida();
     const vinculo = crearVinculoPush({
@@ -155,16 +155,58 @@ describe('crearVinculoPush: cerrar sesión y cambio de cuenta', () => {
       topeMs: 200,
     });
     vinculo.iniciar('jwt-a');
-    const cierre = vinculo.desvincular('jwt-a');
+    await esperar(5);
+    let terminada = false;
+    const tarea = vinculo.desvincular('jwt-a').then(() => {
+      terminada = true;
+    });
+    // desvincular devuelve sin esperar: la tarea sigue pendiente mientras el POST no responde.
     await esperar(20);
-    post.resolve();
-    await cierre;
+    assert.equal(terminada, false);
+    assert.deepEqual(api.llamadas, []);
 
+    post.resolve();
+    await tarea;
     assert.deepEqual(api.llamadas, [
       ['POST', TOKEN, 'jwt-a'],
       ['DELETE', TOKEN, 'jwt-a'],
     ]);
     assert.equal(api.duenos.get('jwt-a'), null);
+  });
+
+  it('login de B durante la desvinculación de A: B se registra y la tarea de A no lo toca', async () => {
+    const api = backendFalso();
+    const postA = diferida();
+    const vinculo = crearVinculoPush({
+      obtenerToken: async () => TOKEN,
+      // Como apiFetch: un POST cancelado antes de llegar al backend no se aplica y rechaza.
+      registrar: async (token, sesion, signal) => {
+        if (sesion === 'jwt-a') await postA.promesa;
+        if (signal.aborted) throw { code: 'SIN_CONEXION', message: '', status: 0 };
+        return api.registrar(token, sesion, signal);
+      },
+      eliminar: api.eliminar,
+      topeMs: 200,
+    });
+    vinculo.iniciar('jwt-a');
+    await esperar(5);
+    const tareaA = vinculo.desvincular('jwt-a');
+
+    // B entra mientras la tarea de A sigue esperando su POST.
+    assert.equal(await vinculo.iniciar('jwt-b'), TOKEN);
+    assert.equal(api.duenos.get('jwt-b'), TOKEN);
+
+    postA.resolve();
+    await tareaA;
+    // El DELETE de A va con su JWT y no le quita el token a B.
+    assert.ok(api.llamadas.some(([m, , s]) => m === 'DELETE' && s === 'jwt-a'));
+    assert.equal(api.duenos.get('jwt-b'), TOKEN);
+    // El vínculo sigue siendo de B: no vuelve a registrar y al cerrar B desvincula con su JWT.
+    assert.equal(await vinculo.iniciar('jwt-b'), TOKEN);
+    assert.equal(api.llamadas.filter(([m, , s]) => m === 'POST' && s === 'jwt-b').length, 1);
+    await vinculo.desvincular('jwt-b');
+    assert.deepEqual(api.llamadas.at(-1), ['DELETE', TOKEN, 'jwt-b']);
+    assert.equal(api.duenos.get('jwt-b'), null);
   });
 
   it('logout con POST que no responde: tras el tope lo aborta y desvincula igual', async () => {

@@ -29,8 +29,6 @@ export function AuthProvider({ children }) {
   // Por qué se cerró la sesión sin que el usuario lo pidiera (null si no aplica).
   const [motivoCierre, setMotivoCierre] = useState(null);
   const tokenRef = useRef(null);
-  // Cierre de sesión en curso (desvinculando el token push), para no repetirlo con otro toque.
-  const cierreRef = useRef(null);
 
   useEffect(() => {
     tokenRef.current = token;
@@ -98,6 +96,9 @@ export function AuthProvider({ children }) {
   const terminarSesion = useCallback(async (motivo) => {
     // Un registro push pendiente de esta sesión ya no debe aplicarse.
     vinculoPush.descartar();
+    // Se suelta ya (sin esperar al efecto): un 401 tardío de este JWT, como el DELETE del token
+    // push en segundo plano, no debe tomarse como "sesión vencida" de la sesión siguiente.
+    tokenRef.current = null;
     setMotivoCierre(motivo);
     setToken(null);
     setUsuario(null);
@@ -116,24 +117,12 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  // Cierre pedido por el usuario: no deja aviso en Login. Antes de borrar la sesión desvincula el
-  // token push con el JWT todavía vigente (espera el registro en curso y el DELETE, ~3 s cada uno
-  // como máximo). Falle o no, la sesión se cierra y no se muestra ningún error.
+  // Cierre pedido por el usuario: no deja aviso en Login y es inmediato. El token push se
+  // desvincula en segundo plano con el JWT de esta sesión (capturado aquí); sus errores se ignoran.
   const cerrarSesion = useCallback(() => {
-    if (!cierreRef.current) {
-      const sesion = tokenRef.current;
-      cierreRef.current = (async () => {
-        try {
-          if (sesion) await vinculoPush.desvincular(sesion);
-        } catch {
-          // desvincular no lanza; esto solo protege el cierre.
-        } finally {
-          await terminarSesion(null);
-          cierreRef.current = null;
-        }
-      })();
-    }
-    return cierreRef.current;
+    const sesion = tokenRef.current;
+    if (sesion) vinculoPush.desvincular(sesion);
+    return terminarSesion(null);
   }, [terminarSesion]);
 
   const limpiarMotivoCierre = useCallback(() => setMotivoCierre(null), []);
@@ -164,9 +153,7 @@ export function AuthProvider({ children }) {
   // una sesión recién iniciada).
   useEffect(() => {
     setAlNoAutorizado((tokenPeticion) => {
-      // Durante un cierre pedido por el usuario (p. ej. el DELETE del token push con un JWT ya
-      // vencido) no se marca la sesión como vencida: el usuario ya está saliendo.
-      if (tokenPeticion && tokenPeticion === tokenRef.current && !cierreRef.current) {
+      if (tokenPeticion && tokenPeticion === tokenRef.current) {
         terminarSesion(SESION_VENCIDA);
       }
     });

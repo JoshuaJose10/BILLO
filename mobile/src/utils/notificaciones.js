@@ -36,8 +36,9 @@ function conTope(promesa, ms) {
 // - se registra una vez por sesión (al iniciarla o restaurarla, y de nuevo si entra otro usuario);
 // - cada intento pertenece a una "generación": si la sesión cambia o se cierra mientras espera el
 //   permiso, el token o la respuesta del POST, el resultado se descarta y el POST se aborta;
-// - al cerrar sesión se espera el registro en curso (con tope) y se desvincula el token con el
-//   JWT todavía vigente (con tope). Nada de esto lanza ni espera más que los topes.
+// - al cerrar sesión el vínculo se libera al instante y, en segundo plano, se espera el registro
+//   en curso (con tope) y se desvincula el token con el JWT de esa sesión (con tope). Nada de esto
+//   lanza ni espera más que los topes.
 // `registrar` y `eliminar` reciben (token, sesion, signal). `avisar(etapa, error)` es solo para
 // desarrollo; la etapa es 'token', 'registro' o 'desvinculo'.
 export function crearVinculoPush({
@@ -53,6 +54,9 @@ export function crearVinculoPush({
   let intento = null;
   // Último registro confirmado por el backend: { token, sesion }.
   let registrado = null;
+  // POST de sesiones ya cerradas que su desvinculación en segundo plano todavía espera. Una sesión
+  // nueva los cancela: si llegaran después de su POST, le quitarían el token (transferencia).
+  const intentosCerrados = new Set();
 
   // Olvida la sesión sin llamar al backend (sesión vencida o paso final de desvincular).
   function descartar() {
@@ -70,6 +74,7 @@ export function crearVinculoPush({
       return intento?.promesa ?? Promise.resolve(registrado?.token ?? null);
     }
     descartar();
+    for (const anterior of intentosCerrados) anterior.controller.abort();
     sesionActual = sesion;
     const gen = generacion;
     const vigente = () => gen === generacion;
@@ -104,25 +109,42 @@ export function crearVinculoPush({
     return actual.promesa;
   }
 
-  // Al cerrar `sesion`: espera el registro en curso (tope), desvincula el token con esa misma
-  // sesión (tope) y la olvida. Siempre resuelve.
-  async function desvincular(sesion) {
+  // Al cerrar `sesion`. En el acto (síncrono) captura el intento en curso y el token registrado y
+  // olvida la sesión, así el vínculo queda libre para la siguiente. Devuelve la tarea en segundo
+  // plano, que solo usa lo capturado (nunca el vínculo nuevo): espera el registro en curso (tope),
+  // lo cancela y desvincula el token con el JWT de esa sesión (tope). Siempre resuelve; quien
+  // cierra la sesión no necesita esperarla.
+  function desvincular(sesion) {
     const pendiente = intento && intento.sesion === sesion ? intento : null;
-    if (pendiente) await conTope(pendiente.promesa, topeMs);
+    const tokenRegistrado = registrado?.sesion === sesion ? registrado.token : null;
+    // Como descartar(), pero sin abortar el POST pendiente: la tarea lo espera con tope. Su
+    // resultado ya no se aplica porque la generación cambió.
+    generacion++;
+    sesionActual = null;
+    intento = null;
+    registrado = null;
 
-    // Si el POST no respondió a tiempo pudo llegar igual al backend: también se desvincula.
-    const token = registrado?.sesion === sesion ? registrado.token : (pendiente?.token ?? null);
-    descartar();
-    if (!token) return;
+    return (async () => {
+      if (pendiente) {
+        intentosCerrados.add(pendiente);
+        await conTope(pendiente.promesa, topeMs);
+        pendiente.controller.abort();
+        intentosCerrados.delete(pendiente);
+      }
+      // Si el POST no respondió a tiempo pudo llegar igual al backend: también se desvincula.
+      const token = tokenRegistrado ?? pendiente?.token ?? null;
+      if (!token) return;
 
-    const controller = new AbortController();
-    try {
-      await conTope(eliminar(token, sesion, controller.signal), topeMs);
-    } catch (error) {
-      avisar('desvinculo', error);
-    } finally {
-      controller.abort();
-    }
+      const controller = new AbortController();
+      try {
+        await conTope(eliminar(token, sesion, controller.signal), topeMs);
+      } catch (error) {
+        // Sin red, 401 o error del backend: se ignora (solo aviso en desarrollo).
+        avisar('desvinculo', error);
+      } finally {
+        controller.abort();
+      }
+    })();
   }
 
   return { iniciar, desvincular, descartar };
