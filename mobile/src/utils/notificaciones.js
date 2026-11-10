@@ -109,6 +109,24 @@ export function crearVinculoPush({
     return actual.promesa;
   }
 
+  // Tras desvincular una sesión cerrada: si la sesión activa ya registró su token, lo vuelve a
+  // enviar una vez. Cubre el POST tardío de la sesión cerrada que llegó al backend después del de
+  // la activa (la transferencia se lo quitó y el DELETE lo dejó sin dueño). Errores en silencio.
+  // Se guarda como el intento de la sesión activa: si se cierra o cambia, se espera o cancela igual.
+  function reafirmar(sesionCerrada) {
+    if (!registrado || intento || registrado.sesion === sesionCerrada) return;
+    const { token, sesion } = registrado;
+    const actual = { sesion, controller: new AbortController(), token };
+    actual.promesa = Promise.resolve()
+      .then(() => registrar(token, sesion, actual.controller.signal))
+      .catch(() => {})
+      .then(() => (registrado?.sesion === sesion ? token : null))
+      .finally(() => {
+        if (intento === actual) intento = null;
+      });
+    intento = actual;
+  }
+
   // Al cerrar `sesion`. En el acto (síncrono) captura el intento en curso y el token registrado y
   // olvida la sesión, así el vínculo queda libre para la siguiente. Devuelve la tarea en segundo
   // plano, que solo usa lo capturado (nunca el vínculo nuevo): espera el registro en curso (tope),
@@ -144,6 +162,7 @@ export function crearVinculoPush({
       } finally {
         controller.abort();
       }
+      reafirmar(sesion);
     })();
   }
 

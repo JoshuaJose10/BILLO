@@ -17,7 +17,9 @@ prueba; sin permiso no hay errores.
   `DELETE /notificaciones/token` (máx. ~3 s). Sin red, con el backend apagado o
   con 401 no se muestra nada. Si entra otro usuario mientras tanto, su registro
   funciona normal: el POST pendiente de la sesión anterior se cancela y su DELETE
-  no toca el token del nuevo usuario.
+  no toca el token del nuevo usuario. Al terminar esa tarea, si el nuevo usuario
+  ya había registrado su token, se reenvía una vez para que quede como dueño aunque
+  el POST anterior haya llegado tarde al servidor.
 - En Android crea antes el canal `default` («Avisos de cobro», importancia alta):
   Android 13+ no muestra el diálogo de permiso sin canal.
 - **El permiso se pide solo la primera vez** (estado `undetermined`). Si el

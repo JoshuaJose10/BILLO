@@ -201,12 +201,91 @@ describe('crearVinculoPush: cerrar sesión y cambio de cuenta', () => {
     // El DELETE de A va con su JWT y no le quita el token a B.
     assert.ok(api.llamadas.some(([m, , s]) => m === 'DELETE' && s === 'jwt-a'));
     assert.equal(api.duenos.get('jwt-b'), TOKEN);
-    // El vínculo sigue siendo de B: no vuelve a registrar y al cerrar B desvincula con su JWT.
+    // El vínculo sigue siendo de B: solo se reafirma una vez tras la tarea de A y al cerrar B
+    // desvincula con su JWT.
     assert.equal(await vinculo.iniciar('jwt-b'), TOKEN);
-    assert.equal(api.llamadas.filter(([m, , s]) => m === 'POST' && s === 'jwt-b').length, 1);
+    assert.equal(api.llamadas.filter(([m, , s]) => m === 'POST' && s === 'jwt-b').length, 2);
     await vinculo.desvincular('jwt-b');
     assert.deepEqual(api.llamadas.at(-1), ['DELETE', TOKEN, 'jwt-b']);
     assert.equal(api.duenos.get('jwt-b'), null);
+  });
+
+  it('POST tardío de A llega al servidor después del de B → DELETE de A → B reafirma y queda dueño', async () => {
+    const api = backendFalso();
+    const postA = diferida();
+    const vinculo = crearVinculoPush({
+      obtenerToken: async () => TOKEN,
+      // El POST de A ya salió: aunque se cancele en el teléfono, el servidor lo aplica tarde.
+      registrar: async (token, sesion, signal) => {
+        if (sesion === 'jwt-a') await postA.promesa;
+        return api.registrar(token, sesion, signal);
+      },
+      eliminar: api.eliminar,
+      topeMs: 200,
+    });
+    vinculo.iniciar('jwt-a');
+    await esperar(5);
+    const tareaA = vinculo.desvincular('jwt-a');
+    assert.equal(await vinculo.iniciar('jwt-b'), TOKEN);
+
+    postA.resolve();
+    await tareaA;
+    await vinculo.iniciar('jwt-b'); // espera la reafirmación en curso
+
+    assert.deepEqual(api.llamadas, [
+      ['POST', TOKEN, 'jwt-b'],
+      ['POST', TOKEN, 'jwt-a'],
+      ['DELETE', TOKEN, 'jwt-a'],
+      ['POST', TOKEN, 'jwt-b'],
+    ]);
+    assert.equal(api.duenos.get('jwt-a'), null);
+    assert.equal(api.duenos.get('jwt-b'), TOKEN);
+  });
+
+  it('si la sesión activa todavía no registró, la tarea de A no envía nada por ella', async () => {
+    const api = backendFalso();
+    const permisoB = diferida();
+    let consultas = 0;
+    const vinculo = crearVinculoPush({
+      // A obtiene el token al instante; B se queda esperando el permiso.
+      obtenerToken: () => (++consultas === 1 ? Promise.resolve(TOKEN) : permisoB.promesa),
+      ...api,
+    });
+    await vinculo.iniciar('jwt-a');
+    const tareaA = vinculo.desvincular('jwt-a');
+    const registroB = vinculo.iniciar('jwt-b'); // B espera el permiso
+    await tareaA;
+    assert.deepEqual(api.llamadas, [
+      ['POST', TOKEN, 'jwt-a'],
+      ['DELETE', TOKEN, 'jwt-a'],
+    ]);
+
+    permisoB.resolve(TOKEN);
+    assert.equal(await registroB, TOKEN);
+    assert.deepEqual(api.llamadas.at(-1), ['POST', TOKEN, 'jwt-b']);
+    assert.equal(api.llamadas.length, 3);
+  });
+
+  it('la reafirmación falla en silencio y no se repite', async () => {
+    let postsB = 0;
+    const avisos = [];
+    const vinculo = crearVinculoPush({
+      obtenerToken: async () => TOKEN,
+      registrar: async (token, sesion) => {
+        if (sesion === 'jwt-b' && ++postsB > 1)
+          throw { code: 'SIN_CONEXION', message: '', status: 0 };
+      },
+      eliminar: async () => {},
+      avisar: (etapa) => avisos.push(etapa),
+    });
+    await vinculo.iniciar('jwt-a');
+    const tareaA = vinculo.desvincular('jwt-a');
+    await vinculo.iniciar('jwt-b');
+    await tareaA;
+    assert.equal(await vinculo.iniciar('jwt-b'), TOKEN);
+    await esperar(5);
+    assert.equal(postsB, 2);
+    assert.deepEqual(avisos, []);
   });
 
   it('logout con POST que no responde: tras el tope lo aborta y desvincula igual', async () => {
