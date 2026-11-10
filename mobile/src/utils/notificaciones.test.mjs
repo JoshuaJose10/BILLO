@@ -7,6 +7,7 @@ import {
   describirFallo,
   destinoNotificacion,
   esTokenPushValido,
+  permisoPushConcedido,
 } from './notificaciones.js';
 
 const TOKEN = 'ExponentPushToken[abc_123-XYZ]';
@@ -282,6 +283,55 @@ describe('crearVinculoPush: cerrar sesión y cambio de cuenta', () => {
     vinculo.descartar();
     await vinculo.desvincular('jwt-a');
     assert.deepEqual(api.llamadas, [['POST', TOKEN, 'jwt-a']]);
+  });
+});
+
+// Sistema operativo falso: recuerda la respuesta del usuario entre sesiones y cuenta los diálogos.
+function sistemaFalso(estado, { canAskAgain = true, respuesta = 'granted' } = {}) {
+  const so = {
+    dialogos: 0,
+    consultar: async () => ({ status: estado, canAskAgain }),
+    pedir: async () => {
+      so.dialogos++;
+      estado = respuesta;
+      return { status: estado, canAskAgain };
+    },
+  };
+  return so;
+}
+
+describe('permisoPushConcedido', () => {
+  it('undetermined: pregunta una vez y en la siguiente sesión ya no', async () => {
+    const so = sistemaFalso('undetermined');
+    assert.equal(await permisoPushConcedido(so), true);
+    assert.equal(await permisoPushConcedido(so), true);
+    assert.equal(so.dialogos, 1);
+  });
+
+  it('undetermined y el usuario lo niega: no vuelve a preguntar en la siguiente sesión', async () => {
+    const so = sistemaFalso('undetermined', { respuesta: 'denied' });
+    assert.equal(await permisoPushConcedido(so), false);
+    assert.equal(await permisoPushConcedido(so), false);
+    assert.equal(so.dialogos, 1);
+  });
+
+  it('denied con canAskAgain true: no pregunta (dos sesiones seguidas)', async () => {
+    const so = sistemaFalso('denied', { canAskAgain: true });
+    assert.equal(await permisoPushConcedido(so), false);
+    assert.equal(await permisoPushConcedido(so), false);
+    assert.equal(so.dialogos, 0);
+  });
+
+  it('denied con canAskAgain false: no pregunta', async () => {
+    const so = sistemaFalso('denied', { canAskAgain: false });
+    assert.equal(await permisoPushConcedido(so), false);
+    assert.equal(so.dialogos, 0);
+  });
+
+  it('granted: sigue sin preguntar', async () => {
+    const so = sistemaFalso('granted');
+    assert.equal(await permisoPushConcedido(so), true);
+    assert.equal(so.dialogos, 0);
   });
 });
 

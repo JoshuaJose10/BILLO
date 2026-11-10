@@ -5,7 +5,7 @@ import * as Notifications from 'expo-notifications';
 import { AndroidImportance } from 'expo-notifications';
 import { Platform } from 'react-native';
 
-import { crearVinculoPush, describirFallo } from '../utils/notificaciones';
+import { crearVinculoPush, describirFallo, permisoPushConcedido } from '../utils/notificaciones';
 import { apiFetch } from './api';
 
 // Token push del teléfono y su vínculo con la sesión (HU-47, RF7). Sin dependencias de React ni de
@@ -56,12 +56,12 @@ export async function obtenerTokenPush() {
       });
     }
 
-    // Se pide solo si falta y el sistema todavía deja preguntar: si lo negó, no se insiste.
-    let permiso = await Notifications.getPermissionsAsync();
-    if (permiso.status !== 'granted' && permiso.canAskAgain) {
-      permiso = await Notifications.requestPermissionsAsync();
-    }
-    if (permiso.status !== 'granted') return null;
+    // Se pregunta solo la primera vez; si lo negó, no se insiste.
+    const concedido = await permisoPushConcedido({
+      consultar: Notifications.getPermissionsAsync,
+      pedir: Notifications.requestPermissionsAsync,
+    });
+    if (!concedido) return null;
 
     const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
     const { data } = await Notifications.getExpoPushTokenAsync({ projectId });

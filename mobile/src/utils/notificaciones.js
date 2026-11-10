@@ -8,6 +8,18 @@ export function esTokenPushValido(token) {
   return typeof token === 'string' && token.length <= 255 && REGEX_TOKEN_EXPO.test(token);
 }
 
+// ¿Hay permiso de notificaciones? Solo se pregunta si el usuario nunca decidió ('undetermined').
+// Si lo negó ('denied') no se vuelve a preguntar, aunque el sistema lo permita (canAskAgain): se
+// respeta la decisión y el usuario puede activarlo en Ajustes. Con 'granted' sigue sin preguntar.
+// `consultar` y `pedir` son getPermissionsAsync / requestPermissionsAsync de expo-notifications.
+export async function permisoPushConcedido({ consultar, pedir }) {
+  const { status } = await consultar();
+  if (status === 'granted') return true;
+  if (status !== 'undetermined') return false;
+  const respuesta = await pedir();
+  return respuesta?.status === 'granted';
+}
+
 // Tope de cada paso al cerrar sesión: esperar el registro en curso y desvincular el token.
 export const TOPE_CIERRE_MS = 3000;
 
