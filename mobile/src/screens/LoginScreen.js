@@ -22,7 +22,7 @@ function validar({ email, password }) {
 }
 
 export default function LoginScreen({ navigation }) {
-  const { iniciarSesion, motivoCierre, limpiarMotivoCierre } = useAuth();
+  const { iniciarSesion, motivoCierre, limpiarMotivoCierre, explorarSinCuenta } = useAuth();
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
   const [email, setEmail] = useState('');
@@ -125,6 +125,17 @@ export default function LoginScreen({ navigation }) {
         accion="Crear cuenta"
         onPress={() => navigation.navigate('Registro')}
       />
+
+      {/* Modo exploración (HU-50, RF10): datos de ejemplo sin cuenta y sin llamar a la API. */}
+      <View style={styles.explorar}>
+        <Boton
+          titulo="Explorar sin cuenta"
+          icono="compass-outline"
+          onPress={explorarSinCuenta}
+          disabled={enviando}
+          secundario
+        />
+      </View>
     </AuthLayout>
   );
 }
@@ -149,6 +160,9 @@ const crearEstilos = (colors) =>
       color: colors.text,
       fontSize: 14,
       lineHeight: 20,
+    },
+    explorar: {
+      marginTop: 20,
     },
     errorApi: {
       fontFamily: fonts.sans,
