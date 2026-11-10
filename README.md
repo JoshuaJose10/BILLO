@@ -108,6 +108,40 @@ Verificar y corregir el estilo de código (ESLint)
 # Correr el linter
 npm run lint
 
+## API en línea (HU-52)
+
+La API y su base de datos corren en Render, para que la app funcione desde cualquier teléfono con datos móviles.
+
+- **URL de la API:** `https://billo-api-v30t.onrender.com` (comprobación: `GET /health` responde `{"status":"OK","uptime":...}`).
+- **Servicios en Render:** un *Web Service* (`billo-api`, rama `develop`, carpeta raíz `backend`) y una base *PostgreSQL* (`billo-db`), ambos en la región Virginia y en el plan gratuito.
+- **Comandos del servicio:** Build `npm ci`; Start `npm run migrate && npm start` (las migraciones se aplican solas en cada despliegue y son idempotentes).
+- **Variables de entorno del servicio:** `NODE_ENV=production`, `NODE_VERSION=22`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` (los datos **internos** de la base en Render) y `JWT_SECRET` propio, largo y aleatorio. Los valores se configuran en el panel de Render y **nunca** se suben al repositorio.
+- **Despliegue:** cada merge a `develop` despliega de nuevo de forma automática.
+
+Límites del plan gratuito:
+
+- La API se apaga tras unos 15 minutos sin uso y la primera petición después puede tardar cerca de un minuto: abre `/health` y espera antes de empezar a probar.
+- La base gratuita **expira el 10 de diciembre de 2026** y se borra si no se pasa a un plan de pago.
+
+### Cómo apuntar la app a la API en línea
+
+La URL se define con la variable `EXPO_PUBLIC_API_URL` (sin diagonal final). Para usar la API en línea, en `mobile/.env`:
+
+```bash
+EXPO_PUBLIC_API_URL=https://billo-api-v30t.onrender.com
+```
+
+Reinicia con `npx expo start -c` para que Expo tome el cambio. Para volver a la API local, usa la IPv4 de tu PC con el puerto 3000 (ver `mobile/.env.example`). Para un APK compilado con EAS, la misma variable debe estar definida en el entorno de EAS antes de compilar.
+
+### Crear la cuenta de administrador en la API en línea
+
+Desde `backend`, con los datos **externos** de la base (hostname largo que termina en `.render.com`) y SSL activado, sin guardar nada en archivos:
+
+```bash
+PGSSLMODE=no-verify DB_HOST="<host-externo>" DB_PORT="5432" DB_USER="<usuario>" DB_PASSWORD="<clave-bd>" DB_NAME="<bd>" \
+ADMIN_EMAIL="admin@billo.app" ADMIN_PASSWORD="<contraseña-segura>" npm run seed:admin
+```
+
 ## Instalación de la app móvil
 
 Guía completa (requisitos, cómo correr, mapa de pantallas y lint): [mobile/README.md](mobile/README.md).
