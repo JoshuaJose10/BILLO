@@ -24,7 +24,8 @@ function normalizarError(status, body) {
 
 // fetch con timeout y errores normalizados. Lanza siempre { code, message, status }.
 // Con `token` se envía el encabezado Authorization y un 401 dispara el cierre de sesión.
-export async function apiFetch(ruta, { method = 'GET', body, token } = {}) {
+// Con `signal` quien llama puede cancelar la petición (se reporta como SIN_CONEXION).
+export async function apiFetch(ruta, { method = 'GET', body, token, signal } = {}) {
   // Sin EXPO_PUBLIC_API_URL válida no se intenta la petición (HU-80).
   if (ERROR_API_URL) {
     throw { code: ERROR_API_URL, message: '', status: 0 };
@@ -32,6 +33,9 @@ export async function apiFetch(ruta, { method = 'GET', body, token } = {}) {
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const cancelar = () => controller.abort();
+  if (signal?.aborted) cancelar();
+  signal?.addEventListener('abort', cancelar);
 
   let respuesta;
   try {
@@ -49,6 +53,7 @@ export async function apiFetch(ruta, { method = 'GET', body, token } = {}) {
     throw { code: SIN_CONEXION, message: '', status: 0 };
   } finally {
     clearTimeout(timer);
+    signal?.removeEventListener('abort', cancelar);
   }
 
   let datos = null;

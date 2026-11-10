@@ -3,11 +3,10 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import {
-  debeRegistrar,
+  crearVinculoPush,
   describirFallo,
   destinoNotificacion,
   esTokenPushValido,
-  registrarNotificaciones,
 } from './notificaciones.js';
 
 const TOKEN = 'ExponentPushToken[abc_123-XYZ]';
@@ -27,72 +26,262 @@ describe('esTokenPushValido', () => {
   });
 });
 
-describe('debeRegistrar', () => {
-  it('sin sesión no registra', () => {
-    assert.equal(debeRegistrar(null, null), false);
-    assert.equal(debeRegistrar(undefined, 'jwt-a'), false);
+// Promesa que el test resuelve o rechaza cuando quiere (respuesta lenta del backend o del permiso).
+function diferida() {
+  let resolve;
+  let reject;
+  const promesa = new Promise((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promesa, resolve, reject };
+}
+
+const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Backend falso con las reglas reales: POST transfiere el token entre cuentas y DELETE solo borra
+// si coincide con el del usuario. Las sesiones son los JWT 'jwt-a' y 'jwt-b'.
+function backendFalso() {
+  const duenos = new Map();
+  const llamadas = [];
+  return {
+    duenos,
+    llamadas,
+    registrar: async (token, sesion) => {
+      llamadas.push(['POST', token, sesion]);
+      for (const [s, t] of duenos) if (t === token && s !== sesion) duenos.set(s, null);
+      duenos.set(sesion, token);
+      return { registrado: true };
+    },
+    eliminar: async (token, sesion) => {
+      llamadas.push(['DELETE', token, sesion]);
+      if (duenos.get(sesion) === token) duenos.set(sesion, null);
+      return { eliminado: true };
+    },
+  };
+}
+
+describe('crearVinculoPush: registro', () => {
+  it('con token válido lo manda con la sesión y lo devuelve', async () => {
+    const api = backendFalso();
+    const vinculo = crearVinculoPush({ obtenerToken: async () => TOKEN, ...api });
+    assert.equal(await vinculo.iniciar('jwt-a'), TOKEN);
+    assert.deepEqual(api.llamadas, [['POST', TOKEN, 'jwt-a']]);
   });
 
-  it('registra con una sesión nueva o restaurada', () => {
-    assert.equal(debeRegistrar('jwt-a', null), true);
+  it('sin sesión no hace nada', async () => {
+    const api = backendFalso();
+    const vinculo = crearVinculoPush({ obtenerToken: async () => TOKEN, ...api });
+    assert.equal(await vinculo.iniciar(null), null);
+    assert.deepEqual(api.llamadas, []);
   });
 
-  it('no repite en la misma sesión', () => {
-    assert.equal(debeRegistrar('jwt-a', 'jwt-a'), false);
-  });
-
-  it('vuelve a registrar si entra otro usuario', () => {
-    assert.equal(debeRegistrar('jwt-b', 'jwt-a'), true);
-  });
-});
-
-describe('registrarNotificaciones', () => {
-  it('con token válido lo manda y lo devuelve', async () => {
-    const enviados = [];
-    const resultado = await registrarNotificaciones({
-      obtenerToken: async () => TOKEN,
-      registrar: async (t) => enviados.push(t),
-    });
-    assert.equal(resultado, TOKEN);
-    assert.deepEqual(enviados, [TOKEN]);
+  it('una vez por sesión: repetir la misma sesión no vuelve a registrar', async () => {
+    const api = backendFalso();
+    const vinculo = crearVinculoPush({ obtenerToken: async () => TOKEN, ...api });
+    await Promise.all([vinculo.iniciar('jwt-a'), vinculo.iniciar('jwt-a')]);
+    assert.equal(await vinculo.iniciar('jwt-a'), TOKEN);
+    assert.equal(api.llamadas.length, 1);
   });
 
   it('sin permiso, simulador o Expo Go (token null) no llama al backend', async () => {
-    let llamadas = 0;
-    const resultado = await registrarNotificaciones({
-      obtenerToken: async () => null,
-      registrar: async () => llamadas++,
-    });
-    assert.equal(resultado, null);
-    assert.equal(llamadas, 0);
+    const api = backendFalso();
+    const vinculo = crearVinculoPush({ obtenerToken: async () => null, ...api });
+    assert.equal(await vinculo.iniciar('jwt-a'), null);
+    assert.deepEqual(api.llamadas, []);
   });
 
   it('si obtener el token falla no lanza y avisa', async () => {
     const avisos = [];
-    const resultado = await registrarNotificaciones({
+    const vinculo = crearVinculoPush({
       obtenerToken: async () => {
         throw new Error('sin FCM');
       },
       registrar: async () => assert.fail('no debe registrar'),
+      eliminar: async () => assert.fail('no debe eliminar'),
       avisar: (etapa, e) => avisos.push(`${etapa} ${e.message}`),
     });
-    assert.equal(resultado, null);
+    assert.equal(await vinculo.iniciar('jwt-a'), null);
     assert.deepEqual(avisos, ['token sin FCM']);
   });
 
   it('un error del backend (TOKEN_PUSH_INVALIDO, sin conexión) no lanza', async () => {
     for (const code of ['TOKEN_PUSH_INVALIDO', 'SIN_CONEXION', 'ERROR_SERVIDOR']) {
       const avisos = [];
-      const resultado = await registrarNotificaciones({
+      const vinculo = crearVinculoPush({
         obtenerToken: async () => TOKEN,
         registrar: async () => {
           throw { code, message: '', status: 400 };
         },
+        eliminar: async () => {},
         avisar: (etapa, e) => avisos.push(`${etapa} ${e.code}`),
       });
-      assert.equal(resultado, null);
+      assert.equal(await vinculo.iniciar('jwt-a'), null);
       assert.deepEqual(avisos, [`registro ${code}`]);
     }
+  });
+});
+
+describe('crearVinculoPush: cerrar sesión y cambio de cuenta', () => {
+  it('logout después de registrar llama DELETE con el token y la sesión vigente', async () => {
+    const api = backendFalso();
+    const vinculo = crearVinculoPush({ obtenerToken: async () => TOKEN, ...api });
+    await vinculo.iniciar('jwt-a');
+    await vinculo.desvincular('jwt-a');
+
+    assert.deepEqual(api.llamadas.at(-1), ['DELETE', TOKEN, 'jwt-a']);
+    assert.equal(api.duenos.get('jwt-a'), null);
+  });
+
+  it('logout sin token registrado (permiso negado) no llama DELETE', async () => {
+    const api = backendFalso();
+    const vinculo = crearVinculoPush({ obtenerToken: async () => null, ...api });
+    await vinculo.iniciar('jwt-a');
+    await vinculo.desvincular('jwt-a');
+    assert.deepEqual(api.llamadas, []);
+  });
+
+  it('logout con registro pendiente: espera el POST y luego desvincula', async () => {
+    const api = backendFalso();
+    const post = diferida();
+    const vinculo = crearVinculoPush({
+      obtenerToken: async () => TOKEN,
+      registrar: async (...args) => {
+        await post.promesa;
+        return api.registrar(...args);
+      },
+      eliminar: api.eliminar,
+      topeMs: 200,
+    });
+    vinculo.iniciar('jwt-a');
+    const cierre = vinculo.desvincular('jwt-a');
+    await esperar(20);
+    post.resolve();
+    await cierre;
+
+    assert.deepEqual(api.llamadas, [
+      ['POST', TOKEN, 'jwt-a'],
+      ['DELETE', TOKEN, 'jwt-a'],
+    ]);
+    assert.equal(api.duenos.get('jwt-a'), null);
+  });
+
+  it('logout con POST que no responde: tras el tope lo aborta y desvincula igual', async () => {
+    const llamadas = [];
+    let senalPost;
+    const vinculo = crearVinculoPush({
+      obtenerToken: async () => TOKEN,
+      registrar: (token, sesion, signal) => {
+        senalPost = signal;
+        return new Promise(() => {});
+      },
+      eliminar: async (token, sesion) => llamadas.push(['DELETE', token, sesion]),
+      topeMs: 30,
+    });
+    vinculo.iniciar('jwt-a');
+    await esperar(5);
+    const inicio = Date.now();
+    await vinculo.desvincular('jwt-a');
+
+    assert.ok(Date.now() - inicio < 500);
+    assert.equal(senalPost.aborted, true);
+    assert.deepEqual(llamadas, [['DELETE', TOKEN, 'jwt-a']]);
+  });
+
+  it('logout mientras espera el permiso: el token que llega tarde no se registra', async () => {
+    const api = backendFalso();
+    const permiso = diferida();
+    const vinculo = crearVinculoPush({
+      obtenerToken: () => permiso.promesa,
+      ...api,
+      topeMs: 20,
+    });
+    const registro = vinculo.iniciar('jwt-a');
+    await vinculo.desvincular('jwt-a');
+    permiso.resolve(TOKEN);
+
+    assert.equal(await registro, null);
+    assert.deepEqual(api.llamadas, []);
+  });
+
+  it('DELETE que falla o no responde: el logout termina igual, sin lanzar', async () => {
+    for (const eliminar of [
+      async () => {
+        throw { code: 'SIN_CONEXION', message: '', status: 0 };
+      },
+      () => new Promise(() => {}),
+    ]) {
+      const avisos = [];
+      const vinculo = crearVinculoPush({
+        obtenerToken: async () => TOKEN,
+        registrar: async () => {},
+        eliminar,
+        avisar: (etapa) => avisos.push(etapa),
+        topeMs: 30,
+      });
+      await vinculo.iniciar('jwt-a');
+      await vinculo.desvincular('jwt-a');
+      // Una sesión nueva se registra normalmente después.
+      assert.equal(await vinculo.iniciar('jwt-b'), TOKEN);
+      assert.ok(avisos.every((etapa) => etapa === 'desvinculo'));
+    }
+  });
+
+  it('cambio A → B con logout: A no queda con el token y B sí', async () => {
+    const api = backendFalso();
+    const vinculo = crearVinculoPush({ obtenerToken: async () => TOKEN, ...api });
+    await vinculo.iniciar('jwt-a');
+    await vinculo.desvincular('jwt-a');
+    await vinculo.iniciar('jwt-b');
+
+    assert.equal(api.duenos.get('jwt-a'), null);
+    assert.equal(api.duenos.get('jwt-b'), TOKEN);
+  });
+
+  it('cambio A → B sin logout: B transfiere el token y desvincular A ya no toca a B', async () => {
+    const api = backendFalso();
+    const vinculo = crearVinculoPush({ obtenerToken: async () => TOKEN, ...api });
+    await vinculo.iniciar('jwt-a');
+    await vinculo.iniciar('jwt-b');
+    await vinculo.desvincular('jwt-a');
+
+    assert.equal(api.duenos.get('jwt-a'), null);
+    assert.equal(api.duenos.get('jwt-b'), TOKEN);
+    assert.ok(!api.llamadas.some(([m, , s]) => m === 'DELETE' && s === 'jwt-b'));
+  });
+
+  it('respuesta tardía de la sesión anterior: se aborta, se ignora y no pisa a B', async () => {
+    const postA = diferida();
+    let senalA;
+    const vinculo = crearVinculoPush({
+      obtenerToken: async () => TOKEN,
+      registrar: (token, sesion, signal) => {
+        if (sesion === 'jwt-a') {
+          senalA = signal;
+          return postA.promesa;
+        }
+        return Promise.resolve();
+      },
+      eliminar: async () => {},
+    });
+    const registroA = vinculo.iniciar('jwt-a');
+    await esperar(5);
+    assert.equal(await vinculo.iniciar('jwt-b'), TOKEN);
+    assert.equal(senalA.aborted, true);
+
+    postA.resolve({ registrado: true });
+    assert.equal(await registroA, null);
+    // B sigue siendo la sesión registrada.
+    assert.equal(await vinculo.iniciar('jwt-b'), TOKEN);
+  });
+
+  it('descartar (sesión vencida) olvida el registro sin llamar al backend', async () => {
+    const api = backendFalso();
+    const vinculo = crearVinculoPush({ obtenerToken: async () => TOKEN, ...api });
+    await vinculo.iniciar('jwt-a');
+    vinculo.descartar();
+    await vinculo.desvincular('jwt-a');
+    assert.deepEqual(api.llamadas, [['POST', TOKEN, 'jwt-a']]);
   });
 });
 
