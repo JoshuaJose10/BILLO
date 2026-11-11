@@ -106,6 +106,8 @@ export default function AdminCatalogoScreen({ navigation }) {
   };
 
   const guardarServicio = async () => {
+    if (guardando) return;
+
     const nombreLimpio = nombreForm.trim();
     if (!nombreLimpio) {
       setErrorForm('El nombre del servicio es obligatorio');
@@ -208,7 +210,7 @@ export default function AdminCatalogoScreen({ navigation }) {
           accessibilityRole="button"
           accessibilityLabel="Agregar nuevo servicio al catálogo"
         >
-          <MaterialCommunityIcons name="plus" size={18} color="#FFFFFF" />
+          <MaterialCommunityIcons name="plus" size={18} color={colors.onPrimary} />
           <Text style={styles.textoBotonAgregarTop}>Nuevo</Text>
         </Pressable>
       </View>
@@ -329,7 +331,7 @@ export default function AdminCatalogoScreen({ navigation }) {
               <Text style={styles.modalTitulo}>
                 {servicioEditando ? 'Editar servicio' : 'Nuevo servicio'}
               </Text>
-              <Pressable onPress={cerrarModal} hitSlop={8}>
+              <Pressable onPress={cerrarModal} hitSlop={8} disabled={guardando}>
                 <MaterialCommunityIcons name="close" size={22} color={colors.textSecondary} />
               </Pressable>
             </View>
@@ -344,6 +346,7 @@ export default function AdminCatalogoScreen({ navigation }) {
                   value={nombreForm}
                   onChangeText={setNombreForm}
                   maxLength={255}
+                  editable={!guardando}
                 />
               </View>
 
@@ -356,6 +359,7 @@ export default function AdminCatalogoScreen({ navigation }) {
                   value={costoForm}
                   onChangeText={setCostoForm}
                   keyboardType="decimal-pad"
+                  editable={!guardando}
                 />
               </View>
 
@@ -370,6 +374,7 @@ export default function AdminCatalogoScreen({ navigation }) {
                   autoCapitalize="none"
                   keyboardType="url"
                   maxLength={500}
+                  editable={!guardando}
                 />
               </View>
 
@@ -385,16 +390,12 @@ export default function AdminCatalogoScreen({ navigation }) {
               ) : null}
 
               <View style={styles.modalBotones}>
+                <Boton titulo="Cancelar" onPress={cerrarModal} secundario disabled={guardando} />
                 <Boton
-                  titulo="Cancelar"
-                  onPress={cerrarModal}
-                  secundario
-                  deshabilitado={guardando}
-                />
-                <Boton
-                  titulo={guardando ? 'Guardando...' : 'Guardar servicio'}
+                  titulo="Guardar servicio"
                   onPress={guardarServicio}
-                  deshabilitado={guardando}
+                  cargando={guardando}
+                  disabled={guardando}
                 />
               </View>
             </ScrollView>
@@ -453,7 +454,7 @@ const crearEstilos = (colors) =>
     textoBotonAgregarTop: {
       fontFamily: fonts.sansSemiBold,
       fontSize: 13,
-      color: '#FFFFFF',
+      color: colors.onPrimary,
     },
     buscadorContenedor: {
       flexDirection: 'row',
