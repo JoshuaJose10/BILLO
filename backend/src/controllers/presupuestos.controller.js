@@ -334,11 +334,77 @@ const eliminarPresupuesto = async (req, res) => {
   }
 };
 
+// POST /presupuestos/copiar
+const copiarPresupuestos = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+    const { desde, hasta } =
+      req.body && typeof req.body === 'object' ? req.body : {};
+
+    if (!esMesValido(desde) || !esMesValido(hasta) || desde === hasta) {
+      return res.status(400).json({
+        error: {
+          code: 'MES_INVALIDO',
+          message:
+            !esMesValido(desde) || !esMesValido(hasta)
+              ? 'Los meses desde y hasta deben tener el formato YYYY-MM'
+              : 'El mes origen y el mes destino deben ser distintos',
+        },
+      });
+    }
+
+    const origenResult = await pool.query(
+      `SELECT id
+       FROM presupuestos
+       WHERE usuario_id = $1 AND TRIM(mes) = $2
+       ORDER BY id ASC`,
+      [usuarioId, desde]
+    );
+
+    if (origenResult.rows.length === 0) {
+      return res.status(404).json({
+        error: {
+          code: 'SIN_PRESUPUESTOS_ORIGEN',
+          message: 'No hay presupuestos en el mes anterior para copiar',
+        },
+      });
+    }
+
+    const insertResult = await pool.query(
+      `INSERT INTO presupuestos (usuario_id, categoria_id, monto_limite, mes)
+       SELECT usuario_id, categoria_id, monto_limite, $3
+       FROM presupuestos
+       WHERE usuario_id = $1 AND TRIM(mes) = $2
+       ORDER BY id ASC
+       ON CONFLICT (usuario_id, categoria_id, mes) DO NOTHING
+       RETURNING id, categoria_id, TRIM(mes) AS mes, monto_limite`,
+      [usuarioId, desde, hasta]
+    );
+
+    const creados = insertResult.rows.map(formatearPresupuesto);
+    const status = creados.length > 0 ? 201 : 200;
+
+    return res.status(status).json({
+      presupuestos: creados,
+      copiados: creados.length,
+    });
+  } catch (error) {
+    console.error('Error al copiar presupuestos:', error.message);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'No se pudieron copiar los presupuestos',
+      },
+    });
+  }
+};
+
 module.exports = {
   crearPresupuesto,
   listarPresupuestos,
   actualizarPresupuesto,
   eliminarPresupuesto,
+  copiarPresupuestos,
   consultarEstadoPresupuestos,
   calcularAlertaPresupuesto,
 };

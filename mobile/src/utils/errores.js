@@ -32,6 +32,7 @@ const MENSAJES = {
   // Presupuestos, catálogo, membresías y notificaciones (S2/S3)
   PRESUPUESTO_DUPLICADO: 'Ya tienes un presupuesto para esa categoría en este mes.',
   PRESUPUESTO_NO_ENCONTRADO: 'Ese presupuesto ya no existe.',
+  SIN_PRESUPUESTOS_ORIGEN: 'No tienes presupuestos en el mes anterior para copiar.',
   NOMBRE_INVALIDO: 'Ingresa un nombre válido.',
   COSTO_INVALIDO: 'Ingresa un costo mayor a $0.',
   SERVICIO_NO_ENCONTRADO: 'Ese servicio ya no existe.',
