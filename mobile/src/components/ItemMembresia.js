@@ -50,7 +50,13 @@ export default function ItemMembresia({ membresia, opaca = false }) {
 
       <View style={styles.filaInferior}>
         <View style={[styles.pildora, nivel === 'aviso' ? styles.pildoraAviso : null]}>
-          <View style={[styles.punto, { backgroundColor: colorPunto }]} />
+          <View
+            style={[
+              styles.punto,
+              nivel === 'aviso' ? styles.puntoAviso : null,
+              { backgroundColor: colorPunto },
+            ]}
+          />
           <Text
             style={[styles.textoCobro, nivel === 'aviso' ? styles.textoCobroAviso : null]}
             numberOfLines={1}
@@ -146,6 +152,11 @@ const crearEstilos = (colors) =>
       width: 6,
       height: 6,
       borderRadius: radios.full,
+    },
+    // El naranja vivo no llega a 3:1 sobre blanco; el contorno sí (transparente en oscuro).
+    puntoAviso: {
+      borderWidth: 1,
+      borderColor: colors.avisoBorde,
     },
     // label-caps sin mayúsculas ni tracking: "Cobra en 9 días (17 oct)"
     textoCobro: {

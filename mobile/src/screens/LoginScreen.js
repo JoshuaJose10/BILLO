@@ -166,7 +166,7 @@ const crearEstilos = (colors) =>
     },
     errorApi: {
       fontFamily: fonts.sans,
-      color: colors.alerta,
+      color: colors.alertaTexto,
       fontSize: 14,
       textAlign: 'center',
       marginBottom: 12,
