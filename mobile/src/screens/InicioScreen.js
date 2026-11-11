@@ -19,16 +19,19 @@ import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizabl
 import FondoDegradado from '../components/FondoDegradado';
 import ItemGasto from '../components/ItemGasto';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
+import TarjetaCobrosSemana from '../components/TarjetaCobrosSemana';
 import TarjetaPresupuesto, { NOMBRE_ESTADO } from '../components/TarjetaPresupuesto';
 import TarjetaResumen from '../components/TarjetaResumen';
 import { useAuth } from '../context/AuthContext';
 import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/CategoriasContext';
 import { useGastosService } from '../services/gastos';
+import { useMembresiasService } from '../services/membresias';
 import { usePresupuestosService } from '../services/presupuestos';
 import { useReportesService } from '../services/reportes';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
+import { cobrosDeLaSemana } from '../utils/cobrosSemana';
 import { mensajeError } from '../utils/errores';
 import { mesActual } from '../utils/fechas';
 import { cargarDatosInicio, MOVIMIENTOS_RECIENTES } from '../utils/inicio';
@@ -38,13 +41,15 @@ import { gastoPorCategoria, resumenGastoMes } from '../utils/resumenMes';
 // Categorías con chip en la tarjeta del mes (las de más gasto).
 const CHIPS_CATEGORIA = 3;
 
-// Inicio (RF6, HU-39) con datos del servidor. Al abrir o ganar foco hace exactamente 3 peticiones
+// Inicio (RF6, HU-39) con datos del servidor. Al abrir o ganar foco hace exactamente 4 peticiones
 // en paralelo, todas del mes actual (cargarDatosInicio):
 // - GET /reportes/resumen: "Gastado este mes" = gasto_variable (cuadra con Movimientos y Reportes);
 //   con suscripciones, debajo "Suscripciones $X · Total $Y".
 // - GET /gastos?mes: barra por categorías, chips y los primeros 5 movimientos recientes.
 // - GET /presupuestos?mes: límite de la barra y "Presupuestos en riesgo" (alerta o excedido). Si
 //   falla, Inicio sigue sin barra ni riesgo.
+// - GET /membresias (HU-73): tarjeta «Esta semana cobran» con los cobros de los próximos 7 días;
+//   sin cobros o si falla, no se muestra.
 // Los nombres de las categorías salen de la caché de la sesión (useCategorias).
 export default function InicioScreen({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -53,6 +58,7 @@ export default function InicioScreen({ navigation }) {
   const { listarGastos, eliminarGasto } = useGastosService();
   const { listarPresupuestos } = usePresupuestosService();
   const { obtenerResumen } = useReportesService();
+  const { listarMembresias } = useMembresiasService();
   const {
     categorias,
     estado: estadoCategorias,
@@ -68,6 +74,8 @@ export default function InicioScreen({ navigation }) {
   const [gastosMes, setGastosMes] = useState([]);
   // null si no se pudieron cargar los presupuestos.
   const [presupuestos, setPresupuestos] = useState(null);
+  // null si no se pudieron cargar las membresías.
+  const [membresias, setMembresias] = useState(null);
   const [mesCargado, setMesCargado] = useState(null);
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
   const [textoError, setTextoError] = useState('');
@@ -84,13 +92,14 @@ export default function InicioScreen({ navigation }) {
     const mes = mesActual();
     try {
       const datos = await cargarDatosInicio(
-        { obtenerResumen, listarGastos, listarPresupuestos },
+        { obtenerResumen, listarGastos, listarPresupuestos, listarMembresias },
         mes,
       );
       if (peticion !== ultimaPeticion.current) return;
       setResumen(datos.resumen);
       setGastosMes(datos.gastos);
       setPresupuestos(datos.presupuestos);
+      setMembresias(datos.membresias);
       setMesCargado(mes);
       setEstado('listo');
       setHayDatos(true);
@@ -99,7 +108,7 @@ export default function InicioScreen({ navigation }) {
       setTextoError(mensajeError(error?.code, error?.message));
       setEstado('error');
     }
-  }, [obtenerResumen, listarGastos, listarPresupuestos]);
+  }, [obtenerResumen, listarGastos, listarPresupuestos, listarMembresias]);
 
   // Recarga cada vez que Inicio gana foco (por ejemplo al cerrar la hoja de Nuevo gasto).
   useFocusEffect(
@@ -134,10 +143,14 @@ export default function InicioScreen({ navigation }) {
     () => resumenGastoMes(porCategoria, presupuestoTotal, resumen?.gasto_variable),
     [porCategoria, presupuestoTotal, resumen],
   );
+  const cobrosSemana = useMemo(() => cobrosDeLaSemana(membresias), [membresias]);
   const enRiesgo = useMemo(() => presupuestosEnRiesgo(presupuestos), [presupuestos]);
   const recientes = useMemo(() => gastosMes.slice(0, MOVIMIENTOS_RECIENTES), [gastosMes]);
   const primerNombre = (usuario?.nombre || '').trim().split(' ')[0];
 
+  // Cartera › Suscripciones (ver los parámetros de CarteraScreen).
+  const abrirSuscripciones = () =>
+    navigation.navigate('Cartera', { seccion: 'suscripciones', solicitud: Date.now() });
   const abrirNuevoGasto = () => navigation.navigate('NuevoGasto');
   // Cartera › Presupuestos en el mes de los datos (ver los parámetros de CarteraScreen).
   const abrirPresupuestos = () =>
@@ -183,6 +196,12 @@ export default function InicioScreen({ navigation }) {
         gastoFijo={resumen?.gasto_fijo ?? 0}
         total={resumen?.total}
         onDefinirPresupuesto={abrirPresupuestos}
+      />
+
+      <TarjetaCobrosSemana
+        cobros={cobrosSemana.cobros}
+        total={cobrosSemana.total}
+        onPress={abrirSuscripciones}
       />
 
       {enRiesgo.length > 0 ? (
