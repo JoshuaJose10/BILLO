@@ -21,7 +21,9 @@ import ItemGasto from '../components/ItemGasto';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
 import TarjetaCobrosSemana from '../components/TarjetaCobrosSemana';
 import TarjetaPresupuesto, { NOMBRE_ESTADO } from '../components/TarjetaPresupuesto';
+import TarjetaProximoCobro from '../components/TarjetaProximoCobro';
 import TarjetaResumen from '../components/TarjetaResumen';
+import TarjetaSaldo from '../components/TarjetaSaldo';
 import { useAuth } from '../context/AuthContext';
 import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/CategoriasContext';
 import { useGastosService } from '../services/gastos';
@@ -35,6 +37,7 @@ import { cobrosDeLaSemana } from '../utils/cobrosSemana';
 import { mensajeError } from '../utils/errores';
 import { mesActual } from '../utils/fechas';
 import { cargarDatosInicio, MOVIMIENTOS_RECIENTES } from '../utils/inicio';
+import { proximoCobro } from '../utils/membresias';
 import { presupuestosEnRiesgo, resumenPresupuestos } from '../utils/presupuestos';
 import { gastoPorCategoria, resumenGastoMes } from '../utils/resumenMes';
 import { actualizarWidget } from '../widget/sincronizar';
@@ -50,7 +53,9 @@ const CHIPS_CATEGORIA = 3;
 // - GET /presupuestos?mes: límite de la barra y "Presupuestos en riesgo" (alerta o excedido). Si
 //   falla, Inicio sigue sin barra ni riesgo.
 // - GET /membresias (HU-73): tarjeta «Esta semana cobran» con los cobros de los próximos 7 días;
-//   sin cobros o si falla, no se muestra.
+//   sin cobros o si falla, no se muestra. La misma respuesta alimenta «Próximo cobro» (HU-72), sin
+//   otra petición.
+// "Saldo disponible" (HU-72) es el espacio reservado para los ingresos (HU-82): hoy va sin saldo.
 // Los nombres de las categorías salen de la caché de la sesión (useCategorias).
 export default function InicioScreen({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -147,6 +152,7 @@ export default function InicioScreen({ navigation }) {
     [porCategoria, presupuestoTotal, resumen],
   );
   const cobrosSemana = useMemo(() => cobrosDeLaSemana(membresias), [membresias]);
+  const cobroProximo = useMemo(() => proximoCobro(membresias), [membresias]);
   const enRiesgo = useMemo(() => presupuestosEnRiesgo(presupuestos), [presupuestos]);
   const recientes = useMemo(() => gastosMes.slice(0, MOVIMIENTOS_RECIENTES), [gastosMes]);
   const primerNombre = (usuario?.nombre || '').trim().split(' ')[0];
@@ -192,6 +198,8 @@ export default function InicioScreen({ navigation }) {
         </View>
       </View>
 
+      <TarjetaSaldo />
+
       <TarjetaResumen
         resumen={resumenMes}
         principales={principales}
@@ -200,6 +208,8 @@ export default function InicioScreen({ navigation }) {
         total={resumen?.total}
         onDefinirPresupuesto={abrirPresupuestos}
       />
+
+      <TarjetaProximoCobro cobro={cobroProximo} onPress={abrirSuscripciones} />
 
       <TarjetaCobrosSemana
         cobros={cobrosSemana.cobros}

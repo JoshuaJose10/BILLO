@@ -182,6 +182,27 @@ export function agruparPorFrecuencia(membresias = []) {
     .filter((grupo) => grupo.membresias.length > 0);
 }
 
+// Tarjeta "Próximo cobro" de Inicio (HU-72): la membresía con la fecha de cobro más próxima
+// (mismo orden que Cartera › Fecha) → { membresia, dias, mas }, donde `mas` cuenta las otras que
+// cobran ese mismo día. Solo considera fechas conocidas y no vencidas; sin ninguna: null.
+export function proximoCobro(membresias = []) {
+  const conFecha = ordenarMembresias(membresias, ORDEN_SUSCRIPCIONES.fecha).filter(
+    (m) => diasOrden(m) !== Infinity && m.dias_para_cobro >= 0,
+  );
+  if (conFecha.length === 0) return null;
+  const [primera] = conFecha;
+  const dias = primera.dias_para_cobro;
+  const mas = conFecha.filter((m) => m.dias_para_cobro === dias).length - 1;
+  return { membresia: primera, dias, mas };
+}
+
+// "Hoy", "Mañana" o "en N días" para la tarjeta "Próximo cobro".
+export function textoProximoCobro(dias) {
+  if (dias === 0) return 'Hoy';
+  if (dias === 1) return 'Mañana';
+  return `en ${dias} días`;
+}
+
 // Color del punto de la pastilla de cobro (HU-81): 'aviso' si cobra en 3 días o menos (o ya
 // venció), 'exito' si falta más. Sin días conocidos: 'neutro'.
 export function nivelCobro(diasParaCobro) {
