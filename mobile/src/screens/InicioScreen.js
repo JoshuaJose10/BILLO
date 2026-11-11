@@ -33,7 +33,7 @@ import { useReportesService } from '../services/reportes';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
-import { cobrosDeLaSemana } from '../utils/cobrosSemana';
+import { cobrosDeLaSemana, semanaSinProximoCobro } from '../utils/cobrosSemana';
 import { mensajeError } from '../utils/errores';
 import { mesActual } from '../utils/fechas';
 import { cargarDatosInicio, MOVIMIENTOS_RECIENTES } from '../utils/inicio';
@@ -151,8 +151,12 @@ export default function InicioScreen({ navigation }) {
     () => resumenGastoMes(porCategoria, presupuestoTotal, resumen?.gasto_variable),
     [porCategoria, presupuestoTotal, resumen],
   );
-  const cobrosSemana = useMemo(() => cobrosDeLaSemana(membresias), [membresias]);
   const cobroProximo = useMemo(() => proximoCobro(membresias), [membresias]);
+  // Sin repetir en la tarjeta semanal lo que ya muestra «Próximo cobro» (HU-72).
+  const cobrosSemana = useMemo(
+    () => semanaSinProximoCobro(cobrosDeLaSemana(membresias), cobroProximo),
+    [membresias, cobroProximo],
+  );
   const enRiesgo = useMemo(() => presupuestosEnRiesgo(presupuestos), [presupuestos]);
   const recientes = useMemo(() => gastosMes.slice(0, MOVIMIENTOS_RECIENTES), [gastosMes]);
   const primerNombre = (usuario?.nombre || '').trim().split(' ')[0];
@@ -214,6 +218,7 @@ export default function InicioScreen({ navigation }) {
       <TarjetaCobrosSemana
         cobros={cobrosSemana.cobros}
         total={cobrosSemana.total}
+        tambien={cobrosSemana.tambien}
         onPress={abrirSuscripciones}
       />
 
