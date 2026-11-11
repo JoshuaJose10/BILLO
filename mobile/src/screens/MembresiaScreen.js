@@ -1,9 +1,10 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Keyboard,
   Platform,
   Pressable,
   ScrollView,
@@ -12,10 +13,12 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Boton from '../components/Boton';
 import ChipSelector from '../components/ChipSelector';
 import HojaInferior from '../components/HojaInferior';
+import Input from '../components/Input';
 import MontoGrande from '../components/MontoGrande';
 import PanelHoja from '../components/PanelHoja';
 import TecladoNumerico from '../components/TecladoNumerico';
@@ -30,6 +33,7 @@ import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
 import { formatearMontoCorto, LOCALE, resumirTexto } from '../utils/formato';
 import {
   estiloServicio,
+  filtrarCatalogo,
   formatearDiaMes,
   inicialServicio,
   validarMembresia,
@@ -43,6 +47,25 @@ const OPCIONES_FRECUENCIA = [
 
 // Límite de la columna membresias.nombre (VARCHAR(255)).
 const NOMBRE_MAX = 255;
+
+// Alto del teclado del sistema (0 si está oculto). iOS avisa antes de mostrarlo; Android, después.
+function useAlturaTeclado() {
+  const [altura, setAltura] = useState(0);
+  useEffect(() => {
+    const ios = Platform.OS === 'ios';
+    const mostrar = Keyboard.addListener(ios ? 'keyboardWillShow' : 'keyboardDidShow', (e) =>
+      setAltura(e.endCoordinates?.height ?? 0),
+    );
+    const ocultar = Keyboard.addListener(ios ? 'keyboardWillHide' : 'keyboardDidHide', () =>
+      setAltura(0),
+    );
+    return () => {
+      mostrar.remove();
+      ocultar.remove();
+    };
+  }, []);
+  return altura;
+}
 
 // Hoja para agregar o editar una membresía / suscripción (RF5). Mismo esquema que Nuevo gasto
 // (HU-81): chips de nombre, frecuencia y fecha arriba, el costo con MontoGrande y el teclado
@@ -112,6 +135,15 @@ export default function MembresiaScreen({ navigation, route }) {
 
   const vistaCatalogo = vistaLista(estadoCatalogo, catalogo);
 
+  // Buscador del catálogo (HU-72). Mientras el campo tiene el foco, el teclado del sistema ocupa
+  // el lugar del teclado numérico y del botón: la hoja reserva su alto para que no tape el campo
+  // ni los resultados.
+  const [busqueda, setBusqueda] = useState('');
+  const [buscando, setBuscando] = useState(false);
+  const insets = useSafeAreaInsets();
+  const alturaTeclado = useAlturaTeclado();
+  const catalogoFiltrado = useMemo(() => filtrarCatalogo(catalogo, busqueda), [catalogo, busqueda]);
+
   const limpiarError = (...campos) => {
     if (campos.some((c) => errores[c])) {
       setErrores((prev) => {
@@ -129,6 +161,7 @@ export default function MembresiaScreen({ navigation, route }) {
   };
 
   const seleccionarDelCatalogo = (item) => {
+    Keyboard.dismiss();
     setServicioId(item.id);
     setNombre(item.nombre);
     setTexto(textoDesdeMonto(item.costo_sugerido));
@@ -282,38 +315,66 @@ export default function MembresiaScreen({ navigation, route }) {
           ) : vistaCatalogo === 'vacio' ? (
             <Text style={styles.textoEstado}>No hay servicios en el catálogo</Text>
           ) : (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.filaScroll}
-              contentContainerStyle={styles.filaCatalogo}
-            >
-              {catalogo.map((item) => (
-                <ChipServicio
-                  key={item.id}
-                  servicio={item}
-                  seleccionado={servicioId === item.id}
-                  onPress={() => seleccionarDelCatalogo(item)}
-                />
-              ))}
-            </ScrollView>
+            <>
+              <Input
+                icono="magnify"
+                value={busqueda}
+                onChangeText={setBusqueda}
+                limpiable
+                placeholder="Buscar servicio o plan"
+                accessibilityLabel="Buscar en el catálogo"
+                returnKeyType="search"
+                onSubmitEditing={Keyboard.dismiss}
+                onFocus={() => setBuscando(true)}
+                onBlur={() => setBuscando(false)}
+              />
+              {catalogoFiltrado.length === 0 ? (
+                <Text style={styles.textoEstado} accessibilityLiveRegion="polite">
+                  Sin coincidencias
+                </Text>
+              ) : (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
+                  style={styles.filaScroll}
+                  contentContainerStyle={styles.filaCatalogo}
+                >
+                  {catalogoFiltrado.map((item) => (
+                    <ChipServicio
+                      key={item.id}
+                      servicio={item}
+                      seleccionado={servicioId === item.id}
+                      onPress={() => seleccionarDelCatalogo(item)}
+                    />
+                  ))}
+                </ScrollView>
+              )}
+            </>
           )}
         </View>
       ) : null}
 
-      <View style={styles.zonaTeclado}>
-        <TecladoNumerico onTecla={alPulsarTecla} disabled={ocupado} />
-      </View>
+      {buscando ? (
+        // El teclado del sistema ocupa el lugar del numérico: la hoja sube por encima de él.
+        <View style={{ height: Math.max(0, alturaTeclado - insets.bottom - 12) }} />
+      ) : (
+        <>
+          <View style={styles.zonaTeclado}>
+            <TecladoNumerico onTecla={alPulsarTecla} disabled={ocupado} />
+          </View>
 
-      {errorApi ? <Text style={styles.errorApi}>{errorApi}</Text> : null}
-      <Boton
-        titulo={editando ? 'Guardar cambios' : 'Guardar suscripción'}
-        icono="check"
-        onPress={guardar}
-        cargando={guardando}
-        disabled={eliminando}
-        compacto
-      />
+          {errorApi ? <Text style={styles.errorApi}>{errorApi}</Text> : null}
+          <Boton
+            titulo={editando ? 'Guardar cambios' : 'Guardar suscripción'}
+            icono="check"
+            onPress={guardar}
+            cargando={guardando}
+            disabled={eliminando}
+            compacto
+          />
+        </>
+      )}
       {editando ? (
         <View style={styles.zonaEliminar}>
           <Boton
