@@ -223,4 +223,100 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
         .auth(ctx.a.token, { type: 'bearer' }), 400, 'MES_INVALIDO');
     });
   }
+
+  describe('Administración del catálogo (RF9)', () => {
+    async function obtenerTokenAdmin() {
+      const jwt = require('jsonwebtoken');
+      const { rows } = await ctx.pool.query(
+        `INSERT INTO usuarios (nombre, email, password_hash, rol)
+         VALUES ('Admin Catálogo', 'admin.catalogo@example.com', 'hash_fake', 'admin')
+         ON CONFLICT (email) DO UPDATE SET rol = 'admin'
+         RETURNING id, rol`
+      );
+      return jwt.sign({ id: rows[0].id, rol: rows[0].rol }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    }
+
+    it('usuario normal no puede agregar, editar ni eliminar servicios (403 PROHIBIDO)', async () => {
+      const postReq = await ctx.api.post('/catalogo').auth(ctx.a.token, { type: 'bearer' })
+        .send({ nombre: 'Servicio Test', costo_sugerido: 99 });
+      expectError(postReq, 403, 'PROHIBIDO');
+
+      const putReq = await ctx.api.put('/catalogo/1').auth(ctx.a.token, { type: 'bearer' })
+        .send({ nombre: 'Servicio Mod', costo_sugerido: 100 });
+      expectError(putReq, 403, 'PROHIBIDO');
+
+      const delReq = await ctx.api.delete('/catalogo/1').auth(ctx.a.token, { type: 'bearer' });
+      expectError(delReq, 403, 'PROHIBIDO');
+    });
+
+    it('admin agrega un nuevo servicio al catálogo (201)', async () => {
+      const tokenAdmin = await obtenerTokenAdmin();
+      const res = await ctx.api.post('/catalogo').auth(tokenAdmin, { type: 'bearer' })
+        .send({ nombre: 'Servicio Prueba $99', costo_sugerido: 99, logo_url: 'https://example.com/logo.png' })
+        .expect(201);
+      assert.ok(res.body.servicio.id);
+      assert.equal(res.body.servicio.nombre, 'Servicio Prueba $99');
+      assert.equal(res.body.servicio.costo_sugerido, 99);
+
+      // Se refleja en GET /catalogo
+      const catalogo = await get('/catalogo');
+      const encontrado = catalogo.find(s => s.nombre === 'Servicio Prueba $99');
+      assert.ok(encontrado);
+      assert.equal(encontrado.costo_sugerido, 99);
+    });
+
+    it('admin valida nombre y costo al agregar servicio (400)', async () => {
+      const tokenAdmin = await obtenerTokenAdmin();
+      const resNombre = await ctx.api.post('/catalogo').auth(tokenAdmin, { type: 'bearer' })
+        .send({ nombre: '   ', costo_sugerido: 50 });
+      expectError(resNombre, 400, 'NOMBRE_INVALIDO');
+
+      const resCosto = await ctx.api.post('/catalogo').auth(tokenAdmin, { type: 'bearer' })
+        .send({ nombre: 'Servicio Invalido', costo_sugerido: -10 });
+      expectError(resCosto, 400, 'COSTO_INVALIDO');
+    });
+
+    it('admin edita el costo de un servicio existente (200)', async () => {
+      const tokenAdmin = await obtenerTokenAdmin();
+      const creado = (await ctx.api.post('/catalogo').auth(tokenAdmin, { type: 'bearer' })
+        .send({ nombre: 'Servicio Editable', costo_sugerido: 50 }).expect(201)).body.servicio;
+
+      const editado = (await ctx.api.put(`/catalogo/${creado.id}`).auth(tokenAdmin, { type: 'bearer' })
+        .send({ nombre: 'Servicio Editable', costo_sugerido: 75 }).expect(200)).body.servicio;
+      assert.equal(editado.costo_sugerido, 75);
+
+      const catalogo = await get('/catalogo');
+      const item = catalogo.find(s => s.id === creado.id);
+      assert.equal(item.costo_sugerido, 75);
+    });
+
+    it('eliminar un servicio en uso por membresías responde 409 SERVICIO_EN_USO y no lo borra', async () => {
+      const tokenAdmin = await obtenerTokenAdmin();
+      const catalogo = await get('/catalogo');
+      const netflix = catalogo.find(s => s.nombre === 'Netflix');
+      assert.ok(netflix);
+
+      // Crear membresía vinculada a Netflix
+      await crear({ servicio_id: netflix.id, frecuencia: 'mensual', fecha_cobro: '2026-11-20' });
+
+      // Intentar eliminarlo con admin
+      const delRes = await ctx.api.delete(`/catalogo/${netflix.id}`).auth(tokenAdmin, { type: 'bearer' });
+      expectError(delRes, 409, 'SERVICIO_EN_USO');
+
+      // Comprobar que sigue existiendo
+      const catalogoDespues = await get('/catalogo');
+      assert.ok(catalogoDespues.some(s => s.id === netflix.id));
+    });
+
+    it('admin elimina un servicio que no está en uso (200)', async () => {
+      const tokenAdmin = await obtenerTokenAdmin();
+      const nuevo = (await ctx.api.post('/catalogo').auth(tokenAdmin, { type: 'bearer' })
+        .send({ nombre: 'Servicio Desechable', costo_sugerido: 10 }).expect(201)).body.servicio;
+
+      await ctx.api.delete(`/catalogo/${nuevo.id}`).auth(tokenAdmin, { type: 'bearer' }).expect(200);
+
+      const catalogo = await get('/catalogo');
+      assert.ok(!catalogo.some(s => s.id === nuevo.id));
+    });
+  });
 });

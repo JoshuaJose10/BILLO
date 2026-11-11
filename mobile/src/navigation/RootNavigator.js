@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PantallaCarga from '../components/PantallaCarga';
 import { useAuth } from '../context/AuthContext';
 import InvitacionCuentaScreen from '../screens/InvitacionCuentaScreen';
+import AdminCatalogoScreen from '../screens/AdminCatalogoScreen';
 import MembresiaScreen from '../screens/MembresiaScreen';
 import NuevoGastoScreen from '../screens/NuevoGastoScreen';
 import PerfilScreen from '../screens/PerfilScreen';
@@ -54,6 +55,11 @@ export default function RootNavigator() {
           <Stack.Screen name="Perfil" component={PerfilScreen} options={opcionesHoja} />
           <Stack.Screen name="Presupuesto" component={PresupuestoScreen} options={opcionesHoja} />
           <Stack.Screen name="Membresia" component={MembresiaScreen} options={opcionesHoja} />
+          <Stack.Screen
+            name="AdminCatalogo"
+            component={AdminCatalogoScreen}
+            options={{ headerShown: false }}
+          />
           {__DEV__ ? (
             <Stack.Screen
               name="Laboratorio"
