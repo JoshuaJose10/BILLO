@@ -23,6 +23,7 @@ import TecladoNumerico from '../components/TecladoNumerico';
 import { useAvisos } from '../context/AvisosContext';
 import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/CategoriasContext';
 import { METODO_PAGO_DEFECTO, METODOS_PAGO, NOTA_MAX, useGastosService } from '../services/gastos';
+import { useActualizarWidget } from '../widget/useActualizarWidget';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { contenidoAviso } from '../utils/avisos';
@@ -39,6 +40,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
   const gastoEditado = route.params?.gasto;
   const editando = !!gastoEditado;
   const { crearGasto, actualizarGasto, eliminarGasto } = useGastosService();
+  const actualizarWidgetResumen = useActualizarWidget();
   const {
     categorias,
     estado: estadoCategorias,
@@ -134,6 +136,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
       // Con alerta, el nombre sale de la caché de categorías; sin alerta, nada.
       const contenido = contenidoAviso(alerta, nombrePorId(alerta?.categoria_id));
       avisoPendiente.current = contenido ? { ...contenido, mes: datos.fecha.slice(0, 7) } : null;
+      actualizarWidgetResumen(); // HU-58: sin esperar
       enviando.current = false;
       hojaRef.current?.cerrar();
     } catch (error) {
@@ -150,6 +153,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
     setErrorApi('');
     try {
       await eliminarGasto(gastoEditado.id);
+      actualizarWidgetResumen(); // HU-58: sin esperar
       enviando.current = false;
       hojaRef.current?.cerrar();
     } catch (error) {

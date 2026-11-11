@@ -14,6 +14,7 @@ import { responderEjemplo } from '../datos/ejemplo';
 import { apiFetch, setAlNoAutorizado, setModoVisitante } from '../services/api';
 import * as authService from '../services/auth';
 import { vinculoPush } from '../services/tokenPush';
+import { limpiarWidget } from '../widget/sincronizar';
 
 const CLAVE_TOKEN = 'billo_token';
 const CLAVE_USUARIO = 'billo_usuario';
@@ -103,6 +104,8 @@ export function AuthProvider({ children }) {
   const terminarSesion = useCallback(async (motivo) => {
     // Un registro push pendiente de esta sesión ya no debe aplicarse.
     vinculoPush.descartar();
+    // HU-58: el widget no debe mostrar datos del usuario que se va.
+    limpiarWidget();
     // Se suelta ya (sin esperar al efecto): un 401 tardío de este JWT, como el DELETE del token
     // push en segundo plano, no debe tomarse como "sesión vencida" de la sesión siguiente.
     tokenRef.current = null;
