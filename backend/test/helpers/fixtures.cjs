@@ -2,6 +2,9 @@ const assert = require('node:assert/strict');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const request = require('supertest');
+const {
+  limpiarEstadoRecuperacion,
+} = require('../../src/services/recuperacion.service');
 
 const password = 'Segura123';
 
@@ -18,6 +21,7 @@ async function createFixtures(database) {
     categoria: categories.rows[0].id,
     otraCategoria: categories.rows[1].id,
     async reset() {
+      limpiarEstadoRecuperacion();
       await database.pool.query('TRUNCATE usuarios RESTART IDENTITY CASCADE');
       const { rows } = await database.pool.query(
         `INSERT INTO usuarios (nombre, email, password_hash) VALUES

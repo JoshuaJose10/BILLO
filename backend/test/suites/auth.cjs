@@ -6,6 +6,13 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { expectError } = require('../helpers/fixtures.cjs');
 const { seedAdmin } = require('../../src/db/seed-admin');
+const {
+  BREVO_API_URL,
+  MAX_SOLICITUDES_POR_CORREO,
+  hashearTokenRecuperacion,
+  enviarCorreoRecuperacion,
+  obtenerUltimoCorreoEnviado,
+} = require('../../src/services/recuperacion.service');
 
 module.exports = getContext => describe('Autenticación (Postman 01 / RF1)', () => {
   let ctx;
@@ -248,5 +255,224 @@ module.exports = getContext => describe('Autenticación (Postman 01 / RF1)', () 
 
     assert.equal(resultado.status, 1);
     assert.match(resultado.stderr, /ADMIN_EMAIL y ADMIN_PASSWORD/);
+  });
+
+  // ── Recuperación de contraseña (migración 014 + Brevo HTTP API) ──
+
+  it('Migración 014: agrega reset_token_hash y reset_token_expira en usuarios', async () => {
+    const { rows } = await ctx.pool.query(`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = 'usuarios'
+        AND column_name IN ('reset_token_hash', 'reset_token_expira')
+      ORDER BY column_name
+    `);
+    assert.deepEqual(rows, [
+      { column_name: 'reset_token_expira' },
+      { column_name: 'reset_token_hash' },
+    ]);
+  });
+
+  it('Flujo completo: pedir código → verificar hash y caducidad 30 min → restablecer → iniciar sesión', async () => {
+    const antesMs = Date.now();
+    const resOlvide = await ctx.api
+      .post('/auth/olvide-contrasena')
+      .send({ email: `  ${ctx.a.usuario.email.toUpperCase()}  ` })
+      .expect(200);
+
+    assert.equal(resOlvide.body.enviado, true);
+    assert.equal(typeof resOlvide.body.message, 'string');
+
+    const correo = obtenerUltimoCorreoEnviado();
+    assert.ok(correo, 'Debe haberse emitido el correo de recuperación');
+    assert.equal(correo.email, ctx.a.usuario.email);
+    assert.match(correo.token, /^\d{6}$/);
+
+    // En la base de datos solo se guarda el hash SHA-256 y la caducidad (~30 min), nunca el token en claro
+    const { rows } = await ctx.pool.query(
+      'SELECT reset_token_hash, reset_token_expira FROM usuarios WHERE id = $1',
+      [ctx.a.usuario.id]
+    );
+    assert.notEqual(rows[0].reset_token_hash, correo.token);
+    assert.equal(rows[0].reset_token_hash, hashearTokenRecuperacion(correo.token));
+    const expiraMs = new Date(rows[0].reset_token_expira).getTime();
+    const diferenciaMinutos = (expiraMs - antesMs) / (60 * 1000);
+    assert.ok(
+      diferenciaMinutos >= 29 && diferenciaMinutos <= 31,
+      `La caducidad debe ser de ~30 min (fue ${diferenciaMinutos.toFixed(2)} min)`
+    );
+
+    // Restablecer la contraseña con el token recibido
+    const nuevaPassword = 'NuevaPasswordSegura99';
+    const resRestablecer = await ctx.api
+      .post('/auth/restablecer-contrasena')
+      .send({ token: correo.token, password: nuevaPassword })
+      .expect(200);
+
+    assert.equal(resRestablecer.body.restablecida, true);
+
+    // El token queda invalidado en la base de datos inmediatamente después de usarse
+    const postReset = await ctx.pool.query(
+      'SELECT reset_token_hash, reset_token_expira FROM usuarios WHERE id = $1',
+      [ctx.a.usuario.id]
+    );
+    assert.equal(postReset.rows[0].reset_token_hash, null);
+    assert.equal(postReset.rows[0].reset_token_expira, null);
+
+    // La contraseña anterior ya no funciona y la nueva permite iniciar sesión
+    expectError(
+      await ctx.api
+        .post('/auth/login')
+        .send({ email: ctx.a.usuario.email, password: ctx.password }),
+      401,
+      'CREDENCIALES_INVALIDAS'
+    );
+
+    const loginNuevo = await ctx.api
+      .post('/auth/login')
+      .send({ email: ctx.a.usuario.email, password: nuevaPassword })
+      .expect(200);
+    assert.equal(loginNuevo.body.usuario.id, ctx.a.usuario.id);
+  });
+
+  it('Token reutilizado o inexistente devuelve 400 TOKEN_INVALIDO', async () => {
+    await ctx.api
+      .post('/auth/olvide')
+      .send({ email: ctx.a.usuario.email })
+      .expect(200);
+    const { token } = obtenerUltimoCorreoEnviado();
+
+    await ctx.api
+      .post('/auth/restablecer')
+      .send({ token, password: 'PrimeraNuevaPassword1' })
+      .expect(200);
+
+    // Intentar reutilizar el mismo token responde 400 TOKEN_INVALIDO
+    const reuso = await ctx.api
+      .post('/auth/restablecer-contrasena')
+      .send({ token, password: 'SegundaNuevaPassword2' });
+    expectError(reuso, 400, 'TOKEN_INVALIDO');
+
+    // Sigue vigente PrimeraNuevaPassword1
+    await ctx.api
+      .post('/auth/login')
+      .send({ email: ctx.a.usuario.email, password: 'PrimeraNuevaPassword1' })
+      .expect(200);
+  });
+
+  it('Token vencido devuelve 400 TOKEN_INVALIDO y no cambia la contraseña', async () => {
+    await ctx.api
+      .post('/auth/olvide-contrasena')
+      .send({ email: ctx.a.usuario.email })
+      .expect(200);
+    const { token } = obtenerUltimoCorreoEnviado();
+
+    // Simular que ya pasaron más de 30 minutos
+    await ctx.pool.query(
+      "UPDATE usuarios SET reset_token_expira = NOW() - INTERVAL '1 minute' WHERE id = $1",
+      [ctx.a.usuario.id]
+    );
+
+    const vencido = await ctx.api
+      .post('/auth/restablecer-contrasena')
+      .send({ token, password: 'PasswordQueNoSeGuarda1' });
+    expectError(vencido, 400, 'TOKEN_INVALIDO');
+
+    // La contraseña original sigue intacta
+    await ctx.api
+      .post('/auth/login')
+      .send({ email: ctx.a.usuario.email, password: ctx.password })
+      .expect(200);
+  });
+
+  it('Correo inexistente en POST /auth/olvide-contrasena responde 200 idéntico sin revelar si existe', async () => {
+    const existente = await ctx.api
+      .post('/auth/olvide-contrasena')
+      .send({ email: ctx.a.usuario.email })
+      .expect(200);
+
+    const inexistente = await ctx.api
+      .post('/auth/olvide-contrasena')
+      .send({ email: 'no.existe.en.billo@example.com' })
+      .expect(200);
+
+    assert.deepEqual(inexistente.body, existente.body);
+  });
+
+  it('Límite de solicitudes por correo bloquea el exceso con 429 DEMASIADAS_SOLICITUDES sin afectar otros correos', async () => {
+    for (let i = 0; i < MAX_SOLICITUDES_POR_CORREO; i++) {
+      await ctx.api
+        .post('/auth/olvide-contrasena')
+        .send({ email: ctx.a.usuario.email })
+        .expect(200);
+    }
+
+    const bloqueada = await ctx.api
+      .post('/auth/olvide-contrasena')
+      .send({ email: `  ${ctx.a.usuario.email.toUpperCase()} ` });
+    expectError(bloqueada, 429, 'DEMASIADAS_SOLICITUDES');
+
+    // Otro correo distinto sigue pudiendo solicitar recuperación
+    await ctx.api
+      .post('/auth/olvide-contrasena')
+      .send({ email: ctx.b.usuario.email })
+      .expect(200);
+  });
+
+  for (const [nombreCaso, body, codigoEsperado] of [
+    ['token vacío', { token: '', password: 'NuevaPassword123' }, 'TOKEN_INVALIDO'],
+    ['token incorrecto', { token: '000000', password: 'NuevaPassword123' }, 'TOKEN_INVALIDO'],
+    ['contraseña corta', { token: '123456', password: 'corta' }, 'PASSWORD_MUY_CORTA'],
+  ]) {
+    it(`POST /auth/restablecer-contrasena rechaza ${nombreCaso} con 400 ${codigoEsperado}`, async () => {
+      const res = await ctx.api.post('/auth/restablecer-contrasena').send(body);
+      expectError(res, 400, codigoEsperado);
+    });
+  }
+
+  for (const [nombreCaso, body] of [
+    ['sin cuerpo', undefined],
+    ['correo vacío', { email: '' }],
+    ['formato inválido', { email: 'correo-sin-arroba' }],
+  ]) {
+    it(`POST /auth/olvide-contrasena rechaza ${nombreCaso} con 400 EMAIL_INVALIDO`, async () => {
+      const req = ctx.api.post('/auth/olvide-contrasena');
+      const res = await (body === undefined ? req : req.send(body));
+      expectError(res, 400, 'EMAIL_INVALIDO');
+    });
+  }
+
+  it('enviarCorreoRecuperacion llama a la API HTTP de Brevo con header api-key y remitente MAIL_FROM', async () => {
+    const llamadas = [];
+    const fetchMock = async (url, options) => {
+      llamadas.push({ url, options });
+      return {
+        ok: true,
+        status: 201,
+        json: async () => ({ messageId: '<brevo-123@smtp-relay.mailin.fr>' }),
+      };
+    };
+
+    await enviarCorreoRecuperacion({
+      email: 'ana@example.com',
+      nombre: 'Ana',
+      token: '654321',
+      fetchImpl: fetchMock,
+      apiKey: 'xkeysib-test-key-123',
+      mailFrom: 'Billo <equipo.billo@gmail.com>',
+    });
+
+    assert.equal(llamadas.length, 1);
+    assert.equal(llamadas[0].url, BREVO_API_URL);
+    assert.equal(llamadas[0].options.method, 'POST');
+    assert.equal(llamadas[0].options.headers['api-key'], 'xkeysib-test-key-123');
+    const payload = JSON.parse(llamadas[0].options.body);
+    assert.deepEqual(payload.sender, {
+      name: 'Billo',
+      email: 'equipo.billo@gmail.com',
+    });
+    assert.deepEqual(payload.to, [{ email: 'ana@example.com', name: 'Ana' }]);
+    assert.match(payload.textContent, /654321/);
   });
 });

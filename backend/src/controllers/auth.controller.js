@@ -2,6 +2,13 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { pool } = require('../db/index');
 const { jwtSecret, jwtExpiresIn } = require('../config/env');
+const {
+  DURACION_TOKEN_MS,
+  generarTokenRecuperacion,
+  hashearTokenRecuperacion,
+  registrarSolicitudRecuperacion,
+  enviarCorreoRecuperacion,
+} = require('../services/recuperacion.service');
 
 // REGISTRO DE USUARIOS EN EL SISTEMA
 const register = async (req, res) => {
@@ -206,4 +213,196 @@ const profile = async (req, res) => {
   }
 };
 
-module.exports = { register, login, profile };
+// SOLICITAR RECUPERACIÓN DE CONTRASEÑA (POST /auth/olvide-contrasena)
+const olvideContrasena = async (req, res) => {
+  try {
+    const { email } =
+      req.body && typeof req.body === 'object' ? req.body : {};
+
+    const emailNormalizado =
+      typeof email === 'string' ? email.trim().toLowerCase() : '';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailNormalizado)) {
+      return res.status(400).json({
+        error: {
+          code: 'EMAIL_INVALIDO',
+          message: 'El formato del correo no es válido',
+        },
+      });
+    }
+
+    // Límite de solicitudes por correo (se evalúa igual exista o no la cuenta)
+    if (!registrarSolicitudRecuperacion(emailNormalizado)) {
+      return res.status(429).json({
+        error: {
+          code: 'DEMASIADAS_SOLICITUDES',
+          message:
+            'Has superado el límite de solicitudes para este correo. Intenta más tarde.',
+        },
+      });
+    }
+
+    const respuestaGenerica = {
+      enviado: true,
+      message:
+        'Si el correo está registrado, recibirás un código para restablecer tu contraseña',
+    };
+
+    const userRes = await pool.query(
+      'SELECT id, nombre, email FROM usuarios WHERE LOWER(email) = $1',
+      [emailNormalizado]
+    );
+
+    if (userRes.rows.length === 0) {
+      return res.status(200).json(respuestaGenerica);
+    }
+
+    const user = userRes.rows[0];
+    let token = generarTokenRecuperacion();
+    let tokenHash = hashearTokenRecuperacion(token);
+
+    // Garantizar que ningún otro usuario tenga activo el mismo hash
+    for (let intento = 0; intento < 5; intento++) {
+      const colision = await pool.query(
+        'SELECT 1 FROM usuarios WHERE reset_token_hash = $1 AND id <> $2',
+        [tokenHash, user.id]
+      );
+      if (colision.rows.length === 0) break;
+      token = generarTokenRecuperacion();
+      tokenHash = hashearTokenRecuperacion(token);
+    }
+
+    const expiraEn = new Date(Date.now() + DURACION_TOKEN_MS);
+
+    await pool.query(
+      `UPDATE usuarios
+       SET reset_token_hash = $1,
+           reset_token_expira = $2
+       WHERE id = $3`,
+      [tokenHash, expiraEn, user.id]
+    );
+
+    await enviarCorreoRecuperacion({
+      email: user.email,
+      nombre: user.nombre,
+      token,
+    });
+
+    return res.status(200).json(respuestaGenerica);
+  } catch (error) {
+    console.error('Error en olvideContrasena:', error);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'Ocurrió un error inesperado en el servidor',
+      },
+    });
+  }
+};
+
+// RESTABLECER CONTRASEÑA CON TOKEN DE UN SOLO USO (POST /auth/restablecer-contrasena)
+const restablecerContrasena = async (req, res) => {
+  try {
+    const { token, codigo, password, nueva_password, email } =
+      req.body && typeof req.body === 'object' ? req.body : {};
+
+    const tokenRecibido =
+      typeof token === 'string'
+        ? token.trim()
+        : typeof codigo === 'string'
+          ? codigo.trim()
+          : '';
+    const nuevaPassword =
+      typeof password === 'string' ? password : nueva_password;
+
+    if (tokenRecibido === '') {
+      return res.status(400).json({
+        error: {
+          code: 'TOKEN_INVALIDO',
+          message: 'El código o token de recuperación es inválido o ha expirado',
+        },
+      });
+    }
+
+    if (typeof nuevaPassword !== 'string' || nuevaPassword.length < 8) {
+      return res.status(400).json({
+        error: {
+          code: 'PASSWORD_MUY_CORTA',
+          message: 'La contraseña debe tener al menos 8 caracteres',
+        },
+      });
+    }
+
+    const emailFiltro =
+      typeof email === 'string' && email.trim() !== ''
+        ? email.trim().toLowerCase()
+        : null;
+    const tokenHash = hashearTokenRecuperacion(tokenRecibido);
+
+    const userRes = await pool.query(
+      `SELECT id, reset_token_expira
+       FROM usuarios
+       WHERE reset_token_hash = $1
+         AND ($2::text IS NULL OR LOWER(email) = $2)`,
+      [tokenHash, emailFiltro]
+    );
+
+    const user = userRes.rows[0];
+    const ahoraMs = Date.now();
+    const expiraMs = user?.reset_token_expira
+      ? new Date(user.reset_token_expira).getTime()
+      : 0;
+
+    if (!user || !Number.isFinite(expiraMs) || expiraMs <= ahoraMs) {
+      return res.status(400).json({
+        error: {
+          code: 'TOKEN_INVALIDO',
+          message: 'El código o token de recuperación es inválido o ha expirado',
+        },
+      });
+    }
+
+    const nuevoHash = await bcrypt.hash(nuevaPassword, 10);
+
+    const updateRes = await pool.query(
+      `UPDATE usuarios
+       SET password_hash = $1,
+           reset_token_hash = NULL,
+           reset_token_expira = NULL
+       WHERE id = $2
+         AND reset_token_hash = $3
+       RETURNING id`,
+      [nuevoHash, user.id, tokenHash]
+    );
+
+    if (updateRes.rowCount === 0) {
+      return res.status(400).json({
+        error: {
+          code: 'TOKEN_INVALIDO',
+          message: 'El código o token de recuperación es inválido o ha expirado',
+        },
+      });
+    }
+
+    return res.status(200).json({
+      restablecida: true,
+      message: 'Contraseña actualizada correctamente',
+    });
+  } catch (error) {
+    console.error('Error en restablecerContrasena:', error);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'Ocurrió un error inesperado en el servidor',
+      },
+    });
+  }
+};
+
+module.exports = {
+  register,
+  login,
+  profile,
+  olvideContrasena,
+  restablecerContrasena,
+};

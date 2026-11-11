@@ -99,6 +99,19 @@ Ejemplo 401 → { "error": { "code": "NO_AUTORIZADO", "message": "Token no propo
 
 > **Diferencia histórica (corregida en HU-18):** `/auth/perfil` aún no existe y responde 404 HTML `Cannot GET /auth/perfil`; solo está `/auth/profile`, que responde el 200 de arriba. HU-18 agrega `/auth/perfil` y deja `/auth/profile` como alias. Token inválido o vencido → `TOKEN_INVALIDO` (ver «Errores de autenticación»).
 
+### POST /auth/olvide-contrasena  (público) (S3)
+Solicita un código/token de recuperación de un solo uso por correo (mediante la API HTTP de Brevo). Alias aceptado: `POST /auth/olvide`.
+Body: { "email": "ana@correo.com" }
+- 200 → { "enviado": true, "message": "Si el correo está registrado, recibirás un código para restablecer tu contraseña" } (responde siempre 200 con el mismo cuerpo exista o no la cuenta para no revelar correos registrados; si existe, guarda únicamente el hash SHA-256 en `usuarios.reset_token_hash` con caducidad de 30 minutos en `usuarios.reset_token_expira`)
+- 400 → EMAIL_INVALIDO
+- 429 → DEMASIADAS_SOLICITUDES (límite de solicitudes por correo)
+
+### POST /auth/restablecer-contrasena  (público) (S3)
+Valida el código/token de recuperación, actualiza la contraseña y lo invalida inmediatamente (un solo uso). Alias aceptado: `POST /auth/restablecer`.
+Body: { "token": "482910", "password": "NuevaPassword123" }
+- 200 → { "restablecida": true, "message": "Contraseña actualizada correctamente" }
+- 400 → TOKEN_INVALIDO (ausente, incorrecto, vencido tras 30 min o ya utilizado), PASSWORD_MUY_CORTA (mínimo 8 caracteres)
+
 ## Categorías (S1)
 
 ### GET /categorias?tipo=gasto  (requiere token)
@@ -298,6 +311,7 @@ Son campos nuevos y opcionales (no rompen nada de lo existente). Se aplican en u
 |---|---|---|---|
 | C-01 | `usuarios.expo_push_token` (varchar, nulo) | Guardar el token de Expo del teléfono para enviar el aviso de cobro (RF7). | Aplicado en migración 011 (S3) |
 | C-02 | `membresias.ultima_notificacion` (date, nulo) | Evitar mandar el mismo aviso más de una vez por cobro (RF7). | Aplicado en migración 011 (S3) |
+| C-03 | `usuarios.reset_token_hash` (varchar, nulo) y `usuarios.reset_token_expira` (timestamp, nulo) | Guardar el hash del código/token de recuperación (un solo uso) y su vencimiento de 30 min. | Aplicado en migración 014 (S3) |
 
 ### Extensiones propuestas, fuera del congelamiento
 
@@ -333,4 +347,4 @@ Pendiente en la colección Postman (**HU-22**, Luis Dorian): agregar las asercio
 - 2026-10-13 — v1.0 — Se agregan convenciones (encabezado de token, formatos, rol), categorías, presupuestos con estados de alerta, catálogo de servicios, membresías, reportes (resumen y por categoría), registro de token push y modo exploración sin API. En gastos se explicitan `metodo_pago` y `nota` (ya existían en el esquema). Se congela el esquema de seis tablas. Se proponen C-01 y C-02 y se dejan X-01 a X-03 como extensiones. Autor: Joshua. Aprobación: pendiente de Fernando y Oscar.
 - 2026-10-23 — v1.1 — Alineación con el backend de S1 (HU-16), verificada con `curl` sobre `develop` (`30707e5`). Errores con `{ "error": { "code", "message" } }` en todos los ejemplos (antes `codigo/mensaje`); 500 con `ERROR_SERVIDOR` (antes `ERROR_INTERNO`); se agregan `JSON_INVALIDO` y `RUTA_NO_ENCONTRADA` para que todo error sea JSON. El 401 por token ausente, inválido o vencido usa siempre `NO_AUTORIZADO`. Registro y login devuelven `{ usuario, token }`. `GET /auth/perfil` queda como ruta oficial y `GET /auth/profile` como alias temporal; se documenta la respuesta real del perfil y su 404 `USUARIO_NO_ENCONTRADO`. Se agregan los códigos que el backend ya usa: `NOMBRE_REQUERIDO`, `CAMPOS_REQUERIDOS`, `NOTA_INVALIDA` y `CATEGORIA_INEXISTENTE` en el filtro de `GET /gastos`. Se definen el correo sin distinción de mayúsculas, el monto como número JSON y el cuerpo ausente como 400. Se añaden la tabla de estado de implementación, las diferencias actuales marcadas «se corrige en HU-18» (o HU-17 para validaciones de gastos) y la trazabilidad con los reportes QA (aserciones pendientes de Postman en HU-22). Sin cambios en el esquema ni en S2/S3. Autor: Joshua.
 - 2026-11-05 — v1.2 — Cierre del Sprint 2 (HU-41). Se actualiza la tabla de estado de implementación (verificada con `curl` sobre `develop` `ec43600`): presupuestos, catálogo (lectura), membresías y reportes quedan implementados y las diferencias de v1.1 (HU-17, HU-18) pasan a «históricas». Se documenta `GET /tipo-cambio` como experimental y fuera de contrato. C-01, C-02 y X-01 pasan a recomendados, a la espera de la aprobación de Oscar. Sin cambios en rutas ni en el esquema vigente. Autor: Joshua. Aprobación: pendiente de Oscar.
-- 2026-11-08 — v1.3 — Sprint 3 (RF7 y RF11). Se aplica la migración 011 (C-01, C-02 y X-01) y se implementa `POST /notificaciones/token`. En `POST/PUT/GET /gastos` se agregan `moneda` (por defecto `MXN`), `monto_original` y `tipo_cambio` (opcionales; cuando `moneda` es distinta de `MXN` se valida código ISO de 3 letras conocido y que `monto_original × tipo_cambio` coincida con `monto` en `MXN`; 400 `MONEDA_INVALIDA` / `MONTO_INVALIDO`). Se mueve el endpoint experimental `GET /tipo-cambio` a `GET /divisas/tipo-cambio?moneda=USD` con token, caché en memoria de 5 minutos y 502 `FUENTE_NO_DISPONIBLE`. Autor: Joshua.
+- 2026-11-08 — v1.3 — Sprint 3 (RF7, RF11 y recuperación de contraseña). Se aplica la migración 011 (C-01, C-02 y X-01) y se implementa `POST /notificaciones/token`. En `POST/PUT/GET /gastos` se agregan `moneda` (por defecto `MXN`), `monto_original` y `tipo_cambio` (opcionales; cuando `moneda` es distinta de `MXN` se valida código ISO de 3 letras conocido y que `monto_original × tipo_cambio` coincida con `monto` en `MXN`; 400 `MONEDA_INVALIDA` / `MONTO_INVALIDO`). Se mueve el endpoint experimental `GET /tipo-cambio` a `GET /divisas/tipo-cambio?moneda=USD` con token, caché en memoria de 5 minutos y 502 `FUENTE_NO_DISPONIBLE`. Se aplica la migración 014 (`usuarios.reset_token_hash` y `usuarios.reset_token_expira`) y se agregan `POST /auth/olvide-contrasena` y `POST /auth/restablecer-contrasena` (token de un solo uso con hash SHA-256, caducidad de 30 minutos, envío por API HTTP de Brevo y límite de solicitudes por correo). Autor: Joshua.
