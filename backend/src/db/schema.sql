@@ -1,5 +1,5 @@
 -- Esquema de base de datos de BILLO
--- Resultado consolidado de las migraciones (001 a 013)
+-- Resultado consolidado de las migraciones (001 a 014)
 -- Fuente de verdad para cambios de esquema: backend/migrations/
 
 CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -8,13 +8,15 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 );
 
 CREATE TABLE IF NOT EXISTS usuarios (
-  id              SERIAL PRIMARY KEY,
-  nombre          VARCHAR(255),
-  email           VARCHAR(255) NOT NULL UNIQUE,
-  password_hash   VARCHAR(255) NOT NULL,
-  rol             VARCHAR(20) DEFAULT 'usuario' CHECK (rol IN ('usuario', 'admin')),
-  expo_push_token VARCHAR(255) NULL,
-  created_at      TIMESTAMP DEFAULT NOW()
+  id                 SERIAL PRIMARY KEY,
+  nombre             VARCHAR(255),
+  email              VARCHAR(255) NOT NULL UNIQUE,
+  password_hash      VARCHAR(255) NOT NULL,
+  rol                VARCHAR(20) DEFAULT 'usuario' CHECK (rol IN ('usuario', 'admin')),
+  expo_push_token    VARCHAR(255) NULL,
+  reset_token_hash   VARCHAR(255) NULL,
+  reset_token_expira TIMESTAMP NULL,
+  created_at         TIMESTAMP DEFAULT NOW()
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_usuarios_email_lower
