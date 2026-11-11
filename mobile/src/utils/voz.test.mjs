@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { interpretarGasto, normalizar } from './voz.js';
+import { avisoDictado, interpretarGasto, mensajeFalloVoz, normalizar } from './voz.js';
 
 const CATEGORIAS = ['Comida', 'Transporte', 'Entretenimiento', 'Servicios', 'Salud', 'Otros'];
 
@@ -268,5 +268,38 @@ describe('normalizar', () => {
     assert.equal(normalizar('Comí PIÑA'), 'comi piña');
     assert.equal(normalizar('Médico'), 'medico');
     assert.equal(normalizar(null), '');
+  });
+});
+
+describe('mensajes de la hoja', () => {
+  it('permiso negado o no disponible: aviso claro y sigue la captura manual', () => {
+    assert.match(mensajeFalloVoz('permiso'), /permiso de micrófono.*escribe el monto/i);
+    assert.equal(mensajeFalloVoz('not-allowed'), mensajeFalloVoz('permiso'));
+    assert.match(mensajeFalloVoz('no-disponible'), /no está disponible.*escribe el monto/i);
+    assert.match(mensajeFalloVoz('language-not-supported'), /no está disponible/);
+  });
+
+  it('sin voz, sin red, micrófono ocupado y desconocidos tienen su aviso', () => {
+    assert.match(mensajeFalloVoz('no-speech'), /no te escuché/i);
+    assert.match(mensajeFalloVoz('network'), /conexión/);
+    assert.match(mensajeFalloVoz('busy'), /ocupado/);
+    assert.match(mensajeFalloVoz('algo-nuevo'), /escribe el monto/i);
+  });
+
+  it('cancelar (aborted) no avisa', () => {
+    assert.equal(mensajeFalloVoz('aborted'), null);
+  });
+
+  it('avisoDictado: sin texto, sin monto, sin categoría o nada', () => {
+    assert.match(avisoDictado('', { monto: null, categoria: null }), /no te escuché/i);
+    assert.equal(
+      avisoDictado('en comida', { monto: null, categoria: 'Comida' }),
+      'No entendí el monto, escríbelo.',
+    );
+    assert.equal(
+      avisoDictado('ochenta', { monto: 80, categoria: null }),
+      'No entendí la categoría, elígela.',
+    );
+    assert.equal(avisoDictado('ochenta en comida', { monto: 80, categoria: 'Comida' }), null);
   });
 });

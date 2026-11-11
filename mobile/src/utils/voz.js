@@ -440,3 +440,47 @@ export function interpretarGasto(texto, nombres = []) {
     nota: sugerirNota(palabras, monto, categoria),
   };
 }
+
+// ---------------------------------------------------------------------------------------------
+// Mensajes de la hoja
+
+const SIN_PERMISO = 'Sin permiso de micrófono. Actívalo en Ajustes o escribe el monto.';
+const NO_ESCUCHE = 'No te escuché. Intenta de nuevo o escribe el monto.';
+
+// Aviso de la hoja cuando el dictado no se puede usar o falla, según el código de
+// expo-speech-recognition ('permiso' cuando se niega el permiso antes de empezar). null si no hay
+// que avisar: 'aborted' es la hoja que se cierra o el usuario que cancela.
+export function mensajeFalloVoz(codigo) {
+  switch (codigo) {
+    case 'aborted':
+      return null;
+    case 'permiso':
+    case 'not-allowed':
+      return SIN_PERMISO;
+    case 'no-speech':
+    case 'speech-timeout':
+    case 'nomatch':
+      return NO_ESCUCHE;
+    case 'service-not-allowed':
+    case 'language-not-supported':
+    case 'no-disponible':
+      return 'El reconocimiento de voz no está disponible en este teléfono. Escribe el monto.';
+    case 'network':
+      return 'No hay conexión para reconocer la voz. Intenta de nuevo o escribe el monto.';
+    case 'audio-capture':
+    case 'busy':
+    case 'interrupted':
+      return 'El micrófono está ocupado. Intenta de nuevo o escribe el monto.';
+    default:
+      return 'No se pudo usar la voz. Escribe el monto.';
+  }
+}
+
+// Aviso al terminar de dictar, con lo que entendió interpretarGasto (lo que sí entendió ya se
+// llenó en la hoja). null si entendió monto y categoría.
+export function avisoDictado(transcripcion, { monto, categoria }) {
+  if (!String(transcripcion ?? '').trim()) return NO_ESCUCHE;
+  if (monto == null) return 'No entendí el monto, escríbelo.';
+  if (categoria == null) return 'No entendí la categoría, elígela.';
+  return null;
+}
