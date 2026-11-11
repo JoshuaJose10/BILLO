@@ -155,7 +155,6 @@ export const temas = {
     aviso: '#FF9F0A', // cerca del límite
     avisoSuave: 'rgba(255, 159, 10, 0.15)',
     avisoTexto: '#FF9F0A', // aviso como texto (porcentaje de Inicio, pastilla "Cerca del límite")
-    avisoBorde: 'transparent', // contorno de los rellenos de aviso (solo hace falta en claro)
     alerta: '#FF453A', // límite excedido
     alertaSuave: 'rgba(255, 69, 58, 0.15)',
     alertaTexto: '#FF453A', // texto de estado sobre alertaSuave (pastilla "Excedido")
@@ -302,12 +301,11 @@ export const temas = {
     exitoTexto: '#137343', // 5.17:1 sobre exitoSuave
     // Punto de la pastilla del mes en el resumen de Suscripciones (Cartera)
     cobroProximo: '#34C77B',
-    // El naranja vivo da 2.06 sobre blanco y solo llega a 3:1 oscureciéndolo (se apaga): se deja
-    // vivo con un contorno de 1 px en avisoBorde (3.83 sobre blanco, 3.13 sobre la pista).
+    // El naranja vivo da 2.06 sobre blanco y solo llega a 3:1 oscureciéndolo (se apaga). Se acepta
+    // debajo de 3:1 porque el estado también va en texto (docs/diseno/paleta.md).
     aviso: '#FF9F0A',
     avisoSuave: 'rgba(255, 159, 10, 0.12)',
     avisoTexto: '#A3470A', // 5.54:1 sobre avisoSuave, 6.06 sobre blanco
-    avisoBorde: '#C76A00',
     alerta: '#FF453A', // 3.41 sobre blanco
     alertaSuave: 'rgba(255, 69, 58, 0.12)',
     alertaTexto: '#B42318', // 5.65:1 sobre alertaSuave: errores, "Excedido", botón destructivo

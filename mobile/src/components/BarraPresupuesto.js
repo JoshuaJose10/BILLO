@@ -63,9 +63,7 @@ export default function BarraPresupuesto({
       accessibilityLabel={etiqueta}
       accessibilityValue={{ min: 0, max: 100, now: Math.min(Math.round(porcentaje), 100) }}
     >
-      <Animated.View
-        style={[styles.relleno, estado === 'alerta' ? styles.contornoAviso : null, estiloRelleno]}
-      />
+      <Animated.View style={[styles.relleno, estiloRelleno]} />
     </View>
   );
 }
@@ -82,10 +80,5 @@ const crearEstilos = (colors) =>
     relleno: {
       height: '100%',
       borderRadius: radios.full,
-    },
-    // El naranja vivo no llega a 3:1 sobre blanco; el contorno sí (transparente en oscuro).
-    contornoAviso: {
-      borderWidth: 1,
-      borderColor: colors.avisoBorde,
     },
   });
