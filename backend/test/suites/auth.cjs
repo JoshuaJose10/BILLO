@@ -69,8 +69,7 @@ module.exports = getContext => describe('Autenticación (Postman 01 / RF1)', () 
   it('CP-RF1-02: login devuelve solo datos públicos y token válido', async () => {
     const { body } = await ctx.api.post('/auth/login')
       .send({ email: ctx.a.usuario.email, password: ctx.password }).expect(200);
-    publicUser(body.usuario);
-    assert.deepEqual(body.usuario, ctx.a.usuario);
+    assert.deepEqual(body.usuario, { ...ctx.a.usuario, rol: 'usuario' });
     const claims = jwt.verify(body.token, process.env.JWT_SECRET);
     assert.equal(claims.id, ctx.a.usuario.id);
     assert.equal(claims.rol, 'usuario');
@@ -155,13 +154,19 @@ module.exports = getContext => describe('Autenticación (Postman 01 / RF1)', () 
     ).rows[0].count;
     assert.equal(conteo2, 3);
 
-    // Iniciar sesión devuelve token con rol: admin
+    // Iniciar sesión devuelve token y usuario con rol: admin
     const { body } = await ctx.api
       .post('/auth/login')
       .send({ email: emailAdmin, password: passAdmin })
       .expect(200);
-    publicUser(body.usuario);
+    assert.deepEqual(Object.keys(body.usuario).sort(), [
+      'email',
+      'id',
+      'nombre',
+      'rol',
+    ]);
     assert.equal(body.usuario.email, emailAdmin);
+    assert.equal(body.usuario.rol, 'admin');
     const claims = jwt.verify(body.token, process.env.JWT_SECRET);
     assert.equal(claims.id, primera.usuario.id);
     assert.equal(claims.rol, 'admin');
@@ -188,6 +193,7 @@ module.exports = getContext => describe('Autenticación (Postman 01 / RF1)', () 
       .post('/auth/login')
       .send({ email: ctx.a.usuario.email, password: nuevaPass })
       .expect(200);
+    assert.equal(body.usuario.rol, 'admin');
     const claims = jwt.verify(body.token, process.env.JWT_SECRET);
     assert.equal(claims.id, ctx.a.usuario.id);
     assert.equal(claims.rol, 'admin');

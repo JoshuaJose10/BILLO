@@ -233,90 +233,295 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
          ON CONFLICT (email) DO UPDATE SET rol = 'admin'
          RETURNING id, rol`
       );
-      return jwt.sign({ id: rows[0].id, rol: rows[0].rol }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      return jwt.sign(
+        { id: rows[0].id, rol: rows[0].rol },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
     }
 
-    it('usuario normal no puede agregar, editar ni eliminar servicios (403 PROHIBIDO)', async () => {
-      const postReq = await ctx.api.post('/catalogo').auth(ctx.a.token, { type: 'bearer' })
+    for (const [method, route, body] of [
+      ['post', '/catalogo', { nombre: 'Servicio Test', costo_sugerido: 99 }],
+      ['put', '/catalogo/1', { nombre: 'Servicio Test', costo_sugerido: 99 }],
+      ['delete', '/catalogo/1'],
+    ]) {
+      for (const token of [null, 'token-invalido']) {
+        it(`AUTH-ADMIN ${method.toUpperCase()} ${route}: ${token ? 'token inválido' : 'sin token'} responde 401 NO_AUTORIZADO`, async () => {
+          const req = ctx.api[method](route);
+          if (token) req.auth(token, { type: 'bearer' });
+          if (body) req.send(body);
+          expectError(await req, 401, 'NO_AUTORIZADO');
+        });
+      }
+    }
+
+    it('usuario normal recibe 403 PROHIBIDO en POST, PUT y DELETE /catalogo y GET /catalogo sigue abierto', async () => {
+      const catalogoAntes = await get('/catalogo', ctx.a);
+      assert.ok(catalogoAntes.length > 0);
+
+      const postReq = await ctx.api
+        .post('/catalogo')
+        .auth(ctx.a.token, { type: 'bearer' })
         .send({ nombre: 'Servicio Test', costo_sugerido: 99 });
       expectError(postReq, 403, 'PROHIBIDO');
 
-      const putReq = await ctx.api.put('/catalogo/1').auth(ctx.a.token, { type: 'bearer' })
+      const putReq = await ctx.api
+        .put(`/catalogo/${catalogoAntes[0].id}`)
+        .auth(ctx.a.token, { type: 'bearer' })
         .send({ nombre: 'Servicio Mod', costo_sugerido: 100 });
       expectError(putReq, 403, 'PROHIBIDO');
 
-      const delReq = await ctx.api.delete('/catalogo/1').auth(ctx.a.token, { type: 'bearer' });
+      const delReq = await ctx.api
+        .delete(`/catalogo/${catalogoAntes[0].id}`)
+        .auth(ctx.a.token, { type: 'bearer' });
       expectError(delReq, 403, 'PROHIBIDO');
+
+      const catalogoDespues = await get('/catalogo', ctx.b);
+      assert.deepEqual(catalogoDespues, catalogoAntes);
     });
 
-    it('admin agrega un nuevo servicio al catálogo (201)', async () => {
+    it('admin agrega un nuevo servicio al catálogo (201) con y sin logo_url', async () => {
       const tokenAdmin = await obtenerTokenAdmin();
-      const res = await ctx.api.post('/catalogo').auth(tokenAdmin, { type: 'bearer' })
-        .send({ nombre: 'Servicio Prueba $99', costo_sugerido: 99, logo_url: 'https://example.com/logo.png' })
+      const res = await ctx.api
+        .post('/catalogo')
+        .auth(tokenAdmin, { type: 'bearer' })
+        .send({
+          nombre: '  Servicio Prueba $99  ',
+          costo_sugerido: 99.5,
+          logo_url: '  https://example.com/logo.png  ',
+        })
         .expect(201);
+
       assert.ok(res.body.servicio.id);
       assert.equal(res.body.servicio.nombre, 'Servicio Prueba $99');
-      assert.equal(res.body.servicio.costo_sugerido, 99);
+      assert.equal(res.body.servicio.costo_sugerido, 99.5);
+      assert.equal(res.body.servicio.logo_url, 'https://example.com/logo.png');
 
-      // Se refleja en GET /catalogo
-      const catalogo = await get('/catalogo');
-      const encontrado = catalogo.find(s => s.nombre === 'Servicio Prueba $99');
-      assert.ok(encontrado);
-      assert.equal(encontrado.costo_sugerido, 99);
-    });
-
-    it('admin valida nombre y costo al agregar servicio (400)', async () => {
-      const tokenAdmin = await obtenerTokenAdmin();
-      const resNombre = await ctx.api.post('/catalogo').auth(tokenAdmin, { type: 'bearer' })
-        .send({ nombre: '   ', costo_sugerido: 50 });
-      expectError(resNombre, 400, 'NOMBRE_INVALIDO');
-
-      const resCosto = await ctx.api.post('/catalogo').auth(tokenAdmin, { type: 'bearer' })
-        .send({ nombre: 'Servicio Invalido', costo_sugerido: -10 });
-      expectError(resCosto, 400, 'COSTO_INVALIDO');
-    });
-
-    it('admin edita el costo de un servicio existente (200)', async () => {
-      const tokenAdmin = await obtenerTokenAdmin();
-      const creado = (await ctx.api.post('/catalogo').auth(tokenAdmin, { type: 'bearer' })
-        .send({ nombre: 'Servicio Editable', costo_sugerido: 50 }).expect(201)).body.servicio;
-
-      const editado = (await ctx.api.put(`/catalogo/${creado.id}`).auth(tokenAdmin, { type: 'bearer' })
-        .send({ nombre: 'Servicio Editable', costo_sugerido: 75 }).expect(200)).body.servicio;
-      assert.equal(editado.costo_sugerido, 75);
+      const resSinLogo = await ctx.api
+        .post('/catalogo')
+        .auth(tokenAdmin, { type: 'bearer' })
+        .send({ nombre: 'Servicio Sin Logo', costo_sugerido: 49 })
+        .expect(201);
+      assert.equal(resSinLogo.body.servicio.logo_url, null);
 
       const catalogo = await get('/catalogo');
-      const item = catalogo.find(s => s.id === creado.id);
-      assert.equal(item.costo_sugerido, 75);
+      const encontrado = catalogo.find(
+        (s) => s.id === res.body.servicio.id
+      );
+      assert.deepEqual(encontrado, res.body.servicio);
+
+      // Limpiar servicios creados para no afectar otras pruebas
+      await ctx.pool.query('DELETE FROM catalogo_servicios WHERE id = ANY($1)', [
+        [res.body.servicio.id, resSinLogo.body.servicio.id],
+      ]);
+    });
+
+    it('admin valida nombre, costo sugerido y logo en POST y PUT /catalogo (400)', async () => {
+      const tokenAdmin = await obtenerTokenAdmin();
+      const creado = (
+        await ctx.api
+          .post('/catalogo')
+          .auth(tokenAdmin, { type: 'bearer' })
+          .send({ nombre: 'Servicio Base Validacion', costo_sugerido: 50 })
+          .expect(201)
+      ).body.servicio;
+
+      const casosInvalidos = [
+        ['sin cuerpo', undefined, 'NOMBRE_INVALIDO'],
+        ['nombre vacío', { nombre: '   ', costo_sugerido: 50 }, 'NOMBRE_INVALIDO'],
+        ['nombre no string', { nombre: 123, costo_sugerido: 50 }, 'NOMBRE_INVALIDO'],
+        [
+          'nombre mayor a 255 caracteres',
+          { nombre: 'a'.repeat(256), costo_sugerido: 50 },
+          'NOMBRE_INVALIDO',
+        ],
+        [
+          'nombre duplicado en catálogo',
+          { nombre: 'netflix', costo_sugerido: 50 },
+          'NOMBRE_INVALIDO',
+        ],
+        ['costo ausente', { nombre: 'Servicio Valido' }, 'COSTO_INVALIDO'],
+        [
+          'costo negativo',
+          { nombre: 'Servicio Valido', costo_sugerido: -10 },
+          'COSTO_INVALIDO',
+        ],
+        [
+          'costo cero',
+          { nombre: 'Servicio Valido', costo_sugerido: 0 },
+          'COSTO_INVALIDO',
+        ],
+        [
+          'costo como string',
+          { nombre: 'Servicio Valido', costo_sugerido: '50' },
+          'COSTO_INVALIDO',
+        ],
+        [
+          'costo con más de 2 decimales',
+          { nombre: 'Servicio Valido', costo_sugerido: 50.123 },
+          'COSTO_INVALIDO',
+        ],
+        [
+          'logo no string',
+          { nombre: 'Servicio Valido', costo_sugerido: 50, logo_url: 123 },
+          'LOGO_INVALIDO',
+        ],
+        [
+          'logo sin protocolo http/https',
+          {
+            nombre: 'Servicio Valido',
+            costo_sugerido: 50,
+            logo_url: 'ftp://example.com/logo.png',
+          },
+          'LOGO_INVALIDO',
+        ],
+        [
+          'logo inválido',
+          {
+            nombre: 'Servicio Valido',
+            costo_sugerido: 50,
+            logo_url: 'no-es-una-url',
+          },
+          'LOGO_INVALIDO',
+        ],
+        [
+          'logo mayor a 500 caracteres',
+          {
+            nombre: 'Servicio Valido',
+            costo_sugerido: 50,
+            logo_url: `https://example.com/${'a'.repeat(490)}`,
+          },
+          'LOGO_INVALIDO',
+        ],
+      ];
+
+      for (const [, payload, expectedCode] of casosInvalidos) {
+        const postReq = ctx.api
+          .post('/catalogo')
+          .auth(tokenAdmin, { type: 'bearer' });
+        expectError(
+          await (payload === undefined ? postReq : postReq.send(payload)),
+          400,
+          expectedCode
+        );
+
+        const putReq = ctx.api
+          .put(`/catalogo/${creado.id}`)
+          .auth(tokenAdmin, { type: 'bearer' });
+        expectError(
+          await (payload === undefined ? putReq : putReq.send(payload)),
+          400,
+          expectedCode
+        );
+      }
+
+      await ctx.pool.query('DELETE FROM catalogo_servicios WHERE id = $1', [
+        creado.id,
+      ]);
+    });
+
+    it('admin edita un servicio existente (200) y responde 404 si no existe', async () => {
+      const tokenAdmin = await obtenerTokenAdmin();
+      const creado = (
+        await ctx.api
+          .post('/catalogo')
+          .auth(tokenAdmin, { type: 'bearer' })
+          .send({ nombre: 'Servicio Editable', costo_sugerido: 50 })
+          .expect(201)
+      ).body.servicio;
+
+      const editado = (
+        await ctx.api
+          .put(`/catalogo/${creado.id}`)
+          .auth(tokenAdmin, { type: 'bearer' })
+          .send({
+            nombre: 'Servicio Editable Actualizado',
+            costo_sugerido: 75.5,
+            logo_url: 'https://example.com/nuevo.png',
+          })
+          .expect(200)
+      ).body.servicio;
+
+      assert.equal(editado.id, creado.id);
+      assert.equal(editado.nombre, 'Servicio Editable Actualizado');
+      assert.equal(editado.costo_sugerido, 75.5);
+      assert.equal(editado.logo_url, 'https://example.com/nuevo.png');
+
+      const catalogo = await get('/catalogo');
+      const item = catalogo.find((s) => s.id === creado.id);
+      assert.deepEqual(item, editado);
+
+      for (const idInexistente of ['999999', '0', '-5', 'abc']) {
+        expectError(
+          await ctx.api
+            .put(`/catalogo/${idInexistente}`)
+            .auth(tokenAdmin, { type: 'bearer' })
+            .send({ nombre: 'No Existe', costo_sugerido: 100 }),
+          404,
+          'SERVICIO_NO_ENCONTRADO'
+        );
+      }
+
+      await ctx.pool.query('DELETE FROM catalogo_servicios WHERE id = $1', [
+        creado.id,
+      ]);
     });
 
     it('eliminar un servicio en uso por membresías responde 409 SERVICIO_EN_USO y no lo borra', async () => {
       const tokenAdmin = await obtenerTokenAdmin();
       const catalogo = await get('/catalogo');
-      const netflix = catalogo.find(s => s.nombre === 'Netflix');
+      const netflix = catalogo.find((s) => s.nombre === 'Netflix');
       assert.ok(netflix);
 
-      // Crear membresía vinculada a Netflix
-      await crear({ servicio_id: netflix.id, frecuencia: 'mensual', fecha_cobro: '2026-11-20' });
+      await crear({
+        servicio_id: netflix.id,
+        frecuencia: 'mensual',
+        fecha_cobro: '2026-11-20',
+      });
 
-      // Intentar eliminarlo con admin
-      const delRes = await ctx.api.delete(`/catalogo/${netflix.id}`).auth(tokenAdmin, { type: 'bearer' });
+      const delRes = await ctx.api
+        .delete(`/catalogo/${netflix.id}`)
+        .auth(tokenAdmin, { type: 'bearer' });
       expectError(delRes, 409, 'SERVICIO_EN_USO');
 
-      // Comprobar que sigue existiendo
       const catalogoDespues = await get('/catalogo');
-      assert.ok(catalogoDespues.some(s => s.id === netflix.id));
+      assert.ok(catalogoDespues.some((s) => s.id === netflix.id));
     });
 
-    it('admin elimina un servicio que no está en uso (200)', async () => {
+    it('admin elimina un servicio que no está en uso (200) y responde 404 si ya no existe', async () => {
       const tokenAdmin = await obtenerTokenAdmin();
-      const nuevo = (await ctx.api.post('/catalogo').auth(tokenAdmin, { type: 'bearer' })
-        .send({ nombre: 'Servicio Desechable', costo_sugerido: 10 }).expect(201)).body.servicio;
+      const nuevo = (
+        await ctx.api
+          .post('/catalogo')
+          .auth(tokenAdmin, { type: 'bearer' })
+          .send({ nombre: 'Servicio Desechable', costo_sugerido: 10 })
+          .expect(201)
+      ).body.servicio;
 
-      await ctx.api.delete(`/catalogo/${nuevo.id}`).auth(tokenAdmin, { type: 'bearer' }).expect(200);
+      const delRes = await ctx.api
+        .delete(`/catalogo/${nuevo.id}`)
+        .auth(tokenAdmin, { type: 'bearer' })
+        .expect(200);
+      assert.deepEqual(delRes.body, { eliminado: true });
 
       const catalogo = await get('/catalogo');
-      assert.ok(!catalogo.some(s => s.id === nuevo.id));
+      assert.ok(!catalogo.some((s) => s.id === nuevo.id));
+
+      // Intentar eliminarlo de nuevo o un ID inválido -> 404 SERVICIO_NO_ENCONTRADO
+      expectError(
+        await ctx.api
+          .delete(`/catalogo/${nuevo.id}`)
+          .auth(tokenAdmin, { type: 'bearer' }),
+        404,
+        'SERVICIO_NO_ENCONTRADO'
+      );
+      expectError(
+        await ctx.api
+          .delete('/catalogo/invalid-id')
+          .auth(tokenAdmin, { type: 'bearer' }),
+        404,
+        'SERVICIO_NO_ENCONTRADO'
+      );
     });
   });
 });
