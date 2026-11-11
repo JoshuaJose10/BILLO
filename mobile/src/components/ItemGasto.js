@@ -25,6 +25,11 @@ export default function ItemGasto({ gasto, nombreCategoria, metodoPago, opaca = 
       ? `${categoria} · ${fecha}`
       : fecha;
 
+  const tieneMonedaExtranjera = gasto.moneda && gasto.moneda !== 'MXN';
+  const textoMonedaOriginal = tieneMonedaExtranjera
+    ? `${gasto.monto_original != null ? gasto.monto_original : ''} ${gasto.moneda}`.trim()
+    : null;
+
   return (
     <View style={[styles.fila, opaca ? styles.filaOpaca : null]}>
       <IconoCategoria nombre={nombreCategoria} />
@@ -36,7 +41,14 @@ export default function ItemGasto({ gasto, nombreCategoria, metodoPago, opaca = 
           {subtitulo}
         </Text>
       </View>
-      <Text style={styles.monto}>-{formatearMonto(gasto.monto)}</Text>
+      <View style={styles.columnaMonto}>
+        <Text style={styles.monto}>-{formatearMonto(gasto.monto)}</Text>
+        {tieneMonedaExtranjera ? (
+          <Text style={styles.monedaOriginal} numberOfLines={1}>
+            {textoMonedaOriginal}
+          </Text>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -74,11 +86,22 @@ const crearEstilos = (colors) =>
       letterSpacing: 0.8,
       color: colors.textVariant,
     },
+    columnaMonto: {
+      alignItems: 'flex-end',
+      justifyContent: 'center',
+    },
     // font-financial-metric-md text-body-lg text-secondary-fixed font-semibold
     monto: {
       fontFamily: fonts.monoSemiBold,
       fontSize: 16,
       letterSpacing: -0.16,
       color: colors.amount,
+    },
+    monedaOriginal: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 11,
+      lineHeight: 14,
+      color: colors.textSecondary,
+      marginTop: 2,
     },
   });
