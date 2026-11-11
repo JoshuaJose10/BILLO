@@ -6,12 +6,14 @@ import HojaInferior from '../components/HojaInferior';
 import { useAuth } from '../context/AuthContext';
 import { useEstilos } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
+import { esAdmin } from '../utils/auth';
 
 // Hoja inferior de Perfil (ruta Perfil con presentation: 'transparentModal'), se abre
 // desde el avatar de Inicio. Al cerrar sesión el token se borra y RootNavigator muestra Login.
 export default function PerfilScreen({ navigation }) {
-  const { usuario, cerrarSesion } = useAuth();
+  const { usuario, token, cerrarSesion } = useAuth();
   const styles = useEstilos(crearEstilos);
+  const esAdministrador = esAdmin(token);
 
   const confirmarCerrarSesion = () =>
     Alert.alert('¿Cerrar sesión?', 'Tendrás que ingresar tu correo y contraseña de nuevo.', [
@@ -36,6 +38,20 @@ export default function PerfilScreen({ navigation }) {
           </Text>
         ) : null}
       </View>
+
+      {/* HU-49: opción de administración del catálogo exclusiva para administradores */}
+      {esAdministrador ? (
+        <View style={styles.seccionAdmin}>
+          <Boton
+            titulo="Administrar catálogo"
+            icono="shape-outline"
+            onPress={() => {
+              navigation.goBack();
+              navigation.navigate('AdminCatalogo');
+            }}
+          />
+        </View>
+      ) : null}
 
       <Boton titulo="Cerrar sesión" icono="logout" onPress={confirmarCerrarSesion} secundario />
 
@@ -80,5 +96,8 @@ const crearEstilos = (colors) =>
     },
     laboratorio: {
       marginTop: 12,
+    },
+    seccionAdmin: {
+      marginBottom: 12,
     },
   });
