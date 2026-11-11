@@ -1,16 +1,17 @@
 import { FlexWidget, TextWidget } from 'react-native-android-widget';
 
-import { temas } from '../../theme/colors';
+import { temas } from '../theme/colors';
+import { TEXTO_SIN_DATOS } from '../utils/widgetResumen';
 
-// HU-44: el widget se dibuja fuera del árbol de React (sin TemaProvider) y conserva el tema oscuro.
+// El widget se dibuja fuera del árbol de React (sin TemaProvider) y conserva el tema oscuro.
 const colors = temas.oscuro;
 
-// HU-23 (spike RF13): widget mínimo de Android. Muestra un texto fijo y el dato que la app
-// guardó en datoWidget. Usa la fuente del sistema: las de la app requieren declararlas en
-// la opción `fonts` del plugin.
+// HU-58 (RF13): total del mes, o «Abre Billo» si no hay dato (sin sesión, mes nuevo o error).
+// Al tocarlo abre la app. Usa la fuente del sistema: las de la app requieren declararlas en la
+// opción `fonts` del plugin.
 // Este archivo importa react-native-android-widget, que falla en Expo Go: solo se carga con
 // require desde modulosNativos.js o widgetTaskHandler.js.
-export default function ResumenMesWidget({ dato }) {
+export default function ResumenMesWidget({ titulo = 'BILLO', monto = null }) {
   return (
     <FlexWidget
       clickAction="OPEN_APP"
@@ -24,12 +25,12 @@ export default function ResumenMesWidget({ dato }) {
       }}
     >
       <TextWidget
-        text="BILLO · TOTAL DEL MES"
+        text={titulo}
         style={{ fontSize: 12, letterSpacing: 0.1, color: colors.textSecondary }}
       />
       <TextWidget
-        text={dato || 'Sin datos: abre Billo'}
-        style={{ fontSize: 26, fontWeight: '700', color: colors.text, marginTop: 4 }}
+        text={monto ?? TEXTO_SIN_DATOS}
+        style={{ fontSize: monto ? 26 : 20, fontWeight: '700', color: colors.text, marginTop: 4 }}
       />
     </FlexWidget>
   );

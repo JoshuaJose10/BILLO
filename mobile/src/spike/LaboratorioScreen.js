@@ -6,7 +6,9 @@ import Boton from '../components/Boton';
 import { radios, temas } from '../theme/colors';
 import { fonts } from '../theme/fonts';
 import { cargarVoz, cargarWidget } from './modulosNativos';
-import { guardarDatoWidget, leerDatoWidget } from './widget/datoWidget';
+import { mesActual } from '../utils/fechas';
+import { leerDatoWidget } from '../widget/datoWidget';
+import { actualizarWidget } from '../widget/sincronizar';
 
 // HU-44: el spike conserva el tema oscuro fijo; no forma parte de la app.
 const colors = temas.oscuro;
@@ -111,7 +113,7 @@ function PruebaVoz() {
 
 function PruebaWidget() {
   const widget = cargarWidget();
-  const [dato, setDato] = useState('$1,234.50 (prueba)');
+  const [dato, setDato] = useState('1234.5');
   const [estado, setEstado] = useState('');
 
   // Muestra el dato que ya estaba guardado para comprobar que sobrevive a reinicios.
@@ -120,8 +122,8 @@ function PruebaWidget() {
     leerDatoWidget()
       .then((guardado) => {
         if (guardado) {
-          setDato(guardado);
-          setEstado(`Dato guardado actualmente: ${guardado}`);
+          setDato(String(guardado.total));
+          setEstado(`Dato guardado actualmente: ${guardado.mes} · $${guardado.total}`);
         } else {
           setEstado('No hay dato guardado todavía');
         }
@@ -137,20 +139,8 @@ function PruebaWidget() {
 
   const actualizar = async () => {
     try {
-      await guardarDatoWidget(dato);
-      let sinWidget = false;
-      await widget.requestWidgetUpdate({
-        widgetName: 'ResumenMes',
-        renderWidget: () => <widget.ResumenMesWidget dato={dato} />,
-        widgetNotFound: () => {
-          sinWidget = true;
-        },
-      });
-      setEstado(
-        sinWidget
-          ? 'Dato guardado. Agrega el widget "Billo" a la pantalla de inicio para verlo.'
-          : 'Widget actualizado',
-      );
+      await actualizarWidget({ mes: mesActual(), total: Number(dato) });
+      setEstado('Dato guardado y widget actualizado (si ya lo agregaste a la pantalla de inicio).');
     } catch (e) {
       setEstado(`Error: ${e.message}`);
     }
@@ -158,7 +148,7 @@ function PruebaWidget() {
 
   return (
     <>
-      <Text style={styles.texto}>Texto que mostrará el widget:</Text>
+      <Text style={styles.texto}>Total del mes que mostrará el widget:</Text>
       <TextInput
         value={dato}
         onChangeText={setDato}

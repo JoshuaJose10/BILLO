@@ -34,6 +34,7 @@ import { mesActual } from '../utils/fechas';
 import { cargarDatosInicio, MOVIMIENTOS_RECIENTES } from '../utils/inicio';
 import { presupuestosEnRiesgo, resumenPresupuestos } from '../utils/presupuestos';
 import { gastoPorCategoria, resumenGastoMes } from '../utils/resumenMes';
+import { actualizarWidget } from '../widget/sincronizar';
 
 // Categorías con chip en la tarjeta del mes (las de más gasto).
 const CHIPS_CATEGORIA = 3;
@@ -94,6 +95,8 @@ export default function InicioScreen({ navigation }) {
       setMesCargado(mes);
       setEstado('listo');
       setHayDatos(true);
+      // HU-58: el widget de Android muestra el mismo total del mes que acaba de cargar Inicio.
+      actualizarWidget(datos.resumen, mes);
     } catch (error) {
       if (peticion !== ultimaPeticion.current) return;
       setTextoError(mensajeError(error?.code, error?.message));

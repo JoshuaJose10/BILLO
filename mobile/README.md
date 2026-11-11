@@ -119,3 +119,18 @@ con PostgreSQL 16; `Mobile (lint)` ejecuta los comandos de validación anteriore
 Los nombres se conservan porque son checks obligatorios de las reglas de rama.
 Los bundles comprueban compilación de JavaScript, mientras que los módulos nativos
 y las pantallas se validan también en un dispositivo.
+
+## Widget de Android (HU-58, RF13)
+
+El widget **Billo** muestra el total del mes (gastos + suscripciones, el mismo «Total» de Inicio). Solo existe en Android y en un build nativo (APK); **no aparece en Expo Go**.
+
+**Cómo agregarlo:** mantén presionada una zona vacía de la pantalla de inicio del teléfono → **Widgets** → busca **Billo** → arrástralo a la pantalla.
+
+**Cómo funciona**
+- Se actualiza al abrir Inicio y al guardar, editar o eliminar un gasto.
+- Tocarlo abre la app.
+- Si no hay dato (sesión cerrada, mes nuevo sin abrir la app o error), muestra **«Abre Billo»**.
+- Al cerrar sesión el dato se borra: el widget no muestra información del usuario anterior.
+- Tras reiniciar el teléfono lo dibuja con el último dato guardado, sin abrir la app y sin red.
+
+**Probarlo:** necesita el APK de release (`eas build --profile release`); en el build de desarrollo el widget depende de Metro y puede quedar vacío tras un reinicio (ver `docs/spike-rf11-rf13.md`, 2.4).
