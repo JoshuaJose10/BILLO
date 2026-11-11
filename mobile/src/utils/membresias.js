@@ -110,6 +110,78 @@ export function tramosSuscripciones(membresias = []) {
     }));
 }
 
+// Texto comparable para buscar: minúsculas, sin acentos ni espacios sobrantes.
+export function normalizarBusqueda(texto) {
+  return String(texto ?? '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+// Buscador del catálogo de la hoja Nueva suscripción (HU-72). Ignora mayúsculas y acentos; cada
+// palabra de la consulta debe aparecer en el nombre, que incluye el plan ("Spotify Duo"), así que
+// "spo" deja los planes de Spotify y "duo spotify" también encuentra "Spotify Duo". Consulta vacía:
+// el catálogo completo, en su orden.
+export function filtrarCatalogo(catalogo = [], consulta = '') {
+  const lista = Array.isArray(catalogo) ? catalogo : [];
+  const palabras = normalizarBusqueda(consulta).split(/\s+/).filter(Boolean);
+  if (palabras.length === 0) return lista;
+  return lista.filter((item) => {
+    const nombre = normalizarBusqueda(item?.nombre);
+    return palabras.every((p) => nombre.includes(p));
+  });
+}
+
+// Criterios para ordenar la lista de Suscripciones de Cartera (HU-72).
+export const ORDEN_SUSCRIPCIONES = {
+  fecha: 'fecha', // la más próxima primero (por defecto)
+  costo: 'costo', // de mayor a menor costo mensual equivalente
+  frecuencia: 'frecuencia', // secciones Mensuales y Anuales, cada una por fecha
+};
+
+const diasOrden = (m) =>
+  typeof m?.dias_para_cobro === 'number' && !Number.isNaN(m.dias_para_cobro)
+    ? m.dias_para_cobro
+    : Infinity;
+
+const porNombre = (a, b) => String(a?.nombre ?? '').localeCompare(String(b?.nombre ?? ''), 'es');
+
+// Más próxima primero; sin fecha conocida, al final. Empates: por nombre.
+const porFecha = (a, b) => {
+  const da = diasOrden(a);
+  const db = diasOrden(b);
+  if (da !== db) return da === Infinity ? 1 : db === Infinity ? -1 : da - db;
+  return porNombre(a, b);
+};
+
+// Copia ordenada de las membresías (no muta la original): 'fecha' o 'costo' (mensual equivalente,
+// anual ÷ 12, de mayor a menor; empates por fecha y luego nombre).
+export function ordenarMembresias(membresias = [], criterio = ORDEN_SUSCRIPCIONES.fecha) {
+  const lista = Array.isArray(membresias) ? [...membresias] : [];
+  if (criterio === ORDEN_SUSCRIPCIONES.costo) {
+    return lista.sort((a, b) => costoMensual(b) - costoMensual(a) || porFecha(a, b));
+  }
+  return lista.sort(porFecha);
+}
+
+// Secciones "Mensuales" y "Anuales" (cada una por fecha), sin las vacías:
+// [{ frecuencia, titulo, membresias }]. Sin frecuencia cuenta como mensual, igual que el total.
+export function agruparPorFrecuencia(membresias = []) {
+  const ordenadas = ordenarMembresias(membresias, ORDEN_SUSCRIPCIONES.fecha);
+  return [
+    { frecuencia: 'mensual', titulo: 'Mensuales' },
+    { frecuencia: 'anual', titulo: 'Anuales' },
+  ]
+    .map((grupo) => ({
+      ...grupo,
+      membresias: ordenadas.filter(
+        (m) => (m?.frecuencia === 'anual' ? 'anual' : 'mensual') === grupo.frecuencia,
+      ),
+    }))
+    .filter((grupo) => grupo.membresias.length > 0);
+}
+
 // Color del punto de la pastilla de cobro (HU-81): 'aviso' si cobra en 3 días o menos (o ya
 // venció), 'exito' si falta más. Sin días conocidos: 'neutro'.
 export function nivelCobro(diasParaCobro) {
