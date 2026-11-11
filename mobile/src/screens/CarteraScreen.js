@@ -36,7 +36,7 @@ import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { tipografia } from '../theme/tipografia';
 import { mensajeError } from '../utils/errores';
-import { mesActual } from '../utils/fechas';
+import { mesActual, sumarMeses } from '../utils/fechas';
 import { formatearMonto, nombreMes } from '../utils/formato';
 import { calcularTotalMensual, formatearDiaMes, tramosSuscripciones } from '../utils/membresias';
 import { gastoPorCategoriaDePresupuestos, resumenPresupuestos } from '../utils/presupuestos';
@@ -73,7 +73,7 @@ export default function CarteraScreen({ navigation, route }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
   const reducirMovimiento = useReducedMotion();
-  const { listarPresupuestos, eliminarPresupuesto } = usePresupuestosService();
+  const { listarPresupuestos, eliminarPresupuesto, copiarPresupuestos } = usePresupuestosService();
   const { listarMembresias, eliminarMembresia } = useMembresiasService();
 
   const [seccion, setSeccion] = useState('presupuestos');
@@ -87,6 +87,8 @@ export default function CarteraScreen({ navigation, route }) {
   const [estadoPresupuestos, setEstadoPresupuestos] = useState('cargando');
   const [textoErrorPresupuestos, setTextoErrorPresupuestos] = useState('');
   const [refrescandoPresupuestos, setRefrescandoPresupuestos] = useState(false);
+  const [copiandoPresupuestos, setCopiandoPresupuestos] = useState(false);
+  const [avisoCopia, setAvisoCopia] = useState('');
   const ultimaPeticionPresupuestos = useRef(0);
 
   // --- Estado de Membresías / Suscripciones ---
@@ -169,7 +171,23 @@ export default function CarteraScreen({ navigation, route }) {
 
   const cambiarMes = (nuevo) => {
     setMes(nuevo);
+    setAvisoCopia('');
     if (estadoPresupuestos === 'error') setEstadoPresupuestos('cargando');
+  };
+
+  const copiarDelMesAnterior = async () => {
+    if (copiandoPresupuestos) return;
+    setCopiandoPresupuestos(true);
+    setAvisoCopia('');
+    try {
+      const desde = sumarMeses(mes, -1);
+      await copiarPresupuestos({ desde, hasta: mes });
+      await cargarPresupuestos();
+    } catch (error) {
+      setAvisoCopia(mensajeError(error?.code, error?.message));
+    } finally {
+      setCopiandoPresupuestos(false);
+    }
   };
 
   const reintentar = () => {
@@ -450,7 +468,15 @@ export default function CarteraScreen({ navigation, route }) {
           </Text>
           <View style={styles.estadoBoton}>
             <Boton titulo="Crear tu primer presupuesto" icono="plus" onPress={crearPresupuesto} />
+            <Boton
+              titulo="Copiar del mes anterior"
+              icono="content-copy"
+              secundario
+              cargando={copiandoPresupuestos}
+              onPress={copiarDelMesAnterior}
+            />
           </View>
+          {avisoCopia ? <Text style={styles.avisoCopia}>{avisoCopia}</Text> : null}
         </View>
       );
     }
@@ -817,5 +843,14 @@ const crearEstilos = (colors) =>
     estadoBoton: {
       alignSelf: 'stretch',
       marginTop: 12,
+      gap: 10,
+    },
+    avisoCopia: {
+      fontFamily: fonts.sansMedium,
+      color: colors.alerta,
+      fontSize: 13,
+      lineHeight: 18,
+      textAlign: 'center',
+      marginTop: 4,
     },
   });
