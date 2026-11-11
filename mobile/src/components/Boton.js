@@ -10,9 +10,8 @@ import { fonts } from '../theme/fonts';
 // `grande`: variante de Login y Registro en Stitch (h-14 rounded-2xl, headline-sm en
 // on-primary, mt-3 y shadow-lg shadow-primary/5).
 // `secundario`: sin relleno, con borde y texto claro (acciones como "Cerrar sesión").
-// `destructivo`: sin relleno, con borde y texto en `alerta` (acciones como "Eliminar gasto"); al
-// presionar toma `alertaSuave`. Sin relleno porque `alerta` sobre `alertaSuave` no llega a 4.5:1
-// en tema claro.
+// `destructivo`: sin relleno, con borde en `alerta` y texto en `alertaTexto` (acciones como
+// "Eliminar gasto"); al presionar toma `alertaSuave`.
 export default function Boton({
   titulo,
   onPress,
@@ -28,7 +27,7 @@ export default function Boton({
   const styles = useEstilos(crearEstilos);
   const inactivo = cargando || disabled;
   const colorContenido = destructivo
-    ? colors.alerta
+    ? colors.alertaTexto
     : secundario
       ? colors.text
       : grande
@@ -156,6 +155,6 @@ const crearEstilos = (colors) =>
     textoDestructivo: {
       fontFamily: fonts.sansSemiBold,
       fontSize: 14,
-      color: colors.alerta,
+      color: colors.alertaTexto,
     },
   });

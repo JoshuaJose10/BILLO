@@ -36,7 +36,7 @@ export default function TarjetaResumen({
   const nivel = conLimite ? nivelPorcentaje(porcentaje) : null;
   const colorPorcentaje =
     nivel === 'alerta'
-      ? colors.alerta
+      ? colors.alertaTexto
       : nivel === 'aviso'
         ? colors.avisoTexto
         : colors.textSecondary;
@@ -196,7 +196,7 @@ const crearEstilos = (colors) =>
       fontFamily: fonts.sansMedium,
       fontSize: 12,
       lineHeight: 16,
-      color: colors.alerta,
+      color: colors.alertaTexto,
       marginTop: 6,
     },
     enlace: {

@@ -10,6 +10,7 @@ import {
 import { AppState } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
+import { MODO_VISITANTE } from '../services/api';
 import { useGastosService } from '../services/gastos';
 import { nombreCategoriaPorId } from '../utils/avisos';
 import { debeReintentar } from '../utils/estadoCarga';
@@ -18,12 +19,14 @@ import { useAuth } from './AuthContext';
 
 const CategoriasContext = createContext(null);
 
-const SIN_DATOS = { token: null, lista: [], estado: 'cargando' };
+const SIN_DATOS = { sesion: null, lista: [], estado: 'cargando' };
 
 // Caché de GET /categorias para la sesión (HU-39): se piden una vez al iniciar sesión (o al abrir
 // la app con sesión guardada) y las comparten Inicio, Movimientos, Nuevo gasto y Presupuesto.
-// Los datos se guardan junto con el token con el que se pidieron: al cerrar sesión (o cambiar de
-// usuario) dejan de exponerse en ese mismo render y la siguiente sesión vuelve a pedirlas.
+// Los datos se guardan junto con la sesión con la que se pidieron (el token, o MODO_VISITANTE en el
+// modo exploración, donde salen de los datos de ejemplo sin llamar a la API): al cerrar sesión, salir
+// del modo exploración o cambiar de usuario dejan de exponerse en ese mismo render y la siguiente
+// sesión vuelve a pedirlas.
 //   const { categorias, categoriasGasto, estado, recargar, nombrePorId } = useCategorias();
 // - estado: 'cargando' | 'listo' | 'error' ('inactivo' sin sesión). Si falla, cada pantalla
 //   ofrece Reintentar, que llama a recargar(). Además se reintenta solo (HU-80) al volver la app a
@@ -32,7 +35,8 @@ const SIN_DATOS = { token: null, lista: [], estado: 'cargando' };
 // - categoriasGasto: solo las de tipo gasto (las que no traen tipo se aceptan; ver
 //   categoriasDeGasto).
 export function CategoriasProvider({ children }) {
-  const { token } = useAuth();
+  const { token, visitante } = useAuth();
+  const sesion = token ?? (visitante ? MODO_VISITANTE : null);
   const { listarCategorias } = useGastosService();
   const [datos, setDatos] = useState(SIN_DATOS);
   // Cada petición recibe un número; si al responder ya hay una más nueva, se descarta.
@@ -45,28 +49,28 @@ export function CategoriasProvider({ children }) {
     listarCategorias()
       .then((lista) => {
         if (peticion === ultimaPeticion.current) {
-          setDatos({ token, lista: lista || [], estado: 'listo' });
+          setDatos({ sesion, lista: lista || [], estado: 'listo' });
         }
       })
       .catch(() => {
-        if (peticion === ultimaPeticion.current) setDatos({ token, lista: [], estado: 'error' });
+        if (peticion === ultimaPeticion.current) setDatos({ sesion, lista: [], estado: 'error' });
       });
-  }, [listarCategorias, token]);
+  }, [listarCategorias, sesion]);
 
-  // Una vez por sesión (listarCategorias cambia solo cuando cambia el token).
+  // Una vez por sesión (listarCategorias cambia solo cuando cambia el token o el modo).
   useEffect(() => {
-    if (token) pedir();
-  }, [token, pedir]);
+    if (sesion) pedir();
+  }, [sesion, pedir]);
 
   const recargar = useCallback(() => {
-    if (!token) return;
+    if (!sesion) return;
     setDatos((d) => ({ ...d, estado: 'cargando' }));
     pedir();
-  }, [token, pedir]);
+  }, [sesion, pedir]);
 
-  const vigentes = token != null && datos.token === token;
+  const vigentes = sesion != null && datos.sesion === sesion;
   const categorias = vigentes ? datos.lista : SIN_DATOS.lista;
-  const estado = !token ? 'inactivo' : vigentes ? datos.estado : 'cargando';
+  const estado = !sesion ? 'inactivo' : vigentes ? datos.estado : 'cargando';
 
   // El estado actual en una ref: los reintentos automáticos lo leen sin volver a suscribirse en
   // cada cambio (si dependieran de `estado`, un error persistente se reintentaría en bucle).
