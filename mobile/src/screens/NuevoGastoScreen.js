@@ -22,14 +22,16 @@ import PanelHoja from '../components/PanelHoja';
 import TecladoNumerico from '../components/TecladoNumerico';
 import { useAvisos } from '../context/AvisosContext';
 import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/CategoriasContext';
+import { useDivisasService } from '../services/divisas';
 import { METODO_PAGO_DEFECTO, METODOS_PAGO, NOTA_MAX, useGastosService } from '../services/gastos';
 import { useActualizarWidget } from '../widget/useActualizarWidget';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { contenidoAviso } from '../utils/avisos';
+import { MONEDA_DEFECTO, MONEDAS_DISPONIBLES, prepararDatosGasto } from '../utils/divisas';
 import { mensajeError } from '../utils/errores';
 import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
-import { fechaRelativa, LOCALE, resumirTexto } from '../utils/formato';
+import { fechaRelativa, formatearMonto, LOCALE, resumirTexto } from '../utils/formato';
 import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
 
 // Hoja inferior sobre Inicio y las tabs (ruta NuevoGasto con presentation: 'transparentModal').
@@ -53,16 +55,29 @@ export default function NuevoGastoScreen({ navigation, route }) {
   const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
 
-  // Al editar se precargan los datos del gasto; la fecha con parsearFechaLocal (new Date("YYYY-MM-DD")
-  // la toma en UTC y en México la recorre un día).
-  const [texto, setTexto] = useState(() => (editando ? textoDesdeMonto(gastoEditado.monto) : ''));
+  const { obtenerTipoCambio } = useDivisasService();
+
+  const [moneda, setMoneda] = useState(() => gastoEditado?.moneda || MONEDA_DEFECTO);
+  const [tipoCambio, setTipoCambio] = useState(() => gastoEditado?.tipo_cambio ?? null);
+  const [cargandoTipoCambio, setCargandoTipoCambio] = useState(false);
+  const [avisoTipoCambio, setAvisoTipoCambio] = useState('');
+
+  // Al editar se precargan los datos del gasto; si tiene moneda extranjera, se usa su monto_original.
+  const [texto, setTexto] = useState(() => {
+    if (!editando) return '';
+    const valor =
+      gastoEditado.moneda && gastoEditado.moneda !== 'MXN' && gastoEditado.monto_original != null
+        ? gastoEditado.monto_original
+        : gastoEditado.monto;
+    return textoDesdeMonto(valor);
+  });
   const [categoriaId, setCategoriaId] = useState(gastoEditado?.categoria_id ?? null);
   const [metodo, setMetodo] = useState(gastoEditado?.metodo_pago || METODO_PAGO_DEFECTO);
   const [fecha, setFecha] = useState(() =>
     editando ? parsearFechaLocal(gastoEditado.fecha) : new Date(),
   );
   const [nota, setNota] = useState(gastoEditado?.nota ?? '');
-  const [panel, setPanel] = useState(null); // 'metodo' | 'fecha' | 'nota'
+  const [panel, setPanel] = useState(null); // 'metodo' | 'fecha' | 'nota' | 'moneda'
 
   const [errores, setErrores] = useState({});
   const [errorApi, setErrorApi] = useState('');
@@ -109,26 +124,58 @@ export default function NuevoGastoScreen({ navigation, route }) {
     }
   };
 
+  const seleccionarMoneda = async (codigoMoneda) => {
+    setPanel(null);
+    if (codigoMoneda === 'MXN') {
+      setMoneda('MXN');
+      setTipoCambio(null);
+      setAvisoTipoCambio('');
+      return;
+    }
+
+    setMoneda(codigoMoneda);
+    setCargandoTipoCambio(true);
+    setAvisoTipoCambio('');
+
+    try {
+      const resp = await obtenerTipoCambio(codigoMoneda);
+      setTipoCambio(resp.tipo_cambio);
+      setCargandoTipoCambio(false);
+    } catch {
+      setCargandoTipoCambio(false);
+      setTipoCambio(null);
+      setMoneda('MXN');
+      setAvisoTipoCambio(
+        'Tipo de cambio no disponible en este momento. Puedes continuar capturando en MXN.',
+      );
+    }
+  };
+
   const confirmar = async () => {
     if (enviando.current) return;
 
-    const monto = montoDesdeTexto(texto);
+    const montoNum = montoDesdeTexto(texto);
     const nuevos = {};
-    if (!(monto > 0)) nuevos.monto = 'Ingresa un monto mayor a $0';
+    if (!(montoNum > 0)) nuevos.monto = 'Ingresa un monto mayor a $0';
     if (!categoriaElegida) nuevos.categoria = 'Elige una categoría';
+    if (moneda !== 'MXN' && !tipoCambio) {
+      nuevos.monto = 'Esperando tipo de cambio o cambia a MXN';
+    }
     setErrores(nuevos);
     setErrorApi('');
     if (nuevos.monto || nuevos.categoria) return;
 
     enviando.current = true;
     setGuardando(true);
-    const datos = {
-      monto,
-      categoria_id: categoriaElegida,
+    const datos = prepararDatosGasto({
+      montoOriginal: montoNum,
+      moneda,
+      tipoCambio,
+      categoriaId: categoriaElegida,
       fecha: fechaLocalISO(fecha),
-      metodo_pago: metodo,
-      nota: nota.trim() || null,
-    };
+      metodoPago: metodo,
+      nota,
+    });
     try {
       const { alerta } = editando
         ? await actualizarGasto(gastoEditado.id, datos)
@@ -174,6 +221,11 @@ export default function NuevoGastoScreen({ navigation, route }) {
 
   const metodoActual = METODOS_PAGO.find((m) => m.valor === metodo) || METODOS_PAGO[0];
   const fechaTexto = fechaRelativa(fechaLocalISO(fecha));
+  const montoIngresado = montoDesdeTexto(texto);
+  const equivalenteMxn =
+    moneda !== 'MXN' && tipoCambio && montoIngresado > 0
+      ? Number((montoIngresado * tipoCambio).toFixed(2))
+      : null;
 
   return (
     <HojaInferior
@@ -193,6 +245,13 @@ export default function NuevoGastoScreen({ navigation, route }) {
         style={styles.filaScroll}
         contentContainerStyle={styles.filaChips}
       >
+        <ChipSelector
+          icono="cash-multiple"
+          etiqueta={moneda}
+          chevron
+          onPress={() => setPanel('moneda')}
+          accessibilityLabel={`Moneda: ${moneda}`}
+        />
         <ChipSelector
           icono={metodoActual.icono}
           etiqueta={metodoActual.etiqueta}
@@ -215,8 +274,39 @@ export default function NuevoGastoScreen({ navigation, route }) {
       </ScrollView>
 
       <View style={styles.zonaMonto}>
-        <MontoGrande texto={texto} error={!!errores.monto} />
+        <MontoGrande
+          texto={texto}
+          error={!!errores.monto}
+          etiqueta={moneda === 'MXN' ? 'Importe' : `Importe en ${moneda}`}
+          moneda={moneda}
+        />
+        {cargandoTipoCambio ? (
+          <View style={styles.filaEquivalente}>
+            <ActivityIndicator size="small" color={colors.textSecondary} />
+            <Text style={styles.textoTasa}>Consultando tipo de cambio...</Text>
+          </View>
+        ) : tipoCambio && montoIngresado > 0 ? (
+          <View style={styles.filaEquivalente}>
+            <MaterialCommunityIcons name="swap-horizontal" size={16} color={colors.textSecondary} />
+            <Text style={styles.textoEquivalente}>≈ {formatearMonto(equivalenteMxn)} MXN</Text>
+            <Text style={styles.textoTasa}>
+              (1 {moneda} = ${tipoCambio.toFixed(4)} MXN)
+            </Text>
+          </View>
+        ) : tipoCambio ? (
+          <View style={styles.filaEquivalente}>
+            <Text style={styles.textoTasa}>
+              Tipo de cambio: 1 {moneda} = ${tipoCambio.toFixed(4)} MXN
+            </Text>
+          </View>
+        ) : null}
       </View>
+      {avisoTipoCambio ? (
+        <View style={styles.avisoTipoCambioContenedor}>
+          <MaterialCommunityIcons name="information-outline" size={16} color={colors.alerta} />
+          <Text style={styles.avisoTipoCambioTexto}>{avisoTipoCambio}</Text>
+        </View>
+      ) : null}
       {errores.monto ? <Text style={styles.errorCampo}>{errores.monto}</Text> : null}
 
       <View style={styles.zonaCategorias}>
@@ -342,6 +432,31 @@ export default function NuevoGastoScreen({ navigation, route }) {
           <Boton titulo="Listo" onPress={() => setPanel(null)} />
         </PanelHoja>
       ) : null}
+
+      {panel === 'moneda' ? (
+        <PanelHoja titulo="Moneda" onCerrar={() => setPanel(null)}>
+          {MONEDAS_DISPONIBLES.map((m) => (
+            <Pressable
+              key={m.codigo}
+              onPress={() => seleccionarMoneda(m.codigo)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: m.codigo === moneda }}
+              style={({ pressed }) => [styles.opcion, pressed ? styles.opcionPresionada : null]}
+            >
+              <View style={styles.simboloMonedaContenedor}>
+                <Text style={styles.simboloMonedaTexto}>{m.simbolo}</Text>
+              </View>
+              <View style={styles.monedaInfoColumna}>
+                <Text style={styles.opcionTexto}>{m.codigo}</Text>
+                <Text style={styles.nombreMonedaSubtexto}>{m.nombre}</Text>
+              </View>
+              {m.codigo === moneda ? (
+                <MaterialCommunityIcons name="check" size={22} color={colors.text} />
+              ) : null}
+            </Pressable>
+          ))}
+        </PanelHoja>
+      ) : null}
     </HojaInferior>
   );
 }
@@ -452,5 +567,62 @@ const crearEstilos = (colors) =>
       textAlign: 'right',
       marginTop: 6,
       marginBottom: 14,
+    },
+    filaEquivalente: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      marginTop: 8,
+      flexWrap: 'wrap',
+    },
+    textoEquivalente: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 14,
+      color: colors.text,
+    },
+    textoTasa: {
+      fontFamily: fonts.sans,
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    avisoTipoCambioContenedor: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surfaceLow,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 10,
+      marginBottom: 8,
+      gap: 6,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    avisoTipoCambioTexto: {
+      fontFamily: fonts.sans,
+      fontSize: 12,
+      color: colors.textSecondary,
+      flex: 1,
+    },
+    simboloMonedaContenedor: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.surfaceLow,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    simboloMonedaTexto: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 14,
+      color: colors.text,
+    },
+    monedaInfoColumna: {
+      flex: 1,
+    },
+    nombreMonedaSubtexto: {
+      fontFamily: fonts.sans,
+      fontSize: 12,
+      color: colors.textSecondary,
     },
   });

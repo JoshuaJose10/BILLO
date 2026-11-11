@@ -28,6 +28,9 @@ const MENSAJES = {
   NOTA_INVALIDA: 'La nota puede tener hasta 200 caracteres.',
   MES_INVALIDO: 'El mes no es válido.',
   GASTO_NO_ENCONTRADO: 'Ese gasto ya no existe.',
+  MONEDA_INVALIDA: 'La moneda seleccionada no es válida.',
+  FUENTE_NO_DISPONIBLE:
+    'El tipo de cambio no está disponible en este momento. Puedes capturar en MXN.',
 
   // Presupuestos, catálogo, membresías y notificaciones (S2/S3)
   PRESUPUESTO_DUPLICADO: 'Ya tienes un presupuesto para esa categoría en este mes.',
