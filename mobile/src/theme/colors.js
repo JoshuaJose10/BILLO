@@ -145,7 +145,8 @@ export const temas = {
     iconoSombraRadio: 8,
     iconoSombraY: 4,
 
-    // Semánticos de estado financiero; la variante Suave (~15%) es para fondos de barras y avisos
+    // Semánticos de estado financiero. exito/aviso/alerta: rellenos (barras, puntos, bordes de
+    // estado); *Texto: texto e íconos de estado; *Suave (~15%): fondo de pastillas y avisos.
     exito: '#10B981', // en meta / ingresos
     exitoSuave: 'rgba(16, 185, 129, 0.15)',
     exitoTexto: '#10B981', // texto de estado sobre exitoSuave (pastilla "En meta")
@@ -293,18 +294,21 @@ export const temas = {
     iconoSombraRadio: 10,
     iconoSombraY: 6,
 
-    // Semánticos (>= 3:1 sobre blanco; alerta >= 4.5:1 porque también es texto de error)
-    exito: '#22A866',
-    exitoSuave: 'rgba(34, 168, 102, 0.12)',
-    exitoTexto: '#137343', // >= 4.5:1 sobre exitoSuave (exito da 2.54)
+    // Semánticos. Rellenos vivos (>= 3:1 sobre blanco, contraste no textual); el texto y los
+    // íconos de estado usan *Texto (>= 4.5:1 sobre blanco y sobre *Suave).
+    exito: '#0FA372', // el esmeralda de oscuro (#10B981) da 2.54; este, 3.23
+    exitoSuave: 'rgba(15, 163, 114, 0.12)',
+    exitoTexto: '#137343', // 5.17:1 sobre exitoSuave
     // Punto de la pastilla del mes en el resumen de Suscripciones (Cartera)
     cobroProximo: '#34C77B',
-    aviso: '#D97706',
-    avisoSuave: 'rgba(217, 119, 6, 0.12)',
-    avisoTexto: '#A3470A', // >= 4.5:1 sobre avisoSuave y sobre blanco (aviso da 3.19)
-    alerta: '#C8281C',
-    alertaSuave: 'rgba(200, 40, 28, 0.12)',
-    alertaTexto: '#B42318', // >= 4.5:1 sobre alertaSuave (alerta da 4.30)
+    // El naranja vivo da 2.06 sobre blanco y solo llega a 3:1 oscureciéndolo (se apaga). Se acepta
+    // debajo de 3:1 porque el estado también va en texto (docs/diseno/paleta.md).
+    aviso: '#FF9F0A',
+    avisoSuave: 'rgba(255, 159, 10, 0.12)',
+    avisoTexto: '#A3470A', // 5.54:1 sobre avisoSuave, 6.06 sobre blanco
+    alerta: '#FF453A', // 3.41 sobre blanco
+    alertaSuave: 'rgba(255, 69, 58, 0.12)',
+    alertaTexto: '#B42318', // 5.65:1 sobre alertaSuave: errores, "Excedido", botón destructivo
     alertaSolido: '#C8281C',
     avisoVidrio: 'rgba(255, 255, 255, 0.92)',
   },

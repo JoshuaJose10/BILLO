@@ -14,8 +14,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useAuth } from '../context/AuthContext';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
+import BannerVisitante, { ALTO_BANNER } from './BannerVisitante';
 
 // Medidas del <nav> de Stitch (inicio_navbar_p_ldora_modo_oscuro): px-2 py-2, borde 1px,
 // botón central de 44 → alto 62. Activa: py-2 + ícono 18 → 34. Inactiva: p-2.5 + ícono 20.
@@ -27,6 +29,8 @@ const ICONO_ACTIVO = 18;
 const ICONO_INACTIVO = 20;
 const ICONO_CENTRAL = 24;
 const ALTO_CAPSULA = 34;
+// Separación entre el banner del modo exploración y la barra.
+const SEPARACION_BANNER = 8;
 
 // El ícono se dibuja como texto con la fuente de MaterialCommunityIcons para poder animar
 // su color. Esa fuente mide exactamente 1 em (ascent 448 + descent 64 = 512), así que la
@@ -43,11 +47,14 @@ const DURACION_ETIQUETA = 150;
 const ESCALA_PRESIONADO = 0.95;
 const GIRO_CENTRAL = 90;
 
-// Alto total que ocupa la barra desde el borde inferior (barra + margen + inset).
-// Úsalo como paddingBottom del contenido de cada pestaña para que nada quede tapado.
+// Alto total que ocupa la barra desde el borde inferior (barra + margen + inset, y el banner en el
+// modo exploración). Úsalo como paddingBottom del contenido de cada pestaña para que nada quede
+// tapado.
 export function useAlturaNavbar() {
   const insets = useSafeAreaInsets();
-  return ALTO + MARGEN + insets.bottom;
+  const { visitante } = useAuth();
+  const banner = visitante ? ALTO_BANNER + SEPARACION_BANNER : 0;
+  return ALTO + MARGEN + insets.bottom + banner;
 }
 
 // Rebote al presionar: escala a 0.95 y vuelve a 1. Sin animación si "Reducir movimiento".
@@ -75,6 +82,7 @@ export default function NavbarFlotante({ state, descriptors, navigation, accionC
   const insets = useSafeAreaInsets();
   const reducirMovimiento = useReducedMotion();
   const { esOscuro } = useTema();
+  const { visitante } = useAuth();
   const styles = useEstilos(crearEstilos);
   const posicionCentral = Math.ceil(state.routes.length / 2);
   const claveActiva = state.routes[state.index]?.key;
@@ -152,6 +160,11 @@ export default function NavbarFlotante({ state, descriptors, navigation, accionC
 
   return (
     <View pointerEvents="box-none" style={[styles.contenedor, { bottom: MARGEN + insets.bottom }]}>
+      {visitante ? (
+        <View style={styles.banner}>
+          <BannerVisitante />
+        </View>
+      ) : null}
       {/* La sombra va en un contenedor externo porque la barra usa overflow: hidden (blur). */}
       <View style={styles.sombra}>
         <View style={styles.barra}>
@@ -293,6 +306,9 @@ const crearEstilos = (colors) =>
       position: 'absolute',
       left: MARGEN,
       right: MARGEN,
+    },
+    banner: {
+      marginBottom: SEPARACION_BANNER,
     },
     // shadow-2xl
     sombra: {

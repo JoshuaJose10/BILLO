@@ -213,7 +213,7 @@ export default function CarteraScreen({ navigation, route }) {
   const nivelP = nivelPorcentaje(resumenP.porcentaje);
   const colorPorcentajeP =
     nivelP === 'alerta'
-      ? colors.alerta
+      ? colors.alertaTexto
       : nivelP === 'aviso'
         ? colors.avisoTexto
         : colors.textSecondary;
@@ -784,7 +784,7 @@ const crearEstilos = (colors) =>
       fontFamily: fonts.sansMedium,
       fontSize: 12,
       lineHeight: 16,
-      color: colors.alerta,
+      color: colors.alertaTexto,
       marginTop: 8,
     },
     separador: {

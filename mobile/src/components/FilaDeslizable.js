@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { useMemo, useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -17,6 +18,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { useAuth } from '../context/AuthContext';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
@@ -198,6 +200,8 @@ export default function FilaDeslizable({
   const arrastrando = useRef(false);
   const presion = usePresion();
   const [eliminando, setEliminando] = useState(false);
+  const { visitante } = useAuth();
+  const navigation = useNavigation();
 
   const cerrar = () => swipeRef.current?.close();
 
@@ -226,9 +230,15 @@ export default function FilaDeslizable({
     }
   };
 
-  // Cancelar (o descartar la alerta) solo cierra la fila.
+  // Cancelar (o descartar la alerta) solo cierra la fila. En el modo exploración no se elimina
+  // nada: se invita a crear cuenta (HU-50).
   const confirmarEliminar = () => {
     if (enviando.current) return;
+    if (visitante) {
+      cerrar();
+      navigation.navigate('InvitacionCuenta');
+      return;
+    }
     Alert.alert(
       tituloEliminar,
       'Esta acción no se puede deshacer.',

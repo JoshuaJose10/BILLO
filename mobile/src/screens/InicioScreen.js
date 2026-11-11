@@ -505,7 +505,7 @@ const crearEstilos = (colors) =>
     avisoTexto: {
       fontFamily: fonts.sans,
       flex: 1,
-      color: colors.alerta,
+      color: colors.alertaTexto,
       fontSize: 14,
     },
     avisoAccion: {
