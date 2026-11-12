@@ -8,8 +8,10 @@ import {
   avanzarFechaCobro,
   calcularDiasParaCobro,
   calcularTotalMensual,
+  detectarServicioRepetido,
   esCobroProximo,
   estiloServicio,
+  obtenerMarcaServicio,
   textoCobro,
   validarMembresia,
 } from './membresias.js';
@@ -264,6 +266,96 @@ describe('utils/membresias', () => {
       assert.equal(totalAntes, 129 + 100 + 219);
       assert.equal(totalDespues, totalAntes);
       assert.equal(totalDespues, 448);
+    });
+  });
+
+  describe('detectarServicioRepetido (HU-74)', () => {
+    test('devuelve repetido: false con lista vacía, nula o sin datos', () => {
+      assert.deepEqual(detectarServicioRepetido({ nombre: 'Spotify' }, []), { repetido: false });
+      assert.deepEqual(detectarServicioRepetido({ nombre: 'Spotify' }, null), { repetido: false });
+      assert.deepEqual(detectarServicioRepetido(null, [{ id: 1, nombre: 'Spotify' }]), {
+        repetido: false,
+      });
+      assert.deepEqual(detectarServicioRepetido({}, [{ id: 1, nombre: 'Spotify' }]), {
+        repetido: false,
+      });
+    });
+
+    test('detecta Spotify repetido con el mismo nombre exacto (Aceptación HU-74)', () => {
+      const existentes = [{ id: 1, nombre: 'Spotify', costo: 129 }];
+      const res = detectarServicioRepetido({ nombre: 'Spotify' }, existentes);
+      assert.equal(res.repetido, true);
+      assert.equal(res.nombreServicio, 'Spotify');
+    });
+
+    test('detecta Spotify repetido entre planes de la misma familia (Spotify Individual y Spotify Familiar)', () => {
+      const existentes = [{ id: 1, nombre: 'Spotify Individual', costo: 139, servicio_id: 1 }];
+      const res = detectarServicioRepetido(
+        { nombre: 'Spotify Familiar', costo: 239, servicio_id: 3 },
+        existentes,
+      );
+      assert.equal(res.repetido, true);
+      assert.equal(res.nombreServicio, 'Spotify');
+    });
+
+    test('detecta coincidencia por mismo servicio_id aunque el nombre varíe', () => {
+      const existentes = [{ id: 1, nombre: 'Mi Spotify', servicio_id: 5 }];
+      const res = detectarServicioRepetido(
+        { nombre: 'Música en streaming', servicio_id: 5 },
+        existentes,
+      );
+      assert.equal(res.repetido, true);
+    });
+
+    test('no aparece con servicios distintos (Netflix después de Spotify: QA HU-74)', () => {
+      const existentes = [{ id: 1, nombre: 'Spotify', costo: 129 }];
+      const res = detectarServicioRepetido({ nombre: 'Netflix', costo: 199 }, existentes);
+      assert.equal(res.repetido, false);
+    });
+
+    test('editar una membresía existente sin cambiar el nombre no dispara el aviso (QA HU-74)', () => {
+      const existentes = [
+        { id: 1, nombre: 'Spotify', costo: 129 },
+        { id: 2, nombre: 'Netflix', costo: 219 },
+      ];
+      // Editando la membresía 1 ("Spotify")
+      const res = detectarServicioRepetido({ nombre: 'Spotify', costo: 139 }, existentes, 1);
+      assert.equal(res.repetido, false);
+    });
+
+    test('editar una membresía cambiándola al nombre de otra existente sí dispara el aviso', () => {
+      const existentes = [
+        { id: 1, nombre: 'Spotify', costo: 129 },
+        { id: 2, nombre: 'Disney+', costo: 249 },
+      ];
+      // Editando la membresía 2, intentando cambiarla a Spotify
+      const res = detectarServicioRepetido({ nombre: 'Spotify Premium' }, existentes, 2);
+      assert.equal(res.repetido, true);
+      assert.equal(res.nombreServicio, 'Spotify');
+    });
+
+    test('detecta repetido en servicios personalizados no predefinidos por coincidencia de nombre', () => {
+      const existentes = [{ id: 10, nombre: 'Gimnasio Smart Fit' }];
+      const res = detectarServicioRepetido({ nombre: 'gimnasio smart fit' }, existentes);
+      assert.equal(res.repetido, true);
+      assert.equal(res.nombreServicio, 'Gimnasio Smart Fit');
+    });
+  });
+
+  describe('obtenerMarcaServicio', () => {
+    test('obtiene la marca de servicios conocidos', () => {
+      assert.equal(obtenerMarcaServicio('Spotify Duo'), 'Spotify');
+      assert.equal(obtenerMarcaServicio('Netflix Premium'), 'Netflix');
+      assert.equal(obtenerMarcaServicio('Disney+ Estándar'), 'Disney+');
+      assert.equal(obtenerMarcaServicio('YouTube Premium Individual'), 'YouTube');
+      assert.equal(obtenerMarcaServicio('Apple Music Familiar'), 'Apple Music');
+      assert.equal(obtenerMarcaServicio('Xbox Game Pass Ultimate'), 'Xbox Game Pass');
+    });
+
+    test('devuelve cadena vacía para nombres no reconocidos o vacíos', () => {
+      assert.equal(obtenerMarcaServicio('Internet Telmex'), '');
+      assert.equal(obtenerMarcaServicio(''), '');
+      assert.equal(obtenerMarcaServicio(null), '');
     });
   });
 });
