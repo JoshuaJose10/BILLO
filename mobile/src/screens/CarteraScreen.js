@@ -1,15 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeOut,
@@ -38,7 +30,14 @@ import { tipografia } from '../theme/tipografia';
 import { mensajeError } from '../utils/errores';
 import { mesActual, sumarMeses } from '../utils/fechas';
 import { formatearMonto, nombreMes } from '../utils/formato';
-import { calcularTotalMensual, formatearDiaMes, tramosSuscripciones } from '../utils/membresias';
+import {
+  agruparPorFrecuencia,
+  calcularTotalMensual,
+  formatearDiaMes,
+  ORDEN_SUSCRIPCIONES,
+  ordenarMembresias,
+  tramosSuscripciones,
+} from '../utils/membresias';
 import { gastoPorCategoriaDePresupuestos, resumenPresupuestos } from '../utils/presupuestos';
 import { etiquetaBarraMes, nivelPorcentaje, resumenGastoMes } from '../utils/resumenMes';
 
@@ -64,6 +63,18 @@ const APARECER = FadeIn.duration(180);
 const TEXTO_BOTON = FadeIn.duration(180);
 const SALIR_BOTON = FadeOut.duration(150);
 const ANCHO_BOTON = LinearTransition.duration(220);
+// Las filas de Suscripciones se deslizan a su nuevo lugar al cambiar el orden (HU-72).
+const REORDENAR = LinearTransition.duration(220);
+
+// Orden de Suscripciones (HU-72): fecha de cobro por defecto ("Fecha", corta para que quepa en el
+// segmento). Se recuerda mientras la app está abierta (aunque Cartera se vuelva a montar), sin
+// persistirlo.
+const OPCIONES_ORDEN = [
+  { valor: ORDEN_SUSCRIPCIONES.fecha, etiqueta: 'Fecha' },
+  { valor: ORDEN_SUSCRIPCIONES.costo, etiqueta: 'Costo' },
+  { valor: ORDEN_SUSCRIPCIONES.frecuencia, etiqueta: 'Frecuencia' },
+];
+let ordenRecordado = ORDEN_SUSCRIPCIONES.fecha;
 
 // Parámetros opcionales (los manda el aviso de presupuesto, HU-35): `seccion`, `mes` y `solicitud`
 // (marca de tiempo para volver a aplicarlos aunque Cartera ya esté abierta).
@@ -97,6 +108,7 @@ export default function CarteraScreen({ navigation, route }) {
   const [textoErrorMembresias, setTextoErrorMembresias] = useState('');
   const [refrescandoMembresias, setRefrescandoMembresias] = useState(false);
   const ultimaPeticionMembresias = useRef(0);
+  const [ordenSubs, setOrdenSubs] = useState(() => ordenRecordado);
 
   // Aplica los parámetros una vez por `solicitud`, durante el render (sin efecto) como recomienda
   // React para ajustar estado a partir de props.
@@ -256,6 +268,27 @@ export default function CarteraScreen({ navigation, route }) {
       return diasM < diasMin ? m : min;
     }, membresias[0]);
   }, [hayMembresias, membresias]);
+
+  // Lista de Suscripciones en el orden elegido (solo en memoria: el resumen y la barra usan
+  // `membresias` y no cambian). "Por frecuencia" intercala una fila de encabezado por sección.
+  const filasSubs = useMemo(() => {
+    if (ordenSubs !== ORDEN_SUSCRIPCIONES.frecuencia)
+      return ordenarMembresias(membresias, ordenSubs);
+    return agruparPorFrecuencia(membresias).flatMap((grupo) => [
+      {
+        id: `grupo-${grupo.frecuencia}`,
+        grupo: grupo.titulo,
+        conteo: grupo.membresias.length,
+      },
+      ...grupo.membresias,
+    ]);
+  }, [membresias, ordenSubs]);
+
+  const cambiarOrdenSubs = (orden) => {
+    filas.cerrarAbierta();
+    ordenRecordado = orden;
+    setOrdenSubs(orden);
+  };
 
   // Acción del botón píldora según la sección; null en "Próximamente" (se oculta).
   const accionEncabezado = enPresupuestos
@@ -423,6 +456,13 @@ export default function CarteraScreen({ navigation, route }) {
               {membresias.length} {membresias.length === 1 ? 'SERVICIO' : 'SERVICIOS'}
             </Text>
           </View>
+
+          <SelectorSegmentado
+            opciones={OPCIONES_ORDEN}
+            valor={ordenSubs}
+            onCambiar={cambiarOrdenSubs}
+            accessibilityLabel="Ordenar suscripciones"
+          />
         </Animated.View>
       ) : null}
     </View>
@@ -525,16 +565,17 @@ export default function CarteraScreen({ navigation, route }) {
       : []
     : enSuscripciones
       ? listaMembresiasLista
-        ? membresias
+        ? filasSubs
         : []
       : [];
 
   return (
     <View style={styles.pantalla}>
       <FondoDegradado />
-      <FlatList
+      <Animated.FlatList
         data={datosLista}
         keyExtractor={(item) => String(item.id)}
+        itemLayoutAnimation={enSuscripciones ? animar(REORDENAR) : undefined}
         renderItem={({ item }) => {
           if (enPresupuestos) {
             return (
@@ -550,6 +591,18 @@ export default function CarteraScreen({ navigation, route }) {
                 >
                   <TarjetaPresupuesto presupuesto={item} />
                 </FilaDeslizable>
+              </Animated.View>
+            );
+          }
+          if (enSuscripciones && item.grupo) {
+            return (
+              <Animated.View
+                entering={animar(APARECER)}
+                style={styles.encabezadoGrupo}
+                accessibilityRole="header"
+              >
+                <Etiqueta>{item.grupo}</Etiqueta>
+                <Text style={styles.contadorServicios}>{item.conteo}</Text>
               </Animated.View>
             );
           }
@@ -741,6 +794,14 @@ const crearEstilos = (colors) =>
       color: colors.text,
     },
     cabeceraListaSubs: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 2,
+      paddingTop: espacios.xs,
+    },
+    // Encabezado de sección de "Por frecuencia" (Mensuales / Anuales)
+    encabezadoGrupo: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',

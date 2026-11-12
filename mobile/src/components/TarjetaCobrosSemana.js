@@ -11,15 +11,17 @@ const MAX_FILAS = 3;
 
 // Inicio (HU-73): suscripciones que cobran en los próximos 7 días y el total de la semana.
 // `cobros` y `total` salen de cobrosDeLaSemana. Sin cobros no se muestra. Al tocarla abre
-// Cartera › Suscripciones (onPress).
-export default function TarjetaCobrosSemana({ cobros, total, onPress }) {
+// Cartera › Suscripciones (onPress). `tambien`: «Próximo cobro» ya muestra el primero de la
+// semana y esta tarjeta trae el resto, titulada «También esta semana» (HU-72).
+export default function TarjetaCobrosSemana({ cobros, total, tambien = false, onPress }) {
   const styles = useEstilos(crearEstilos);
   const { colors } = useTema();
   if (!cobros || cobros.length === 0) return null;
 
   const visibles = cobros.slice(0, MAX_FILAS);
   const ocultas = cobros.length - visibles.length;
-  const etiqueta = `Esta semana cobran ${cobros.length} ${
+  const titulo = tambien ? 'También esta semana' : 'Esta semana cobran';
+  const etiqueta = `${tambien ? 'También esta semana cobran' : titulo} ${cobros.length} ${
     cobros.length === 1 ? 'suscripción' : 'suscripciones'
   }, total ${formatearMonto(total)}`;
 
@@ -34,7 +36,7 @@ export default function TarjetaCobrosSemana({ cobros, total, onPress }) {
       <View style={styles.cabecera}>
         <MaterialCommunityIcons name="calendar-clock" size={18} color={colors.text} />
         <Text style={styles.titulo} accessibilityRole="header">
-          Esta semana cobran
+          {titulo}
         </Text>
         <Text style={styles.total}>{formatearMonto(total)}</Text>
       </View>
