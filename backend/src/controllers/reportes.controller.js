@@ -30,7 +30,8 @@ const obtenerResumenMensual = async (req, res) => {
       pool.query(
         `SELECT costo, frecuencia
          FROM membresias
-         WHERE usuario_id = $1`,
+         WHERE usuario_id = $1
+           AND estado = 'activa'`,
         [usuarioId]
       ),
     ]);

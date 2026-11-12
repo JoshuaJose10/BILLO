@@ -82,11 +82,14 @@ export default function MembresiaScreen({ navigation, route }) {
     crearMembresia,
     actualizarMembresia,
     eliminarMembresia,
+    pausarMembresia,
+    reactivarMembresia,
     marcarPagada,
   } = useMembresiasService();
 
   const membresiaEditada = route.params?.membresia;
   const editando = Boolean(membresiaEditada);
+  const estaPausada = membresiaEditada?.estado === 'pausada';
 
   const [membresiasExistentes, setMembresiasExistentes] = useState(
     () => route.params?.membresiasExistentes ?? [],
@@ -128,11 +131,12 @@ export default function MembresiaScreen({ navigation, route }) {
   const [errorApi, setErrorApi] = useState('');
   const [guardando, setGuardando] = useState(false);
   const [eliminando, setEliminando] = useState(false);
+  const [pausando, setPausando] = useState(false);
   const [marcandoPagada, setMarcandoPagada] = useState(false);
   const enviando = useRef(false);
   const hojaRef = useRef(null);
 
-  const ocupado = guardando || eliminando || marcandoPagada;
+  const ocupado = guardando || eliminando || pausando || marcandoPagada;
 
   // Cargar catálogo de servicios predefinidos si estamos agregando
   useEffect(() => {
@@ -279,6 +283,27 @@ export default function MembresiaScreen({ navigation, route }) {
     } catch (error) {
       enviando.current = false;
       setGuardando(false);
+      setErrorApi(mensajeError(error?.code, error?.message));
+    }
+  };
+
+  const alternarPausar = async () => {
+    if (enviando.current || !editando) return;
+    enviando.current = true;
+    setPausando(true);
+    setErrorApi('');
+
+    try {
+      if (estaPausada) {
+        await reactivarMembresia(membresiaEditada.id);
+      } else {
+        await pausarMembresia(membresiaEditada.id);
+      }
+      enviando.current = false;
+      hojaRef.current?.cerrar();
+    } catch (error) {
+      enviando.current = false;
+      setPausando(false);
       setErrorApi(mensajeError(error?.code, error?.message));
     }
   };
@@ -461,6 +486,14 @@ export default function MembresiaScreen({ navigation, route }) {
       )}
       {editando ? (
         <View style={styles.zonaEliminar}>
+          <Boton
+            titulo={estaPausada ? 'Reactivar suscripción' : 'Pausar suscripción'}
+            icono={estaPausada ? 'play-circle-outline' : 'pause-circle-outline'}
+            secundario
+            onPress={alternarPausar}
+            cargando={pausando}
+            disabled={ocupado}
+          />
           <Boton
             titulo="Marcar como pagada"
             icono="check-circle-outline"

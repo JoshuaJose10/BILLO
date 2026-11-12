@@ -24,17 +24,29 @@ export default function ItemMembresia({ membresia, opaca = false }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
-  const { nombre, costo, frecuencia } = membresia;
+  const { nombre, costo, frecuencia, estado } = membresia;
   const fechaCobro = fechaCobroCiclo(membresia);
   const diasCobro = diasParaCobroCiclo(membresia);
   const { color: colorMarca, icono, predefinido } = estiloServicio(nombre);
+  const pausada = estado === 'pausada';
   const nivel = nivelCobro(diasCobro);
-  const colorPunto =
-    nivel === 'aviso' ? colors.aviso : nivel === 'exito' ? colors.exito : colors.outline;
+  const colorPunto = pausada
+    ? colors.outline
+    : nivel === 'aviso'
+      ? colors.aviso
+      : nivel === 'exito'
+        ? colors.exito
+        : colors.outline;
   const anual = frecuencia === 'anual';
 
   return (
-    <View style={[styles.tarjeta, opaca ? styles.tarjetaOpaca : null]}>
+    <View
+      style={[
+        styles.tarjeta,
+        opaca ? styles.tarjetaOpaca : null,
+        pausada ? styles.tarjetaPausada : null,
+      ]}
+    >
       <View style={styles.filaSuperior}>
         <View style={[styles.squircle, { backgroundColor: colorMarca, shadowColor: colorMarca }]}>
           {predefinido ? (
@@ -58,13 +70,16 @@ export default function ItemMembresia({ membresia, opaca = false }) {
       </View>
 
       <View style={styles.filaInferior}>
-        <View style={[styles.pildora, nivel === 'aviso' ? styles.pildoraAviso : null]}>
+        <View style={[styles.pildora, !pausada && nivel === 'aviso' ? styles.pildoraAviso : null]}>
           <View style={[styles.punto, { backgroundColor: colorPunto }]} />
           <Text
-            style={[styles.textoCobro, nivel === 'aviso' ? styles.textoCobroAviso : null]}
+            style={[
+              styles.textoCobro,
+              !pausada && nivel === 'aviso' ? styles.textoCobroAviso : null,
+            ]}
             numberOfLines={1}
           >
-            {textoCobro(diasCobro, fechaCobro)}
+            {pausada ? 'Pausada' : textoCobro(diasCobro, fechaCobro)}
           </Text>
         </View>
       </View>
@@ -86,6 +101,9 @@ const crearEstilos = (colors) =>
     },
     tarjetaOpaca: {
       backgroundColor: colors.card,
+    },
+    tarjetaPausada: {
+      opacity: 0.75,
     },
     filaSuperior: {
       flexDirection: 'row',

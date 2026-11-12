@@ -260,6 +260,7 @@ const procesarAvisosCobro = async ({
         u.expo_push_token
       FROM membresias m
       INNER JOIN usuarios u ON u.id = m.usuario_id
+      WHERE m.estado = 'activa'
       ORDER BY m.id ASC
     `);
 
