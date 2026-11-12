@@ -2,7 +2,8 @@ const { describe, before, after } = require('node:test');
 const { createDatabase } = require('./helpers/database.cjs');
 const { createFixtures } = require('./helpers/fixtures.cjs');
 
-describe('API real + PostgreSQL temporal', { timeout: 55000 }, () => {
+// Presupuesto para la suite completa, incluidas migraciones y bcrypt en Windows/CI.
+describe('API real + PostgreSQL temporal', { timeout: 120000 }, () => {
   let database;
   let context;
   before(async () => {
