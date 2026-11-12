@@ -84,6 +84,56 @@ export function calcularTotalMensual(membresias = []) {
   return Math.round(suma * 100) / 100;
 }
 
+// Proyección anual de gasto en suscripciones (HU-71):
+// Mensuales multiplicadas por 12 más las anuales. Redondeado a 2 decimales.
+export function calcularTotalAnual(membresias = []) {
+  if (!Array.isArray(membresias) || membresias.length === 0) return 0;
+  const suma = membresias.reduce((total, m) => {
+    const costo = Number(m?.costo) || 0;
+    if (m?.frecuencia === 'anual') {
+      return total + costo;
+    }
+    return total + costo * 12;
+  }, 0);
+  return Math.round(suma * 100) / 100;
+}
+
+// Total real que se cobra en el mes en curso (HU-71):
+// Suma de todas las mensuales más las anuales cuya fecha de cobro cae en el mes en curso.
+export function calcularTotalEsteMes(membresias = [], fechaReferenciaStr) {
+  if (!Array.isArray(membresias) || membresias.length === 0) return 0;
+  const hoyStr =
+    fechaReferenciaStr && /^\d{4}-\d{2}/.test(fechaReferenciaStr)
+      ? fechaReferenciaStr
+      : obtenerFechaHoyLocal();
+  const mesActualStr = hoyStr.slice(0, 7);
+
+  const suma = membresias.reduce((total, m) => {
+    const costo = Number(m?.costo) || 0;
+    if (costo <= 0) return total;
+
+    const frecuencia = m?.frecuencia === 'anual' ? 'anual' : 'mensual';
+    if (frecuencia === 'mensual') {
+      return total + costo;
+    }
+
+    const fechaBase = m?.fecha_cobro ? String(m.fecha_cobro).slice(0, 10) : '';
+    const proximaFecha = avanzarFechaCobro(
+      fechaBase,
+      'anual',
+      hoyStr.length === 7 ? `${hoyStr}-01` : hoyStr,
+    );
+    const mesCobro = proximaFecha ? proximaFecha.slice(0, 7) : '';
+
+    if (mesCobro === mesActualStr) {
+      return total + costo;
+    }
+    return total;
+  }, 0);
+
+  return Math.round(suma * 100) / 100;
+}
+
 // Costo mensual de una membresía: las anuales se reparten en 12 meses.
 const costoMensual = (m) => {
   const costo = Number(m?.costo) || 0;

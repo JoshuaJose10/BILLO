@@ -32,6 +32,8 @@ import { mesActual, sumarMeses } from '../utils/fechas';
 import { formatearMonto, nombreMes } from '../utils/formato';
 import {
   agruparPorFrecuencia,
+  calcularTotalAnual,
+  calcularTotalEsteMes,
   calcularTotalMensual,
   formatearDiaMes,
   ORDEN_SUSCRIPCIONES,
@@ -257,6 +259,8 @@ export default function CarteraScreen({ navigation, route }) {
 
   // Resumen de Suscripciones
   const totalMensualSuscripciones = useMemo(() => calcularTotalMensual(membresias), [membresias]);
+  const totalAnualSuscripciones = useMemo(() => calcularTotalAnual(membresias), [membresias]);
+  const totalEsteMesSuscripciones = useMemo(() => calcularTotalEsteMes(membresias), [membresias]);
   const tramosSubs = useMemo(() => tramosSuscripciones(membresias), [membresias]);
   const listaMembresiasLista = estadoMembresias === 'listo';
   const hayMembresias = listaMembresiasLista && membresias.length > 0;
@@ -431,6 +435,22 @@ export default function CarteraScreen({ navigation, route }) {
                 etiqueta={`Reparto del total mensual: ${tramosSubs.map((t) => t.nombre).join(', ')}`}
               />
             ) : null}
+
+            <View style={styles.filaProyeccionSubs}>
+              <View style={styles.columnaProyeccionSubs}>
+                <Text style={styles.etiquetaProyeccionSubs}>Al año gastas</Text>
+                <Text style={styles.montoProyeccionSubs}>
+                  {formatearMonto(totalAnualSuscripciones)}
+                </Text>
+              </View>
+              <View style={styles.divisorProyeccionSubs} />
+              <View style={styles.columnaProyeccionSubs}>
+                <Text style={styles.etiquetaProyeccionSubs}>Este mes se cobra</Text>
+                <Text style={styles.montoProyeccionSubs}>
+                  {formatearMonto(totalEsteMesSuscripciones)}
+                </Text>
+              </View>
+            </View>
 
             <View style={styles.resumenDetalleFila}>
               <MaterialCommunityIcons
@@ -778,6 +798,37 @@ const crearEstilos = (colors) =>
     resumenMonedaSubs: {
       ...tipografia.bodyMd,
       color: colors.textSecondary,
+    },
+    filaProyeccionSubs: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.surfaceHigh,
+      borderRadius: radios.md,
+      paddingVertical: espacios.sm,
+      paddingHorizontal: espacios.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    columnaProyeccionSubs: {
+      flex: 1,
+      gap: 2,
+    },
+    etiquetaProyeccionSubs: {
+      ...tipografia.labelCaps,
+      fontSize: 10,
+      color: colors.textSecondary,
+    },
+    montoProyeccionSubs: {
+      fontFamily: fonts.sansSemiBold,
+      fontSize: 15,
+      color: colors.text,
+    },
+    divisorProyeccionSubs: {
+      width: 1,
+      height: 28,
+      backgroundColor: colors.border,
+      marginHorizontal: espacios.sm,
     },
     resumenDetalleFila: {
       flexDirection: 'row',

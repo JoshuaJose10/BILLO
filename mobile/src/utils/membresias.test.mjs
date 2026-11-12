@@ -7,6 +7,8 @@ import {
   ajustarAlSiguienteCiclo,
   avanzarFechaCobro,
   calcularDiasParaCobro,
+  calcularTotalAnual,
+  calcularTotalEsteMes,
   calcularTotalMensual,
   esCobroProximo,
   estiloServicio,
@@ -43,6 +45,91 @@ describe('utils/membresias', () => {
         { costo: 100, frecuencia: 'anual' }, // 8.333333...
       ];
       assert.equal(calcularTotalMensual(membresias), 8.33);
+    });
+  });
+
+  describe('calcularTotalAnual (HU-71)', () => {
+    test('devuelve 0 con lista vacía o nula', () => {
+      assert.equal(calcularTotalAnual([]), 0);
+      assert.equal(calcularTotalAnual(null), 0);
+      assert.equal(calcularTotalAnual(undefined), 0);
+    });
+
+    test('calcula correctamente Netflix $199 mensual e iCloud $1,200 anual (criterio de aceptación: $3,588)', () => {
+      const membresias = [
+        { nombre: 'Netflix', costo: 199, frecuencia: 'mensual' },
+        { nombre: 'iCloud', costo: 1200, frecuencia: 'anual' },
+      ];
+      // 199 * 12 = 2388; 2388 + 1200 = 3588
+      assert.equal(calcularTotalAnual(membresias), 3588);
+    });
+
+    test('multiplica las mensuales por 12 cuando solo hay mensuales', () => {
+      const membresias = [
+        { costo: 100, frecuencia: 'mensual' },
+        { costo: 200, frecuencia: 'mensual' },
+      ];
+      assert.equal(calcularTotalAnual(membresias), 3600);
+    });
+
+    test('suma el costo tal cual cuando solo hay anuales', () => {
+      const membresias = [
+        { costo: 1200, frecuencia: 'anual' },
+        { costo: 600, frecuencia: 'anual' },
+      ];
+      assert.equal(calcularTotalAnual(membresias), 1800);
+    });
+
+    test('redondea a 2 decimales con centavos', () => {
+      const membresias = [
+        { costo: 99.99, frecuencia: 'mensual' },
+        { costo: 1250.5, frecuencia: 'anual' },
+      ];
+      // 99.99 * 12 = 1199.88; 1199.88 + 1250.5 = 2450.38
+      assert.equal(calcularTotalAnual(membresias), 2450.38);
+    });
+  });
+
+  describe('calcularTotalEsteMes (HU-71)', () => {
+    const mesFijo = '2026-11-15';
+
+    test('devuelve 0 con lista vacía o nula', () => {
+      assert.equal(calcularTotalEsteMes([], mesFijo), 0);
+      assert.equal(calcularTotalEsteMes(null, mesFijo), 0);
+      assert.equal(calcularTotalEsteMes(undefined, mesFijo), 0);
+    });
+
+    test('calcula correctamente Netflix $199 e iCloud $1,200 cobrando este mes (criterio de aceptación: $1,399)', () => {
+      const membresias = [
+        { nombre: 'Netflix', costo: 199, frecuencia: 'mensual', fecha_cobro: '2026-11-20' },
+        { nombre: 'iCloud', costo: 1200, frecuencia: 'anual', fecha_cobro: '2026-11-25' },
+      ];
+      // 199 + 1200 = 1399
+      assert.equal(calcularTotalEsteMes(membresias, mesFijo), 1399);
+    });
+
+    test('al mover iCloud a otro mes, "este mes" baja a $199 (criterio de QA)', () => {
+      const membresias = [
+        { nombre: 'Netflix', costo: 199, frecuencia: 'mensual', fecha_cobro: '2026-11-20' },
+        { nombre: 'iCloud', costo: 1200, frecuencia: 'anual', fecha_cobro: '2026-12-10' }, // cobro en diciembre
+      ];
+      // iCloud no cobra en noviembre, solo Netflix: 199
+      assert.equal(calcularTotalEsteMes(membresias, mesFijo), 199);
+    });
+
+    test('anual con cobro del año anterior que al avanzar de ciclo cae en este mes se incluye', () => {
+      const membresias = [
+        { nombre: 'Disney+', costo: 1500, frecuencia: 'anual', fecha_cobro: '2025-11-15' },
+      ];
+      assert.equal(calcularTotalEsteMes(membresias, mesFijo), 1500);
+    });
+
+    test('anual con cobro del mes pasado no se incluye este mes', () => {
+      const membresias = [
+        { nombre: 'Spotify Anual', costo: 1200, frecuencia: 'anual', fecha_cobro: '2026-10-15' },
+      ];
+      // Ya cobró en octubre, el siguiente es octubre 2027
+      assert.equal(calcularTotalEsteMes(membresias, mesFijo), 0);
     });
   });
 
