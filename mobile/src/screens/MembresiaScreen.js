@@ -470,7 +470,7 @@ const crearEstilos = (colors) =>
     },
     errorCampo: {
       ...tipografia.bodySm,
-      color: colors.alerta,
+      color: colors.alertaTexto,
       marginTop: espacios.xs,
     },
     zonaTeclado: {
@@ -481,7 +481,7 @@ const crearEstilos = (colors) =>
     },
     errorApi: {
       ...tipografia.bodyMd,
-      color: colors.alerta,
+      color: colors.alertaTexto,
       textAlign: 'center',
       marginBottom: 10,
     },

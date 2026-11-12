@@ -363,7 +363,7 @@ const crearEstilos = (colors) =>
     },
     errorCampo: {
       fontFamily: fonts.sans,
-      color: colors.alerta,
+      color: colors.alertaTexto,
       fontSize: 12,
       lineHeight: 16,
       marginTop: -4,
@@ -378,7 +378,7 @@ const crearEstilos = (colors) =>
     },
     errorApi: {
       fontFamily: fonts.sans,
-      color: colors.alerta,
+      color: colors.alertaTexto,
       fontSize: 14,
       textAlign: 'center',
       marginBottom: 10,

@@ -10,9 +10,11 @@ import {
 } from 'react';
 import { Platform } from 'react-native';
 
-import { apiFetch, setAlNoAutorizado } from '../services/api';
+import { responderEjemplo } from '../datos/ejemplo';
+import { apiFetch, setAlNoAutorizado, setModoVisitante } from '../services/api';
 import * as authService from '../services/auth';
 import { vinculoPush } from '../services/tokenPush';
+import { limpiarWidget } from '../widget/sincronizar';
 
 const CLAVE_TOKEN = 'billo_token';
 const CLAVE_USUARIO = 'billo_usuario';
@@ -28,6 +30,11 @@ export function AuthProvider({ children }) {
   const [cargando, setCargando] = useState(true);
   // Por qué se cerró la sesión sin que el usuario lo pidiera (null si no aplica).
   const [motivoCierre, setMotivoCierre] = useState(null);
+  // Modo exploración (HU-50): sin JWT y con datos de ejemplo en memoria. Vive solo en este estado
+  // (no se guarda en SecureStore): al cerrar la app se vuelve a Login.
+  const [visitante, setVisitante] = useState(false);
+  // Pantalla con la que abre Auth: 'Registro' cuando el visitante sale con "Crear cuenta".
+  const [entradaAuth, setEntradaAuth] = useState('Login');
   const tokenRef = useRef(null);
 
   useEffect(() => {
@@ -89,6 +96,7 @@ export function AuthProvider({ children }) {
       await SecureStore.setItemAsync(CLAVE_USUARIO, JSON.stringify(nuevoUsuario ?? null));
     }
     setMotivoCierre(null);
+    setEntradaAuth('Login');
     setUsuario(nuevoUsuario ?? null);
     setToken(nuevoToken);
   }, []);
@@ -96,6 +104,8 @@ export function AuthProvider({ children }) {
   const terminarSesion = useCallback(async (motivo) => {
     // Un registro push pendiente de esta sesión ya no debe aplicarse.
     vinculoPush.descartar();
+    // HU-58: el widget no debe mostrar datos del usuario que se va.
+    limpiarWidget();
     // Se suelta ya (sin esperar al efecto): un 401 tardío de este JWT, como el DELETE del token
     // push en segundo plano, no debe tomarse como "sesión vencida" de la sesión siguiente.
     tokenRef.current = null;
@@ -126,6 +136,23 @@ export function AuthProvider({ children }) {
   }, [terminarSesion]);
 
   const limpiarMotivoCierre = useCallback(() => setMotivoCierre(null), []);
+
+  // "Explorar sin cuenta" en Login. La guardia de apiFetch se activa antes del render que monta
+  // las pantallas, así que ninguna petición alcanza a salir.
+  const explorarSinCuenta = useCallback(() => {
+    setModoVisitante(true);
+    setMotivoCierre(null);
+    setVisitante(true);
+  }, []);
+
+  // Sale del modo exploración hacia 'Registro' (Crear cuenta) o 'Login'. Al desmontarse Main se
+  // descarta todo el estado de las pantallas y la caché de categorías deja de exponerse; los datos
+  // de ejemplo nunca se escribieron en ningún lado, así que la cuenta que entre empieza vacía.
+  const salirDeVisitante = useCallback((destino = 'Registro') => {
+    setModoVisitante(false);
+    setEntradaAuth(destino);
+    setVisitante(false);
+  }, []);
 
   const iniciarSesion = useCallback(
     async (email, password) => {
@@ -166,20 +193,28 @@ export function AuthProvider({ children }) {
       usuario,
       cargando,
       motivoCierre,
+      visitante,
+      entradaAuth,
       iniciarSesion,
       registrarse,
       cerrarSesion,
       limpiarMotivoCierre,
+      explorarSinCuenta,
+      salirDeVisitante,
     }),
     [
       token,
       usuario,
       cargando,
       motivoCierre,
+      visitante,
+      entradaAuth,
       iniciarSesion,
       registrarse,
       cerrarSesion,
       limpiarMotivoCierre,
+      explorarSinCuenta,
+      salirDeVisitante,
     ],
   );
 
@@ -194,11 +229,15 @@ export function useAuth() {
   return contexto;
 }
 
-// Hook de ayuda para servicios: apiFetch con el token de la sesión inyectado.
+// Hook de ayuda para servicios: apiFetch con el token de la sesión inyectado. En modo exploración
+// responde con los datos de ejemplo (misma forma que la API) y nunca llama a apiFetch.
 export function useApi() {
-  const { token } = useAuth();
+  const { token, visitante } = useAuth();
   return useCallback(
-    (ruta, opciones = {}) => apiFetch(ruta, { ...opciones, token: token ?? undefined }),
-    [token],
+    (ruta, opciones = {}) =>
+      visitante
+        ? responderEjemplo(ruta, opciones)
+        : apiFetch(ruta, { ...opciones, token: token ?? undefined }),
+    [token, visitante],
   );
 }

@@ -204,9 +204,73 @@ module.exports = getContext => describe('Presupuestos y alertas (RF3/RF4)', () =
     estado((await listar('2026-11'))[0], 1000.1, 100, 'excedido');
   });
 
+  it('RF3-COPIAR: copia presupuestos al mes nuevo y copiar dos veces no duplica ni sobrescribe existentes', async () => {
+    await crear({ categoria_id: ctx.categoria, mes: '2026-10', monto_limite: 1500 });
+    await crear({ categoria_id: ctx.otraCategoria, mes: '2026-10', monto_limite: 2500 });
+    // Si una categoría ya existe en el mes destino con otro monto, se respeta y solo se crea la faltante
+    await crear({ categoria_id: ctx.categoria, mes: '2026-11', monto_limite: 1800 });
+
+    const primera = await call('post', '/presupuestos/copiar', {
+      desde: '2026-10',
+      hasta: '2026-11',
+    }).expect(201);
+
+    assert.equal(primera.body.copiados, 1);
+    assert.equal(primera.body.presupuestos.length, 1);
+    assert.deepEqual(primera.body.presupuestos[0], {
+      id: primera.body.presupuestos[0].id,
+      categoria_id: ctx.otraCategoria,
+      mes: '2026-11',
+      monto_limite: 2500,
+    });
+
+    const segunda = await call('post', '/presupuestos/copiar', {
+      desde: '2026-10',
+      hasta: '2026-11',
+    }).expect(200);
+
+    assert.deepEqual(segunda.body, { presupuestos: [], copiados: 0 });
+
+    const destino = await listar('2026-11');
+    assert.equal(destino.length, 2);
+    assert.equal(destino.find(p => p.categoria_id === ctx.categoria).monto_limite, 1800);
+    assert.equal(destino.find(p => p.categoria_id === ctx.otraCategoria).monto_limite, 2500);
+  });
+
+  it('RF3-COPIAR-VACIO: mes origen vacío devuelve 404 SIN_PRESUPUESTOS_ORIGEN con mensaje claro y aísla usuarios', async () => {
+    await crear({ mes: '2026-10', monto_limite: 1200 }, ctx.a);
+
+    const vacioA = await call('post', '/presupuestos/copiar', {
+      desde: '2026-09',
+      hasta: '2026-11',
+    }, ctx.a);
+    expectError(vacioA, 404, 'SIN_PRESUPUESTOS_ORIGEN');
+
+    const vacioB = await call('post', '/presupuestos/copiar', {
+      desde: '2026-10',
+      hasta: '2026-11',
+    }, ctx.b);
+    expectError(vacioB, 404, 'SIN_PRESUPUESTOS_ORIGEN');
+    assert.deepEqual(await listar('2026-11', ctx.b), []);
+  });
+
+  for (const body of [
+    {},
+    { desde: '2026-10' },
+    { hasta: '2026-11' },
+    { desde: '2026-13', hasta: '2026-11' },
+    { desde: '2026-10', hasta: '2026-00' },
+    { desde: '2026-10', hasta: '2026-10' },
+  ]) {
+    it(`RF3-COPIAR-MES-INVALIDO: rechaza ${JSON.stringify(body)}`, async () => {
+      expectError(await call('post', '/presupuestos/copiar', body), 400, 'MES_INVALIDO');
+    });
+  }
+
   for (const [method, route, body] of [
     ['get', '/presupuestos?mes=2026-10'],
     ['post', '/presupuestos', { categoria_id: 1, mes: '2026-10', monto_limite: 1000 }],
+    ['post', '/presupuestos/copiar', { desde: '2026-10', hasta: '2026-11' }],
     ['put', '/presupuestos/1', { monto_limite: 1000 }],
     ['delete', '/presupuestos/1'],
   ]) {

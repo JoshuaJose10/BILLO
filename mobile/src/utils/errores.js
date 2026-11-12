@@ -1,4 +1,4 @@
-import { ERROR_DESCONOCIDO, SIN_CONEXION } from '../services/api';
+import { ERROR_DESCONOCIDO, MODO_VISITANTE, SIN_CONEXION } from '../services/api';
 
 // Mensaje para el usuario de cada `code` de docs/api-contrato.md (v1.1), más los que genera
 // la app (SIN_CONEXION y ERROR_DESCONOCIDO).
@@ -28,10 +28,14 @@ const MENSAJES = {
   NOTA_INVALIDA: 'La nota puede tener hasta 200 caracteres.',
   MES_INVALIDO: 'El mes no es válido.',
   GASTO_NO_ENCONTRADO: 'Ese gasto ya no existe.',
+  MONEDA_INVALIDA: 'La moneda seleccionada no es válida.',
+  FUENTE_NO_DISPONIBLE:
+    'El tipo de cambio no está disponible en este momento. Puedes capturar en MXN.',
 
   // Presupuestos, catálogo, membresías y notificaciones (S2/S3)
   PRESUPUESTO_DUPLICADO: 'Ya tienes un presupuesto para esa categoría en este mes.',
   PRESUPUESTO_NO_ENCONTRADO: 'Ese presupuesto ya no existe.',
+  SIN_PRESUPUESTOS_ORIGEN: 'No tienes presupuestos en el mes anterior para copiar.',
   NOMBRE_INVALIDO: 'Ingresa un nombre válido.',
   COSTO_INVALIDO: 'Ingresa un costo mayor a $0.',
   SERVICIO_NO_ENCONTRADO: 'Ese servicio ya no existe.',
@@ -46,6 +50,7 @@ const MENSAJES = {
     'La app no tiene la dirección del servidor. Define EXPO_PUBLIC_API_URL en mobile/.env y reinicia Expo.',
   API_URL_INVALIDA:
     'La dirección del servidor no es válida. Revisa EXPO_PUBLIC_API_URL (ej. http://192.168.1.100:3000).',
+  [MODO_VISITANTE]: 'Estás explorando con datos de ejemplo. Crea tu cuenta para guardar.',
   [SIN_CONEXION]: 'No se pudo conectar con el servidor. Revisa tu conexión e intenta de nuevo.',
   [ERROR_DESCONOCIDO]: 'Ocurrió un error inesperado. Intenta de nuevo.',
 };

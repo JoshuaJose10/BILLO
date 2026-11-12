@@ -10,6 +10,15 @@
       "android": {
         "buildType": "apk"
       }
+    },
+    "release": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://billo-api-v30t.onrender.com"
+      }
     }
   }
 }

@@ -163,7 +163,7 @@ const crearEstilos = (colors) =>
       fontFamily: fonts.sansMedium,
       fontSize: 12,
       lineHeight: 16,
-      color: colors.alerta,
+      color: colors.alertaTexto,
       marginTop: 6,
     },
   });

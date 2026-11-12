@@ -22,6 +22,7 @@ import { useAlturaNavbar } from '../components/NavbarFlotante';
 import SelectorMes from '../components/SelectorMes';
 import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/CategoriasContext';
 import { etiquetaMetodoPago, useGastosService } from '../services/gastos';
+import { useActualizarWidget } from '../widget/useActualizarWidget';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
@@ -53,6 +54,7 @@ export default function MovimientosScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
   const { listarGastos, eliminarGasto } = useGastosService();
+  const actualizarWidgetResumen = useActualizarWidget();
   // Categorías de la caché de la sesión (filtro y nombres de cada gasto).
   const {
     categorias,
@@ -132,6 +134,7 @@ export default function MovimientosScreen({ navigation }) {
   const filas = useFilasDeslizables();
   const editarGasto = (gasto) => navigation.navigate('NuevoGasto', { gasto });
   const gastoEliminado = (id) => {
+    actualizarWidgetResumen(); // HU-58: sin esperar
     setGastos((lista) => lista.filter((g) => g.id !== id));
     cargar();
   };

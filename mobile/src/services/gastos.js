@@ -21,7 +21,18 @@ export const etiquetaMetodoPago = (valor) =>
 // Límite de `nota` que valida el backend (la columna admite 255, la API 200).
 export const NOTA_MAX = 200;
 
-const normalizarGasto = (gasto) => ({ ...gasto, monto: aNumero(gasto.monto) });
+const normalizarGasto = (gasto) => ({
+  ...gasto,
+  monto: aNumero(gasto.monto),
+  monto_original:
+    gasto.monto_original !== null && gasto.monto_original !== undefined
+      ? aNumero(gasto.monto_original)
+      : null,
+  tipo_cambio:
+    gasto.tipo_cambio !== null && gasto.tipo_cambio !== undefined
+      ? aNumero(gasto.tipo_cambio)
+      : null,
+});
 
 // Respuesta de POST y PUT: { gasto, alerta } con `alerta` null si no viene (sin presupuesto o en 'ok').
 const normalizarGuardado = ({ gasto, alerta }) => ({

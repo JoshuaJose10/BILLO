@@ -32,7 +32,7 @@ const Input = forwardRef(function Input(
           <MaterialCommunityIcons
             name={icono}
             size={20}
-            color={error ? colors.alerta : colors.outline}
+            color={error ? colors.alertaTexto : colors.outline}
           />
         ) : null}
         <TextInput
@@ -137,7 +137,7 @@ const crearEstilos = (colors) =>
     },
     error: {
       fontFamily: fonts.sans,
-      color: colors.alerta,
+      color: colors.alertaTexto,
       fontSize: 12,
       lineHeight: 16,
       marginTop: 6,

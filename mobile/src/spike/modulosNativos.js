@@ -22,7 +22,7 @@ export function cargarWidget() {
   try {
     widget = {
       requestWidgetUpdate: require('react-native-android-widget').requestWidgetUpdate,
-      ResumenMesWidget: require('./widget/ResumenMesWidget').default,
+      ResumenMesWidget: require('../widget/ResumenMesWidget').default,
     };
   } catch {
     widget = null;
@@ -35,7 +35,7 @@ export function registrarWidget() {
   if (!existeModuloWidget()) return;
   try {
     const { registerWidgetTaskHandler } = require('react-native-android-widget');
-    registerWidgetTaskHandler(require('./widget/widgetTaskHandler').widgetTaskHandler);
+    registerWidgetTaskHandler(require('../widget/widgetTaskHandler').widgetTaskHandler);
   } catch {
     // Si algo falla, la app sigue sin widget.
   }

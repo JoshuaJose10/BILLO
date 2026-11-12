@@ -43,6 +43,19 @@ export function usePresupuestosService() {
       // DELETE /presupuestos/:id → 200 { eliminado: true }. 404: PRESUPUESTO_NO_ENCONTRADO.
       eliminarPresupuesto: (id) =>
         api(`/presupuestos/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+      // POST /presupuestos/copiar { desde, hasta } → 201/200 { presupuestos, copiados }.
+      // 400: MES_INVALIDO. 404: SIN_PRESUPUESTOS_ORIGEN.
+      copiarPresupuestos: async ({ desde, hasta }) => {
+        const respuesta = await api('/presupuestos/copiar', {
+          method: 'POST',
+          body: { desde, hasta },
+        });
+        return {
+          presupuestos: (respuesta?.presupuestos || []).map(normalizarPresupuesto),
+          copiados: Number(respuesta?.copiados) || 0,
+        };
+      },
     }),
     [api],
   );

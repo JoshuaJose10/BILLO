@@ -47,7 +47,7 @@
             {
               "name": "ResumenMes",
               "label": "Billo",
-              "description": "Total del mes (prueba del spike HU-23)",
+              "description": "Total del mes",
               "minWidth": "250dp",
               "minHeight": "110dp",
               "targetCellWidth": 4,

@@ -390,19 +390,27 @@ figuras difuminadas de `FondoAuth`.
 | --- | --- | --- |
 | `brilloIcono` / `brilloIconoFin` | `rgba(255, 255, 255, 0.32)` → `0` | Reflejo del ícono, más marcado (vidrio) |
 | `iconoSombraOpacidad` / `iconoSombraRadio` / `iconoSombraY` | `0.2` / `10` / `6` | Sombra del ícono: más suave, amplia y baja |
-| `exito` | `#22A866` | En meta, ingresos (3.06:1 sobre blanco) |
-| `exitoSuave` | `rgba(34, 168, 102, 0.12)` | |
-| `exitoTexto` | `#137343` | Texto "En meta" sobre `exitoSuave` (4.90:1) |
-| `aviso` | `#D97706` | Cerca del límite (3.19:1 sobre blanco) |
-| `avisoSuave` | `rgba(217, 119, 6, 0.12)` | |
-| `avisoTexto` | `#A3470A` | Aviso como texto chico: porcentaje de Inicio y Cartera, pastilla "Cerca del límite" (5.02:1 sobre `avisoSuave`) |
-| `alerta` | `#C8281C` | Límite excedido y errores (5.56:1 sobre blanco, 4.92 sobre `background`) |
-| `alertaSuave` | `rgba(200, 40, 28, 0.12)` | |
-| `alertaTexto` | `#B42318` | Texto "Excedido" sobre `alertaSuave` (5.09:1) |
+| `exito` | `#0FA372` | Relleno de estado: punto de cobro lejano (3.23:1 sobre blanco) |
+| `exitoSuave` | `rgba(15, 163, 114, 0.12)` | Fondo de la pastilla "En meta" |
+| `exitoTexto` | `#137343` | Texto "En meta" y tendencia a la baja (5.17:1 sobre `exitoSuave`) |
+| `aviso` | `#FF9F0A` | Relleno de estado: barra cerca del límite, punto de cobro próximo (2.06:1 sobre blanco; ver nota) |
+| `avisoSuave` | `rgba(255, 159, 10, 0.12)` | Fondo de la pastilla "Cerca del límite" y del cobro próximo |
+| `avisoTexto` | `#A3470A` | Aviso como texto: porcentaje de Inicio y Cartera, pastilla "Cerca del límite" (5.54:1 sobre `avisoSuave`, 6.06 sobre blanco) |
+| `alerta` | `#FF453A` | Relleno y bordes de estado: barra excedida, bordes de error y del botón destructivo (3.41:1 sobre blanco) |
+| `alertaSuave` | `rgba(255, 69, 58, 0.12)` | Fondo de la pastilla "Excedido" y del botón destructivo presionado |
+| `alertaTexto` | `#B42318` | Textos de error, "Excedido", porcentaje excedido y botón destructivo (5.65:1 sobre `alertaSuave`, 6.57 sobre blanco) |
 | `alertaSolido` | `#C8281C` | Fondo de la acción "Eliminar" al deslizar (5.56:1 con blanco) |
 
-`alerta` llega a 4.5:1 y no solo a 3:1 porque también es el color de los textos de error. El `#FF453A`
-del oscuro da 3.41:1 sobre blanco.
+`exito`, `aviso` y `alerta` son los mismos tonos vivos del oscuro (el verde baja a `#0FA372`
+porque `#10B981` da 2.54:1) y solo se usan como relleno: barras, puntos y bordes de estado. El texto
+y los íconos de estado usan siempre `*Texto`, y las pastillas `*Suave` + `*Texto`.
+
+**Excepción aceptada: `aviso` por debajo de 3:1.** El naranja vivo da 2.06:1 sobre blanco y 1.68
+sobre la pista `surfaceHighest`. Solo llega a 3:1 oscureciéndolo, que es lo que lo apagaba, así que
+la barra en alerta y el punto de cobro próximo quedan con `#FF9F0A` sin contorno. El estado no
+depende del color: la tarjeta muestra el porcentaje en `avisoTexto` y la pastilla "Cerca del límite"
+(`avisoSuave` + `avisoTexto`), y la suscripción el texto "Cobra en N días" en `text` semibold sobre `avisoSuave`
+(WCAG 1.4.1 y 1.4.11 se cumplen con el texto).
 
 ### Contraste de texto (tema claro)
 

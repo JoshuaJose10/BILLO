@@ -11,9 +11,15 @@ import Etiqueta from './Etiqueta';
 // blanca con sombra suave. Línea con items-baseline: "$" 30 mono, entero 48 bold tracking-tighter
 // y decimales 30 mono medium. Vacío: "$0.00" todo en gris.
 // `etiqueta`: el título de arriba ("Importe" en gastos, "Límite" en presupuestos).
-export default function MontoGrande({ texto, error = false, etiqueta = 'Importe' }) {
+export default function MontoGrande({
+  texto,
+  error = false,
+  etiqueta = 'Importe',
+  moneda = 'MXN',
+}) {
   const styles = useEstilos(crearEstilos);
   const { entero, decimales } = partesMontoCaptura(texto);
+  const signo = moneda === 'EUR' ? '€' : moneda === 'GBP' ? '£' : moneda === 'JPY' ? '¥' : '$';
 
   return (
     <View style={[styles.contenedor, error ? styles.contenedorError : null]}>
@@ -22,11 +28,12 @@ export default function MontoGrande({ texto, error = false, etiqueta = 'Importe'
         style={styles.linea}
         numberOfLines={1}
         adjustsFontSizeToFit
-        accessibilityLabel={`Importe ${formatearMontoEnCaptura(texto)}`}
+        accessibilityLabel={`Importe ${formatearMontoEnCaptura(texto)} ${moneda}`}
       >
-        <Text style={styles.signo}>$</Text>
+        <Text style={styles.signo}>{signo}</Text>
         <Text style={[styles.entero, texto ? null : styles.vacio]}>{entero}</Text>
         <Text style={styles.decimales}>.{decimales}</Text>
+        {moneda && moneda !== 'MXN' ? <Text style={styles.codigoMoneda}> {moneda}</Text> : null}
       </Text>
     </View>
   );
@@ -85,6 +92,11 @@ const crearEstilos = (colors) =>
     decimales: {
       fontFamily: fonts.monoMedium,
       fontSize: 30,
+      color: colors.textSecondary,
+    },
+    codigoMoneda: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 20,
       color: colors.textSecondary,
     },
   });
