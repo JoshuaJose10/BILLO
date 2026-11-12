@@ -63,6 +63,14 @@ export function useMembresiasService() {
       // DELETE /membresias/:id → 200 { eliminado: true }
       eliminarMembresia: (id) => api(`/membresias/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 
+      // POST /membresias/:id/pagada → 200 { membresia } (HU-66)
+      marcarPagada: async (id) => {
+        const respuesta = await api(`/membresias/${encodeURIComponent(id)}/pagada`, {
+          method: 'POST',
+        });
+        return normalizarMembresia(respuesta.membresia);
+      },
+
       // GET /catalogo → [{ id, nombre, logo_url, costo_sugerido }]
       listarCatalogo: async () => {
         const lista = await api('/catalogo');

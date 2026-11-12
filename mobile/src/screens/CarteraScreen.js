@@ -33,6 +33,8 @@ import { formatearMonto, nombreMes } from '../utils/formato';
 import {
   agruparPorFrecuencia,
   calcularTotalMensual,
+  diasParaCobroCiclo,
+  fechaCobroCiclo,
   formatearDiaMes,
   ORDEN_SUSCRIPCIONES,
   ordenarMembresias,
@@ -263,8 +265,10 @@ export default function CarteraScreen({ navigation, route }) {
   const proximaMembresia = useMemo(() => {
     if (!hayMembresias) return null;
     return membresias.reduce((min, m) => {
-      const diasMin = typeof min?.dias_para_cobro === 'number' ? min.dias_para_cobro : Infinity;
-      const diasM = typeof m?.dias_para_cobro === 'number' ? m.dias_para_cobro : Infinity;
+      const dMin = diasParaCobroCiclo(min);
+      const diasMin = typeof dMin === 'number' ? dMin : Infinity;
+      const dM = diasParaCobroCiclo(m);
+      const diasM = typeof dM === 'number' ? dM : Infinity;
       return diasM < diasMin ? m : min;
     }, membresias[0]);
   }, [hayMembresias, membresias]);
@@ -444,7 +448,7 @@ export default function CarteraScreen({ navigation, route }) {
                   {membresias.length === 1 ? 'suscripción activa' : 'suscripciones activas'}
                 </Text>
                 {proximaMembresia
-                  ? ` · Próximo cobro el ${formatearDiaMes(proximaMembresia.fecha_cobro)}`
+                  ? ` · Próximo cobro el ${formatearDiaMes(fechaCobroCiclo(proximaMembresia))}`
                   : ''}
               </Text>
             </View>

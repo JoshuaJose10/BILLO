@@ -1,3 +1,4 @@
+process.env.TZ = 'UTC';
 const { describe, before, after } = require('node:test');
 const { createDatabase } = require('./helpers/database.cjs');
 const { createFixtures } = require('./helpers/fixtures.cjs');
