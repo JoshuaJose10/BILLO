@@ -475,6 +475,13 @@ describe('describirFallo', () => {
     );
   });
 
+  it('error de conexión sin detalles: no imprime [object Object]', () => {
+    assert.equal(
+      describirFallo('registro', { code: 'SIN_CONEXION', message: '', status: 0 }),
+      '[notificaciones] registro: SIN_CONEXION',
+    );
+  });
+
   it('error de Expo con code', () => {
     const error = Object.assign(new Error('Default FirebaseApp is not initialized'), {
       code: 'E_REGISTRATION_FAILED',
