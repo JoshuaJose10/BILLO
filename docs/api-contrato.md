@@ -1,4 +1,4 @@
-# Contrato de API — Billo (v1.3)
+# Contrato de API — Billo (v1.4)
 
 Estado: **esquema de BD congelado desde el 2026-10-13** (ver «Congelamiento del esquema»). Cualquier cambio al contrato o al esquema se acuerda con el equipo y se anota en el **Registro de cambios**.
 
@@ -14,6 +14,7 @@ Verificado con `curl` contra el backend de `develop` (commit `ec43600`), Postgre
 |---|---|---|
 | `POST /auth/register`, `POST /auth/login` | Sí | Sí (`{ usuario, token }`; correo sin distinguir mayúsculas). Detalle: el registro sin cuerpo responde `NOMBRE_REQUERIDO`, no `CAMPOS_REQUERIDOS` |
 | `GET /auth/perfil` | Sí | Sí |
+| `DELETE /auth/cuenta` | Sí (S3) | Sí (HU-68: requiere token y contraseña, borra en transacción gastos, presupuestos, membresías y usuario) |
 | `GET /categorias?tipo=gasto` | Sí | Sí (incluye `tipo` y `es_predefinida`) |
 | `POST/GET/PUT/DELETE /gastos` | Sí (S1/S3) | Sí (validación de monto, moneda, `monto_original × tipo_cambio = monto` y categoría; JSON malformado → `JSON_INVALIDO`) |
 | `POST/GET/PUT/DELETE /presupuestos` y aviso `alerta` | Sí (S2) | Sí |
@@ -111,6 +112,13 @@ Valida el código/token de recuperación, actualiza la contraseña y lo invalida
 Body: { "token": "482910", "password": "NuevaPassword123" }
 - 200 → { "restablecida": true, "message": "Contraseña actualizada correctamente" }
 - 400 → TOKEN_INVALIDO (ausente, incorrecto, vencido tras 30 min o ya utilizado), PASSWORD_MUY_CORTA (mínimo 8 caracteres)
+
+### DELETE /auth/cuenta  (requiere token) (S3) — HU-68
+Elimina la cuenta y todos sus datos asociados en una transacción atómica de base de datos (`gastos`, `presupuestos`, `membresias` y `usuarios`). Requiere enviar la contraseña actual para confirmar la operación destructiva.
+Body: { "password": "MiPasswordActual1" }
+- 200 → { "eliminado": true }
+- 401 → PASSWORD_INCORRECTA (contraseña incorrecta o no enviada; no borra ningún dato), NO_AUTORIZADO (token ausente o inválido)
+- 404 → USUARIO_NO_ENCONTRADO
 
 ## Categorías (S1)
 
@@ -348,3 +356,4 @@ Pendiente en la colección Postman (**HU-22**, Luis Dorian): agregar las asercio
 - 2026-10-23 — v1.1 — Alineación con el backend de S1 (HU-16), verificada con `curl` sobre `develop` (`30707e5`). Errores con `{ "error": { "code", "message" } }` en todos los ejemplos (antes `codigo/mensaje`); 500 con `ERROR_SERVIDOR` (antes `ERROR_INTERNO`); se agregan `JSON_INVALIDO` y `RUTA_NO_ENCONTRADA` para que todo error sea JSON. El 401 por token ausente, inválido o vencido usa siempre `NO_AUTORIZADO`. Registro y login devuelven `{ usuario, token }`. `GET /auth/perfil` queda como ruta oficial y `GET /auth/profile` como alias temporal; se documenta la respuesta real del perfil y su 404 `USUARIO_NO_ENCONTRADO`. Se agregan los códigos que el backend ya usa: `NOMBRE_REQUERIDO`, `CAMPOS_REQUERIDOS`, `NOTA_INVALIDA` y `CATEGORIA_INEXISTENTE` en el filtro de `GET /gastos`. Se definen el correo sin distinción de mayúsculas, el monto como número JSON y el cuerpo ausente como 400. Se añaden la tabla de estado de implementación, las diferencias actuales marcadas «se corrige en HU-18» (o HU-17 para validaciones de gastos) y la trazabilidad con los reportes QA (aserciones pendientes de Postman en HU-22). Sin cambios en el esquema ni en S2/S3. Autor: Joshua.
 - 2026-11-05 — v1.2 — Cierre del Sprint 2 (HU-41). Se actualiza la tabla de estado de implementación (verificada con `curl` sobre `develop` `ec43600`): presupuestos, catálogo (lectura), membresías y reportes quedan implementados y las diferencias de v1.1 (HU-17, HU-18) pasan a «históricas». Se documenta `GET /tipo-cambio` como experimental y fuera de contrato. C-01, C-02 y X-01 pasan a recomendados, a la espera de la aprobación de Oscar. Sin cambios en rutas ni en el esquema vigente. Autor: Joshua. Aprobación: pendiente de Oscar.
 - 2026-11-08 — v1.3 — Sprint 3 (RF7, RF11 y recuperación de contraseña). Se aplica la migración 011 (C-01, C-02 y X-01) y se implementa `POST /notificaciones/token`. En `POST/PUT/GET /gastos` se agregan `moneda` (por defecto `MXN`), `monto_original` y `tipo_cambio` (opcionales; cuando `moneda` es distinta de `MXN` se valida código ISO de 3 letras conocido y que `monto_original × tipo_cambio` coincida con `monto` en `MXN`; 400 `MONEDA_INVALIDA` / `MONTO_INVALIDO`). Se mueve el endpoint experimental `GET /tipo-cambio` a `GET /divisas/tipo-cambio?moneda=USD` con token, caché en memoria de 5 minutos y 502 `FUENTE_NO_DISPONIBLE`. Se aplica la migración 014 (`usuarios.reset_token_hash` y `usuarios.reset_token_expira`) y se agregan `POST /auth/olvide-contrasena` y `POST /auth/restablecer-contrasena` (token de un solo uso con hash SHA-256, caducidad de 30 minutos, envío por API HTTP de Brevo y límite de solicitudes por correo). Autor: Joshua.
+- 2026-11-11 — v1.4 — Sprint 3 (HU-68: Eliminar cuenta y todos los datos). Se agrega `DELETE /auth/cuenta` (requiere token y contraseña actual en el cuerpo). Borra en una transacción atómica gastos, presupuestos, membresías y usuario. Contraseña incorrecta responde 401 `PASSWORD_INCORRECTA` sin borrar nada. En la app móvil se agrega la opción «Eliminar mi cuenta» en el perfil con panel de confirmación, campo de contraseña y cierre de sesión tras la eliminación. Autor: Iker.

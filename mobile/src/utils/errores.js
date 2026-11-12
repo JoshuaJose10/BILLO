@@ -17,6 +17,7 @@ const MENSAJES = {
   EMAIL_DUPLICADO: 'Ese correo ya está registrado. Inicia sesión o usa otro.',
   CAMPOS_REQUERIDOS: 'Completa todos los campos.',
   CREDENCIALES_INVALIDAS: 'Correo o contraseña incorrectos.',
+  PASSWORD_INCORRECTA: 'Contraseña incorrecta.',
   USUARIO_NO_ENCONTRADO: 'No encontramos tu cuenta. Inicia sesión de nuevo.',
 
   // Categorías y gastos

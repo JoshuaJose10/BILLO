@@ -399,10 +399,83 @@ const restablecerContrasena = async (req, res) => {
   }
 };
 
+// ELIMINAR CUENTA Y TODOS LOS DATOS (DELETE /auth/cuenta) — HU-68
+const eliminarCuenta = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+    const { password } =
+      req.body && typeof req.body === 'object' ? req.body : {};
+
+    if (typeof password !== 'string' || password === '') {
+      return res.status(401).json({
+        error: {
+          code: 'PASSWORD_INCORRECTA',
+          message: 'Contraseña incorrecta',
+        },
+      });
+    }
+
+    const userRes = await pool.query(
+      'SELECT id, password_hash FROM usuarios WHERE id = $1',
+      [usuarioId]
+    );
+
+    const user = userRes.rows[0];
+    if (!user) {
+      return res.status(404).json({
+        error: {
+          code: 'USUARIO_NO_ENCONTRADO',
+          message: 'Usuario no encontrado',
+        },
+      });
+    }
+
+    const coincide = await bcrypt.compare(password, user.password_hash);
+    if (!coincide) {
+      return res.status(401).json({
+        error: {
+          code: 'PASSWORD_INCORRECTA',
+          message: 'Contraseña incorrecta',
+        },
+      });
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('DELETE FROM gastos WHERE usuario_id = $1', [usuarioId]);
+      await client.query('DELETE FROM presupuestos WHERE usuario_id = $1', [
+        usuarioId,
+      ]);
+      await client.query('DELETE FROM membresias WHERE usuario_id = $1', [
+        usuarioId,
+      ]);
+      await client.query('DELETE FROM usuarios WHERE id = $1', [usuarioId]);
+      await client.query('COMMIT');
+    } catch (txError) {
+      await client.query('ROLLBACK');
+      throw txError;
+    } finally {
+      client.release();
+    }
+
+    return res.status(200).json({ eliminado: true });
+  } catch (error) {
+    console.error('Error al eliminar cuenta:', error);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'No se pudo eliminar la cuenta',
+      },
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
   profile,
   olvideContrasena,
   restablecerContrasena,
+  eliminarCuenta,
 };
