@@ -51,6 +51,8 @@ npm run start:dev-client
 El proyecto EAS ya está configurado; no repitas `eas init`. Instala el APK nuevo
 antes de conectarlo a Metro. En iOS se necesita un development build propio
 con la configuración y credenciales de Apple correspondientes.
+El registro de gastos por voz en Nuevo gasto (HU-57) usa este mismo binario; en Expo
+Go el micrófono no aparece. Casos de prueba en [hu57-voz.md](../docs/qa/hu57-voz.md).
 Los resultados del [spike de SDK 57](../docs/spike-rf11-rf13.md) son históricos;
 repite voz, widget y reinicio en SDK 58 siguiendo la
 [guía de migración](../docs/qa/sdk58-migracion.md).

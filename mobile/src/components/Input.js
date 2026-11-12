@@ -7,9 +7,10 @@ import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 
 // Campo con etiqueta en mayúsculas, ícono a la izquierda y error debajo.
-// `password` agrega el botón de ojo; `pie` se muestra entre el campo y el error.
+// `password` agrega el botón de ojo; `limpiable`, una X que vacía el campo cuando tiene texto;
+// `pie` se muestra entre el campo y el error.
 const Input = forwardRef(function Input(
-  { etiqueta, icono, error, password, pie, onFocus, onBlur, ...props },
+  { etiqueta, icono, error, password, limpiable, pie, onFocus, onBlur, ...props },
   ref,
 ) {
   const [oculto, setOculto] = useState(true);
@@ -23,7 +24,7 @@ const Input = forwardRef(function Input(
       <View
         style={[
           styles.campo,
-          password ? styles.campoPassword : null,
+          password || limpiable ? styles.campoPassword : null,
           enfocado ? styles.campoEnfocado : null,
           error ? styles.campoError : null,
         ]}
@@ -65,6 +66,23 @@ const Input = forwardRef(function Input(
               <MaterialCommunityIcons
                 name={oculto ? 'eye-outline' : 'eye-off-outline'}
                 size={20}
+                color={pressed ? colors.text : colors.outline}
+              />
+            )}
+          </Pressable>
+        ) : null}
+        {limpiable && props.value ? (
+          <Pressable
+            onPress={() => props.onChangeText?.('')}
+            hitSlop={6}
+            style={styles.ojo}
+            accessibilityRole="button"
+            accessibilityLabel="Borrar texto"
+          >
+            {({ pressed }) => (
+              <MaterialCommunityIcons
+                name="close-circle"
+                size={18}
                 color={pressed ? colors.text : colors.outline}
               />
             )}

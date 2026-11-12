@@ -162,6 +162,9 @@ export const temas = {
     // Vidrio del aviso de presupuesto (AvisoPresupuesto) encima del blur, debajo de avisoSuave o
     // alertaSuave. Más opaco que `navbar` para que el texto pase 4.5:1 con cualquier contenido detrás.
     avisoVidrio: 'rgba(24, 24, 27, 0.88)',
+    // Dictado por voz en Nuevo gasto (HU-57): anillos de pulso y halo del micrófono (decorativos)
+    vozPulso: '#FF6B5E',
+    vozHalo: 'rgba(255, 107, 94, 0.22)',
   },
 
   claro: {
@@ -311,6 +314,8 @@ export const temas = {
     alertaTexto: '#B42318', // 5.65:1 sobre alertaSuave: errores, "Excedido", botón destructivo
     alertaSolido: '#C8281C',
     avisoVidrio: 'rgba(255, 255, 255, 0.92)',
+    vozPulso: '#F25544',
+    vozHalo: 'rgba(242, 85, 68, 0.16)',
   },
 };
 
