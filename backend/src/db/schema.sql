@@ -73,6 +73,9 @@ CREATE TABLE IF NOT EXISTS membresias (
   servicio_id         INTEGER NULL REFERENCES catalogo_servicios(id),
   nombre              VARCHAR(255) NOT NULL,
   costo               NUMERIC(12, 2) NOT NULL CHECK (costo > 0),
+  moneda              VARCHAR(3) NOT NULL DEFAULT 'MXN',
+  monto_original      NUMERIC(12, 2) NULL CHECK (monto_original > 0),
+  tipo_cambio         NUMERIC(12, 6) NULL CHECK (tipo_cambio > 0),
   frecuencia          VARCHAR(20) NOT NULL CHECK (frecuencia IN ('mensual', 'anual')),
   fecha_cobro         DATE NOT NULL,
   ultima_notificacion DATE NULL

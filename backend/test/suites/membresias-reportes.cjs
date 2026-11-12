@@ -41,7 +41,14 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
 
   it('CP-RF5-01: crea y lista nombre, costo, frecuencia y fecha', async () => {
     const m = await crear();
-    assert.deepEqual(m, { id: m.id, servicio_id: null, ...datos() });
+    assert.deepEqual(m, {
+      id: m.id,
+      servicio_id: null,
+      ...datos(),
+      moneda: 'MXN',
+      monto_original: null,
+      tipo_cambio: null,
+    });
     const lista = await get('/membresias');
     assert.equal(lista.length, 1);
     assert.deepEqual(lista[0], { ...m, dias_para_cobro: lista[0].dias_para_cobro });
@@ -77,7 +84,14 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
     assert.equal(netflix.costo_sugerido, 199);
     const base = { servicio_id: netflix.id, frecuencia: 'mensual', fecha_cobro: '2026-10-20' };
     const m = await crear(base);
-    assert.deepEqual(m, { id: m.id, ...datos(), servicio_id: netflix.id });
+    assert.deepEqual(m, {
+      id: m.id,
+      ...datos(),
+      servicio_id: netflix.id,
+      moneda: 'MXN',
+      monto_original: null,
+      tipo_cambio: null,
+    });
     await conciliar(ctx.a, 0, 199, 199);
     await ctx.api.put(`/membresias/${m.id}`).auth(ctx.a.token, { type: 'bearer' })
       .send({ ...base, costo: 219 }).expect(200);
@@ -521,6 +535,119 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
           .auth(tokenAdmin, { type: 'bearer' }),
         404,
         'SERVICIO_NO_ENCONTRADO'
+      );
+    });
+  });
+
+  describe('Moneda propia por suscripción (RF11 / HU-77)', () => {
+    it('crea una suscripción de 10 USD con tipo de cambio y suma su equivalente en MXN a Reportes (Aceptación HU-77)', async () => {
+      // 10 USD × 18.6311 = 186.31 MXN
+      const res = await ctx.api
+        .post('/membresias')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({
+          nombre: 'ChatGPT Plus',
+          costo: 186.31,
+          moneda: 'USD',
+          monto_original: 10,
+          tipo_cambio: 18.6311,
+          frecuencia: 'mensual',
+          fecha_cobro: '2026-10-15',
+        })
+        .expect(201);
+
+      assert.deepEqual(res.body.membresia, {
+        id: res.body.membresia.id,
+        servicio_id: null,
+        nombre: 'ChatGPT Plus',
+        costo: 186.31,
+        moneda: 'USD',
+        monto_original: 10,
+        tipo_cambio: 18.6311,
+        frecuencia: 'mensual',
+        fecha_cobro: '2026-10-15',
+      });
+
+      // El total mensual y Reportes suman el equivalente en MXN (186.31)
+      const rep = await resumen(ctx.a, '2026-10');
+      assert.equal(rep.gasto_fijo, 186.31);
+      assert.equal(rep.total, 186.31);
+    });
+
+    it('cambiar una suscripción extranjera a MXN limpia monto_original y tipo_cambio (QA HU-77)', async () => {
+      const creacion = await ctx.api
+        .post('/membresias')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({
+          nombre: 'GitHub Copilot',
+          costo: 186.31,
+          moneda: 'USD',
+          monto_original: 10,
+          tipo_cambio: 18.6311,
+          frecuencia: 'mensual',
+          fecha_cobro: '2026-10-15',
+        })
+        .expect(201);
+
+      const id = creacion.body.membresia.id;
+
+      // Actualizar a MXN sin conversión
+      const edicion = await ctx.api
+        .put(`/membresias/${id}`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({
+          nombre: 'GitHub Copilot',
+          costo: 199,
+          moneda: 'MXN',
+          frecuencia: 'mensual',
+          fecha_cobro: '2026-10-15',
+        })
+        .expect(200);
+
+      assert.equal(edicion.body.membresia.moneda, 'MXN');
+      assert.equal(edicion.body.membresia.costo, 199);
+      assert.equal(edicion.body.membresia.monto_original, null);
+      assert.equal(edicion.body.membresia.tipo_cambio, null);
+
+      const rep = await resumen(ctx.a, '2026-10');
+      assert.equal(rep.gasto_fijo, 199);
+    });
+
+    it('rechaza moneda inválida y conversión que no coincide con costo', async () => {
+      // Código de moneda desconocido
+      expectError(
+        await ctx.api
+          .post('/membresias')
+          .auth(ctx.a.token, { type: 'bearer' })
+          .send({
+            nombre: 'Sub Invalida',
+            costo: 100,
+            moneda: 'XYZ',
+            monto_original: 5,
+            tipo_cambio: 20,
+            frecuencia: 'mensual',
+            fecha_cobro: '2026-10-15',
+          }),
+        400,
+        'MONEDA_INVALIDA'
+      );
+
+      // Desfase en la conversión: 10 * 18.6311 != 250
+      expectError(
+        await ctx.api
+          .post('/membresias')
+          .auth(ctx.a.token, { type: 'bearer' })
+          .send({
+            nombre: 'Sub Desfasada',
+            costo: 250,
+            moneda: 'USD',
+            monto_original: 10,
+            tipo_cambio: 18.6311,
+            frecuencia: 'mensual',
+            fecha_cobro: '2026-10-15',
+          }),
+        400,
+        'MONTO_INVALIDO'
       );
     });
   });

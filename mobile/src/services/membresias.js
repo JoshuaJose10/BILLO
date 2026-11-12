@@ -3,14 +3,32 @@ import { useMemo } from 'react';
 import { useApi } from '../context/AuthContext';
 import { aNumero } from '../utils/formato';
 import { ajustarAlSiguienteCiclo } from '../utils/membresias';
+import { guardarUltimoTipoCambio } from './divisas';
 
-// Normaliza los campos de una membresía proveniente de la API (costo numérico)
+// Normaliza los campos de una membresía proveniente de la API (costo numérico, divisa)
 // y avanza la fecha de cobro al siguiente ciclo si ya venció (HU-51 / BUG-01).
 export const normalizarMembresia = (membresia) => {
   if (!membresia || typeof membresia !== 'object') return membresia;
+  const moneda = membresia.moneda || 'MXN';
+  const montoOriginal =
+    membresia.monto_original !== undefined && membresia.monto_original !== null
+      ? aNumero(membresia.monto_original)
+      : null;
+  const tipoCambio =
+    membresia.tipo_cambio !== undefined && membresia.tipo_cambio !== null
+      ? aNumero(membresia.tipo_cambio)
+      : null;
+
+  if (moneda !== 'MXN' && tipoCambio) {
+    guardarUltimoTipoCambio(moneda, tipoCambio);
+  }
+
   const base = {
     ...membresia,
     costo: aNumero(membresia.costo),
+    moneda,
+    monto_original: montoOriginal,
+    tipo_cambio: tipoCambio,
     dias_para_cobro:
       membresia.dias_para_cobro !== undefined && membresia.dias_para_cobro !== null
         ? Number(membresia.dias_para_cobro)
