@@ -1,0 +1,45 @@
+{
+  "bug": "HU68-BUG-01",
+  "reported_date": "2026-11-12",
+  "timezone": "America/Mexico_City",
+  "commit": "370ef0b",
+  "branch": "feature/eliminar-cuenta",
+  "environment": {
+    "os": "Windows",
+    "node": "v22.15.0",
+    "database": "PostgreSQL temporal",
+    "client": "Supertest + Express real",
+    "jwt_ttl": "1h (fixture)"
+  },
+  "checks": [
+    {
+      "action": "DELETE /auth/cuenta con password de fixture",
+      "expected_status": 200,
+      "actual_status": 200,
+      "response": {
+        "eliminado": true
+      }
+    },
+    {
+      "action": "SELECT count(*) FROM usuarios WHERE id = id_eliminado",
+      "expected_count": 0,
+      "actual_count": 0
+    },
+    {
+      "action": "GET /catalogo con JWT anterior al borrado",
+      "expected_status": 401,
+      "actual_status": 200
+    },
+    {
+      "action": "POST /catalogo con JWT admin anterior al borrado",
+      "expected_status": 401,
+      "actual_status": 201,
+      "request_body": {
+        "nombre": "QA HU68 BUG 01",
+        "costo_sugerido": 100
+      }
+    }
+  ],
+  "result": "Falla: el JWT de la cuenta eliminada conserva acceso autenticado y permisos de administrador",
+  "cleanup": "Base temporal eliminada en finally; sin cambios en la base de desarrollo"
+}
