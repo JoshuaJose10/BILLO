@@ -51,10 +51,12 @@ export default function AdminCatalogoScreen({ navigation }) {
         (lista) => {
           setServicios(lista);
           setEstado('listo');
+          return true;
         },
         (err) => {
           setErrorCarga(mensajeError(err?.code, err?.message));
           setEstado('error');
+          return false;
         },
       ),
     [catalogoService],

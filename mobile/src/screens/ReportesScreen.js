@@ -1,15 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import BarraCategorias from '../components/BarraCategorias';
 import DonaCategorias from '../components/DonaCategorias';
@@ -36,6 +28,7 @@ import {
   etiquetaComparacion,
   textoComparacion,
 } from '../utils/analisis';
+import { useRecargar } from '../hooks/useRecargar';
 import { mensajeError } from '../utils/errores';
 import { mesActual, sumarMeses } from '../utils/fechas';
 import { formatearMonto, MONEDA, nombreMes } from '../utils/formato';
@@ -71,7 +64,6 @@ const PROXIMAMENTE = {
 // frente al mes anterior con el avance del presupuesto, desglose por categoría y "Consejo Billo".
 // Los cálculos viven en utils/analisis.js (con pruebas).
 export default function ReportesScreen() {
-  const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
   const { obtenerResumen } = useReportesService();
   const { listarGastos } = useGastosService();
@@ -89,7 +81,6 @@ export default function ReportesScreen() {
   const [datos, setDatos] = useState(null);
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
   const [textoError, setTextoError] = useState('');
-  const [refrescando, setRefrescando] = useState(false);
 
   // Cada petición recibe un número; si al responder ya hay una más nueva, se descarta.
   const ultimaPeticion = useRef(0);
@@ -106,10 +97,12 @@ export default function ReportesScreen() {
       if (peticion !== ultimaPeticion.current) return;
       setDatos({ mes, resumen, gastos, anterior, presupuestos });
       setEstado('listo');
+      return true;
     } catch (error) {
       if (peticion !== ultimaPeticion.current) return;
       setTextoError(mensajeError(error?.code, error?.message));
       setEstado('error');
+      return false;
     }
   }, [obtenerResumen, listarGastos, listarPresupuestos, mes]);
 
@@ -121,12 +114,6 @@ export default function ReportesScreen() {
     }, [cargar]),
   );
 
-  const refrescar = async () => {
-    setRefrescando(true);
-    await cargar();
-    setRefrescando(false);
-  };
-
   // Al cambiar de mes se conservan los datos anteriores (atenuados) mientras llegan los nuevos.
   // Desde el estado de error se vuelve al indicador de carga.
   const cambiarMes = (nuevo) => {
@@ -134,8 +121,13 @@ export default function ReportesScreen() {
     if (estado === 'error') setEstado('cargando');
   };
 
-  // Reintentar deja el error a la vista con el botón en cargando hasta que responde.
-  const reintentar = () => cargar();
+  // Jalar para recargar, Reintentar y el aviso de arriba piden otra vez el mes. Si falla con ese
+  // mes a la vista, los datos se quedan y el error sale como aviso fijo arriba (useRecargar).
+  const hayDatos = datos?.mes === mes;
+  const recarga = useRecargar(cargar, {
+    error: estado === 'error' ? textoError : null,
+    hayDatos,
+  });
 
   const analisis = useMemo(() => {
     if (!datos) return null;
@@ -170,12 +162,12 @@ export default function ReportesScreen() {
   const cambiandoMes = estado === 'listo' && datos?.mes !== mes;
 
   let contenido;
-  if (estado !== 'listo') {
+  if (estado !== 'listo' && !hayDatos) {
     contenido = (
       <EstadoPantalla
         estado={estado}
         titulo={estado === 'error' ? textoError : null}
-        onReintentar={reintentar}
+        onReintentar={cargar}
       />
     );
   } else {
@@ -268,11 +260,9 @@ export default function ReportesScreen() {
         contentContainerStyle={[
           styles.lista,
           // El último bloque queda por encima de la navbar flotante con aire de sobra.
-          { paddingTop: insets.top + 4, paddingBottom: alturaNavbar + espacios.xl },
+          { paddingTop: 4, paddingBottom: alturaNavbar + espacios.xl },
         ]}
-        refreshControl={
-          <RefreshControl refreshing={refrescando} onRefresh={refrescar} tintColor={colors.text} />
-        }
+        {...recarga.propsLista}
       >
         {/* a) Encabezado */}
         <View style={styles.encabezado}>
@@ -303,6 +293,7 @@ export default function ReportesScreen() {
           />
         )}
       </ScrollView>
+      {recarga.aviso}
     </View>
   );
 }

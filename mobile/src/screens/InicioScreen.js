@@ -1,7 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import Avatar from '../components/Avatar';
 import EstadoPantalla from '../components/EstadoPantalla';
@@ -22,9 +21,10 @@ import { useMembresiasService } from '../services/membresias';
 import { usePresupuestosService } from '../services/presupuestos';
 import { useReportesService } from '../services/reportes';
 import { radios } from '../theme/colors';
-import { useEstilos, useTema } from '../theme/TemaContext';
+import { useEstilos } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { cobrosDeLaSemana, semanaSinProximoCobro } from '../utils/cobrosSemana';
+import { useRecargar } from '../hooks/useRecargar';
 import { mensajeError } from '../utils/errores';
 import { vistaPantalla } from '../utils/estadoCarga';
 import { mesActual } from '../utils/fechas';
@@ -50,7 +50,6 @@ const CHIPS_CATEGORIA = 3;
 // "Saldo disponible" (HU-72) es el espacio reservado para los ingresos (HU-82): hoy va sin saldo.
 // Los nombres de las categorías salen de la caché de la sesión (useCategorias).
 export default function InicioScreen({ navigation }) {
-  const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
   const { usuario } = useAuth();
   const { listarGastos, eliminarGasto } = useGastosService();
@@ -65,7 +64,6 @@ export default function InicioScreen({ navigation }) {
   } = useCategorias();
   // Si la primera carga falló (backend apagado, recién iniciada la sesión), se reintenta al enfocar.
   useReintentarCategoriasAlEnfocar();
-  const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
   const [resumen, setResumen] = useState(null);
@@ -77,7 +75,6 @@ export default function InicioScreen({ navigation }) {
   const [mesCargado, setMesCargado] = useState(null);
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
   const [textoError, setTextoError] = useState('');
-  const [refrescando, setRefrescando] = useState(false);
   const [hayDatos, setHayDatos] = useState(false);
 
   // Cada petición recibe un número; si al responder ya hay una más nueva, se descarta.
@@ -103,10 +100,12 @@ export default function InicioScreen({ navigation }) {
       setHayDatos(true);
       // HU-58: el widget de Android muestra el mismo total del mes que acaba de cargar Inicio.
       actualizarWidget(datos.resumen, mes);
+      return true;
     } catch (error) {
       if (peticion !== ultimaPeticion.current) return;
       setTextoError(mensajeError(error?.code, error?.message));
       setEstado('error');
+      return false;
     }
   }, [obtenerResumen, listarGastos, listarPresupuestos, listarMembresias]);
 
@@ -117,17 +116,16 @@ export default function InicioScreen({ navigation }) {
     }, [cargar]),
   );
 
-  // Si las categorías fallaron, refrescar y Reintentar también las vuelven a pedir.
-  const recargarCategoriasSiFallaron = () => {
+  // Jalar para recargar, Reintentar y el aviso de arriba piden otra vez Inicio y, si fallaron,
+  // las categorías. Con datos a la vista, un fallo sale como aviso fijo arriba (useRecargar).
+  const reintentar = () => {
     if (estadoCategorias === 'error') recargarCategorias();
+    return cargar();
   };
-
-  const refrescar = async () => {
-    recargarCategoriasSiFallaron();
-    setRefrescando(true);
-    await cargar();
-    setRefrescando(false);
-  };
+  const recarga = useRecargar(reintentar, {
+    error: estado === 'error' ? textoError : null,
+    hayDatos,
+  });
 
   const nombresCategoria = useMemo(
     () => Object.fromEntries(categorias.map((c) => [c.id, c.nombre])),
@@ -267,12 +265,6 @@ export default function InicioScreen({ navigation }) {
     </View>
   );
 
-  // Reintentar deja el error a la vista con el botón en cargando hasta que responde.
-  const reintentar = () => {
-    recargarCategoriasSiFallaron();
-    return cargar();
-  };
-
   const vista = vistaPantalla(estado, hayDatos);
   if (vista === 'cargando' || vista === 'error') {
     return (
@@ -307,15 +299,6 @@ export default function InicioScreen({ navigation }) {
         ListHeaderComponent={
           <>
             {encabezado}
-            {vista === 'aviso' ? (
-              <EstadoPantalla
-                estado="error"
-                titulo={textoError}
-                onReintentar={reintentar}
-                compacta
-                style={styles.avisoError}
-              />
-            ) : null}
             {panelInicio}
           </>
         }
@@ -339,14 +322,10 @@ export default function InicioScreen({ navigation }) {
         }
         ItemSeparatorComponent={Separador}
         onScrollBeginDrag={filas.cerrarAbierta}
-        contentContainerStyle={[
-          styles.lista,
-          { paddingTop: insets.top + 8, paddingBottom: alturaNavbar + 16 },
-        ]}
-        refreshControl={
-          <RefreshControl refreshing={refrescando} onRefresh={refrescar} tintColor={colors.text} />
-        }
+        contentContainerStyle={[styles.lista, { paddingTop: 8, paddingBottom: alturaNavbar + 16 }]}
+        {...recarga.propsLista}
       />
+      {recarga.aviso}
     </View>
   );
 }
@@ -491,12 +470,5 @@ const crearEstilos = (colors) =>
       color: colors.text,
       fontSize: 14,
       textDecorationLine: 'underline',
-    },
-    avisoError: {
-      marginTop: 12,
-      padding: 12,
-      borderRadius: radios['2xl'],
-      borderWidth: 1,
-      borderColor: colors.alerta,
     },
   });

@@ -1,31 +1,15 @@
 import * as Haptics from 'expo-haptics';
 import { forwardRef, useEffect, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import Etiqueta from './Etiqueta';
 import { TextoError } from './Input';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
+import { useSacudida } from '../hooks/useSacudida';
 import { LARGO_CODIGO, limpiarCodigo } from '../utils/recuperacion';
-
-// Sacudida corta al aparecer un error (se omite con "Reducir movimiento").
-const PASO = { duration: 50 };
-const sacudida = () =>
-  withSequence(
-    withTiming(-8, PASO),
-    withTiming(8, PASO),
-    withTiming(-6, PASO),
-    withTiming(6, PASO),
-    withTiming(0, PASO),
-  );
 
 // Código de un solo uso en casillas (estilo OTP). Un solo TextInput transparente encima de las
 // casillas recibe los toques, el pegado y el autocompletado del sistema (iOS: código del correo
@@ -36,18 +20,15 @@ const CampoCodigo = forwardRef(function CampoCodigo(
 ) {
   const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
-  const reducirMovimiento = useReducedMotion();
   const [enfocado, setEnfocado] = useState(false);
-  const desplazamiento = useSharedValue(0);
-  const estiloSacudida = useAnimatedStyle(() => ({
-    transform: [{ translateX: desplazamiento.get() }],
-  }));
+  // Sacudida corta y vibración al aparecer un error.
+  const { estilo: estiloSacudida, sacudir } = useSacudida();
 
   useEffect(() => {
     if (!error) return;
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
-    if (!reducirMovimiento) desplazamiento.set(sacudida());
-  }, [error, reducirMovimiento, desplazamiento]);
+    sacudir();
+  }, [error, sacudir]);
 
   return (
     <View style={styles.contenedor}>

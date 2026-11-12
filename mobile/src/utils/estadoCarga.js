@@ -20,3 +20,23 @@ export function vistaPantalla(estado, hayDatos) {
   if (estado === 'listo' || hayDatos) return 'datos';
   return 'cargando';
 }
+
+// Corre una carga con feedback (HU-69): `alEmpezar()` antes de pedir y `alTerminar(ok)` al
+// responder. `tarea` devuelve true (respondió), false (falló) o nada (la pantalla muestra su propio
+// cargando); si lanza cuenta como false. Mientras no termina, quien llama sigue «reintentando».
+export async function intentar(tarea, { alEmpezar, alTerminar }) {
+  alEmpezar();
+  let ok;
+  try {
+    ok = await tarea();
+  } catch {
+    ok = false;
+  }
+  alTerminar(ok);
+  return ok;
+}
+
+// La franja «sin conexión» de arriba sale solo si falló una recarga con datos a la vista y no se
+// cerró; tras cerrarla vuelve con el siguiente fallo.
+export const avisoVisible = ({ error, hayDatos, cerrado }) =>
+  Boolean(error) && hayDatos && !cerrado;
