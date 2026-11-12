@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import BarraCategorias from '../components/BarraCategorias';
 import Boton from '../components/Boton';
+import EstadoPantalla from '../components/EstadoPantalla';
 import Etiqueta from '../components/Etiqueta';
 import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizable';
 import FondoDegradado from '../components/FondoDegradado';
@@ -206,15 +207,8 @@ export default function CarteraScreen({ navigation, route }) {
     }
   };
 
-  const reintentar = () => {
-    if (enPresupuestos) {
-      setEstadoPresupuestos('cargando');
-      cargarPresupuestos();
-    } else if (enSuscripciones) {
-      setEstadoMembresias('cargando');
-      cargarMembresias();
-    }
-  };
+  // Reintentar deja el error a la vista con el botón en cargando y pide solo la sección que falló.
+  const reintentar = () => (enPresupuestos ? cargarPresupuestos() : cargarMembresias());
 
   const filas = useFilasDeslizables();
 
@@ -508,80 +502,48 @@ export default function CarteraScreen({ navigation, route }) {
       </Animated.View>
     );
   } else if (enPresupuestos) {
-    if (estadoPresupuestos === 'cargando') {
-      contenidoVacio = (
-        <View style={styles.estado}>
-          <ActivityIndicator size="large" color={colors.text} />
-        </View>
-      );
-    } else if (estadoPresupuestos === 'error') {
-      contenidoVacio = (
-        <View style={styles.estado}>
-          <MaterialCommunityIcons name="wifi-off" size={40} color={colors.textSecondary} />
-          <Text style={styles.estadoTitulo}>{textoErrorPresupuestos}</Text>
-          <View style={styles.estadoBoton}>
-            <Boton titulo="Reintentar" onPress={reintentar} />
-          </View>
-        </View>
-      );
-    } else {
-      contenidoVacio = (
-        <View style={[styles.estado, atenuadoP]}>
-          <MaterialCommunityIcons name="wallet-outline" size={40} color={colors.textSecondary} />
-          <Text style={styles.estadoTitulo}>Sin presupuestos {periodo}</Text>
-          <Text style={styles.estadoTexto}>
-            Ponle un límite a cada categoría y ve cuánto llevas gastado.
-          </Text>
-          <View style={styles.estadoBoton}>
-            <Boton titulo="Crear tu primer presupuesto" icono="plus" onPress={crearPresupuesto} />
-            <Boton
-              titulo="Copiar del mes anterior"
-              icono="content-copy"
-              secundario
-              cargando={copiandoPresupuestos}
-              onPress={copiarDelMesAnterior}
-            />
-          </View>
-          {avisoCopia ? <Text style={styles.avisoCopia}>{avisoCopia}</Text> : null}
-        </View>
-      );
-    }
+    const vacio = estadoPresupuestos === 'listo';
+    contenidoVacio = (
+      <EstadoPantalla
+        estado={vacio ? 'vacio' : estadoPresupuestos}
+        titulo={vacio ? `Sin presupuestos ${periodo}` : textoErrorPresupuestos}
+        mensaje={vacio ? 'Ponle un límite a cada categoría y ve cuánto llevas gastado.' : null}
+        icono={vacio ? 'wallet-outline' : undefined}
+        onReintentar={reintentar}
+        accion={{ titulo: 'Crear tu primer presupuesto', icono: 'plus', onPress: crearPresupuesto }}
+        style={atenuadoP}
+      >
+        <Boton
+          titulo="Copiar del mes anterior"
+          icono="content-copy"
+          secundario
+          cargando={copiandoPresupuestos}
+          onPress={copiarDelMesAnterior}
+        />
+        {avisoCopia ? <Text style={styles.avisoCopia}>{avisoCopia}</Text> : null}
+      </EstadoPantalla>
+    );
   } else {
     // enSuscripciones
-    if (estadoMembresias === 'cargando') {
-      contenidoVacio = (
-        <View style={styles.estado}>
-          <ActivityIndicator size="large" color={colors.text} />
-        </View>
-      );
-    } else if (estadoMembresias === 'error') {
-      contenidoVacio = (
-        <View style={styles.estado}>
-          <MaterialCommunityIcons name="wifi-off" size={40} color={colors.textSecondary} />
-          <Text style={styles.estadoTitulo}>{textoErrorMembresias}</Text>
-          <View style={styles.estadoBoton}>
-            <Boton titulo="Reintentar" onPress={reintentar} />
-          </View>
-        </View>
-      );
-    } else {
-      contenidoVacio = (
-        <View style={styles.estado}>
-          <MaterialCommunityIcons
-            name="calendar-sync-outline"
-            size={40}
-            color={colors.textSecondary}
-          />
-          <Text style={styles.estadoTitulo}>Sin suscripciones registradas</Text>
-          <Text style={styles.estadoTexto}>
-            Agrega tus suscripciones para controlar tus cobros recurrentes y fechas de pago.
-          </Text>
-          <View style={styles.estadoBoton}>
-            <Boton titulo="Agregar tu primera suscripción" icono="plus" onPress={crearMembresia} />
-          </View>
-        </View>
-      );
-    }
+    const vacio = estadoMembresias === 'listo';
+    contenidoVacio = (
+      <EstadoPantalla
+        estado={vacio ? 'vacio' : estadoMembresias}
+        titulo={vacio ? 'Sin suscripciones registradas' : textoErrorMembresias}
+        mensaje={
+          vacio
+            ? 'Agrega tus suscripciones para controlar tus cobros recurrentes y fechas de pago.'
+            : null
+        }
+        icono={vacio ? 'calendar-sync-outline' : undefined}
+        onReintentar={reintentar}
+        accion={{
+          titulo: 'Agregar tu primera suscripción',
+          icono: 'plus',
+          onPress: crearMembresia,
+        }}
+      />
+    );
   }
 
   // Lista de datos según la sección
@@ -936,32 +898,6 @@ const crearEstilos = (colors) =>
     },
     atenuado: {
       opacity: 0.45,
-    },
-    estado: {
-      alignItems: 'center',
-      gap: 10,
-      paddingVertical: 48,
-      paddingHorizontal: 12,
-    },
-    estadoTitulo: {
-      fontFamily: fonts.sansSemiBold,
-      color: colors.text,
-      fontSize: 18,
-      lineHeight: 24,
-      textAlign: 'center',
-      marginTop: 8,
-    },
-    estadoTexto: {
-      fontFamily: fonts.sans,
-      color: colors.textSecondary,
-      fontSize: 14,
-      lineHeight: 20,
-      textAlign: 'center',
-    },
-    estadoBoton: {
-      alignSelf: 'stretch',
-      marginTop: 12,
-      gap: 10,
     },
     avisoCopia: {
       fontFamily: fonts.sansMedium,

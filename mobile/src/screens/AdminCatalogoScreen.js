@@ -1,7 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   Modal,
   Pressable,
@@ -14,10 +13,12 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Boton from '../components/Boton';
+import EstadoPantalla from '../components/EstadoPantalla';
 import { useCatalogoService } from '../services/catalogo';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
+import { mensajeError } from '../utils/errores';
 import { formatearMonto } from '../utils/formato';
 import { estiloServicio, inicialServicio } from '../utils/membresias';
 
@@ -41,39 +42,27 @@ export default function AdminCatalogoScreen({ navigation }) {
   const [errorForm, setErrorForm] = useState('');
   const [guardando, setGuardando] = useState(false);
 
-  const cargarCatalogo = useCallback(async () => {
-    try {
-      setEstado('cargando');
-      setErrorCarga('');
-      const lista = await catalogoService.listar();
-      setServicios(lista);
-      setEstado('listo');
-    } catch (err) {
-      setErrorCarga(err?.message || 'No se pudo cargar el catálogo');
-      setEstado('error');
-    }
-  }, [catalogoService]);
-
-  useEffect(() => {
-    let activo = true;
-    (async () => {
-      try {
-        const lista = await catalogoService.listar();
-        if (activo) {
+  // Al abrir, al reintentar y tras guardar o eliminar. Recarga en silencio: el spinner solo sale
+  // en la primera carga; Reintentar deja el error a la vista con el botón en cargando. Los setState
+  // van en los callbacks de la promesa (nunca síncronos) para poder llamarla desde el efecto.
+  const cargarCatalogo = useCallback(
+    () =>
+      catalogoService.listar().then(
+        (lista) => {
           setServicios(lista);
           setEstado('listo');
-        }
-      } catch (err) {
-        if (activo) {
-          setErrorCarga(err?.message || 'No se pudo cargar el catálogo');
+        },
+        (err) => {
+          setErrorCarga(mensajeError(err?.code, err?.message));
           setEstado('error');
-        }
-      }
-    })();
-    return () => {
-      activo = false;
-    };
-  }, [catalogoService]);
+        },
+      ),
+    [catalogoService],
+  );
+
+  useEffect(() => {
+    cargarCatalogo();
+  }, [cargarCatalogo]);
 
   const serviciosFiltrados = useMemo(() => {
     if (!filtro.trim()) return servicios;
@@ -239,26 +228,22 @@ export default function AdminCatalogoScreen({ navigation }) {
       </View>
 
       {/* Lista de servicios */}
-      {estado === 'cargando' ? (
-        <View style={styles.centro}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.textoEstado}>Cargando catálogo...</Text>
-        </View>
-      ) : estado === 'error' ? (
-        <View style={styles.centro}>
-          <MaterialCommunityIcons name="alert-circle-outline" size={48} color={colors.alerta} />
-          <Text style={styles.textoError}>{errorCarga}</Text>
-          <Boton titulo="Reintentar" onPress={cargarCatalogo} secundario />
-        </View>
-      ) : serviciosFiltrados.length === 0 ? (
-        <View style={styles.centro}>
-          <MaterialCommunityIcons name="shape-outline" size={48} color={colors.textSecondary} />
-          <Text style={styles.textoVacio}>
-            {filtro.trim()
-              ? `No se encontraron servicios para "${filtro}"`
-              : 'El catálogo está vacío.'}
-          </Text>
-        </View>
+      {estado !== 'listo' || serviciosFiltrados.length === 0 ? (
+        <EstadoPantalla
+          estado={estado === 'listo' ? 'vacio' : estado}
+          titulo={
+            estado === 'error'
+              ? errorCarga
+              : estado === 'cargando'
+                ? null
+                : filtro.trim()
+                  ? `No se encontraron servicios para "${filtro}"`
+                  : 'El catálogo está vacío.'
+          }
+          icono={estado === 'listo' ? 'shape-outline' : undefined}
+          onReintentar={cargarCatalogo}
+          completa
+        />
       ) : (
         <ScrollView style={styles.listaScroll} contentContainerStyle={styles.listaContenido}>
           <Text style={styles.conteoTexto}>
@@ -551,30 +536,6 @@ const crearEstilos = (colors) =>
     },
     botonAccionEliminar: {
       backgroundColor: colors.alertaFondo || colors.glass05,
-    },
-    centro: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 24,
-      gap: 12,
-    },
-    textoEstado: {
-      fontFamily: fonts.sans,
-      fontSize: 14,
-      color: colors.textSecondary,
-    },
-    textoError: {
-      fontFamily: fonts.sans,
-      fontSize: 14,
-      color: colors.alerta,
-      textAlign: 'center',
-    },
-    textoVacio: {
-      fontFamily: fonts.sans,
-      fontSize: 14,
-      color: colors.textSecondary,
-      textAlign: 'center',
     },
     // Modal
     modalFondo: {

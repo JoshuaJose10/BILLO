@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Boton from '../components/Boton';
 import ChipSelector from '../components/ChipSelector';
+import EstadoPantalla from '../components/EstadoPantalla';
 import HojaInferior from '../components/HojaInferior';
 import Input from '../components/Input';
 import MontoGrande from '../components/MontoGrande';
@@ -524,20 +525,19 @@ export default function MembresiaScreen({ navigation, route }) {
       {/* Catálogo de servicios (solo al agregar), en el lugar de las categorías de Nuevo gasto */}
       {!editando ? (
         <View style={styles.zonaCatalogo}>
-          {vistaCatalogo === 'cargando' ? (
-            <View style={styles.estadoCatalogo}>
-              <ActivityIndicator size="small" color={colors.textSecondary} />
-              <Text style={styles.textoEstado}>Cargando catálogo…</Text>
-            </View>
-          ) : vistaCatalogo === 'error' ? (
-            <View style={styles.estadoCatalogo}>
-              <Text style={[styles.textoEstado, styles.textoEstadoFlexible]} numberOfLines={2}>
-                {errorCatalogo}
-              </Text>
-              <ChipSelector icono="refresh" etiqueta="Reintentar" onPress={reintentarCatalogo} />
-            </View>
-          ) : vistaCatalogo === 'vacio' ? (
-            <Text style={styles.textoEstado}>No hay servicios en el catálogo</Text>
+          {vistaCatalogo !== 'lista' ? (
+            <EstadoPantalla
+              estado={vistaCatalogo}
+              titulo={
+                vistaCatalogo === 'error'
+                  ? errorCatalogo
+                  : vistaCatalogo === 'cargando'
+                    ? 'Cargando catálogo…'
+                    : 'No hay servicios en el catálogo'
+              }
+              onReintentar={reintentarCatalogo}
+              compacta
+            />
           ) : (
             <>
               <Input
@@ -783,17 +783,9 @@ const crearEstilos = (colors) =>
       justifyContent: 'center',
       marginBottom: espacios.sm,
     },
-    estadoCatalogo: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
-    },
     textoEstado: {
       ...tipografia.bodyMd,
       color: colors.textSecondary,
-    },
-    textoEstadoFlexible: {
-      flex: 1,
     },
     errorCampo: {
       ...tipografia.bodySm,

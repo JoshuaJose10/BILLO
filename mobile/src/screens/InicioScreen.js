@@ -1,19 +1,10 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Avatar from '../components/Avatar';
-import Boton from '../components/Boton';
+import EstadoPantalla from '../components/EstadoPantalla';
 import Etiqueta from '../components/Etiqueta';
 import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizable';
 import FondoDegradado from '../components/FondoDegradado';
@@ -35,6 +26,7 @@ import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { cobrosDeLaSemana, semanaSinProximoCobro } from '../utils/cobrosSemana';
 import { mensajeError } from '../utils/errores';
+import { vistaPantalla } from '../utils/estadoCarga';
 import { mesActual } from '../utils/fechas';
 import { cargarDatosInicio, MOVIMIENTOS_RECIENTES } from '../utils/inicio';
 import { proximoCobro } from '../utils/membresias';
@@ -275,30 +267,18 @@ export default function InicioScreen({ navigation }) {
     </View>
   );
 
-  if (estado === 'cargando') {
-    return (
-      <View style={[styles.pantalla, styles.centro]}>
-        <FondoDegradado />
-        <ActivityIndicator size="large" color={colors.text} />
-      </View>
-    );
-  }
-
+  // Reintentar deja el error a la vista con el botón en cargando hasta que responde.
   const reintentar = () => {
     recargarCategoriasSiFallaron();
-    setEstado('cargando');
-    cargar();
+    return cargar();
   };
 
-  if (estado === 'error' && !hayDatos) {
+  const vista = vistaPantalla(estado, hayDatos);
+  if (vista === 'cargando' || vista === 'error') {
     return (
-      <View style={[styles.pantalla, styles.centro, styles.relleno]}>
+      <View style={styles.pantalla}>
         <FondoDegradado />
-        <MaterialCommunityIcons name="wifi-off" size={40} color={colors.textSecondary} />
-        <Text style={styles.estadoTitulo}>{textoError}</Text>
-        <View style={styles.botonEstado}>
-          <Boton titulo="Reintentar" onPress={reintentar} />
-        </View>
+        <EstadoPantalla estado={vista} titulo={textoError} onReintentar={reintentar} completa />
       </View>
     );
   }
@@ -327,30 +307,35 @@ export default function InicioScreen({ navigation }) {
         ListHeaderComponent={
           <>
             {encabezado}
-            {estado === 'error' ? (
-              <View style={styles.avisoError}>
-                <Text style={styles.avisoTexto}>{textoError}</Text>
-                <Pressable onPress={cargar} hitSlop={8} accessibilityRole="button">
-                  <Text style={styles.avisoAccion}>Reintentar</Text>
-                </Pressable>
-              </View>
+            {vista === 'aviso' ? (
+              <EstadoPantalla
+                estado="error"
+                titulo={textoError}
+                onReintentar={reintentar}
+                compacta
+                style={styles.avisoError}
+              />
             ) : null}
             {panelInicio}
           </>
         }
         ListFooterComponent={pieInicio}
         ListEmptyComponent={
-          <View style={[styles.panelFila, styles.vacio]}>
-            <MaterialCommunityIcons
-              name="receipt-text-outline"
-              size={40}
-              color={colors.textSecondary}
-            />
-            <Text style={styles.estadoTitulo}>Sin gastos este mes</Text>
-            <Pressable onPress={abrirNuevoGasto} hitSlop={8} accessibilityRole="button">
+          <EstadoPantalla
+            estado="vacio"
+            icono="receipt-text-outline"
+            titulo="Sin gastos este mes"
+            style={styles.panelFila}
+          >
+            <Pressable
+              onPress={abrirNuevoGasto}
+              hitSlop={8}
+              accessibilityRole="button"
+              style={styles.enlaceVacio}
+            >
               <Text style={styles.enlace}>Registra un gasto</Text>
             </Pressable>
-          </View>
+          </EstadoPantalla>
         }
         ItemSeparatorComponent={Separador}
         onScrollBeginDrag={filas.cerrarAbierta}
@@ -376,13 +361,6 @@ const crearEstilos = (colors) =>
     pantalla: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    centro: {
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    relleno: {
-      paddingHorizontal: 32,
     },
     // px-margin (20)
     lista: {
@@ -505,18 +483,8 @@ const crearEstilos = (colors) =>
       height: 10,
       backgroundColor: colors.surfaceLowest80,
     },
-    vacio: {
-      alignItems: 'center',
-      gap: 10,
-      paddingVertical: 32,
-    },
-    estadoTitulo: {
-      fontFamily: fonts.sansSemiBold,
-      color: colors.text,
-      fontSize: 18,
-      lineHeight: 24,
-      textAlign: 'center',
-      marginTop: 8,
+    enlaceVacio: {
+      alignSelf: 'center',
     },
     enlace: {
       fontFamily: fonts.sansMedium,
@@ -524,30 +492,11 @@ const crearEstilos = (colors) =>
       fontSize: 14,
       textDecorationLine: 'underline',
     },
-    botonEstado: {
-      alignSelf: 'stretch',
-      marginTop: 20,
-    },
     avisoError: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 12,
       marginTop: 12,
       padding: 12,
       borderRadius: radios['2xl'],
       borderWidth: 1,
       borderColor: colors.alerta,
-    },
-    avisoTexto: {
-      fontFamily: fonts.sans,
-      flex: 1,
-      color: colors.alertaTexto,
-      fontSize: 14,
-    },
-    avisoAccion: {
-      fontFamily: fonts.sansBold,
-      color: colors.text,
-      fontSize: 14,
     },
   });

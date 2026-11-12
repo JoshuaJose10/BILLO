@@ -19,6 +19,7 @@ import Boton from '../components/Boton';
 import BotonMicrofono from '../components/BotonMicrofono';
 import ChipCategoria from '../components/ChipCategoria';
 import ChipSelector from '../components/ChipSelector';
+import EstadoPantalla from '../components/EstadoPantalla';
 import EscuchaVoz from '../components/EscuchaVoz';
 import HojaInferior from '../components/HojaInferior';
 import MontoGrande from '../components/MontoGrande';
@@ -34,7 +35,9 @@ import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { contenidoAviso } from '../utils/avisos';
 import { MONEDA_DEFECTO, MONEDAS_DISPONIBLES, prepararDatosGasto } from '../utils/divisas';
+import { TEXTO_ESTADO_CATEGORIAS } from '../utils/categorias';
 import { mensajeError } from '../utils/errores';
+import { vistaLista } from '../utils/estadoCarga';
 import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
 import { fechaRelativa, formatearMonto, LOCALE, resumirTexto } from '../utils/formato';
 import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
@@ -55,6 +58,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
     recargar: reintentarCategorias,
     nombrePorId,
   } = useCategorias();
+  const vistaCategorias = vistaLista(estadoCategorias, categorias);
   // Si la primera carga falló (backend apagado, recién iniciada la sesión), se reintenta al enfocar.
   useReintentarCategoriasAlEnfocar();
   const { mostrarAviso } = useAvisos();
@@ -371,18 +375,13 @@ export default function NuevoGastoScreen({ navigation, route }) {
       {errores.monto ? <Text style={styles.errorCampo}>{errores.monto}</Text> : null}
 
       <View style={styles.zonaCategorias}>
-        {estadoCategorias === 'cargando' ? (
-          <View style={styles.estadoCategorias}>
-            <ActivityIndicator color={colors.textSecondary} />
-            <Text style={styles.textoEstado}>Cargando categorías…</Text>
-          </View>
-        ) : estadoCategorias === 'error' ? (
-          <View style={styles.estadoCategorias}>
-            <Text style={styles.textoEstado}>No se pudieron cargar</Text>
-            <ChipSelector icono="refresh" etiqueta="Reintentar" onPress={reintentarCategorias} />
-          </View>
-        ) : categorias.length === 0 ? (
-          <Text style={styles.textoEstado}>No hay categorías disponibles</Text>
+        {vistaCategorias !== 'lista' ? (
+          <EstadoPantalla
+            estado={vistaCategorias}
+            titulo={TEXTO_ESTADO_CATEGORIAS[vistaCategorias]}
+            onReintentar={reintentarCategorias}
+            compacta
+          />
         ) : (
           <ScrollView
             horizontal
@@ -580,17 +579,6 @@ const crearEstilos = (colors) =>
       minHeight: 32,
       justifyContent: 'center',
       marginBottom: 8,
-    },
-    estadoCategorias: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
-    },
-    textoEstado: {
-      fontFamily: fonts.sans,
-      color: colors.textSecondary,
-      fontSize: 14,
-      lineHeight: 20,
     },
     errorCampo: {
       fontFamily: fonts.sans,

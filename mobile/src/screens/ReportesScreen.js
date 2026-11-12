@@ -12,8 +12,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import BarraCategorias from '../components/BarraCategorias';
-import Boton from '../components/Boton';
 import DonaCategorias from '../components/DonaCategorias';
+import EstadoPantalla from '../components/EstadoPantalla';
 import Etiqueta from '../components/Etiqueta';
 import FondoDegradado from '../components/FondoDegradado';
 import IconoCategoria from '../components/IconoCategoria';
@@ -134,10 +134,8 @@ export default function ReportesScreen() {
     if (estado === 'error') setEstado('cargando');
   };
 
-  const reintentar = () => {
-    setEstado('cargando');
-    cargar();
-  };
+  // Reintentar deja el error a la vista con el botón en cargando hasta que responde.
+  const reintentar = () => cargar();
 
   const analisis = useMemo(() => {
     if (!datos) return null;
@@ -172,21 +170,13 @@ export default function ReportesScreen() {
   const cambiandoMes = estado === 'listo' && datos?.mes !== mes;
 
   let contenido;
-  if (estado === 'cargando') {
+  if (estado !== 'listo') {
     contenido = (
-      <View style={styles.estado}>
-        <ActivityIndicator size="large" color={colors.text} />
-      </View>
-    );
-  } else if (estado === 'error') {
-    contenido = (
-      <View style={styles.estado}>
-        <MaterialCommunityIcons name="wifi-off" size={40} color={colors.textSecondary} />
-        <Text style={styles.estadoTitulo}>{textoError}</Text>
-        <View style={styles.estadoBoton}>
-          <Boton titulo="Reintentar" onPress={reintentar} />
-        </View>
-      </View>
+      <EstadoPantalla
+        estado={estado}
+        titulo={estado === 'error' ? textoError : null}
+        onReintentar={reintentar}
+      />
     );
   } else {
     const { resumen, gastos } = datos;
@@ -211,15 +201,17 @@ export default function ReportesScreen() {
               animacion={datos.mes}
             />
           ) : (
-            <View style={styles.vacio}>
-              <MaterialCommunityIcons name="chart-donut" size={40} color={colors.textSecondary} />
-              <Text style={styles.estadoTitulo}>Sin gastos este mes</Text>
-              <Text style={styles.estadoTexto}>
-                {esMesSinDatos(resumen, gastos)
+            <EstadoPantalla
+              estado="vacio"
+              icono="chart-donut"
+              titulo="Sin gastos este mes"
+              mensaje={
+                esMesSinDatos(resumen, gastos)
                   ? 'Registra un gasto para ver en qué se va tu dinero.'
-                  : 'Aún no hay gastos; el total solo incluye tus suscripciones.'}
-              </Text>
-            </View>
+                  : 'Aún no hay gastos; el total solo incluye tus suscripciones.'
+              }
+              style={styles.vacio}
+            />
           )}
         </View>
 
@@ -690,30 +682,6 @@ const crearEstilos = (colors) =>
     },
     // Estados de carga, error y vacío: los de Inicio y Movimientos
     vacio: {
-      alignItems: 'center',
-      gap: 10,
       paddingVertical: espacios.sm,
-    },
-    estado: {
-      alignItems: 'center',
-      gap: 10,
-      paddingVertical: 48,
-      paddingHorizontal: espacios.sm + 4,
-    },
-    estadoTitulo: {
-      ...tipografia.headlineSm,
-      letterSpacing: 0,
-      color: colors.text,
-      textAlign: 'center',
-      marginTop: espacios.sm,
-    },
-    estadoTexto: {
-      ...tipografia.bodyMd,
-      color: colors.textSecondary,
-      textAlign: 'center',
-    },
-    estadoBoton: {
-      alignSelf: 'stretch',
-      marginTop: espacios.sm + 4,
     },
   });

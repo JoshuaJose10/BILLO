@@ -1,4 +1,3 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
@@ -11,8 +10,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import Boton from '../components/Boton';
 import EncabezadoDia from '../components/EncabezadoDia';
+import EstadoPantalla from '../components/EstadoPantalla';
 import Etiqueta from '../components/Etiqueta';
 import FiltroCategorias from '../components/FiltroCategorias';
 import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizable';
@@ -123,10 +122,10 @@ export default function MovimientosScreen({ navigation }) {
     if (estado === 'error') setEstado('cargando');
   };
 
+  // Reintentar deja el error a la vista con el botón en cargando hasta que responde.
   const reintentar = () => {
     recargarCategoriasSiFallaron();
-    setEstado('cargando');
-    cargar();
+    return cargar();
   };
 
   // Filas deslizables: Editar abre la hoja en modo edición; al eliminar, la fila se quita al
@@ -193,42 +192,20 @@ export default function MovimientosScreen({ navigation }) {
     </View>
   );
 
-  let contenidoVacio;
-  if (estado === 'cargando') {
-    contenidoVacio = (
-      <View style={styles.estado}>
-        <ActivityIndicator size="large" color={colors.text} />
-      </View>
-    );
-  } else if (estado === 'error') {
-    contenidoVacio = (
-      <View style={styles.estado}>
-        <MaterialCommunityIcons name="wifi-off" size={40} color={colors.textSecondary} />
-        <Text style={styles.estadoTitulo}>{textoError}</Text>
-        <View style={styles.estadoBoton}>
-          <Boton titulo="Reintentar" onPress={reintentar} />
-        </View>
-      </View>
-    );
-  } else {
-    contenidoVacio = (
-      <View style={[styles.estado, atenuado]}>
-        <MaterialCommunityIcons
-          name="receipt-text-outline"
-          size={40}
-          color={colors.textSecondary}
-        />
-        <Text style={styles.estadoTitulo}>{textoVacio}</Text>
-        <View style={styles.estadoBoton}>
-          <Boton
-            titulo="Registrar gasto"
-            icono="plus"
-            onPress={() => navigation.navigate('NuevoGasto')}
-          />
-        </View>
-      </View>
-    );
-  }
+  const contenidoVacio = (
+    <EstadoPantalla
+      estado={estado === 'listo' ? 'vacio' : estado}
+      titulo={estado === 'error' ? textoError : estado === 'listo' ? textoVacio : null}
+      icono={estado === 'listo' ? 'receipt-text-outline' : undefined}
+      onReintentar={reintentar}
+      accion={{
+        titulo: 'Registrar gasto',
+        icono: 'plus',
+        onPress: () => navigation.navigate('NuevoGasto'),
+      }}
+      style={atenuado}
+    />
+  );
 
   return (
     <View style={styles.pantalla}>
@@ -371,24 +348,6 @@ const crearEstilos = (colors) =>
     },
     atenuado: {
       opacity: 0.45,
-    },
-    estado: {
-      alignItems: 'center',
-      gap: 10,
-      paddingVertical: 48,
-      paddingHorizontal: 12,
-    },
-    estadoTitulo: {
-      fontFamily: fonts.sansSemiBold,
-      color: colors.text,
-      fontSize: 18,
-      lineHeight: 24,
-      textAlign: 'center',
-      marginTop: 8,
-    },
-    estadoBoton: {
-      alignSelf: 'stretch',
-      marginTop: 12,
     },
     // mt-space-xl flex flex-col items-center py-4
     fin: {
