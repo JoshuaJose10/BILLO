@@ -336,7 +336,7 @@ export default function MembresiaScreen({ navigation, route }) {
         icono="check"
         onPress={guardar}
         cargando={guardando}
-        disabled={eliminando}
+        disabled={ocupado}
         compacto
       />
       {editando ? (
@@ -346,7 +346,9 @@ export default function MembresiaScreen({ navigation, route }) {
             icono="check-circle-outline"
             onPress={confirmarMarcarPagada}
             cargando={marcandoPagada}
-            disabled={guardando || eliminando}
+            disabled={ocupado}
+            secundario
+            compacto
           />
           <Boton
             titulo="Eliminar suscripción"
@@ -354,7 +356,7 @@ export default function MembresiaScreen({ navigation, route }) {
             destructivo
             onPress={confirmarEliminar}
             cargando={eliminando}
-            disabled={guardando || marcandoPagada}
+            disabled={ocupado}
           />
         </View>
       ) : null}
@@ -510,6 +512,7 @@ const crearEstilos = (colors) =>
     },
     zonaEliminar: {
       marginTop: 10,
+      gap: 10,
     },
     errorApi: {
       ...tipografia.bodyMd,
