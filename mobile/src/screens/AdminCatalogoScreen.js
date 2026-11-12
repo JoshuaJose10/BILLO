@@ -18,7 +18,6 @@ import { useCatalogoService } from '../services/catalogo';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
-import { mensajeError } from '../utils/errores';
 import { formatearMonto } from '../utils/formato';
 import { estiloServicio, inicialServicio } from '../utils/membresias';
 
@@ -30,7 +29,7 @@ export default function AdminCatalogoScreen({ navigation }) {
 
   const [servicios, setServicios] = useState([]);
   const [estado, setEstado] = useState('cargando');
-  const [errorCarga, setErrorCarga] = useState('');
+  const [errorCarga, setErrorCarga] = useState(null);
   const [filtro, setFiltro] = useState('');
 
   // Estado del modal de creación / edición
@@ -54,7 +53,7 @@ export default function AdminCatalogoScreen({ navigation }) {
           return true;
         },
         (err) => {
-          setErrorCarga(mensajeError(err?.code, err?.message));
+          setErrorCarga(err);
           setEstado('error');
           return false;
         },
@@ -233,14 +232,13 @@ export default function AdminCatalogoScreen({ navigation }) {
       {estado !== 'listo' || serviciosFiltrados.length === 0 ? (
         <EstadoPantalla
           estado={estado === 'listo' ? 'vacio' : estado}
+          error={errorCarga}
           titulo={
-            estado === 'error'
-              ? errorCarga
-              : estado === 'cargando'
-                ? null
-                : filtro.trim()
-                  ? `No se encontraron servicios para "${filtro}"`
-                  : 'El catálogo está vacío.'
+            estado !== 'listo'
+              ? null
+              : filtro.trim()
+                ? `No se encontraron servicios para "${filtro}"`
+                : 'El catálogo está vacío.'
           }
           icono={estado === 'listo' ? 'shape-outline' : undefined}
           onReintentar={cargarCatalogo}

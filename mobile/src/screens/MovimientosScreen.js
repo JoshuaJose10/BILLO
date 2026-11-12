@@ -18,7 +18,6 @@ import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { useRecargar } from '../hooks/useRecargar';
-import { mensajeError } from '../utils/errores';
 import { mesActual } from '../utils/fechas';
 import { formatearMonto, nombreMes, tituloDia } from '../utils/formato';
 
@@ -66,7 +65,7 @@ export default function MovimientosScreen({ navigation }) {
   const [gastos, setGastos] = useState([]);
   const [filtroCargado, setFiltroCargado] = useState(null);
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
-  const [textoError, setTextoError] = useState('');
+  const [errorCarga, setErrorCarga] = useState(null);
 
   // Cada petición recibe un número; si al responder ya hay una más nueva, se descarta.
   const ultimaPeticion = useRef(0);
@@ -82,7 +81,7 @@ export default function MovimientosScreen({ navigation }) {
       return true;
     } catch (error) {
       if (peticion !== ultimaPeticion.current) return;
-      setTextoError(mensajeError(error?.code, error?.message));
+      setErrorCarga(error);
       setEstado('error');
       return false;
     }
@@ -112,7 +111,7 @@ export default function MovimientosScreen({ navigation }) {
   };
   const hayDatos = filtroCargado?.mes === mes && filtroCargado?.categoriaId === categoriaId;
   const recarga = useRecargar(reintentar, {
-    error: estado === 'error' ? textoError : null,
+    error: estado === 'error' ? errorCarga : null,
     hayDatos,
   });
 
@@ -184,7 +183,8 @@ export default function MovimientosScreen({ navigation }) {
   const contenidoVacio = (
     <EstadoPantalla
       estado={listo ? 'vacio' : estado}
-      titulo={listo ? textoVacio : estado === 'error' ? textoError : null}
+      error={errorCarga}
+      titulo={listo ? textoVacio : null}
       icono={listo ? 'receipt-text-outline' : undefined}
       onReintentar={reintentar}
       accion={{

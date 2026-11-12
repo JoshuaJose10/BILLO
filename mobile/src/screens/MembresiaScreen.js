@@ -153,7 +153,7 @@ export default function MembresiaScreen({ navigation, route }) {
   // silencio: se muestra con Reintentar, y una lista vacía dice que no hay servicios (HU-80).
   const [catalogo, setCatalogo] = useState([]);
   const [estadoCatalogo, setEstadoCatalogo] = useState('cargando');
-  const [errorCatalogo, setErrorCatalogo] = useState('');
+  const [errorCatalogo, setErrorCatalogo] = useState(null);
   const [intentoCatalogo, setIntentoCatalogo] = useState(0);
 
   const [errores, setErrores] = useState({});
@@ -179,7 +179,7 @@ export default function MembresiaScreen({ navigation, route }) {
       })
       .catch((error) => {
         if (!activo) return;
-        setErrorCatalogo(mensajeError(error?.code, error?.message));
+        setErrorCatalogo(error);
         setEstadoCatalogo('error');
       });
 
@@ -528,12 +528,11 @@ export default function MembresiaScreen({ navigation, route }) {
           {vistaCatalogo !== 'lista' ? (
             <EstadoPantalla
               estado={vistaCatalogo}
+              error={errorCatalogo}
               titulo={
-                vistaCatalogo === 'error'
-                  ? errorCatalogo
-                  : vistaCatalogo === 'cargando'
-                    ? 'Cargando catálogo…'
-                    : 'No hay servicios en el catálogo'
+                vistaCatalogo === 'cargando'
+                  ? 'Cargando catálogo…'
+                  : 'No hay servicios en el catálogo'
               }
               onReintentar={reintentarCatalogo}
               compacta

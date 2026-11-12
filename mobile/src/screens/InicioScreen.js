@@ -25,7 +25,6 @@ import { useEstilos } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { cobrosDeLaSemana, semanaSinProximoCobro } from '../utils/cobrosSemana';
 import { useRecargar } from '../hooks/useRecargar';
-import { mensajeError } from '../utils/errores';
 import { vistaPantalla } from '../utils/estadoCarga';
 import { mesActual } from '../utils/fechas';
 import { cargarDatosInicio, MOVIMIENTOS_RECIENTES } from '../utils/inicio';
@@ -74,7 +73,7 @@ export default function InicioScreen({ navigation }) {
   const [membresias, setMembresias] = useState(null);
   const [mesCargado, setMesCargado] = useState(null);
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
-  const [textoError, setTextoError] = useState('');
+  const [errorCarga, setErrorCarga] = useState(null);
   const [hayDatos, setHayDatos] = useState(false);
 
   // Cada petición recibe un número; si al responder ya hay una más nueva, se descarta.
@@ -103,7 +102,7 @@ export default function InicioScreen({ navigation }) {
       return true;
     } catch (error) {
       if (peticion !== ultimaPeticion.current) return;
-      setTextoError(mensajeError(error?.code, error?.message));
+      setErrorCarga(error);
       setEstado('error');
       return false;
     }
@@ -123,7 +122,7 @@ export default function InicioScreen({ navigation }) {
     return cargar();
   };
   const recarga = useRecargar(reintentar, {
-    error: estado === 'error' ? textoError : null,
+    error: estado === 'error' ? errorCarga : null,
     hayDatos,
   });
 
@@ -270,7 +269,7 @@ export default function InicioScreen({ navigation }) {
     return (
       <View style={styles.pantalla}>
         <FondoDegradado />
-        <EstadoPantalla estado={vista} titulo={textoError} onReintentar={reintentar} completa />
+        <EstadoPantalla estado={vista} error={errorCarga} onReintentar={reintentar} completa />
       </View>
     );
   }

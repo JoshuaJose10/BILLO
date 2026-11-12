@@ -29,7 +29,6 @@ import {
   textoComparacion,
 } from '../utils/analisis';
 import { useRecargar } from '../hooks/useRecargar';
-import { mensajeError } from '../utils/errores';
 import { mesActual, sumarMeses } from '../utils/fechas';
 import { formatearMonto, MONEDA, nombreMes } from '../utils/formato';
 import { resumenPresupuestos } from '../utils/presupuestos';
@@ -80,7 +79,7 @@ export default function ReportesScreen() {
   // { mes, resumen, gastos, anterior (null si falló), presupuestos (null si falló) }.
   const [datos, setDatos] = useState(null);
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
-  const [textoError, setTextoError] = useState('');
+  const [errorCarga, setErrorCarga] = useState(null);
 
   // Cada petición recibe un número; si al responder ya hay una más nueva, se descarta.
   const ultimaPeticion = useRef(0);
@@ -100,7 +99,7 @@ export default function ReportesScreen() {
       return true;
     } catch (error) {
       if (peticion !== ultimaPeticion.current) return;
-      setTextoError(mensajeError(error?.code, error?.message));
+      setErrorCarga(error);
       setEstado('error');
       return false;
     }
@@ -125,7 +124,7 @@ export default function ReportesScreen() {
   // mes a la vista, los datos se quedan y el error sale como aviso fijo arriba (useRecargar).
   const hayDatos = datos?.mes === mes;
   const recarga = useRecargar(cargar, {
-    error: estado === 'error' ? textoError : null,
+    error: estado === 'error' ? errorCarga : null,
     hayDatos,
   });
 
@@ -163,13 +162,7 @@ export default function ReportesScreen() {
 
   let contenido;
   if (estado !== 'listo' && !hayDatos) {
-    contenido = (
-      <EstadoPantalla
-        estado={estado}
-        titulo={estado === 'error' ? textoError : null}
-        onReintentar={cargar}
-      />
-    );
+    contenido = <EstadoPantalla estado={estado} error={errorCarga} onReintentar={cargar} />;
   } else {
     const { resumen, gastos } = datos;
     const { desglose, dona, comparacion, proyectado, consejo } = analisis;

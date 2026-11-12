@@ -100,7 +100,7 @@ export default function CarteraScreen({ navigation, route }) {
   const [presupuestos, setPresupuestos] = useState([]);
   const [mesCargado, setMesCargado] = useState(null);
   const [estadoPresupuestos, setEstadoPresupuestos] = useState('cargando');
-  const [textoErrorPresupuestos, setTextoErrorPresupuestos] = useState('');
+  const [errorPresupuestos, setErrorPresupuestos] = useState(null);
   const [copiandoPresupuestos, setCopiandoPresupuestos] = useState(false);
   const [avisoCopia, setAvisoCopia] = useState('');
   const ultimaPeticionPresupuestos = useRef(0);
@@ -108,7 +108,7 @@ export default function CarteraScreen({ navigation, route }) {
   // --- Estado de Membresías / Suscripciones ---
   const [membresias, setMembresias] = useState([]);
   const [estadoMembresias, setEstadoMembresias] = useState('cargando');
-  const [textoErrorMembresias, setTextoErrorMembresias] = useState('');
+  const [errorMembresias, setErrorMembresias] = useState(null);
   const [membresiasCargadas, setMembresiasCargadas] = useState(false);
   const ultimaPeticionMembresias = useRef(0);
   const [ordenSubs, setOrdenSubs] = useState(() => ordenRecordado);
@@ -137,7 +137,7 @@ export default function CarteraScreen({ navigation, route }) {
       return true;
     } catch (error) {
       if (peticion !== ultimaPeticionPresupuestos.current) return;
-      setTextoErrorPresupuestos(mensajeError(error?.code, error?.message));
+      setErrorPresupuestos(error);
       setEstadoPresupuestos('error');
       return false;
     }
@@ -154,7 +154,7 @@ export default function CarteraScreen({ navigation, route }) {
       return true;
     } catch (error) {
       if (peticion !== ultimaPeticionMembresias.current) return;
-      setTextoErrorMembresias(mensajeError(error?.code, error?.message));
+      setErrorMembresias(error);
       setEstadoMembresias('error');
       return false;
     }
@@ -181,11 +181,11 @@ export default function CarteraScreen({ navigation, route }) {
   // con datos de esa sección a la vista, se quedan y el error sale como aviso fijo arriba.
   const presupuestosCargados = mesCargado === mes;
   const recargaPresupuestos = useRecargar(cargarPresupuestos, {
-    error: estadoPresupuestos === 'error' ? textoErrorPresupuestos : null,
+    error: estadoPresupuestos === 'error' ? errorPresupuestos : null,
     hayDatos: presupuestosCargados,
   });
   const recargaMembresias = useRecargar(cargarMembresias, {
-    error: estadoMembresias === 'error' ? textoErrorMembresias : null,
+    error: estadoMembresias === 'error' ? errorMembresias : null,
     hayDatos: membresiasCargadas,
   });
   const recarga = enPresupuestos ? recargaPresupuestos : enSuscripciones ? recargaMembresias : null;
@@ -512,7 +512,8 @@ export default function CarteraScreen({ navigation, route }) {
     contenidoVacio = (
       <EstadoPantalla
         estado={vacio ? 'vacio' : estadoPresupuestos}
-        titulo={vacio ? `Sin presupuestos ${periodo}` : textoErrorPresupuestos}
+        error={errorPresupuestos}
+        titulo={vacio ? `Sin presupuestos ${periodo}` : null}
         mensaje={vacio ? 'Ponle un límite a cada categoría y ve cuánto llevas gastado.' : null}
         icono={vacio ? 'wallet-outline' : undefined}
         onReintentar={reintentar}
@@ -535,7 +536,8 @@ export default function CarteraScreen({ navigation, route }) {
     contenidoVacio = (
       <EstadoPantalla
         estado={vacio ? 'vacio' : estadoMembresias}
-        titulo={vacio ? 'Sin suscripciones registradas' : textoErrorMembresias}
+        error={errorMembresias}
+        titulo={vacio ? 'Sin suscripciones registradas' : null}
         mensaje={
           vacio
             ? 'Agrega tus suscripciones para controlar tus cobros recurrentes y fechas de pago.'

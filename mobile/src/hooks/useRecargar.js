@@ -12,7 +12,7 @@ const ENTRADA = SlideInUp.duration(220);
 
 // Jalar para recargar y aviso «sin conexión» de Inicio, Movimientos, Cartera y Reportes (HU-69).
 // - recargar: vuelve a pedir y devuelve true/false (las cargas de las pantallas).
-// - error: texto del error actual o null. hayDatos: hay datos a la vista.
+// - error: el error actual de apiFetch o null. hayDatos: hay datos a la vista.
 // Devuelve:
 // - propsLista: { style, refreshControl } para la lista. Empieza bajo la barra de estado para que el
 //   indicador de iOS no quede tapado por ella (Dynamic Island). `refreshing` sigue en true hasta que
@@ -49,7 +49,7 @@ export function useRecargar(recargar, { error, hayDatos }) {
       <Animated.View entering={ENTRADA} style={[styles.aviso, { top: insets.top + 8 }]}>
         <EstadoPantalla
           estado="error"
-          titulo={error}
+          error={error}
           onReintentar={recargar}
           onCerrar={() => setCerrado(true)}
           compacta

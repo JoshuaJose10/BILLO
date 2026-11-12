@@ -6,17 +6,18 @@ Fecha: 2026-11-12. Todas las pantallas que piden datos usan `EstadoPantalla`
 ## Qué cambió para quien prueba
 
 - **Timeout de 15 s** (`TIMEOUT_MS` en `mobile/src/config/api.js`). Al vencer, o sin red, o con
-  el servidor apagado, o con un 5xx genérico, el error es «No se pudo conectar con el servidor.
-  Revisa tu conexión e intenta de nuevo.». Un 5xx con código propio (502
+  el servidor apagado, el error es «Sin conexión» / «Revisa tu internet e intenta de nuevo.»; con
+  un 5xx genérico, «Algo salió mal de nuestro lado» / «Intenta de nuevo en un momento.» (textos en
+  `textosError`, `mobile/src/utils/errores.js`). Un 5xx con código propio (502
   `FUENTE_NO_DISPONIBLE` del tipo de cambio) conserva su mensaje.
 - **Reintentar**: vibración ligera; el error sigue a la vista con el botón en cargando y solo
   se vuelve a pedir lo que falló. Si vuelve a fallar, el mensaje se queda; si responde, aparecen
   los datos. No hace falta reiniciar la app.
 - **Vacío ≠ error**: el vacío lleva su ícono, texto propio y acción («Registrar gasto», «Crear tu
-  primer presupuesto», «Agregar tu primera suscripción»); el error lleva el ícono sin wifi y
-  Reintentar.
+  primer presupuesto», «Agregar tu primera suscripción»); el error lleva el ícono sin wifi en un
+  squircle de vidrio y el botón secundario «Reintentar».
 - **Inicio con datos a la vista**: si una recarga falla, los datos se quedan y arriba sale un
-  aviso con borde rojo y «Reintentar»; sin datos, el error ocupa la pantalla.
+  aviso con borde rojo, «Sin conexión · Reintentar»; sin datos, el error ocupa la pantalla.
 - Hojas (Nuevo gasto, Presupuesto, Membresía): fila compacta «No se pudieron cargar» + chip
   «Reintentar».
 - Pull-to-refresh sigue igual en Inicio, Movimientos, Reportes y Cartera.

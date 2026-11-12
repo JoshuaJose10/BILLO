@@ -1,4 +1,4 @@
-import { ERROR_DESCONOCIDO, MODO_VISITANTE, SIN_CONEXION } from '../services/api';
+import { ERROR_DESCONOCIDO, MODO_VISITANTE, SIN_CONEXION } from '../services/api.js';
 
 // Mensaje para el usuario de cada `code` de docs/api-contrato.md (v1.1), más los que genera
 // la app (SIN_CONEXION y ERROR_DESCONOCIDO).
@@ -61,4 +61,18 @@ const MENSAJES = {
 // del servidor y, si no hay, el genérico.
 export function mensajeError(code, mensajeServidor) {
   return MENSAJES[code] || mensajeServidor || MENSAJES[ERROR_DESCONOCIDO];
+}
+
+// Título y mensaje del estado de error de una carga (EstadoPantalla, HU-69). Sin red, timeout o
+// servidor apagado (SIN_CONEXION, status 0) → «Sin conexión»; un 5xx genérico (apiFetch lo reporta
+// como SIN_CONEXION con su status) → falla nuestra. Otro error usa su mensaje como título.
+const SIN_RED = { titulo: 'Sin conexión', mensaje: 'Revisa tu internet e intenta de nuevo.' };
+const FALLA_SERVIDOR = {
+  titulo: 'Algo salió mal de nuestro lado',
+  mensaje: 'Intenta de nuevo en un momento.',
+};
+
+export function textosError(error) {
+  if (error?.code === SIN_CONEXION) return error.status >= 500 ? FALLA_SERVIDOR : SIN_RED;
+  return { titulo: mensajeError(error?.code, error?.message), mensaje: null };
 }
