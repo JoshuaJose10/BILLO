@@ -2,6 +2,7 @@ const { describe, it, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const { spawnSync } = require('node:child_process');
 const path = require('node:path');
+const fs = require('node:fs');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { expectError } = require('../helpers/fixtures.cjs');
@@ -273,6 +274,99 @@ module.exports = getContext => describe('Autenticación (Postman 01 / RF1)', () 
       { column_name: 'reset_token_hash' },
     ]);
   });
+
+  it('Migración 016: invalida códigos ambiguos de una base existente y conserva códigos nuevos al reaplicarse', async () => {
+    const sql = fs.readFileSync(
+      path.resolve(__dirname, '../../migrations/016_recuperacion_zona_horaria.sql'),
+      'utf8'
+    );
+    const client = await ctx.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const originales = await client.query(
+        'SELECT id, email, password_hash FROM usuarios ORDER BY id'
+      );
+      // Simular el esquema anterior dentro de la base temporal; se revierte al terminar.
+      await client.query(`
+        ALTER TABLE usuarios ALTER COLUMN reset_token_expira TYPE TIMESTAMP
+        USING reset_token_expira AT TIME ZONE 'UTC'
+      `);
+      await client.query(`
+        UPDATE usuarios SET reset_token_hash = 'codigo-anterior',
+          reset_token_expira = TIMESTAMP '2026-11-12 12:30:00'
+      `);
+      await client.query(sql);
+      const tipo = await client.query(`
+        SELECT data_type FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'usuarios'
+          AND column_name = 'reset_token_expira'
+      `);
+      assert.equal(tipo.rows[0].data_type, 'timestamp with time zone');
+      const invalidados = await client.query(
+        'SELECT reset_token_hash, reset_token_expira FROM usuarios ORDER BY id'
+      );
+      assert.deepEqual(invalidados.rows, originales.rows.map(() => ({
+        reset_token_hash: null, reset_token_expira: null,
+      })));
+      const usuarios = await client.query(
+        'SELECT id, email, password_hash FROM usuarios ORDER BY id'
+      );
+      assert.deepEqual(usuarios.rows, originales.rows);
+
+      const nuevo = await client.query(`
+        UPDATE usuarios SET reset_token_hash = 'codigo-nuevo',
+          reset_token_expira = NOW() + INTERVAL '30 minutes'
+        WHERE id = $1 RETURNING reset_token_hash, reset_token_expira
+      `, [ctx.a.usuario.id]);
+      await client.query(sql);
+      const conservado = await client.query(
+        'SELECT reset_token_hash, reset_token_expira FROM usuarios WHERE id = $1',
+        [ctx.a.usuario.id]
+      );
+      assert.deepEqual(conservado.rows, nuevo.rows);
+    } finally {
+      try { await client.query('ROLLBACK'); } finally { client.release(); }
+    }
+  });
+
+  for (const zona of ['UTC', 'America/Mexico_City']) {
+    it(`Recuperación: respeta vencimiento y vigencia con PostgreSQL en ${zona}`, async () => {
+      await ctx.api.post('/auth/olvide-contrasena')
+        .send({ email: ctx.a.usuario.email }).expect(200);
+      const { token } = obtenerUltimoCorreoEnviado();
+
+      async function ajustarVencimiento(minutos) {
+        const client = await ctx.pool.connect();
+        try {
+          await client.query('BEGIN');
+          await client.query("SELECT set_config('TimeZone', $1, true)", [zona]);
+          await client.query(`
+            UPDATE usuarios
+            SET reset_token_expira = NOW() + $1 * INTERVAL '1 minute'
+            WHERE id = $2
+          `, [minutos, ctx.a.usuario.id]);
+          await client.query('COMMIT');
+        } catch (error) {
+          await client.query('ROLLBACK');
+          throw error;
+        } finally {
+          client.release();
+        }
+      }
+
+      await ajustarVencimiento(-1);
+      expectError(await ctx.api.post('/auth/restablecer-contrasena')
+        .send({ token, password: 'NuevaPasswordSegura99' }), 400, 'TOKEN_INVALIDO');
+      await ctx.api.post('/auth/login')
+        .send({ email: ctx.a.usuario.email, password: ctx.password }).expect(200);
+
+      await ajustarVencimiento(30);
+      await ctx.api.post('/auth/restablecer-contrasena')
+        .send({ token, password: 'NuevaPasswordSegura99' }).expect(200);
+      await ctx.api.post('/auth/login')
+        .send({ email: ctx.a.usuario.email, password: 'NuevaPasswordSegura99' }).expect(200);
+    });
+  }
 
   it('Flujo completo: pedir código → verificar hash y caducidad 30 min → restablecer → iniciar sesión', async () => {
     const antesMs = Date.now();

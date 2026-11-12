@@ -399,10 +399,63 @@ const restablecerContrasena = async (req, res) => {
   }
 };
 
+// ELIMINAR CUENTA Y TODOS SUS DATOS (DELETE /auth/cuenta — HU-68)
+const eliminarCuenta = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const usuarioId = req.usuario.id;
+
+    await client.query('BEGIN');
+
+    const userRes = await client.query(
+      'SELECT id FROM usuarios WHERE id = $1 FOR UPDATE',
+      [usuarioId]
+    );
+
+    if (userRes.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({
+        error: {
+          code: 'USUARIO_NO_ENCONTRADO',
+          message: 'El usuario no existe',
+        },
+      });
+    }
+
+    await client.query('DELETE FROM ingresos WHERE usuario_id = $1', [
+      usuarioId,
+    ]);
+    await client.query('DELETE FROM gastos WHERE usuario_id = $1', [usuarioId]);
+    await client.query('DELETE FROM presupuestos WHERE usuario_id = $1', [
+      usuarioId,
+    ]);
+    await client.query('DELETE FROM membresias WHERE usuario_id = $1', [
+      usuarioId,
+    ]);
+    await client.query('DELETE FROM usuarios WHERE id = $1', [usuarioId]);
+
+    await client.query('COMMIT');
+
+    return res.status(200).json({ eliminado: true });
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('Error al eliminar cuenta:', error);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'No se pudo eliminar la cuenta',
+      },
+    });
+  } finally {
+    client.release();
+  }
+};
+
 module.exports = {
   register,
   login,
   profile,
   olvideContrasena,
   restablecerContrasena,
+  eliminarCuenta,
 };
