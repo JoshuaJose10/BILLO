@@ -18,6 +18,7 @@ const MENSAJES = {
   CAMPOS_REQUERIDOS: 'Completa todos los campos.',
   CREDENCIALES_INVALIDAS: 'Correo o contraseña incorrectos.',
   USUARIO_NO_ENCONTRADO: 'No encontramos tu cuenta. Inicia sesión de nuevo.',
+  DEMASIADAS_SOLICITUDES: 'Ya pediste varios códigos; espera unos minutos.',
 
   // Categorías y gastos
   TIPO_INVALIDO: 'El tipo de categoría no es válido.',
