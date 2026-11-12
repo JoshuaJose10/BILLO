@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { forwardRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { forwardRef, useEffect, useState } from 'react';
+import { AccessibilityInfo, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import Etiqueta from './Etiqueta';
 import { useEstilos, useTema } from '../theme/TemaContext';
@@ -90,12 +90,22 @@ const Input = forwardRef(function Input(
         ) : null}
       </View>
       {pie}
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <TextoError>{error}</TextoError> : null}
     </View>
   );
 });
 
 export default Input;
+
+// Mensaje de error que el lector de pantalla anuncia al aparecer o cambiar. Debajo de un campo,
+// o centrado sobre el botón principal con `formulario` (errores de la API).
+export function TextoError({ children, formulario = false }) {
+  const styles = useEstilos(crearEstilos);
+  useEffect(() => {
+    if (children) AccessibilityInfo.announceForAccessibility(children);
+  }, [children]);
+  return <Text style={formulario ? styles.errorFormulario : styles.error}>{children}</Text>;
+}
 
 const crearEstilos = (colors) =>
   StyleSheet.create({
@@ -160,5 +170,12 @@ const crearEstilos = (colors) =>
       lineHeight: 16,
       marginTop: 6,
       paddingHorizontal: 4,
+    },
+    errorFormulario: {
+      fontFamily: fonts.sans,
+      color: colors.alertaTexto,
+      fontSize: 14,
+      textAlign: 'center',
+      marginBottom: 12,
     },
   });
