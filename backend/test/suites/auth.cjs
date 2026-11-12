@@ -370,8 +370,8 @@ module.exports = getContext => describe('Autenticación (Postman 01 / RF1)', () 
 
     // Simular que ya pasaron más de 30 minutos
     await ctx.pool.query(
-      "UPDATE usuarios SET reset_token_expira = NOW() - INTERVAL '1 minute' WHERE id = $1",
-      [ctx.a.usuario.id]
+      'UPDATE usuarios SET reset_token_expira = $1 WHERE id = $2',
+      [new Date(Date.now() - 60000), ctx.a.usuario.id]
     );
 
     const vencido = await ctx.api

@@ -71,12 +71,13 @@ export function inicialServicio(nombre) {
 }
 
 // Suma el gasto fijo mensual: membresías mensuales aportan su costo completo,
-// anuales se dividen entre 12. Redondeado a 2 decimales.
+// anuales se dividen entre 12. Las membresías pausadas no cuentan (HU-75). Redondeado a 2 decimales.
 export function calcularTotalMensual(membresias = []) {
   if (!Array.isArray(membresias) || membresias.length === 0) return 0;
   const suma = membresias.reduce((total, m) => {
-    const costo = Number(m.costo) || 0;
-    if (m.frecuencia === 'anual') {
+    if (m?.estado === 'pausada') return total;
+    const costo = Number(m?.costo) || 0;
+    if (m?.frecuencia === 'anual') {
       return total + costo / 12;
     }
     return total + costo;
@@ -86,6 +87,7 @@ export function calcularTotalMensual(membresias = []) {
 
 // Costo mensual de una membresía: las anuales se reparten en 12 meses.
 const costoMensual = (m) => {
+  if (m?.estado === 'pausada') return 0;
   const costo = Number(m?.costo) || 0;
   return m?.frecuencia === 'anual' ? costo / 12 : costo;
 };
@@ -93,9 +95,10 @@ const costoMensual = (m) => {
 // Tramos de la barra "Total mensual" de Cartera (HU-81), para BarraCategorias:
 // [{ id, nombre, fraccion, color }] con el color de marca de cada servicio, de mayor a menor costo
 // mensual. Las fracciones suman 1 (la barra se llena: no hay límite como en presupuestos). Las
-// membresías sin costo no generan tramo.
+// membresías sin costo o pausadas no generan tramo.
 export function tramosSuscripciones(membresias = []) {
   const conCosto = (Array.isArray(membresias) ? membresias : [])
+    .filter((m) => m?.estado !== 'pausada')
     .map((m) => ({ m, mensual: costoMensual(m) }))
     .filter((x) => x.mensual > 0);
   const total = conCosto.reduce((suma, x) => suma + x.mensual, 0);
@@ -184,9 +187,12 @@ export function agruparPorFrecuencia(membresias = []) {
 
 // Tarjeta "Próximo cobro" de Inicio (HU-72): la membresía con la fecha de cobro más próxima
 // (mismo orden que Cartera › Fecha) → { membresia, dias, mas }, donde `mas` cuenta las otras que
-// cobran ese mismo día. Solo considera fechas conocidas y no vencidas; sin ninguna: null.
+// cobran ese mismo día. Solo considera fechas conocidas, activas y no vencidas (HU-75); sin ninguna: null.
 export function proximoCobro(membresias = []) {
-  const conFecha = ordenarMembresias(membresias, ORDEN_SUSCRIPCIONES.fecha).filter(
+  const activas = (Array.isArray(membresias) ? membresias : []).filter(
+    (m) => m?.estado !== 'pausada',
+  );
+  const conFecha = ordenarMembresias(activas, ORDEN_SUSCRIPCIONES.fecha).filter(
     (m) => diasOrden(m) !== Infinity && m.dias_para_cobro >= 0,
   );
   if (conFecha.length === 0) return null;

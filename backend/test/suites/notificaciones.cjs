@@ -505,6 +505,41 @@ module.exports = (getContext) =>
         assert.equal(rows[0].ultima_notificacion, null);
       });
 
+      it('una membresía pausada a 2 días del cobro no genera aviso (QA HU-75)', async () => {
+        await registrar(ctx.a, 'ExponentPushToken[token-usuario-a]').expect(200);
+        // Membresía a 2 días del cobro (10 nov -> cobro 12 nov), pero en estado pausada
+        const { rows: inserted } = await ctx.pool.query(
+          `INSERT INTO membresias (usuario_id, nombre, costo, frecuencia, fecha_cobro, estado)
+           VALUES ($1, 'Netflix Pausado', 199, 'mensual', '2026-11-12', 'pausada')
+           RETURNING id`,
+          [ctx.a.usuario.id]
+        );
+        const membresiaId = inserted[0].id;
+
+        let llamadas = 0;
+        const fetchMock = async () => {
+          llamadas++;
+          throw new Error('No debía llamarse a Expo');
+        };
+
+        const resumen = await procesarAvisosCobro({
+          fechaReferencia: '2026-11-10',
+          pool: ctx.pool,
+          fetchImpl: fetchMock,
+          logger: { error: () => {} },
+        });
+
+        // La pausada es ignorada: no se revisa ni se envía
+        assert.equal(resumen.enviadas, 0);
+        assert.equal(llamadas, 0);
+
+        const { rows } = await ctx.pool.query(
+          'SELECT ultima_notificacion FROM membresias WHERE id = $1',
+          [membresiaId]
+        );
+        assert.equal(rows[0].ultima_notificacion, null);
+      });
+
       it('si un usuario no tiene token o Expo falla, registra el error y sigue con los demás sin tumbar el proceso', async () => {
         // Usuario A no tiene token; Usuario B sí tiene token con 2 membresías (la primera falla en Expo, la segunda pasa)
         const tokenB = 'ExponentPushToken[token-usuario-b]';

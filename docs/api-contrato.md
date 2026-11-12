@@ -248,6 +248,16 @@ Body: igual que POST
 - 400 → NOMBRE_INVALIDO, COSTO_INVALIDO, FRECUENCIA_INVALIDA, FECHA_INVALIDA, SERVICIO_INEXISTENTE
 - 404 → MEMBRESIA_NO_ENCONTRADA
 
+### POST /membresias/:id/pausar  (requiere token) (HU-75)
+Cambia el estado de la membresía a `pausada`. Las membresías pausadas no cuentan en el total mensual, en Reportes ni en los avisos de cobro de RF7.
+- 200 → { "membresia": { "id": 9, ..., "estado": "pausada" } }
+- 404 → MEMBRESIA_NO_ENCONTRADA
+
+### POST /membresias/:id/reactivar  (requiere token) (HU-75)
+Cambia el estado de la membresía a `activa`. Vuelve a contar en el total mensual, en Reportes y en los avisos de cobro.
+- 200 → { "membresia": { "id": 9, ..., "estado": "activa" } }
+- 404 → MEMBRESIA_NO_ENCONTRADA
+
 ### DELETE /membresias/:id
 - 200 → { "eliminado": true }
 - 404 → MEMBRESIA_NO_ENCONTRADA
@@ -312,6 +322,7 @@ Son campos nuevos y opcionales (no rompen nada de lo existente). Se aplican en u
 | C-01 | `usuarios.expo_push_token` (varchar, nulo) | Guardar el token de Expo del teléfono para enviar el aviso de cobro (RF7). | Aplicado en migración 011 (S3) |
 | C-02 | `membresias.ultima_notificacion` (date, nulo) | Evitar mandar el mismo aviso más de una vez por cobro (RF7). | Aplicado en migración 011 (S3) |
 | C-03 | `usuarios.reset_token_hash` (varchar, nulo) y `usuarios.reset_token_expira` (timestamp, nulo) | Guardar el hash del código/token de recuperación (un solo uso) y su vencimiento de 30 min. | Aplicado en migración 014 (S3) |
+| C-04 | `membresias.estado` (varchar(20), activa o pausada, default 'activa') | Pausar o cancelar suscripción sin borrarla (HU-75). | Aplicado en migración 015 |
 
 ### Extensiones propuestas, fuera del congelamiento
 

@@ -74,11 +74,18 @@ function useAlturaTeclado() {
 export default function MembresiaScreen({ navigation, route }) {
   const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
-  const { listarCatalogo, crearMembresia, actualizarMembresia, eliminarMembresia } =
-    useMembresiasService();
+  const {
+    listarCatalogo,
+    crearMembresia,
+    actualizarMembresia,
+    eliminarMembresia,
+    pausarMembresia,
+    reactivarMembresia,
+  } = useMembresiasService();
 
   const membresiaEditada = route.params?.membresia;
   const editando = Boolean(membresiaEditada);
+  const estaPausada = membresiaEditada?.estado === 'pausada';
 
   const [nombre, setNombre] = useState(() => membresiaEditada?.nombre ?? '');
   const [texto, setTexto] = useState(() =>
@@ -102,10 +109,11 @@ export default function MembresiaScreen({ navigation, route }) {
   const [errorApi, setErrorApi] = useState('');
   const [guardando, setGuardando] = useState(false);
   const [eliminando, setEliminando] = useState(false);
+  const [pausando, setPausando] = useState(false);
   const enviando = useRef(false);
   const hojaRef = useRef(null);
 
-  const ocupado = guardando || eliminando;
+  const ocupado = guardando || eliminando || pausando;
 
   // Cargar catálogo de servicios predefinidos si estamos agregando
   useEffect(() => {
@@ -220,6 +228,27 @@ export default function MembresiaScreen({ navigation, route }) {
     } catch (error) {
       enviando.current = false;
       setGuardando(false);
+      setErrorApi(mensajeError(error?.code, error?.message));
+    }
+  };
+
+  const alternarPausar = async () => {
+    if (enviando.current || !editando) return;
+    enviando.current = true;
+    setPausando(true);
+    setErrorApi('');
+
+    try {
+      if (estaPausada) {
+        await reactivarMembresia(membresiaEditada.id);
+      } else {
+        await pausarMembresia(membresiaEditada.id);
+      }
+      enviando.current = false;
+      hojaRef.current?.cerrar();
+    } catch (error) {
+      enviando.current = false;
+      setPausando(false);
       setErrorApi(mensajeError(error?.code, error?.message));
     }
   };
@@ -370,7 +399,7 @@ export default function MembresiaScreen({ navigation, route }) {
             icono="check"
             onPress={guardar}
             cargando={guardando}
-            disabled={eliminando}
+            disabled={eliminando || pausando}
             compacto
           />
         </>
@@ -378,12 +407,20 @@ export default function MembresiaScreen({ navigation, route }) {
       {editando ? (
         <View style={styles.zonaEliminar}>
           <Boton
+            titulo={estaPausada ? 'Reactivar suscripción' : 'Pausar suscripción'}
+            icono={estaPausada ? 'play-circle-outline' : 'pause-circle-outline'}
+            secundario
+            onPress={alternarPausar}
+            cargando={pausando}
+            disabled={guardando || eliminando}
+          />
+          <Boton
             titulo="Eliminar suscripción"
             icono="trash-can-outline"
             destructivo
             onPress={confirmarEliminar}
             cargando={eliminando}
-            disabled={guardando}
+            disabled={guardando || pausando}
           />
         </View>
       ) : null}
@@ -539,6 +576,7 @@ const crearEstilos = (colors) =>
     },
     zonaEliminar: {
       marginTop: 10,
+      gap: 10,
     },
     errorApi: {
       ...tipografia.bodyMd,

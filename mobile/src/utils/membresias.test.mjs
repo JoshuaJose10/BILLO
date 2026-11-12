@@ -44,6 +44,25 @@ describe('utils/membresias', () => {
       ];
       assert.equal(calcularTotalMensual(membresias), 8.33);
     });
+
+    test('ignora las membresías pausadas (Aceptación HU-75)', () => {
+      const membresias = [
+        { nombre: 'Netflix', costo: 199, frecuencia: 'mensual', estado: 'pausada' },
+        { nombre: 'Spotify', costo: 129, frecuencia: 'mensual', estado: 'activa' },
+      ];
+      // Solo suma Spotify ($129), Netflix ($199) pausada no cuenta
+      assert.equal(calcularTotalMensual(membresias), 129);
+    });
+
+    test('reactivar devuelve el costo al total mensual (QA HU-75)', () => {
+      const pausada = [{ nombre: 'Netflix', costo: 199, frecuencia: 'mensual', estado: 'pausada' }];
+      assert.equal(calcularTotalMensual(pausada), 0);
+
+      const reactivada = [
+        { nombre: 'Netflix', costo: 199, frecuencia: 'mensual', estado: 'activa' },
+      ];
+      assert.equal(calcularTotalMensual(reactivada), 199);
+    });
   });
 
   describe('esCobroProximo', () => {

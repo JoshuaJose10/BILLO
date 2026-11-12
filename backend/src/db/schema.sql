@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS membresias (
   costo               NUMERIC(12, 2) NOT NULL CHECK (costo > 0),
   frecuencia          VARCHAR(20) NOT NULL CHECK (frecuencia IN ('mensual', 'anual')),
   fecha_cobro         DATE NOT NULL,
+  estado              VARCHAR(20) NOT NULL DEFAULT 'activa' CHECK (estado IN ('activa', 'pausada')),
   ultima_notificacion DATE NULL
 );
 
