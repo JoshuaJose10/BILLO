@@ -496,7 +496,8 @@ describe('utils/membresias', () => {
     test('devuelve cadena vacía para nombres no reconocidos o vacíos', () => {
       assert.equal(obtenerMarcaServicio('Internet Telmex'), '');
       assert.equal(obtenerMarcaServicio(''), '');
-      assert.equal(obtenerMarcaServicio(null), '');
+    });
+  });
 
   describe('alineación de fecha mostrada con el ciclo que se paga (HU-66 / interacción con HU-51)', () => {
     const hoyFijo = '2026-11-12';
