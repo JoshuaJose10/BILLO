@@ -1,4 +1,5 @@
 const { pool } = require('../db');
+const { esMonedaValida } = require('./tipoCambio.controller');
 
 const esFechaValida = (fechaStr) => {
   if (typeof fechaStr !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(fechaStr)) {
@@ -23,11 +24,31 @@ const esCostoValido = (costo) => {
   );
 };
 
+const esTipoCambioValido = (tc) =>
+  typeof tc === 'number' &&
+  Number.isFinite(tc) &&
+  tc > 0 &&
+  /^\d+(\.\d{1,6})?$/.test(String(tc));
+
+const coincideConversion = (montoOriginal, tipoCambio, costoMxn) => {
+  const esperado = montoOriginal * tipoCambio;
+  return Math.abs(esperado - costoMxn) <= 0.01;
+};
+
 const formatearMembresia = (row) => ({
   id: row.id,
   servicio_id: row.servicio_id === null ? null : Number(row.servicio_id),
   nombre: row.nombre,
   costo: Number(row.costo),
+  moneda: row.moneda || 'MXN',
+  monto_original:
+    row.monto_original === null || row.monto_original === undefined
+      ? null
+      : Number(row.monto_original),
+  tipo_cambio:
+    row.tipo_cambio === null || row.tipo_cambio === undefined
+      ? null
+      : Number(row.tipo_cambio),
   frecuencia: row.frecuencia,
   fecha_cobro: row.fecha_cobro,
   estado: row.estado || 'activa',
@@ -38,6 +59,15 @@ const formatearMembresiaConDias = (row) => ({
   servicio_id: row.servicio_id === null ? null : Number(row.servicio_id),
   nombre: row.nombre,
   costo: Number(row.costo),
+  moneda: row.moneda || 'MXN',
+  monto_original:
+    row.monto_original === null || row.monto_original === undefined
+      ? null
+      : Number(row.monto_original),
+  tipo_cambio:
+    row.tipo_cambio === null || row.tipo_cambio === undefined
+      ? null
+      : Number(row.tipo_cambio),
   frecuencia: row.frecuencia,
   fecha_cobro: row.fecha_cobro,
   estado: row.estado || 'activa',
@@ -54,7 +84,8 @@ const validarDatosMembresia = async (body) => {
     };
   }
 
-  const { servicio_id, frecuencia, fecha_cobro, estado } = body;
+  const { servicio_id, frecuencia, fecha_cobro, estado, moneda, monto_original, tipo_cambio } =
+    body;
   let { nombre, costo } = body;
 
   let servicioIdFinal = null;
@@ -166,6 +197,63 @@ const validarDatosMembresia = async (body) => {
     };
   }
 
+  let monedaFinal = 'MXN';
+  if (moneda !== undefined && moneda !== null) {
+    if (!esMonedaValida(moneda)) {
+      return {
+        error: {
+          code: 'MONEDA_INVALIDA',
+          message: 'La moneda debe ser un código válido de 3 letras',
+        },
+      };
+    }
+    monedaFinal = moneda;
+  }
+
+  let montoOriginalFinal = null;
+  let tipoCambioFinal = null;
+
+  if (monedaFinal === 'MXN') {
+    const tieneMontoOriginal =
+      monto_original !== undefined && monto_original !== null;
+    const tieneTipoCambio = tipo_cambio !== undefined && tipo_cambio !== null;
+
+    if (tieneMontoOriginal || tieneTipoCambio) {
+      if (
+        !esCostoValido(monto_original) ||
+        !esTipoCambioValido(tipo_cambio) ||
+        tipo_cambio !== 1 ||
+        monto_original !== costo
+      ) {
+        return {
+          error: {
+            code: 'MONTO_INVALIDO',
+            message:
+              'Para suscripciones en MXN, monto_original debe coincidir con costo y tipo_cambio debe ser 1',
+          },
+        };
+      }
+      montoOriginalFinal = monto_original;
+      tipoCambioFinal = tipo_cambio;
+    }
+  } else {
+    if (
+      !esCostoValido(monto_original) ||
+      !esTipoCambioValido(tipo_cambio) ||
+      !coincideConversion(monto_original, tipo_cambio, costo)
+    ) {
+      return {
+        error: {
+          code: 'MONTO_INVALIDO',
+          message:
+            'El monto original multiplicado por el tipo de cambio debe coincidir con el costo en MXN',
+        },
+      };
+    }
+    montoOriginalFinal = monto_original;
+    tipoCambioFinal = tipo_cambio;
+  }
+
   let estadoFinal = 'activa';
   if (estado !== undefined && estado !== null) {
     if (typeof estado !== 'string' || !['activa', 'pausada'].includes(estado)) {
@@ -184,6 +272,9 @@ const validarDatosMembresia = async (body) => {
       servicio_id: servicioIdFinal,
       nombre,
       costo,
+      moneda: monedaFinal,
+      monto_original: montoOriginalFinal,
+      tipo_cambio: tipoCambioFinal,
       frecuencia,
       fecha_cobro,
       estado: estadoFinal,
@@ -201,13 +292,22 @@ const crearMembresia = async (req, res) => {
       return res.status(400).json({ error: validacion.error });
     }
 
-    const { servicio_id, nombre, costo, frecuencia, fecha_cobro, estado } =
-      validacion.datos;
+    const {
+      servicio_id,
+      nombre,
+      costo,
+      moneda,
+      monto_original,
+      tipo_cambio,
+      frecuencia,
+      fecha_cobro,
+      estado,
+    } = validacion.datos;
 
     const insertQuery = `
-      INSERT INTO membresias (usuario_id, servicio_id, nombre, costo, frecuencia, fecha_cobro, estado)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING id, servicio_id, nombre, costo, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
+      INSERT INTO membresias (usuario_id, servicio_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, fecha_cobro, estado)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING id, servicio_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
     `;
 
     const { rows } = await pool.query(insertQuery, [
@@ -215,6 +315,9 @@ const crearMembresia = async (req, res) => {
       servicio_id,
       nombre,
       costo,
+      moneda,
+      monto_original,
+      tipo_cambio,
       frecuencia,
       fecha_cobro,
       estado,
@@ -245,6 +348,9 @@ const listarMembresias = async (req, res) => {
         servicio_id,
         nombre,
         costo,
+        moneda,
+        monto_original,
+        tipo_cambio,
         frecuencia,
         TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro,
         estado,
@@ -291,19 +397,31 @@ const actualizarMembresia = async (req, res) => {
       return res.status(400).json({ error: validacion.error });
     }
 
-    const { servicio_id, nombre, costo, frecuencia, fecha_cobro, estado } =
-      validacion.datos;
+    const {
+      servicio_id,
+      nombre,
+      costo,
+      moneda,
+      monto_original,
+      tipo_cambio,
+      frecuencia,
+      fecha_cobro,
+      estado,
+    } = validacion.datos;
 
     const updateQuery = `
       UPDATE membresias
       SET servicio_id = $3,
           nombre = $4,
           costo = $5,
-          frecuencia = $6,
-          fecha_cobro = $7,
-          estado = $8
+          moneda = $6,
+          monto_original = $7,
+          tipo_cambio = $8,
+          frecuencia = $9,
+          fecha_cobro = $10,
+          estado = $11
       WHERE id = $1 AND usuario_id = $2
-      RETURNING id, servicio_id, nombre, costo, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
+      RETURNING id, servicio_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
     `;
 
     const { rows } = await pool.query(updateQuery, [
@@ -312,6 +430,9 @@ const actualizarMembresia = async (req, res) => {
       servicio_id,
       nombre,
       costo,
+      moneda,
+      monto_original,
+      tipo_cambio,
       frecuencia,
       fecha_cobro,
       estado,
@@ -363,7 +484,7 @@ const pausarMembresia = async (req, res) => {
       UPDATE membresias
       SET estado = 'pausada'
       WHERE id = $1 AND usuario_id = $2
-      RETURNING id, servicio_id, nombre, costo, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
+      RETURNING id, servicio_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
     `;
     const { rows } = await pool.query(query, [membresiaId, usuarioId]);
 
@@ -411,7 +532,7 @@ const reactivarMembresia = async (req, res) => {
       UPDATE membresias
       SET estado = 'activa'
       WHERE id = $1 AND usuario_id = $2
-      RETURNING id, servicio_id, nombre, costo, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
+      RETURNING id, servicio_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
     `;
     const { rows } = await pool.query(query, [membresiaId, usuarioId]);
 
@@ -515,6 +636,10 @@ const marcarMembresiaPagada = async (req, res) => {
         servicio_id,
         nombre,
         costo,
+        moneda,
+        monto_original,
+        tipo_cambio,
+        estado,
         frecuencia,
         TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro,
         (fecha_cobro - CURRENT_DATE)::integer AS dias_para_cobro

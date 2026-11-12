@@ -264,23 +264,29 @@ Body: igual que POST
 - 404 → SERVICIO_NO_ENCONTRADO
 - 409 → SERVICIO_EN_USO (hay membresías que usan ese servicio)
 
-## Membresías (todas requieren token) (S2) — RF5
+## Membresías (todas requieren token) (S2 / moneda S3 — RF5, RF11)
 
-`frecuencia` acepta: `mensual` o `anual`. `fecha_cobro` es la **próxima** fecha de cobro. `servicio_id` es opcional: si se omite, la membresía es personalizada (`nombre` y `costo` son obligatorios en ese caso). Si se envía, `nombre` y `costo` pueden omitirse y toman los valores del catálogo (`costo_sugerido`).
+`frecuencia` acepta: `mensual` o `anual`. `fecha_cobro` es la **próxima** fecha de cobro. `servicio_id` es opcional: si se omite, la membresía es personalizada (`nombre` y `costo` son obligatorios en ese caso). Si se envía, `nombre` y `costo` pueden omitirse y toman los valores del catálogo (`costo_sugerido`). `costo` siempre se expresa en `MXN` para cálculos y reportes.
+
+`moneda`, `monto_original` y `tipo_cambio` son opcionales (S3, RF11 / HU-77):
+- Si `moneda` se omite o es `"MXN"`, se guarda con `"moneda": "MXN"`, `"monto_original": null` y `"tipo_cambio": null`.
+- Si `moneda` es otro código ISO 4217 de 3 letras soportado (ej. `"USD"` o `"EUR"`), `monto_original` y `tipo_cambio` son obligatorios y `monto_original × tipo_cambio` redondeado a 2 decimales debe coincidir con `costo`.
+- Reportes y totales mensuales siempre suman `costo` en `MXN`.
 
 ### POST /membresias
-Body: { "nombre": "Spotify", "costo": 129, "frecuencia": "mensual", "fecha_cobro": "2026-10-20", "servicio_id": 1 }
-- 201 → { "membresia": { "id": 9, "servicio_id": 1, "nombre": "Spotify", "costo": 129, "frecuencia": "mensual", "fecha_cobro": "2026-10-20" } }
-- 400 → NOMBRE_INVALIDO, COSTO_INVALIDO, FRECUENCIA_INVALIDA, FECHA_INVALIDA, SERVICIO_INEXISTENTE
+Body (en MXN): { "nombre": "Spotify", "costo": 129, "frecuencia": "mensual", "fecha_cobro": "2026-10-20", "servicio_id": 1 }
+Body (en otra divisa): { "nombre": "ChatGPT Plus", "costo": 186.31, "moneda": "USD", "monto_original": 10, "tipo_cambio": 18.6311, "frecuencia": "mensual", "fecha_cobro": "2026-10-20" }
+- 201 → { "membresia": { "id": 9, "servicio_id": 1, "nombre": "Spotify", "costo": 129, "moneda": "MXN", "monto_original": null, "tipo_cambio": null, "frecuencia": "mensual", "fecha_cobro": "2026-10-20" } }
+- 400 → NOMBRE_INVALIDO, COSTO_INVALIDO, FRECUENCIA_INVALIDA, FECHA_INVALIDA, SERVICIO_INEXISTENTE, MONEDA_INVALIDA, MONTO_INVALIDO
 
 ### GET /membresias
 Orden: `fecha_cobro` ascendente.
-- 200 → [ { "id": 9, "servicio_id": 1, "nombre": "Spotify", "costo": 129, "frecuencia": "mensual", "fecha_cobro": "2026-10-20", "dias_para_cobro": 7 }, ... ]
+- 200 → [ { "id": 9, "servicio_id": 1, "nombre": "Spotify", "costo": 129, "moneda": "MXN", "monto_original": null, "tipo_cambio": null, "frecuencia": "mensual", "fecha_cobro": "2026-10-20", "dias_para_cobro": 7 }, ... ]
 
 ### PUT /membresias/:id
 Body: igual que POST
 - 200 → { "membresia": { ... } }
-- 400 → NOMBRE_INVALIDO, COSTO_INVALIDO, FRECUENCIA_INVALIDA, FECHA_INVALIDA, SERVICIO_INEXISTENTE
+- 400 → NOMBRE_INVALIDO, COSTO_INVALIDO, FRECUENCIA_INVALIDA, FECHA_INVALIDA, SERVICIO_INEXISTENTE, MONEDA_INVALIDA, MONTO_INVALIDO
 - 404 → MEMBRESIA_NO_ENCONTRADA
 
 ### POST /membresias/:id/pausar  (requiere token) (HU-75)

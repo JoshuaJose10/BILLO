@@ -4,10 +4,13 @@ import test, { describe } from 'node:test';
 import {
   calcularEquivalenteMxn,
   esMonedaSoportada,
+  formatearCostoMembresia,
+  formatearMontoDivisa,
   formatearMontoOriginal,
   MONEDA_DEFECTO,
   MONEDAS_DISPONIBLES,
   prepararDatosGasto,
+  prepararDatosMembresia,
 } from './divisas.js';
 
 describe('utils/divisas (RF11)', () => {
@@ -86,5 +89,68 @@ describe('utils/divisas (RF11)', () => {
     assert.equal(res.fecha, '2026-11-10');
     assert.equal(res.metodo_pago, 'tarjeta');
     assert.equal(res.nota, 'Libro');
+  });
+
+  describe('membresías con moneda propia (HU-77 / RF11)', () => {
+    test('formatearMontoDivisa formatea según el símbolo o prefijo de la moneda', () => {
+      assert.equal(formatearMontoDivisa(10, 'USD'), 'US$10');
+      assert.equal(formatearMontoDivisa(9.99, 'USD'), 'US$9.99');
+      assert.equal(formatearMontoDivisa(10.5, 'USD'), 'US$10.50');
+      assert.equal(formatearMontoDivisa(10, 'EUR'), '€10');
+      assert.equal(formatearMontoDivisa(15, 'GBP'), '£15');
+      assert.equal(formatearMontoDivisa(1000, 'JPY'), '¥1000');
+      assert.equal(formatearMontoDivisa(10, 'MXN'), null);
+      assert.equal(formatearMontoDivisa(10, null), null);
+    });
+
+    test('formatearCostoMembresia muestra «US$10 ≈ $xxx» si es extranjera o sólo «$xxx» si es MXN', () => {
+      // 10 USD con equivalente 186.31 MXN
+      assert.equal(formatearCostoMembresia(186.31, 'USD', 10), 'US$10 ≈ $186.31');
+      // Membresía en MXN
+      assert.equal(formatearCostoMembresia(199, 'MXN', null), '$199.00');
+      assert.equal(formatearCostoMembresia(199, null, null), '$199.00');
+    });
+
+    test('prepararDatosMembresia arma datos correctos para MXN', () => {
+      const payload = prepararDatosMembresia({
+        servicioId: 1,
+        nombre: 'Netflix',
+        costoOriginal: 199,
+        moneda: 'MXN',
+        frecuencia: 'mensual',
+        fechaCobro: '2026-11-20',
+      });
+
+      assert.deepEqual(payload, {
+        servicio_id: 1,
+        nombre: 'Netflix',
+        costo: 199,
+        moneda: 'MXN',
+        monto_original: null,
+        tipo_cambio: null,
+        frecuencia: 'mensual',
+        fecha_cobro: '2026-11-20',
+      });
+    });
+
+    test('prepararDatosMembresia calcula equivalente en MXN para moneda extranjera', () => {
+      const payload = prepararDatosMembresia({
+        servicioId: null,
+        nombre: 'GitHub Copilot',
+        costoOriginal: 10,
+        moneda: 'USD',
+        tipoCambio: 18.6311,
+        frecuencia: 'mensual',
+        fechaCobro: '2026-11-20',
+      });
+
+      assert.equal(payload.nombre, 'GitHub Copilot');
+      assert.equal(payload.costo, 186.31);
+      assert.equal(payload.moneda, 'USD');
+      assert.equal(payload.monto_original, 10);
+      assert.equal(payload.tipo_cambio, 18.6311);
+      assert.equal(payload.frecuencia, 'mensual');
+      assert.equal(payload.fecha_cobro, '2026-11-20');
+    });
   });
 });

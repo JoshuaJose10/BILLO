@@ -22,15 +22,22 @@ import Input from '../components/Input';
 import MontoGrande from '../components/MontoGrande';
 import PanelHoja from '../components/PanelHoja';
 import TecladoNumerico from '../components/TecladoNumerico';
+import { guardarUltimoTipoCambio, useDivisasService } from '../services/divisas';
 import { useMembresiasService } from '../services/membresias';
 import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { tipografia } from '../theme/tipografia';
+import {
+  calcularEquivalenteMxn,
+  MONEDA_DEFECTO,
+  MONEDAS_DISPONIBLES,
+  prepararDatosMembresia,
+} from '../utils/divisas';
 import { mensajeError } from '../utils/errores';
 import { vistaLista } from '../utils/estadoCarga';
 import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
-import { formatearMontoCorto, LOCALE, resumirTexto } from '../utils/formato';
+import { formatearMonto, formatearMontoCorto, LOCALE, resumirTexto } from '../utils/formato';
 import {
   detectarServicioRepetido,
   estiloServicio,
@@ -108,17 +115,38 @@ export default function MembresiaScreen({ navigation, route }) {
     };
   }, [listarMembresias]);
 
+  const { obtenerTipoCambio } = useDivisasService();
+
+  const [moneda, setMoneda] = useState(() => membresiaEditada?.moneda || MONEDA_DEFECTO);
+  const [tipoCambio, setTipoCambio] = useState(() => membresiaEditada?.tipo_cambio ?? null);
+  const [cargandoTipoCambio, setCargandoTipoCambio] = useState(false);
+  const [avisoTipoCambio, setAvisoTipoCambio] = useState('');
+
   const [nombre, setNombre] = useState(() => membresiaEditada?.nombre ?? '');
-  const [texto, setTexto] = useState(() =>
-    editando ? textoDesdeMonto(membresiaEditada.costo) : '',
-  );
+  const [texto, setTexto] = useState(() => {
+    if (!editando) return '';
+    const valor =
+      membresiaEditada.moneda &&
+      membresiaEditada.moneda !== 'MXN' &&
+      membresiaEditada.monto_original != null
+        ? membresiaEditada.monto_original
+        : membresiaEditada.costo;
+    return textoDesdeMonto(valor);
+  });
   const [frecuencia, setFrecuencia] = useState(() => membresiaEditada?.frecuencia ?? 'mensual');
   const [fecha, setFecha] = useState(() => {
     const fStr = fechaCobroCiclo(membresiaEditada);
     return fStr ? parsearFechaLocal(fStr) : new Date();
   });
   const [servicioId, setServicioId] = useState(() => membresiaEditada?.servicio_id ?? null);
-  const [panel, setPanel] = useState(null); // 'nombre' | 'frecuencia' | 'fecha'
+  const [panel, setPanel] = useState(null); // 'nombre' | 'frecuencia' | 'fecha' | 'moneda'
+
+  // Si editamos una suscripción con moneda extranjera, guardamos su tipo de cambio como último conocido
+  useEffect(() => {
+    if (membresiaEditada?.moneda && membresiaEditada?.tipo_cambio) {
+      guardarUltimoTipoCambio(membresiaEditada.moneda, membresiaEditada.tipo_cambio);
+    }
+  }, [membresiaEditada]);
 
   // Catálogo (solo al agregar): 'cargando' | 'listo' | 'error'. Un error ya no se traga en
   // silencio: se muestra con Reintentar, y una lista vacía dice que no hay servicios (HU-80).
@@ -196,7 +224,43 @@ export default function MembresiaScreen({ navigation, route }) {
     setServicioId(item.id);
     setNombre(item.nombre);
     setTexto(textoDesdeMonto(item.costo_sugerido));
+    setMoneda('MXN');
+    setTipoCambio(null);
+    setAvisoTipoCambio('');
     limpiarError('nombre', 'costo');
+  };
+
+  const seleccionarMoneda = async (codigoMoneda) => {
+    setPanel(null);
+    if (codigoMoneda === 'MXN') {
+      setMoneda('MXN');
+      setTipoCambio(null);
+      setAvisoTipoCambio('');
+      return;
+    }
+
+    setMoneda(codigoMoneda);
+    setCargandoTipoCambio(true);
+    setAvisoTipoCambio('');
+
+    try {
+      const resp = await obtenerTipoCambio(codigoMoneda);
+      // El servidor acepta máximo 6 decimales en el tipo de cambio
+      setTipoCambio(Number(Number(resp.tipo_cambio).toFixed(6)));
+      setCargandoTipoCambio(false);
+      if (resp.desactualizado) {
+        setAvisoTipoCambio('Sin conexión a la fuente: usando el último tipo de cambio conocido.');
+      } else {
+        setAvisoTipoCambio('');
+      }
+    } catch {
+      setCargandoTipoCambio(false);
+      setTipoCambio(null);
+      setMoneda('MXN');
+      setAvisoTipoCambio(
+        'Tipo de cambio no disponible en este momento. Puedes continuar capturando en MXN.',
+      );
+    }
   };
 
   const abrirFecha = () => {
@@ -222,19 +286,26 @@ export default function MembresiaScreen({ navigation, route }) {
       fechaCobro: fechaCobroISO,
     });
 
-    if (!validacion.valido) {
-      setErrores(validacion.errores);
+    const nuevos = { ...validacion.errores };
+    if (moneda !== 'MXN' && !tipoCambio) {
+      nuevos.costo = 'Esperando tipo de cambio o cambia a MXN';
+    }
+
+    if (!validacion.valido || nuevos.costo) {
+      setErrores(nuevos);
       setErrorApi('');
       return;
     }
 
-    const payload = {
-      servicio_id: servicioId,
+    const payload = prepararDatosMembresia({
+      servicioId,
       nombre: nombre.trim(),
-      costo: validacion.costo,
+      costoOriginal: validacion.costo,
+      moneda,
+      tipoCambio,
       frecuencia,
-      fecha_cobro: fechaCobroISO,
-    };
+      fechaCobro: fechaCobroISO,
+    });
 
     // Aviso de servicio repetido (HU-74)
     if (!forzar) {
@@ -364,6 +435,12 @@ export default function MembresiaScreen({ navigation, route }) {
   const nombreTexto = nombre.trim() ? resumirTexto(nombre) : 'Nombre';
   const errorFormulario = errores.nombre || errores.fecha;
 
+  const montoIngresado = montoDesdeTexto(texto);
+  const equivalenteMxn =
+    moneda !== 'MXN' && tipoCambio && montoIngresado > 0
+      ? calcularEquivalenteMxn(montoIngresado, tipoCambio)
+      : null;
+
   return (
     <HojaInferior
       ref={hojaRef}
@@ -378,6 +455,13 @@ export default function MembresiaScreen({ navigation, route }) {
         style={styles.filaScroll}
         contentContainerStyle={styles.filaChips}
       >
+        <ChipSelector
+          icono="cash-multiple"
+          etiqueta={moneda}
+          chevron
+          onPress={() => setPanel('moneda')}
+          accessibilityLabel={`Moneda: ${moneda}`}
+        />
         <ChipSelector
           icono="card-text-outline"
           etiqueta={nombreTexto}
@@ -402,8 +486,39 @@ export default function MembresiaScreen({ navigation, route }) {
       {errorFormulario ? <Text style={styles.errorCampo}>{errorFormulario}</Text> : null}
 
       <View style={styles.zonaMonto}>
-        <MontoGrande texto={texto} error={!!errores.costo} etiqueta="Costo" />
+        <MontoGrande
+          texto={texto}
+          error={!!errores.costo}
+          etiqueta={moneda === 'MXN' ? 'Costo' : `Costo en ${moneda}`}
+          moneda={moneda}
+        />
+        {cargandoTipoCambio ? (
+          <View style={styles.filaEquivalente}>
+            <ActivityIndicator size="small" color={colors.textSecondary} />
+            <Text style={styles.textoTasa}>Consultando tipo de cambio...</Text>
+          </View>
+        ) : tipoCambio && montoIngresado > 0 ? (
+          <View style={styles.filaEquivalente}>
+            <MaterialCommunityIcons name="swap-horizontal" size={16} color={colors.textSecondary} />
+            <Text style={styles.textoEquivalente}>≈ {formatearMonto(equivalenteMxn)} MXN</Text>
+            <Text style={styles.textoTasa}>
+              (1 {moneda} = ${tipoCambio.toFixed(4)} MXN)
+            </Text>
+          </View>
+        ) : tipoCambio ? (
+          <View style={styles.filaEquivalente}>
+            <Text style={styles.textoTasa}>
+              Tipo de cambio: 1 {moneda} = ${tipoCambio.toFixed(4)} MXN
+            </Text>
+          </View>
+        ) : null}
       </View>
+      {avisoTipoCambio ? (
+        <View style={styles.avisoTipoCambioContenedor}>
+          <MaterialCommunityIcons name="information-outline" size={16} color={colors.alerta} />
+          <Text style={styles.avisoTipoCambioTexto}>{avisoTipoCambio}</Text>
+        </View>
+      ) : null}
       {errores.costo ? <Text style={styles.errorCampo}>{errores.costo}</Text> : null}
 
       {/* Catálogo de servicios (solo al agregar), en el lugar de las categorías de Nuevo gasto */}
@@ -577,6 +692,31 @@ export default function MembresiaScreen({ navigation, route }) {
           />
         </PanelHoja>
       ) : null}
+
+      {panel === 'moneda' ? (
+        <PanelHoja titulo="Moneda" onCerrar={() => setPanel(null)}>
+          {MONEDAS_DISPONIBLES.map((m) => (
+            <Pressable
+              key={m.codigo}
+              onPress={() => seleccionarMoneda(m.codigo)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: m.codigo === moneda }}
+              style={({ pressed }) => [styles.opcion, pressed ? styles.opcionPresionada : null]}
+            >
+              <View style={styles.simboloMonedaContenedor}>
+                <Text style={styles.simboloMonedaTexto}>{m.simbolo}</Text>
+              </View>
+              <View style={styles.monedaInfoColumna}>
+                <Text style={styles.opcionTexto}>{m.codigo}</Text>
+                <Text style={styles.nombreMonedaSubtexto}>{m.nombre}</Text>
+              </View>
+              {m.codigo === moneda ? (
+                <MaterialCommunityIcons name="check" size={22} color={colors.text} />
+              ) : null}
+            </Pressable>
+          ))}
+        </PanelHoja>
+      ) : null}
     </HojaInferior>
   );
 }
@@ -747,5 +887,62 @@ const crearEstilos = (colors) =>
       borderColor: colors.border,
       color: colors.text,
       marginBottom: 14,
+    },
+    filaEquivalente: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      marginTop: 8,
+      flexWrap: 'wrap',
+    },
+    textoEquivalente: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 14,
+      color: colors.text,
+    },
+    textoTasa: {
+      fontFamily: fonts.sans,
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    avisoTipoCambioContenedor: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surfaceLow,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: radios.xl,
+      marginBottom: 8,
+      gap: 6,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    avisoTipoCambioTexto: {
+      fontFamily: fonts.sans,
+      fontSize: 12,
+      color: colors.textSecondary,
+      flex: 1,
+    },
+    simboloMonedaContenedor: {
+      width: 32,
+      height: 32,
+      borderRadius: radios.full,
+      backgroundColor: colors.surfaceLow,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    simboloMonedaTexto: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 14,
+      color: colors.text,
+    },
+    monedaInfoColumna: {
+      flex: 1,
+    },
+    nombreMonedaSubtexto: {
+      fontFamily: fonts.sans,
+      fontSize: 12,
+      color: colors.textSecondary,
     },
   });

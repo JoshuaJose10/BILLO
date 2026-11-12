@@ -5,7 +5,6 @@ import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { tipografia } from '../theme/tipografia';
-import { formatearMonto } from '../utils/formato';
 import {
   diasParaCobroCiclo,
   estiloServicio,
@@ -14,6 +13,7 @@ import {
   nivelCobro,
   textoCobro,
 } from '../utils/membresias';
+import { formatearCostoMembresia } from '../utils/divisas';
 
 // Tarjeta de una membresía / suscripción en Cartera (HU-05; diseño HU-81, Stitch
 // 13_cartera_subs_oscuro_brillo / _claro_brillo): logo en squircle del color de marca (o la
@@ -24,7 +24,7 @@ export default function ItemMembresia({ membresia, opaca = false }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
-  const { nombre, costo, frecuencia, estado } = membresia;
+  const { nombre, costo, frecuencia, estado, moneda, monto_original } = membresia;
   const fechaCobro = fechaCobroCiclo(membresia);
   const diasCobro = diasParaCobroCiclo(membresia);
   const { color: colorMarca, icono, predefinido } = estiloServicio(nombre);
@@ -64,7 +64,7 @@ export default function ItemMembresia({ membresia, opaca = false }) {
           </Text>
         </View>
         <Text style={styles.montoContenedor} numberOfLines={1}>
-          <Text style={styles.monto}>{formatearMonto(costo)}</Text>
+          <Text style={styles.monto}>{formatearCostoMembresia(costo, moneda, monto_original)}</Text>
           <Text style={styles.sufijo}>{anual ? ' / año' : ' / mes'}</Text>
         </Text>
       </View>
