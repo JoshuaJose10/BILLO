@@ -32,6 +32,7 @@ import { vistaLista } from '../utils/estadoCarga';
 import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
 import { formatearMontoCorto, LOCALE, resumirTexto } from '../utils/formato';
 import {
+  detectarServicioRepetido,
   estiloServicio,
   fechaCobroCiclo,
   filtrarCatalogo,
@@ -75,11 +76,34 @@ function useAlturaTeclado() {
 export default function MembresiaScreen({ navigation, route }) {
   const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
-  const { listarCatalogo, crearMembresia, actualizarMembresia, eliminarMembresia, marcarPagada } =
-    useMembresiasService();
+  const {
+    listarCatalogo,
+    listarMembresias,
+    crearMembresia,
+    actualizarMembresia,
+    eliminarMembresia,
+    marcarPagada,
+  } = useMembresiasService();
 
   const membresiaEditada = route.params?.membresia;
   const editando = Boolean(membresiaEditada);
+
+  const [membresiasExistentes, setMembresiasExistentes] = useState(
+    () => route.params?.membresiasExistentes ?? [],
+  );
+
+  useEffect(() => {
+    let activo = true;
+    listarMembresias()
+      .then((items) => {
+        if (!activo) return;
+        setMembresiasExistentes(items || []);
+      })
+      .catch(() => {});
+    return () => {
+      activo = false;
+    };
+  }, [listarMembresias]);
 
   const [nombre, setNombre] = useState(() => membresiaEditada?.nombre ?? '');
   const [texto, setTexto] = useState(() =>
@@ -183,7 +207,7 @@ export default function MembresiaScreen({ navigation, route }) {
     }
   };
 
-  const guardar = async () => {
+  const guardar = async (forzar = false) => {
     if (enviando.current) return;
 
     // El teclado deja textos como "12." o "": se validan como número (igual que Nuevo gasto).
@@ -200,10 +224,6 @@ export default function MembresiaScreen({ navigation, route }) {
       return;
     }
 
-    enviando.current = true;
-    setGuardando(true);
-    setErrorApi('');
-
     const payload = {
       servicio_id: servicioId,
       nombre: nombre.trim(),
@@ -212,12 +232,48 @@ export default function MembresiaScreen({ navigation, route }) {
       fecha_cobro: fechaCobroISO,
     };
 
+    // Aviso de servicio repetido (HU-74)
+    if (!forzar) {
+      let listaActual = membresiasExistentes;
+      try {
+        const frescas = await listarMembresias();
+        if (Array.isArray(frescas)) {
+          listaActual = frescas;
+          setMembresiasExistentes(frescas);
+        }
+      } catch {
+        // En caso de corte de red, usar la lista existente
+      }
+
+      const repetido = detectarServicioRepetido(
+        payload,
+        listaActual,
+        editando ? membresiaEditada.id : null,
+      );
+
+      if (repetido.repetido) {
+        Alert.alert('Servicio repetido', `Ya tienes ${repetido.nombreServicio}, ¿es otro plan?`, [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Guardar de todos modos',
+            onPress: () => guardar(true),
+          },
+        ]);
+        return;
+      }
+    }
+
+    enviando.current = true;
+    setGuardando(true);
+    setErrorApi('');
+
     try {
       if (editando) {
         await actualizarMembresia(membresiaEditada.id, payload);
       } else {
         await crearMembresia(payload);
       }
+      route.params?.onGuardado?.();
       enviando.current = false;
       hojaRef.current?.cerrar();
     } catch (error) {
@@ -235,6 +291,7 @@ export default function MembresiaScreen({ navigation, route }) {
 
     try {
       await eliminarMembresia(membresiaEditada.id);
+      route.params?.onGuardado?.();
       enviando.current = false;
       hojaRef.current?.cerrar();
     } catch (error) {
@@ -395,7 +452,7 @@ export default function MembresiaScreen({ navigation, route }) {
           <Boton
             titulo={editando ? 'Guardar cambios' : 'Guardar suscripción'}
             icono="check"
-            onPress={guardar}
+            onPress={() => guardar()}
             cargando={guardando}
             disabled={ocupado}
             compacto

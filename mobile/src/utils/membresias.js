@@ -28,32 +28,65 @@ export function formatearDiaMes(fechaStr) {
 }
 
 const SERVICIOS_PREDEFINIDOS = [
-  { match: /netflix/i, color: coloresServicio.netflix, icono: 'movie-open' },
-  { match: /spotify/i, color: coloresServicio.spotify, icono: 'spotify' },
-  { match: /youtube/i, color: coloresServicio.youtube, icono: 'youtube' },
-  { match: /apple music/i, color: coloresServicio.appleMusic, icono: 'apple' },
-  { match: /apple (tv|one)/i, color: coloresServicio.appleTv, icono: 'apple' },
-  { match: /disney/i, color: coloresServicio.disney, icono: 'movie-play' },
-  { match: /hbo|max/i, color: coloresServicio.hbo, icono: 'television-play' },
-  { match: /prime|amazon/i, color: coloresServicio.prime, icono: 'video' },
-  { match: /xbox|game pass/i, color: coloresServicio.xbox, icono: 'microsoft-xbox' },
-  { match: /playstation/i, color: coloresServicio.playstation, icono: 'controller' },
-  { match: /paramount/i, color: coloresServicio.paramount, icono: 'movie' },
-  { match: /crunchyroll/i, color: coloresServicio.crunchyroll, icono: 'play-box' },
-  { match: /duolingo/i, color: coloresServicio.duolingo, icono: 'translate' },
-  { match: /microsoft|office/i, color: coloresServicio.microsoft, icono: 'microsoft-office' },
-  { match: /vix/i, color: coloresServicio.vix, icono: 'television' },
-  { match: /mubi/i, color: coloresServicio.mubi, icono: 'filmstrip' },
-  { match: /canva/i, color: coloresServicio.canva, icono: 'palette' },
-  { match: /chatgpt/i, color: coloresServicio.chatgpt, icono: 'robot' },
-  { match: /google/i, color: coloresServicio.google, icono: 'google-cloud' },
-  { match: /icloud/i, color: coloresServicio.icloud, icono: 'apple-icloud' },
+  { match: /netflix/i, color: coloresServicio.netflix, icono: 'movie-open', marca: 'Netflix' },
+  { match: /spotify/i, color: coloresServicio.spotify, icono: 'spotify', marca: 'Spotify' },
+  { match: /youtube/i, color: coloresServicio.youtube, icono: 'youtube', marca: 'YouTube' },
+  {
+    match: /apple music/i,
+    color: coloresServicio.appleMusic,
+    icono: 'apple',
+    marca: 'Apple Music',
+  },
+  { match: /apple (tv|one)/i, color: coloresServicio.appleTv, icono: 'apple', marca: 'Apple' },
+  { match: /disney/i, color: coloresServicio.disney, icono: 'movie-play', marca: 'Disney+' },
+  { match: /hbo|max/i, color: coloresServicio.hbo, icono: 'television-play', marca: 'Max' },
+  { match: /prime|amazon/i, color: coloresServicio.prime, icono: 'video', marca: 'Amazon Prime' },
+  {
+    match: /xbox|game pass/i,
+    color: coloresServicio.xbox,
+    icono: 'microsoft-xbox',
+    marca: 'Xbox Game Pass',
+  },
+  {
+    match: /playstation/i,
+    color: coloresServicio.playstation,
+    icono: 'controller',
+    marca: 'PlayStation',
+  },
+  { match: /paramount/i, color: coloresServicio.paramount, icono: 'movie', marca: 'Paramount+' },
+  {
+    match: /crunchyroll/i,
+    color: coloresServicio.crunchyroll,
+    icono: 'play-box',
+    marca: 'Crunchyroll',
+  },
+  { match: /duolingo/i, color: coloresServicio.duolingo, icono: 'translate', marca: 'Duolingo' },
+  {
+    match: /microsoft|office/i,
+    color: coloresServicio.microsoft,
+    icono: 'microsoft-office',
+    marca: 'Microsoft 365',
+  },
+  { match: /vix/i, color: coloresServicio.vix, icono: 'television', marca: 'ViX' },
+  { match: /mubi/i, color: coloresServicio.mubi, icono: 'filmstrip', marca: 'MUBI' },
+  { match: /canva/i, color: coloresServicio.canva, icono: 'palette', marca: 'Canva' },
+  { match: /chatgpt/i, color: coloresServicio.chatgpt, icono: 'robot', marca: 'ChatGPT' },
+  { match: /google/i, color: coloresServicio.google, icono: 'google-cloud', marca: 'Google' },
+  { match: /icloud/i, color: coloresServicio.icloud, icono: 'apple-icloud', marca: 'iCloud' },
 ];
 
 const DEFAULT_SERVICIO = {
   color: coloresServicio.defecto,
   icono: 'calendar-sync',
 };
+
+// Obtiene la marca canónica de un servicio según su nombre comercial
+export function obtenerMarcaServicio(nombre = '') {
+  const texto = typeof nombre === 'string' ? nombre.trim() : '';
+  if (!texto) return '';
+  const encontrado = SERVICIOS_PREDEFINIDOS.find((s) => s.match.test(texto));
+  return encontrado?.marca || '';
+}
 
 // Obtiene el color e ícono distintivo de una membresía según su nombre.
 // `predefinido` es false cuando no hay ícono propio: el catálogo muestra la inicial (HU-80).
@@ -68,6 +101,79 @@ export function estiloServicio(nombre = '') {
 export function inicialServicio(nombre) {
   const texto = typeof nombre === 'string' ? nombre.trim() : '';
   return texto ? texto[0].toLocaleUpperCase('es') : '?';
+}
+
+/**
+ * Detecta si una membresía a guardar ya existe entre las membresías del usuario (HU-74).
+ * Coincide por:
+ *  1. Mismo servicio_id del catálogo.
+ *  2. Misma marca/familia de servicio predefinido (ej: Spotify Individual y Spotify Familiar).
+ *  3. Mismo nombre comercial normalizado.
+ * @param {Object} nueva - { nombre, servicio_id }
+ * @param {Array} existentes - Lista de membresías actuales del usuario
+ * @param {number|string|null} idExcluir - ID de la membresía actual si se está editando
+ * @returns {{ repetido: boolean, nombreServicio?: string, membresiaExistente?: Object }}
+ */
+export function detectarServicioRepetido(nueva = {}, existentes = [], idExcluir = null) {
+  if (!nueva || !Array.isArray(existentes) || existentes.length === 0) {
+    return { repetido: false };
+  }
+
+  const nombreNuevo = typeof nueva.nombre === 'string' ? nueva.nombre.trim() : '';
+  const servicioIdNuevo = nueva.servicio_id ?? null;
+  if (!nombreNuevo && !servicioIdNuevo) {
+    return { repetido: false };
+  }
+
+  const marcaNueva = obtenerMarcaServicio(nombreNuevo);
+  const normNuevo = normalizarBusqueda(nombreNuevo);
+
+  const encontrada = existentes.find((m) => {
+    if (!m) return false;
+    if (idExcluir !== null && idExcluir !== undefined && String(m.id) === String(idExcluir)) {
+      return false;
+    }
+
+    // 1. Mismo servicio_id del catálogo
+    if (
+      servicioIdNuevo !== null &&
+      servicioIdNuevo !== undefined &&
+      m.servicio_id !== null &&
+      m.servicio_id !== undefined &&
+      Number(servicioIdNuevo) === Number(m.servicio_id)
+    ) {
+      return true;
+    }
+
+    const nombreExistente = typeof m.nombre === 'string' ? m.nombre.trim() : '';
+    const marcaExistente = obtenerMarcaServicio(nombreExistente);
+
+    // 2. Misma marca/familia de servicio (ej. Spotify vs Spotify Familiar)
+    if (marcaNueva && marcaExistente && marcaNueva.toLowerCase() === marcaExistente.toLowerCase()) {
+      return true;
+    }
+
+    // 3. Mismo nombre normalizado
+    const normExistente = normalizarBusqueda(nombreExistente);
+    if (normNuevo && normExistente && normNuevo === normExistente) {
+      return true;
+    }
+
+    return false;
+  });
+
+  if (!encontrada) {
+    return { repetido: false };
+  }
+
+  const nombreMostrar =
+    marcaNueva || obtenerMarcaServicio(encontrada.nombre) || encontrada.nombre || nombreNuevo;
+
+  return {
+    repetido: true,
+    nombreServicio: nombreMostrar,
+    membresiaExistente: encontrada,
+  };
 }
 
 // Suma el gasto fijo mensual: membresías mensuales aportan su costo completo,
