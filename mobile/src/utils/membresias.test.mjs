@@ -7,9 +7,15 @@ import {
   ajustarAlSiguienteCiclo,
   avanzarFechaCobro,
   calcularDiasParaCobro,
+  calcularTotalAnual,
+  calcularTotalEsteMes,
   calcularTotalMensual,
+  detectarServicioRepetido,
+  diasParaCobroCiclo,
   esCobroProximo,
   estiloServicio,
+  fechaCobroCiclo,
+  obtenerMarcaServicio,
   textoCobro,
   validarMembresia,
 } from './membresias.js';
@@ -43,6 +49,162 @@ describe('utils/membresias', () => {
         { costo: 100, frecuencia: 'anual' }, // 8.333333...
       ];
       assert.equal(calcularTotalMensual(membresias), 8.33);
+    });
+
+    test('ignora las membresías pausadas (Aceptación HU-75)', () => {
+      const membresias = [
+        { nombre: 'Netflix', costo: 199, frecuencia: 'mensual', estado: 'pausada' },
+        { nombre: 'Spotify', costo: 129, frecuencia: 'mensual', estado: 'activa' },
+      ];
+      // Solo suma Spotify ($129), Netflix ($199) pausada no cuenta
+      assert.equal(calcularTotalMensual(membresias), 129);
+    });
+
+    test('reactivar devuelve el costo al total mensual (QA HU-75)', () => {
+      const pausada = [{ nombre: 'Netflix', costo: 199, frecuencia: 'mensual', estado: 'pausada' }];
+      assert.equal(calcularTotalMensual(pausada), 0);
+
+      const reactivada = [
+        { nombre: 'Netflix', costo: 199, frecuencia: 'mensual', estado: 'activa' },
+      ];
+      assert.equal(calcularTotalMensual(reactivada), 199);
+    });
+  });
+
+  describe('calcularTotalAnual (HU-71)', () => {
+    test('devuelve 0 con lista vacía o nula', () => {
+      assert.equal(calcularTotalAnual([]), 0);
+      assert.equal(calcularTotalAnual(null), 0);
+      assert.equal(calcularTotalAnual(undefined), 0);
+    });
+
+    test('calcula correctamente Netflix $199 mensual e iCloud $1,200 anual (criterio de aceptación: $3,588)', () => {
+      const membresias = [
+        { nombre: 'Netflix', costo: 199, frecuencia: 'mensual' },
+        { nombre: 'iCloud', costo: 1200, frecuencia: 'anual' },
+      ];
+      // 199 * 12 = 2388; 2388 + 1200 = 3588
+      assert.equal(calcularTotalAnual(membresias), 3588);
+    });
+
+    test('multiplica las mensuales por 12 cuando solo hay mensuales', () => {
+      const membresias = [
+        { costo: 100, frecuencia: 'mensual' },
+        { costo: 200, frecuencia: 'mensual' },
+      ];
+      assert.equal(calcularTotalAnual(membresias), 3600);
+    });
+
+    test('suma el costo tal cual cuando solo hay anuales', () => {
+      const membresias = [
+        { costo: 1200, frecuencia: 'anual' },
+        { costo: 600, frecuencia: 'anual' },
+      ];
+      assert.equal(calcularTotalAnual(membresias), 1800);
+    });
+
+    test('redondea a 2 decimales con centavos', () => {
+      const membresias = [
+        { costo: 99.99, frecuencia: 'mensual' },
+        { costo: 1250.5, frecuencia: 'anual' },
+      ];
+      // 99.99 * 12 = 1199.88; 1199.88 + 1250.5 = 2450.38
+      assert.equal(calcularTotalAnual(membresias), 2450.38);
+    });
+  });
+
+  describe('calcularTotalEsteMes (HU-71)', () => {
+    const mesFijo = '2026-11-15';
+
+    test('devuelve 0 con lista vacía o nula', () => {
+      assert.equal(calcularTotalEsteMes([], mesFijo), 0);
+      assert.equal(calcularTotalEsteMes(null, mesFijo), 0);
+      assert.equal(calcularTotalEsteMes(undefined, mesFijo), 0);
+    });
+
+    test('calcula correctamente Netflix $199 e iCloud $1,200 cobrando este mes (criterio de aceptación: $1,399)', () => {
+      const membresias = [
+        { nombre: 'Netflix', costo: 199, frecuencia: 'mensual', fecha_cobro: '2026-11-20' },
+        { nombre: 'iCloud', costo: 1200, frecuencia: 'anual', fecha_cobro: '2026-11-25' },
+      ];
+      // 199 + 1200 = 1399
+      assert.equal(calcularTotalEsteMes(membresias, mesFijo), 1399);
+    });
+
+    test('al mover iCloud a otro mes, "este mes" baja a $199 (criterio de QA)', () => {
+      const membresias = [
+        { nombre: 'Netflix', costo: 199, frecuencia: 'mensual', fecha_cobro: '2026-11-20' },
+        { nombre: 'iCloud', costo: 1200, frecuencia: 'anual', fecha_cobro: '2026-12-10' }, // cobro en diciembre
+      ];
+      // iCloud no cobra en noviembre, solo Netflix: 199
+      assert.equal(calcularTotalEsteMes(membresias, mesFijo), 199);
+    });
+
+    test('incluye el cobro anual de este mes aunque su día ya haya pasado', () => {
+      const membresias = [
+        { nombre: 'Netflix', costo: 199, frecuencia: 'mensual', fecha_cobro: '2026-11-20' },
+        { nombre: 'iCloud', costo: 1200, frecuencia: 'anual', fecha_cobro: '2026-11-05' },
+      ];
+
+      for (const referencia of ['2026-11-01', '2026-11-05', '2026-11-12', '2026-11-30']) {
+        assert.equal(calcularTotalEsteMes(membresias, referencia), 1399, referencia);
+      }
+    });
+
+    test('conserva el cobro del mes después de normalizar al siguiente ciclo', () => {
+      const referencia = '2026-11-12';
+      const membresias = [
+        { nombre: 'Netflix', costo: 199, frecuencia: 'mensual', fecha_cobro: '2026-11-20' },
+        { nombre: 'iCloud', costo: 1200, frecuencia: 'anual', fecha_cobro: '2026-11-05' },
+      ].map((m) => ajustarAlSiguienteCiclo(m, referencia));
+
+      assert.equal(membresias[1].fecha_cobro, '2027-11-05');
+      assert.equal(membresias[1].fecha_cobro_original, '2026-11-05');
+      assert.equal(calcularTotalEsteMes(membresias, referencia), 1399);
+      assert.equal(calcularTotalAnual(membresias), 3588);
+      assert.equal(calcularTotalMensual(membresias), 299);
+    });
+
+    test('incluye una anual de años anteriores cuyo cobro de este mes ya pasó', () => {
+      const referencia = '2026-11-12';
+      const membresias = [
+        { nombre: 'iCloud', costo: 1200, frecuencia: 'anual', fecha_cobro: '2025-11-05' },
+      ].map((m) => ajustarAlSiguienteCiclo(m, referencia));
+
+      assert.equal(calcularTotalEsteMes(membresias, referencia), 1200);
+    });
+
+    test('no anticipa un cobro anual que comienza el mismo mes del año siguiente', () => {
+      const referencia = '2026-11-12';
+      const membresias = [
+        { nombre: 'iCloud', costo: 1200, frecuencia: 'anual', fecha_cobro: '2027-11-05' },
+      ].map((m) => ajustarAlSiguienteCiclo(m, referencia));
+
+      assert.equal(calcularTotalEsteMes(membresias, referencia), 0);
+    });
+
+    test('una referencia de mes completo incluye los mismos cobros que una fecha del mes', () => {
+      const membresias = [
+        { nombre: 'iCloud', costo: 1200, frecuencia: 'anual', fecha_cobro: '2026-11-05' },
+      ];
+
+      assert.equal(calcularTotalEsteMes(membresias, '2026-11'), 1200);
+      assert.equal(calcularTotalEsteMes(membresias, mesFijo), 1200);
+    });
+
+    test('anual con cobro del año anterior que al avanzar de ciclo cae en este mes se incluye', () => {
+      const membresias = [
+        { nombre: 'Disney+', costo: 1500, frecuencia: 'anual', fecha_cobro: '2025-11-15' },
+      ];
+      assert.equal(calcularTotalEsteMes(membresias, mesFijo), 1500);
+    });
+
+    test('anual con cobro del mes pasado no se incluye este mes', () => {
+      const membresias = [
+        { nombre: 'Spotify Anual', costo: 1200, frecuencia: 'anual', fecha_cobro: '2026-10-15' },
+      ];
+      // Ya cobró en octubre, el siguiente es octubre 2027
+      assert.equal(calcularTotalEsteMes(membresias, mesFijo), 0);
     });
   });
 
@@ -264,6 +426,175 @@ describe('utils/membresias', () => {
       assert.equal(totalAntes, 129 + 100 + 219);
       assert.equal(totalDespues, totalAntes);
       assert.equal(totalDespues, 448);
+    });
+  });
+
+  describe('detectarServicioRepetido (HU-74)', () => {
+    test('devuelve repetido: false con lista vacía, nula o sin datos', () => {
+      assert.deepEqual(detectarServicioRepetido({ nombre: 'Spotify' }, []), { repetido: false });
+      assert.deepEqual(detectarServicioRepetido({ nombre: 'Spotify' }, null), { repetido: false });
+      assert.deepEqual(detectarServicioRepetido(null, [{ id: 1, nombre: 'Spotify' }]), {
+        repetido: false,
+      });
+      assert.deepEqual(detectarServicioRepetido({}, [{ id: 1, nombre: 'Spotify' }]), {
+        repetido: false,
+      });
+    });
+
+    test('detecta Spotify repetido con el mismo nombre exacto (Aceptación HU-74)', () => {
+      const existentes = [{ id: 1, nombre: 'Spotify', costo: 129 }];
+      const res = detectarServicioRepetido({ nombre: 'Spotify' }, existentes);
+      assert.equal(res.repetido, true);
+      assert.equal(res.nombreServicio, 'Spotify');
+    });
+
+    test('detecta Spotify repetido entre planes de la misma familia (Spotify Individual y Spotify Familiar)', () => {
+      const existentes = [{ id: 1, nombre: 'Spotify Individual', costo: 139, servicio_id: 1 }];
+      const res = detectarServicioRepetido(
+        { nombre: 'Spotify Familiar', costo: 239, servicio_id: 3 },
+        existentes,
+      );
+      assert.equal(res.repetido, true);
+      assert.equal(res.nombreServicio, 'Spotify');
+    });
+
+    test('detecta coincidencia por mismo servicio_id aunque el nombre varíe', () => {
+      const existentes = [{ id: 1, nombre: 'Mi Spotify', servicio_id: 5 }];
+      const res = detectarServicioRepetido(
+        { nombre: 'Música en streaming', servicio_id: 5 },
+        existentes,
+      );
+      assert.equal(res.repetido, true);
+    });
+
+    test('no aparece con servicios distintos (Netflix después de Spotify: QA HU-74)', () => {
+      const existentes = [{ id: 1, nombre: 'Spotify', costo: 129 }];
+      const res = detectarServicioRepetido({ nombre: 'Netflix', costo: 199 }, existentes);
+      assert.equal(res.repetido, false);
+    });
+
+    test('editar una membresía existente sin cambiar el nombre no dispara el aviso (QA HU-74)', () => {
+      const existentes = [
+        { id: 1, nombre: 'Spotify', costo: 129 },
+        { id: 2, nombre: 'Netflix', costo: 219 },
+      ];
+      // Editando la membresía 1 ("Spotify")
+      const res = detectarServicioRepetido({ nombre: 'Spotify', costo: 139 }, existentes, 1);
+      assert.equal(res.repetido, false);
+    });
+
+    test('editar una membresía cambiándola al nombre de otra existente sí dispara el aviso', () => {
+      const existentes = [
+        { id: 1, nombre: 'Spotify', costo: 129 },
+        { id: 2, nombre: 'Disney+', costo: 249 },
+      ];
+      // Editando la membresía 2, intentando cambiarla a Spotify
+      const res = detectarServicioRepetido({ nombre: 'Spotify Premium' }, existentes, 2);
+      assert.equal(res.repetido, true);
+      assert.equal(res.nombreServicio, 'Spotify');
+    });
+
+    test('detecta repetido en servicios personalizados no predefinidos por coincidencia de nombre', () => {
+      const existentes = [{ id: 10, nombre: 'Gimnasio Smart Fit' }];
+      const res = detectarServicioRepetido({ nombre: 'gimnasio smart fit' }, existentes);
+      assert.equal(res.repetido, true);
+      assert.equal(res.nombreServicio, 'Gimnasio Smart Fit');
+    });
+  });
+
+  describe('obtenerMarcaServicio', () => {
+    test('obtiene la marca de servicios conocidos', () => {
+      assert.equal(obtenerMarcaServicio('Spotify Duo'), 'Spotify');
+      assert.equal(obtenerMarcaServicio('Netflix Premium'), 'Netflix');
+      assert.equal(obtenerMarcaServicio('Disney+ Estándar'), 'Disney+');
+      assert.equal(obtenerMarcaServicio('YouTube Premium Individual'), 'YouTube');
+      assert.equal(obtenerMarcaServicio('Apple Music Familiar'), 'Apple Music');
+      assert.equal(obtenerMarcaServicio('Xbox Game Pass Ultimate'), 'Xbox Game Pass');
+    });
+
+    test('devuelve cadena vacía para nombres no reconocidos o vacíos', () => {
+      assert.equal(obtenerMarcaServicio('Internet Telmex'), '');
+      assert.equal(obtenerMarcaServicio(''), '');
+    });
+  });
+
+  describe('alineación de fecha mostrada con el ciclo que se paga (HU-66 / interacción con HU-51)', () => {
+    const hoyFijo = '2026-11-12';
+
+    test('fecha persistida del 15/octubre muestra 15/octubre antes del pago y avanza visiblemente a 15/noviembre tras el pago', () => {
+      // 1. Estado persistido en BD: cobro vencido el 15 de octubre
+      const persistidaOctubre = {
+        id: 10,
+        nombre: 'Netflix',
+        costo: 219,
+        frecuencia: 'mensual',
+        fecha_cobro: '2026-10-15',
+        dias_para_cobro: -28,
+      };
+
+      // 2. HU-51 adelanta visualmente la membresía al ciclo vigente
+      const ajustadaHU51 = ajustarAlSiguienteCiclo(persistidaOctubre, hoyFijo);
+      assert.equal(ajustadaHU51.fecha_cobro, '2026-11-15');
+      assert.equal(ajustadaHU51.fecha_cobro_original, '2026-10-15');
+
+      // 3. Antes de pagar: la fecha mostrada se alinea con el ciclo que se paga (15/octubre, no 15/noviembre)
+      const fechaAntes = fechaCobroCiclo(ajustadaHU51);
+      const diasAntes = diasParaCobroCiclo(ajustadaHU51, hoyFijo);
+      assert.equal(fechaAntes, '2026-10-15');
+      assert.equal(diasAntes, -28);
+      assert.equal(textoCobro(diasAntes, fechaAntes), 'Venció hace 28 días (15 oct)');
+
+      // 4. Se marca como pagada (POST /membresias/:id/pagada): el backend avanza la fecha de BD a 2026-11-15
+      const respuestaBackendTrasPago = {
+        id: 10,
+        nombre: 'Netflix',
+        costo: 219,
+        frecuencia: 'mensual',
+        fecha_cobro: '2026-11-15',
+        dias_para_cobro: 3,
+      };
+      const ajustadaTrasPago = ajustarAlSiguienteCiclo(respuestaBackendTrasPago, hoyFijo);
+
+      // 5. Tras el pago: la fecha mostrada avanza visiblemente al siguiente ciclo (15/noviembre)
+      const fechaDespues = fechaCobroCiclo(ajustadaTrasPago);
+      const diasDespues = diasParaCobroCiclo(ajustadaTrasPago, hoyFijo);
+      assert.equal(fechaDespues, '2026-11-15');
+      assert.equal(diasDespues, 3);
+      assert.equal(textoCobro(diasDespues, fechaDespues), 'Cobra en 3 días (15 nov)');
+
+      // 6. Comprobación crucial: no deja la misma fecha visible antes y después del pago
+      assert.notEqual(fechaAntes, fechaDespues);
+      assert.equal(fechaAntes, '2026-10-15');
+      assert.equal(fechaDespues, '2026-11-15');
+    });
+
+    test('suscripción al corriente (fecha futura) muestra su ciclo vigente y avanza al siguiente ciclo tras el pago', () => {
+      const persistidaNoviembre = {
+        id: 11,
+        nombre: 'Spotify',
+        costo: 129,
+        frecuencia: 'mensual',
+        fecha_cobro: '2026-11-20',
+        dias_para_cobro: 8,
+      };
+      const ajustada = ajustarAlSiguienteCiclo(persistidaNoviembre, hoyFijo);
+      assert.equal(fechaCobroCiclo(ajustada), '2026-11-20');
+      assert.equal(diasParaCobroCiclo(ajustada, hoyFijo), 8);
+
+      // Tras pagar ciclo 20/nov, backend avanza a 20/dic
+      const trasPago = ajustarAlSiguienteCiclo(
+        { ...persistidaNoviembre, fecha_cobro: '2026-12-20', dias_para_cobro: 38 },
+        hoyFijo,
+      );
+      assert.equal(fechaCobroCiclo(trasPago), '2026-12-20');
+      assert.notEqual(fechaCobroCiclo(ajustada), fechaCobroCiclo(trasPago));
+    });
+
+    test('tolera objetos nulos o indefinidos devolviendo valores seguros', () => {
+      assert.equal(fechaCobroCiclo(null), '');
+      assert.equal(fechaCobroCiclo(undefined), '');
+      assert.equal(diasParaCobroCiclo(null), undefined);
+      assert.equal(diasParaCobroCiclo(undefined), undefined);
     });
   });
 });

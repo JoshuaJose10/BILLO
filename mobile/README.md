@@ -157,3 +157,17 @@ El widget **Billo** muestra el total del mes (gastos + suscripciones, el mismo �
 - Tras reiniciar el teléfono lo dibuja con el último dato guardado, sin abrir la app y sin red.
 
 **Probarlo:** necesita el APK de release (`eas build --profile release`); en el build de desarrollo el widget depende de Metro y puede quedar vacío tras un reinicio (ver `docs/spike-rf11-rf13.md`, 2.4).
+
+## Notificaciones push en Android (Firebase, HU-47)
+
+Las push de Android necesitan dos cosas de Firebase. El servidor las envía con el servicio de Expo, así que no hay cambios en el backend.
+
+1. **`google-services.json` en el build.** No está en el repo. Se sube a EAS como variable de tipo **archivo** y `app.config.js` la usa:
+   ```
+   cd mobile
+   npx eas-cli env:create --name GOOGLE_SERVICES_JSON --type file --value ./google-services.json --environment production --visibility sensitive
+   ```
+   (si pide el entorno del perfil `release`, usa `production`; en local basta con dejar el archivo en `mobile/google-services.json`, ya está en `.gitignore`).
+2. **Credencial FCM V1 en EAS.** `npx eas-cli credentials` → Android → perfil `release` → *Google Service Account* → *Manage your Google Service Account Key for Push Notifications (FCM V1)* → subir la clave privada (JSON) de la cuenta de servicio de Firebase.
+
+Después se reconstruye el APK (`npx eas-cli build --profile release --platform android`). Con el APK nuevo la app pide el permiso de notificaciones y registra el token. Expo Go no recibe push remotas.

@@ -48,6 +48,7 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
       moneda: 'MXN',
       monto_original: null,
       tipo_cambio: null,
+      estado: 'activa',
     });
     const lista = await get('/membresias');
     assert.equal(lista.length, 1);
@@ -91,6 +92,7 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
       moneda: 'MXN',
       monto_original: null,
       tipo_cambio: null,
+      estado: 'activa',
     });
     await conciliar(ctx.a, 0, 199, 199);
     await ctx.api.put(`/membresias/${m.id}`).auth(ctx.a.token, { type: 'bearer' })
@@ -131,6 +133,94 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
     });
     assert.equal(membresiaDuo.nombre, 'Spotify Duo');
     assert.equal(membresiaDuo.costo, spotifyDuo.costo_sugerido);
+  });
+
+  describe('HU-66: marcar membresía como pagada (POST /membresias/:id/pagada)', () => {
+    it('mensual del 15 pasa al 15 del mes siguiente', async () => {
+      const m = await crear(datos({ fecha_cobro: '2026-10-15', frecuencia: 'mensual' }));
+      const res = await ctx.api
+        .post(`/membresias/${m.id}/pagada`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+
+      assert.equal(res.body.membresia.id, m.id);
+      assert.equal(res.body.membresia.fecha_cobro, '2026-11-15');
+      assert.equal(typeof res.body.membresia.dias_para_cobro, 'number');
+
+      const lista = await get('/membresias');
+      assert.equal(lista[0].fecha_cobro, '2026-11-15');
+    });
+
+    it('anual avanza un año exacto', async () => {
+      const m = await crear(datos({ fecha_cobro: '2026-05-10', frecuencia: 'anual', costo: 1200 }));
+      const res = await ctx.api
+        .post(`/membresias/${m.id}/pagada`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+
+      assert.equal(res.body.membresia.fecha_cobro, '2027-05-10');
+      assert.equal(res.body.membresia.frecuencia, 'anual');
+    });
+
+    it('fin de mes: 31 de enero pasa a 28 de febrero sin romperse', async () => {
+      const m = await crear(datos({ fecha_cobro: '2026-01-31', frecuencia: 'mensual' }));
+      const res = await ctx.api
+        .post(`/membresias/${m.id}/pagada`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+
+      assert.equal(res.body.membresia.fecha_cobro, '2026-02-28');
+    });
+
+    it('fin de mes: 31 de marzo pasa a 30 de abril', async () => {
+      const m = await crear(datos({ fecha_cobro: '2026-03-31', frecuencia: 'mensual' }));
+      const res = await ctx.api
+        .post(`/membresias/${m.id}/pagada`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+
+      assert.equal(res.body.membresia.fecha_cobro, '2026-04-30');
+    });
+
+    it('NO crea ningún gasto en la tabla gastos y el total mensual en reportes no se duplica', async () => {
+      const m = await crear(datos({ costo: 300, frecuencia: 'mensual', fecha_cobro: '2026-10-15' }));
+      const gastosAntes = await ctx.pool.query('SELECT COUNT(*) AS total FROM gastos WHERE usuario_id = $1', [ctx.a.usuario.id]);
+      const totalGastosAntes = Number(gastosAntes.rows[0].total);
+
+      await ctx.api
+        .post(`/membresias/${m.id}/pagada`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+
+      const gastosDespues = await ctx.pool.query('SELECT COUNT(*) AS total FROM gastos WHERE usuario_id = $1', [ctx.a.usuario.id]);
+      const totalGastosDespues = Number(gastosDespues.rows[0].total);
+      assert.equal(totalGastosDespues, totalGastosAntes);
+
+      // Reportes concilia exactamente el gasto fijo sin gasto variable extra
+      await conciliar(ctx.a, 0, 300, 300);
+    });
+
+    it('aislamiento A/B: otro usuario no puede marcar una membresía ajena (404)', async () => {
+      const m = await crear(datos(), ctx.a);
+      const resAjeno = await ctx.api
+        .post(`/membresias/${m.id}/pagada`)
+        .auth(ctx.b.token, { type: 'bearer' });
+
+      expectError(resAjeno, 404, 'MEMBRESIA_NO_ENCONTRADA');
+
+      // La fecha del usuario A sigue intacta
+      const listaA = await get('/membresias', ctx.a);
+      assert.equal(listaA[0].fecha_cobro, '2026-10-20');
+    });
+
+    it('responde 404 para ID inexistente o inválido', async () => {
+      for (const idInvalido of ['999999', '0', '-1', 'abc']) {
+        const res = await ctx.api
+          .post(`/membresias/${idInvalido}/pagada`)
+          .auth(ctx.a.token, { type: 'bearer' });
+        expectError(res, 404, 'MEMBRESIA_NO_ENCONTRADA');
+      }
+    });
   });
   it('CP-RF6-01: variable 500 + fijo 300 = total 800', async () => {
     await ctx.crearGasto(ctx.a, { monto: 350 });
@@ -566,6 +656,7 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
         tipo_cambio: 18.6311,
         frecuencia: 'mensual',
         fecha_cobro: '2026-10-15',
+        estado: 'activa',
       });
 
       // El total mensual y Reportes suman el equivalente en MXN (186.31)
@@ -648,6 +739,88 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
           }),
         400,
         'MONTO_INVALIDO'
+      );
+    });
+  });
+
+  describe('Pausar y reactivar suscripción (HU-75)', () => {
+    it('pausar Netflix ($199) baja Reportes en $199 y reactivar lo devuelve (QA HU-75)', async () => {
+      // 1. Crear Netflix ($199 mensual) y Spotify ($129 mensual)
+      const netflix = await crear({ nombre: 'Netflix', costo: 199, frecuencia: 'mensual', fecha_cobro: '2026-10-20' });
+      await crear({ nombre: 'Spotify', costo: 129, frecuencia: 'mensual', fecha_cobro: '2026-10-25' });
+
+      // Ambas activas: gasto_fijo = 199 + 129 = 328
+      let res = await resumen(ctx.a, '2026-10');
+      assert.equal(res.gasto_fijo, 328);
+
+      // 2. Pausar Netflix
+      const pausarRes = await ctx.api
+        .post(`/membresias/${netflix.id}/pausar`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+      assert.equal(pausarRes.body.membresia.estado, 'pausada');
+
+      // Verificar en listado que Netflix está pausada pero se conserva
+      const listaPausada = await get('/membresias');
+      assert.equal(listaPausada.length, 2);
+      const netflixEnLista = listaPausada.find((m) => m.id === netflix.id);
+      assert.equal(netflixEnLista.estado, 'pausada');
+
+      // En Reportes el gasto fijo baja $199 (solo queda Spotify: 129)
+      res = await resumen(ctx.a, '2026-10');
+      assert.equal(res.gasto_fijo, 129);
+
+      // 3. Reactivar Netflix
+      const reactivarRes = await ctx.api
+        .post(`/membresias/${netflix.id}/reactivar`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+      assert.equal(reactivarRes.body.membresia.estado, 'activa');
+
+      // En Reportes el gasto fijo vuelve a $328
+      res = await resumen(ctx.a, '2026-10');
+      assert.equal(res.gasto_fijo, 328);
+    });
+
+    it('PUT /membresias/:id permite actualizar el estado y rechaza estado inválido', async () => {
+      const m = await crear();
+      // Actualizar a pausada
+      const editada = await ctx.api
+        .put(`/membresias/${m.id}`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send(datos({ estado: 'pausada' }))
+        .expect(200);
+      assert.equal(editada.body.membresia.estado, 'pausada');
+
+      // Rechazar estado inválido
+      expectError(
+        await ctx.api
+          .put(`/membresias/${m.id}`)
+          .auth(ctx.a.token, { type: 'bearer' })
+          .send(datos({ estado: 'cancelada' })),
+        400,
+        'ESTADO_INVALIDO'
+      );
+    });
+
+    it('POST /membresias/:id/pausar y reactivar devuelven 404 para membresía inexistente o ajena', async () => {
+      expectError(
+        await ctx.api.post('/membresias/999999/pausar').auth(ctx.a.token, { type: 'bearer' }),
+        404,
+        'MEMBRESIA_NO_ENCONTRADA'
+      );
+      expectError(
+        await ctx.api.post('/membresias/999999/reactivar').auth(ctx.a.token, { type: 'bearer' }),
+        404,
+        'MEMBRESIA_NO_ENCONTRADA'
+      );
+
+      // Membresía de usuario A intentada pausar por usuario B
+      const m = await crear();
+      expectError(
+        await ctx.api.post(`/membresias/${m.id}/pausar`).auth(ctx.b.token, { type: 'bearer' }),
+        404,
+        'MEMBRESIA_NO_ENCONTRADA'
       );
     });
   });

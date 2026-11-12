@@ -81,6 +81,30 @@ export function useMembresiasService() {
       // DELETE /membresias/:id → 200 { eliminado: true }
       eliminarMembresia: (id) => api(`/membresias/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 
+      // POST /membresias/:id/pausar → 200 { membresia } (HU-75)
+      pausarMembresia: async (id) => {
+        const respuesta = await api(`/membresias/${encodeURIComponent(id)}/pausar`, {
+          method: 'POST',
+        });
+        return normalizarMembresia(respuesta.membresia);
+      },
+
+      // POST /membresias/:id/reactivar → 200 { membresia } (HU-75)
+      reactivarMembresia: async (id) => {
+        const respuesta = await api(`/membresias/${encodeURIComponent(id)}/reactivar`, {
+          method: 'POST',
+        });
+        return normalizarMembresia(respuesta.membresia);
+      },
+
+      // POST /membresias/:id/pagada → 200 { membresia } (HU-66)
+      marcarPagada: async (id) => {
+        const respuesta = await api(`/membresias/${encodeURIComponent(id)}/pagada`, {
+          method: 'POST',
+        });
+        return normalizarMembresia(respuesta.membresia);
+      },
+
       // GET /catalogo → [{ id, nombre, logo_url, costo_sugerido }]
       listarCatalogo: async () => {
         const lista = await api('/catalogo');

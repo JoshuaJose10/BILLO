@@ -32,7 +32,11 @@ import { mesActual, sumarMeses } from '../utils/fechas';
 import { formatearMonto, nombreMes } from '../utils/formato';
 import {
   agruparPorFrecuencia,
+  calcularTotalAnual,
+  calcularTotalEsteMes,
   calcularTotalMensual,
+  diasParaCobroCiclo,
+  fechaCobroCiclo,
   formatearDiaMes,
   ORDEN_SUSCRIPCIONES,
   ordenarMembresias,
@@ -224,8 +228,10 @@ export default function CarteraScreen({ navigation, route }) {
   };
 
   // Handlers para Suscripciones
-  const crearMembresia = () => navigation.navigate('Membresia');
-  const editarMembresia = (m) => navigation.navigate('Membresia', { membresia: m });
+  const crearMembresia = () =>
+    navigation.navigate('Membresia', { membresiasExistentes: membresias });
+  const editarMembresia = (m) =>
+    navigation.navigate('Membresia', { membresia: m, membresiasExistentes: membresias });
   const membresiaEliminada = (id) => {
     setMembresias((lista) => lista.filter((m) => m.id !== id));
     cargarMembresias();
@@ -257,14 +263,18 @@ export default function CarteraScreen({ navigation, route }) {
 
   // Resumen de Suscripciones
   const totalMensualSuscripciones = useMemo(() => calcularTotalMensual(membresias), [membresias]);
+  const totalAnualSuscripciones = useMemo(() => calcularTotalAnual(membresias), [membresias]);
+  const totalEsteMesSuscripciones = useMemo(() => calcularTotalEsteMes(membresias), [membresias]);
   const tramosSubs = useMemo(() => tramosSuscripciones(membresias), [membresias]);
   const listaMembresiasLista = estadoMembresias === 'listo';
   const hayMembresias = listaMembresiasLista && membresias.length > 0;
   const proximaMembresia = useMemo(() => {
     if (!hayMembresias) return null;
     return membresias.reduce((min, m) => {
-      const diasMin = typeof min?.dias_para_cobro === 'number' ? min.dias_para_cobro : Infinity;
-      const diasM = typeof m?.dias_para_cobro === 'number' ? m.dias_para_cobro : Infinity;
+      const dMin = diasParaCobroCiclo(min);
+      const diasMin = typeof dMin === 'number' ? dMin : Infinity;
+      const dM = diasParaCobroCiclo(m);
+      const diasM = typeof dM === 'number' ? dM : Infinity;
       return diasM < diasMin ? m : min;
     }, membresias[0]);
   }, [hayMembresias, membresias]);
@@ -432,6 +442,22 @@ export default function CarteraScreen({ navigation, route }) {
               />
             ) : null}
 
+            <View style={styles.filaProyeccionSubs}>
+              <View style={styles.columnaProyeccionSubs}>
+                <Text style={styles.etiquetaProyeccionSubs}>Al año gastas</Text>
+                <Text style={styles.montoProyeccionSubs}>
+                  {formatearMonto(totalAnualSuscripciones)}
+                </Text>
+              </View>
+              <View style={styles.divisorProyeccionSubs} />
+              <View style={styles.columnaProyeccionSubs}>
+                <Text style={styles.etiquetaProyeccionSubs}>Este mes se cobra</Text>
+                <Text style={styles.montoProyeccionSubs}>
+                  {formatearMonto(totalEsteMesSuscripciones)}
+                </Text>
+              </View>
+            </View>
+
             <View style={styles.resumenDetalleFila}>
               <MaterialCommunityIcons
                 name="calendar-blank-outline"
@@ -444,7 +470,7 @@ export default function CarteraScreen({ navigation, route }) {
                   {membresias.length === 1 ? 'suscripción activa' : 'suscripciones activas'}
                 </Text>
                 {proximaMembresia
-                  ? ` · Próximo cobro el ${formatearDiaMes(proximaMembresia.fecha_cobro)}`
+                  ? ` · Próximo cobro el ${formatearDiaMes(fechaCobroCiclo(proximaMembresia))}`
                   : ''}
               </Text>
             </View>
@@ -778,6 +804,37 @@ const crearEstilos = (colors) =>
     resumenMonedaSubs: {
       ...tipografia.bodyMd,
       color: colors.textSecondary,
+    },
+    filaProyeccionSubs: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.surfaceHigh,
+      borderRadius: radios.md,
+      paddingVertical: espacios.sm,
+      paddingHorizontal: espacios.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    columnaProyeccionSubs: {
+      flex: 1,
+      gap: 2,
+    },
+    etiquetaProyeccionSubs: {
+      ...tipografia.labelCaps,
+      fontSize: 10,
+      color: colors.textSecondary,
+    },
+    montoProyeccionSubs: {
+      fontFamily: fonts.sansSemiBold,
+      fontSize: 15,
+      color: colors.text,
+    },
+    divisorProyeccionSubs: {
+      width: 1,
+      height: 28,
+      backgroundColor: colors.border,
+      marginHorizontal: espacios.sm,
     },
     resumenDetalleFila: {
       flexDirection: 'row',

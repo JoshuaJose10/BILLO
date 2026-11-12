@@ -1,9 +1,9 @@
 process.env.TZ = 'UTC';
-
 const { describe, before, after } = require('node:test');
 const { createDatabase } = require('./helpers/database.cjs');
 const { createFixtures } = require('./helpers/fixtures.cjs');
 
+// Presupuesto para la suite completa, incluidas migraciones y bcrypt en Windows/CI.
 describe('API real + PostgreSQL temporal', { timeout: 120000 }, () => {
   let database;
   let context;
@@ -23,5 +23,6 @@ describe('API real + PostgreSQL temporal', { timeout: 120000 }, () => {
   require('./suites/membresias-reportes.cjs')(() => context);
   require('./suites/notificaciones.cjs')(() => context);
   require('./suites/divisas.cjs')(() => context);
+  require('./suites/ingresos.cjs')(() => context);
   require('./suites/mobile.cjs')(() => context);
 });

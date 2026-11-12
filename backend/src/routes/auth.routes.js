@@ -15,5 +15,7 @@ router.post('/restablecer', authController.restablecerContrasena);
 // PERFIL (ruta oficial /perfil y alias temporal /profile)
 router.get('/perfil', authMiddleware, authController.profile);
 router.get('/profile', authMiddleware, authController.profile);
+// ELIMINAR CUENTA (HU-68)
+router.delete('/cuenta', authMiddleware, authController.eliminarCuenta);
 
 module.exports = router;

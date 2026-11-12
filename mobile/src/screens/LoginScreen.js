@@ -5,23 +5,25 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import AuthLayout from '../components/AuthLayout';
 import Boton from '../components/Boton';
 import EnlaceAuth from '../components/EnlaceAuth';
-import Input from '../components/Input';
+import Input, { TextoError } from '../components/Input';
 import { SESION_VENCIDA, useAuth } from '../context/AuthContext';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { mensajeError } from '../utils/errores';
-import { esEmailValido } from '../utils/validacion';
+import { errorEmail, hayErrores } from '../utils/validacion';
+
+// Parámetro `aviso` con el que Restablecer regresa a Login (HU-65).
+export const PASSWORD_ACTUALIZADA = 'passwordActualizada';
 
 function validar({ email, password }) {
-  const errores = {};
-  if (!email.trim()) errores.email = 'Ingresa tu correo';
-  else if (!esEmailValido(email)) errores.email = 'Ingresa un correo válido';
-  if (!password) errores.password = 'Ingresa tu contraseña';
-  return errores;
+  return {
+    email: errorEmail(email),
+    password: password ? undefined : 'Ingresa tu contraseña',
+  };
 }
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({ navigation, route }) {
   const { iniciarSesion, motivoCierre, limpiarMotivoCierre, explorarSinCuenta } = useAuth();
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
@@ -33,6 +35,30 @@ export default function LoginScreen({ navigation }) {
   const [passwordEnfocado, setPasswordEnfocado] = useState(false);
   const enviandoRef = useRef(false);
   const passwordRef = useRef(null);
+  const { email: emailRecibido, aviso: avisoRecibido } = route.params ?? {};
+
+  // Al volver de Restablecer (o de Olvidé) con el correo, lo precarga (ajuste durante el render
+  // al cambiar el parámetro, sin efecto).
+  const [emailPrevio, setEmailPrevio] = useState(emailRecibido);
+  if (emailRecibido !== emailPrevio) {
+    setEmailPrevio(emailRecibido);
+    if (emailRecibido) setEmail(emailRecibido);
+  }
+
+  const aviso =
+    avisoRecibido === PASSWORD_ACTUALIZADA
+      ? {
+          icono: 'check-circle-outline',
+          texto: 'Contraseña actualizada. Inicia sesión con la nueva.',
+          cerrar: () => navigation.setParams({ aviso: undefined }),
+        }
+      : motivoCierre === SESION_VENCIDA
+        ? {
+            icono: 'clock-alert-outline',
+            texto: 'Tu sesión expiró. Inicia sesión de nuevo.',
+            cerrar: limpiarMotivoCierre,
+          }
+        : null;
 
   const cambiar = (campo, setter) => (valor) => {
     setter(valor);
@@ -44,7 +70,7 @@ export default function LoginScreen({ navigation }) {
     if (enviandoRef.current) return;
     const nuevosErrores = validar({ email, password });
     setErrores(nuevosErrores);
-    if (Object.keys(nuevosErrores).length > 0) return;
+    if (hayErrores(nuevosErrores)) return;
 
     enviandoRef.current = true;
     setEnviando(true);
@@ -66,12 +92,12 @@ export default function LoginScreen({ navigation }) {
       subtitulo="Ingresa tus credenciales para acceder a tus finanzas."
       mostrarFinal={passwordEnfocado}
     >
-      {motivoCierre === SESION_VENCIDA ? (
+      {aviso ? (
         <View style={styles.aviso} accessibilityRole="alert">
-          <MaterialCommunityIcons name="clock-alert-outline" size={20} color={colors.text} />
-          <Text style={styles.avisoTexto}>Tu sesión expiró. Inicia sesión de nuevo.</Text>
+          <MaterialCommunityIcons name={aviso.icono} size={20} color={colors.text} />
+          <Text style={styles.avisoTexto}>{aviso.texto}</Text>
           <Pressable
-            onPress={limpiarMotivoCierre}
+            onPress={aviso.cerrar}
             hitSlop={10}
             accessibilityRole="button"
             accessibilityLabel="Cerrar aviso"
@@ -115,8 +141,13 @@ export default function LoginScreen({ navigation }) {
         onSubmitEditing={entrar}
         editable={!enviando}
       />
+      <EnlaceAuth
+        accion="¿Olvidaste tu contraseña?"
+        onPress={() => navigation.navigate('OlvideContrasena', { email: email.trim() })}
+        style={styles.olvide}
+      />
 
-      {errorApi ? <Text style={styles.errorApi}>{errorApi}</Text> : null}
+      {errorApi ? <TextoError formulario>{errorApi}</TextoError> : null}
 
       <Boton titulo="Entrar" icono="arrow-right" onPress={entrar} cargando={enviando} grande />
 
@@ -164,11 +195,10 @@ const crearEstilos = (colors) =>
     explorar: {
       marginTop: 20,
     },
-    errorApi: {
-      fontFamily: fonts.sans,
-      color: colors.alertaTexto,
-      fontSize: 14,
-      textAlign: 'center',
+    // Pegado al campo de contraseña (que ya deja 16 debajo), alineado a la derecha.
+    olvide: {
+      marginTop: -8,
       marginBottom: 12,
+      textAlign: 'right',
     },
   });

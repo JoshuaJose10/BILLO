@@ -39,7 +39,9 @@ import { vistaLista } from '../utils/estadoCarga';
 import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
 import { formatearMonto, formatearMontoCorto, LOCALE, resumirTexto } from '../utils/formato';
 import {
+  detectarServicioRepetido,
   estiloServicio,
+  fechaCobroCiclo,
   filtrarCatalogo,
   formatearDiaMes,
   inicialServicio,
@@ -81,11 +83,37 @@ function useAlturaTeclado() {
 export default function MembresiaScreen({ navigation, route }) {
   const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
-  const { listarCatalogo, crearMembresia, actualizarMembresia, eliminarMembresia } =
-    useMembresiasService();
+  const {
+    listarCatalogo,
+    listarMembresias,
+    crearMembresia,
+    actualizarMembresia,
+    eliminarMembresia,
+    pausarMembresia,
+    reactivarMembresia,
+    marcarPagada,
+  } = useMembresiasService();
 
   const membresiaEditada = route.params?.membresia;
   const editando = Boolean(membresiaEditada);
+  const estaPausada = membresiaEditada?.estado === 'pausada';
+
+  const [membresiasExistentes, setMembresiasExistentes] = useState(
+    () => route.params?.membresiasExistentes ?? [],
+  );
+
+  useEffect(() => {
+    let activo = true;
+    listarMembresias()
+      .then((items) => {
+        if (!activo) return;
+        setMembresiasExistentes(items || []);
+      })
+      .catch(() => {});
+    return () => {
+      activo = false;
+    };
+  }, [listarMembresias]);
 
   const { obtenerTipoCambio } = useDivisasService();
 
@@ -106,9 +134,10 @@ export default function MembresiaScreen({ navigation, route }) {
     return textoDesdeMonto(valor);
   });
   const [frecuencia, setFrecuencia] = useState(() => membresiaEditada?.frecuencia ?? 'mensual');
-  const [fecha, setFecha] = useState(() =>
-    membresiaEditada?.fecha_cobro ? parsearFechaLocal(membresiaEditada.fecha_cobro) : new Date(),
-  );
+  const [fecha, setFecha] = useState(() => {
+    const fStr = fechaCobroCiclo(membresiaEditada);
+    return fStr ? parsearFechaLocal(fStr) : new Date();
+  });
   const [servicioId, setServicioId] = useState(() => membresiaEditada?.servicio_id ?? null);
   const [panel, setPanel] = useState(null); // 'nombre' | 'frecuencia' | 'fecha' | 'moneda'
 
@@ -130,10 +159,12 @@ export default function MembresiaScreen({ navigation, route }) {
   const [errorApi, setErrorApi] = useState('');
   const [guardando, setGuardando] = useState(false);
   const [eliminando, setEliminando] = useState(false);
+  const [pausando, setPausando] = useState(false);
+  const [marcandoPagada, setMarcandoPagada] = useState(false);
   const enviando = useRef(false);
   const hojaRef = useRef(null);
 
-  const ocupado = guardando || eliminando;
+  const ocupado = guardando || eliminando || pausando || marcandoPagada;
 
   // Cargar catálogo de servicios predefinidos si estamos agregando
   useEffect(() => {
@@ -214,7 +245,8 @@ export default function MembresiaScreen({ navigation, route }) {
 
     try {
       const resp = await obtenerTipoCambio(codigoMoneda);
-      setTipoCambio(resp.tipo_cambio);
+      // El servidor acepta máximo 6 decimales en el tipo de cambio
+      setTipoCambio(Number(Number(resp.tipo_cambio).toFixed(6)));
       setCargandoTipoCambio(false);
       if (resp.desactualizado) {
         setAvisoTipoCambio('Sin conexión a la fuente: usando el último tipo de cambio conocido.');
@@ -243,7 +275,7 @@ export default function MembresiaScreen({ navigation, route }) {
     }
   };
 
-  const guardar = async () => {
+  const guardar = async (forzar = false) => {
     if (enviando.current) return;
 
     // El teclado deja textos como "12." o "": se validan como número (igual que Nuevo gasto).
@@ -265,10 +297,6 @@ export default function MembresiaScreen({ navigation, route }) {
       return;
     }
 
-    enviando.current = true;
-    setGuardando(true);
-    setErrorApi('');
-
     const payload = prepararDatosMembresia({
       servicioId,
       nombre: nombre.trim(),
@@ -279,17 +307,74 @@ export default function MembresiaScreen({ navigation, route }) {
       fechaCobro: fechaCobroISO,
     });
 
+    // Aviso de servicio repetido (HU-74)
+    if (!forzar) {
+      let listaActual = membresiasExistentes;
+      try {
+        const frescas = await listarMembresias();
+        if (Array.isArray(frescas)) {
+          listaActual = frescas;
+          setMembresiasExistentes(frescas);
+        }
+      } catch {
+        // En caso de corte de red, usar la lista existente
+      }
+
+      const repetido = detectarServicioRepetido(
+        payload,
+        listaActual,
+        editando ? membresiaEditada.id : null,
+      );
+
+      if (repetido.repetido) {
+        Alert.alert('Servicio repetido', `Ya tienes ${repetido.nombreServicio}, ¿es otro plan?`, [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Guardar de todos modos',
+            onPress: () => guardar(true),
+          },
+        ]);
+        return;
+      }
+    }
+
+    enviando.current = true;
+    setGuardando(true);
+    setErrorApi('');
+
     try {
       if (editando) {
         await actualizarMembresia(membresiaEditada.id, payload);
       } else {
         await crearMembresia(payload);
       }
+      route.params?.onGuardado?.();
       enviando.current = false;
       hojaRef.current?.cerrar();
     } catch (error) {
       enviando.current = false;
       setGuardando(false);
+      setErrorApi(mensajeError(error?.code, error?.message));
+    }
+  };
+
+  const alternarPausar = async () => {
+    if (enviando.current || !editando) return;
+    enviando.current = true;
+    setPausando(true);
+    setErrorApi('');
+
+    try {
+      if (estaPausada) {
+        await reactivarMembresia(membresiaEditada.id);
+      } else {
+        await pausarMembresia(membresiaEditada.id);
+      }
+      enviando.current = false;
+      hojaRef.current?.cerrar();
+    } catch (error) {
+      enviando.current = false;
+      setPausando(false);
       setErrorApi(mensajeError(error?.code, error?.message));
     }
   };
@@ -302,6 +387,7 @@ export default function MembresiaScreen({ navigation, route }) {
 
     try {
       await eliminarMembresia(membresiaEditada.id);
+      route.params?.onGuardado?.();
       enviando.current = false;
       hojaRef.current?.cerrar();
     } catch (error) {
@@ -316,6 +402,30 @@ export default function MembresiaScreen({ navigation, route }) {
     Alert.alert('¿Eliminar suscripción?', 'Esta acción no se puede deshacer.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Eliminar', style: 'destructive', onPress: eliminar },
+    ]);
+  };
+
+  const confirmarMarcarPagada = () => {
+    if (enviando.current || !editando) return;
+    Alert.alert('¿Marcar como pagada?', 'El próximo cobro avanzará al siguiente ciclo.', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Marcar pagada',
+        onPress: async () => {
+          enviando.current = true;
+          setMarcandoPagada(true);
+          setErrorApi('');
+          try {
+            await marcarPagada(membresiaEditada.id);
+            enviando.current = false;
+            hojaRef.current?.cerrar();
+          } catch (error) {
+            enviando.current = false;
+            setMarcandoPagada(false);
+            setErrorApi(mensajeError(error?.code, error?.message));
+          }
+        },
+      },
     ]);
   };
 
@@ -482,9 +592,9 @@ export default function MembresiaScreen({ navigation, route }) {
           <Boton
             titulo={editando ? 'Guardar cambios' : 'Guardar suscripción'}
             icono="check"
-            onPress={guardar}
+            onPress={() => guardar()}
             cargando={guardando}
-            disabled={eliminando}
+            disabled={ocupado}
             compacto
           />
         </>
@@ -492,12 +602,29 @@ export default function MembresiaScreen({ navigation, route }) {
       {editando ? (
         <View style={styles.zonaEliminar}>
           <Boton
+            titulo={estaPausada ? 'Reactivar suscripción' : 'Pausar suscripción'}
+            icono={estaPausada ? 'play-circle-outline' : 'pause-circle-outline'}
+            secundario
+            onPress={alternarPausar}
+            cargando={pausando}
+            disabled={ocupado}
+          />
+          <Boton
+            titulo="Marcar como pagada"
+            icono="check-circle-outline"
+            onPress={confirmarMarcarPagada}
+            cargando={marcandoPagada}
+            disabled={ocupado}
+            secundario
+            compacto
+          />
+          <Boton
             titulo="Eliminar suscripción"
             icono="trash-can-outline"
             destructivo
             onPress={confirmarEliminar}
             cargando={eliminando}
-            disabled={guardando}
+            disabled={ocupado}
           />
         </View>
       ) : null}
@@ -678,6 +805,7 @@ const crearEstilos = (colors) =>
     },
     zonaEliminar: {
       marginTop: 10,
+      gap: 10,
     },
     errorApi: {
       ...tipografia.bodyMd,

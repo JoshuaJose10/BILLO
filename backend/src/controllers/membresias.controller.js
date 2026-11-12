@@ -51,6 +51,7 @@ const formatearMembresia = (row) => ({
       : Number(row.tipo_cambio),
   frecuencia: row.frecuencia,
   fecha_cobro: row.fecha_cobro,
+  estado: row.estado || 'activa',
 });
 
 const formatearMembresiaConDias = (row) => ({
@@ -69,6 +70,7 @@ const formatearMembresiaConDias = (row) => ({
       : Number(row.tipo_cambio),
   frecuencia: row.frecuencia,
   fecha_cobro: row.fecha_cobro,
+  estado: row.estado || 'activa',
   dias_para_cobro: Number(row.dias_para_cobro),
 });
 
@@ -82,7 +84,8 @@ const validarDatosMembresia = async (body) => {
     };
   }
 
-  const { servicio_id, frecuencia, fecha_cobro, moneda, monto_original, tipo_cambio } = body;
+  const { servicio_id, frecuencia, fecha_cobro, estado, moneda, monto_original, tipo_cambio } =
+    body;
   let { nombre, costo } = body;
 
   let servicioIdFinal = null;
@@ -251,6 +254,19 @@ const validarDatosMembresia = async (body) => {
     tipoCambioFinal = tipo_cambio;
   }
 
+  let estadoFinal = 'activa';
+  if (estado !== undefined && estado !== null) {
+    if (typeof estado !== 'string' || !['activa', 'pausada'].includes(estado)) {
+      return {
+        error: {
+          code: 'ESTADO_INVALIDO',
+          message: "El estado debe ser 'activa' o 'pausada'",
+        },
+      };
+    }
+    estadoFinal = estado;
+  }
+
   return {
     datos: {
       servicio_id: servicioIdFinal,
@@ -261,6 +277,7 @@ const validarDatosMembresia = async (body) => {
       tipo_cambio: tipoCambioFinal,
       frecuencia,
       fecha_cobro,
+      estado: estadoFinal,
     },
   };
 };
@@ -284,12 +301,13 @@ const crearMembresia = async (req, res) => {
       tipo_cambio,
       frecuencia,
       fecha_cobro,
+      estado,
     } = validacion.datos;
 
     const insertQuery = `
-      INSERT INTO membresias (usuario_id, servicio_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, fecha_cobro)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      RETURNING id, servicio_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro
+      INSERT INTO membresias (usuario_id, servicio_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, fecha_cobro, estado)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING id, servicio_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
     `;
 
     const { rows } = await pool.query(insertQuery, [
@@ -302,6 +320,7 @@ const crearMembresia = async (req, res) => {
       tipo_cambio,
       frecuencia,
       fecha_cobro,
+      estado,
     ]);
 
     return res
@@ -334,6 +353,7 @@ const listarMembresias = async (req, res) => {
         tipo_cambio,
         frecuencia,
         TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro,
+        estado,
         (fecha_cobro - CURRENT_DATE)::integer AS dias_para_cobro
       FROM membresias
       WHERE usuario_id = $1
@@ -386,6 +406,7 @@ const actualizarMembresia = async (req, res) => {
       tipo_cambio,
       frecuencia,
       fecha_cobro,
+      estado,
     } = validacion.datos;
 
     const updateQuery = `
@@ -397,9 +418,10 @@ const actualizarMembresia = async (req, res) => {
           monto_original = $7,
           tipo_cambio = $8,
           frecuencia = $9,
-          fecha_cobro = $10
+          fecha_cobro = $10,
+          estado = $11
       WHERE id = $1 AND usuario_id = $2
-      RETURNING id, servicio_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro
+      RETURNING id, servicio_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
     `;
 
     const { rows } = await pool.query(updateQuery, [
@@ -413,6 +435,7 @@ const actualizarMembresia = async (req, res) => {
       tipo_cambio,
       frecuencia,
       fecha_cobro,
+      estado,
     ]);
 
     if (rows.length === 0) {
@@ -433,6 +456,102 @@ const actualizarMembresia = async (req, res) => {
       error: {
         code: 'ERROR_SERVIDOR',
         message: 'No se pudo actualizar la membresía',
+      },
+    });
+  }
+};
+
+// POST /membresias/:id/pausar
+const pausarMembresia = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+    const membresiaId = Number(req.params.id);
+
+    if (
+      !Number.isInteger(membresiaId) ||
+      membresiaId <= 0 ||
+      membresiaId > 2147483647
+    ) {
+      return res.status(404).json({
+        error: {
+          code: 'MEMBRESIA_NO_ENCONTRADA',
+          message: 'Membresía no encontrada',
+        },
+      });
+    }
+
+    const query = `
+      UPDATE membresias
+      SET estado = 'pausada'
+      WHERE id = $1 AND usuario_id = $2
+      RETURNING id, servicio_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
+    `;
+    const { rows } = await pool.query(query, [membresiaId, usuarioId]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        error: {
+          code: 'MEMBRESIA_NO_ENCONTRADA',
+          message: 'Membresía no encontrada',
+        },
+      });
+    }
+
+    return res.status(200).json({ membresia: formatearMembresia(rows[0]) });
+  } catch (error) {
+    console.error('Error al pausar membresía:', error.message);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'No se pudo pausar la membresía',
+      },
+    });
+  }
+};
+
+// POST /membresias/:id/reactivar
+const reactivarMembresia = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+    const membresiaId = Number(req.params.id);
+
+    if (
+      !Number.isInteger(membresiaId) ||
+      membresiaId <= 0 ||
+      membresiaId > 2147483647
+    ) {
+      return res.status(404).json({
+        error: {
+          code: 'MEMBRESIA_NO_ENCONTRADA',
+          message: 'Membresía no encontrada',
+        },
+      });
+    }
+
+    const query = `
+      UPDATE membresias
+      SET estado = 'activa'
+      WHERE id = $1 AND usuario_id = $2
+      RETURNING id, servicio_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
+    `;
+    const { rows } = await pool.query(query, [membresiaId, usuarioId]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        error: {
+          code: 'MEMBRESIA_NO_ENCONTRADA',
+          message: 'Membresía no encontrada',
+        },
+      });
+    }
+
+    return res.status(200).json({ membresia: formatearMembresia(rows[0]) });
+  } catch (error) {
+    console.error('Error al reactivar membresía:', error.message);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'No se pudo reactivar la membresía',
       },
     });
   }
@@ -486,10 +605,78 @@ const eliminarMembresia = async (req, res) => {
   }
 };
 
+// POST /membresias/:id/pagada (HU-66)
+const marcarMembresiaPagada = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+    const membresiaId = Number(req.params.id);
+
+    if (
+      !Number.isInteger(membresiaId) ||
+      membresiaId <= 0 ||
+      membresiaId > 2147483647
+    ) {
+      return res.status(404).json({
+        error: {
+          code: 'MEMBRESIA_NO_ENCONTRADA',
+          message: 'Membresía no encontrada',
+        },
+      });
+    }
+
+    const updateQuery = `
+      UPDATE membresias
+      SET fecha_cobro = CASE
+        WHEN frecuencia = 'anual' THEN (fecha_cobro + INTERVAL '1 year')::date
+        ELSE (fecha_cobro + INTERVAL '1 month')::date
+      END
+      WHERE id = $1 AND usuario_id = $2
+      RETURNING
+        id,
+        servicio_id,
+        nombre,
+        costo,
+        moneda,
+        monto_original,
+        tipo_cambio,
+        estado,
+        frecuencia,
+        TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro,
+        (fecha_cobro - CURRENT_DATE)::integer AS dias_para_cobro
+    `;
+
+    const { rows } = await pool.query(updateQuery, [membresiaId, usuarioId]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        error: {
+          code: 'MEMBRESIA_NO_ENCONTRADA',
+          message: 'Membresía no encontrada',
+        },
+      });
+    }
+
+    return res
+      .status(200)
+      .json({ membresia: formatearMembresiaConDias(rows[0]) });
+  } catch (error) {
+    console.error('Error al marcar membresía como pagada:', error.message);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'No se pudo marcar la membresía como pagada',
+      },
+    });
+  }
+};
+
 module.exports = {
   crearMembresia,
   listarMembresias,
   actualizarMembresia,
   eliminarMembresia,
+  pausarMembresia,
+  reactivarMembresia,
+  marcarMembresiaPagada,
 };
 

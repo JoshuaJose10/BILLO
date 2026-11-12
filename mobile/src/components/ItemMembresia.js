@@ -5,8 +5,15 @@ import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { tipografia } from '../theme/tipografia';
+import {
+  diasParaCobroCiclo,
+  estiloServicio,
+  fechaCobroCiclo,
+  inicialServicio,
+  nivelCobro,
+  textoCobro,
+} from '../utils/membresias';
 import { formatearCostoMembresia } from '../utils/divisas';
-import { estiloServicio, inicialServicio, nivelCobro, textoCobro } from '../utils/membresias';
 
 // Tarjeta de una membresía / suscripción en Cartera (HU-05; diseño HU-81, Stitch
 // 13_cartera_subs_oscuro_brillo / _claro_brillo): logo en squircle del color de marca (o la
@@ -17,16 +24,29 @@ export default function ItemMembresia({ membresia, opaca = false }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
-  const { nombre, costo, frecuencia, fecha_cobro, dias_para_cobro, moneda, monto_original } =
-    membresia;
+  const { nombre, costo, frecuencia, estado, moneda, monto_original } = membresia;
+  const fechaCobro = fechaCobroCiclo(membresia);
+  const diasCobro = diasParaCobroCiclo(membresia);
   const { color: colorMarca, icono, predefinido } = estiloServicio(nombre);
-  const nivel = nivelCobro(dias_para_cobro);
-  const colorPunto =
-    nivel === 'aviso' ? colors.aviso : nivel === 'exito' ? colors.exito : colors.outline;
+  const pausada = estado === 'pausada';
+  const nivel = nivelCobro(diasCobro);
+  const colorPunto = pausada
+    ? colors.outline
+    : nivel === 'aviso'
+      ? colors.aviso
+      : nivel === 'exito'
+        ? colors.exito
+        : colors.outline;
   const anual = frecuencia === 'anual';
 
   return (
-    <View style={[styles.tarjeta, opaca ? styles.tarjetaOpaca : null]}>
+    <View
+      style={[
+        styles.tarjeta,
+        opaca ? styles.tarjetaOpaca : null,
+        pausada ? styles.tarjetaPausada : null,
+      ]}
+    >
       <View style={styles.filaSuperior}>
         <View style={[styles.squircle, { backgroundColor: colorMarca, shadowColor: colorMarca }]}>
           {predefinido ? (
@@ -50,13 +70,16 @@ export default function ItemMembresia({ membresia, opaca = false }) {
       </View>
 
       <View style={styles.filaInferior}>
-        <View style={[styles.pildora, nivel === 'aviso' ? styles.pildoraAviso : null]}>
+        <View style={[styles.pildora, !pausada && nivel === 'aviso' ? styles.pildoraAviso : null]}>
           <View style={[styles.punto, { backgroundColor: colorPunto }]} />
           <Text
-            style={[styles.textoCobro, nivel === 'aviso' ? styles.textoCobroAviso : null]}
+            style={[
+              styles.textoCobro,
+              !pausada && nivel === 'aviso' ? styles.textoCobroAviso : null,
+            ]}
             numberOfLines={1}
           >
-            {textoCobro(dias_para_cobro, fecha_cobro)}
+            {pausada ? 'Pausada' : textoCobro(diasCobro, fechaCobro)}
           </Text>
         </View>
       </View>
@@ -78,6 +101,9 @@ const crearEstilos = (colors) =>
     },
     tarjetaOpaca: {
       backgroundColor: colors.card,
+    },
+    tarjetaPausada: {
+      opacity: 0.75,
     },
     filaSuperior: {
       flexDirection: 'row',

@@ -4,14 +4,18 @@ import { useEstilos } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 
 // "¿No tienes cuenta? Crear cuenta": la parte enlazada en el acento, semibold y subrayada.
-export default function EnlaceAuth({ pregunta, accion, onPress }) {
+// Sin `pregunta` queda solo el enlace; sin `accion`, solo el texto (p. ej. una cuenta regresiva).
+export default function EnlaceAuth({ pregunta, accion, onPress, style }) {
   const styles = useEstilos(crearEstilos);
   return (
-    <Text style={styles.texto}>
-      {pregunta}{' '}
-      <Text style={styles.enlace} onPress={onPress} accessibilityRole="link" suppressHighlighting>
-        {accion}
-      </Text>
+    <Text style={[styles.texto, style]}>
+      {pregunta}
+      {pregunta && accion ? ' ' : null}
+      {accion ? (
+        <Text style={styles.enlace} onPress={onPress} accessibilityRole="link" suppressHighlighting>
+          {accion}
+        </Text>
+      ) : null}
     </Text>
   );
 }
