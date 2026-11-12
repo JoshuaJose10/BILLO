@@ -1,49 +1,23 @@
 import { useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 
 import AuthLayout from '../components/AuthLayout';
 import Boton from '../components/Boton';
 import EnlaceAuth from '../components/EnlaceAuth';
-import Input from '../components/Input';
+import FuerzaPassword from '../components/FuerzaPassword';
+import Input, { TextoError } from '../components/Input';
 import { useAuth } from '../context/AuthContext';
-import { useEstilos, useTema } from '../theme/TemaContext';
+import { useEstilos } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { mensajeError } from '../utils/errores';
-import { esEmailValido, fuerzaPassword, MIN_PASSWORD } from '../utils/validacion';
+import { errorEmail, errorPasswordNueva, hayErrores } from '../utils/validacion';
 
 function validar({ nombre, email, password }) {
-  const errores = {};
-  if (!nombre.trim()) errores.nombre = 'Ingresa tu nombre';
-  if (!email.trim()) errores.email = 'Ingresa tu correo';
-  else if (!esEmailValido(email)) errores.email = 'Ingresa un correo válido';
-  if (!password) errores.password = 'Ingresa una contraseña';
-  else if (password.length < MIN_PASSWORD)
-    errores.password = `La contraseña debe tener al menos ${MIN_PASSWORD} caracteres`;
-  return errores;
-}
-
-function FuerzaPassword({ password }) {
-  const fuerza = fuerzaPassword(password);
-  const { colors } = useTema();
-  const styles = useEstilos(crearEstilos);
-  // Color de cada barrita encendida (Stitch: bg-outline, bg-on-surface-variant, bg-primary).
-  const colorBarra = [colors.outline, colors.textVariant, colors.primary];
-  return (
-    <View style={styles.pistaFila}>
-      <Text style={styles.pista}>Mínimo {MIN_PASSWORD} caracteres</Text>
-      <View style={styles.barras} accessibilityLabel={`Fuerza de la contraseña: ${fuerza} de 3`}>
-        {[1, 2, 3].map((n) => (
-          <View
-            key={n}
-            style={[
-              styles.barra,
-              { backgroundColor: n <= fuerza ? colorBarra[n - 1] : colors.surfaceBright },
-            ]}
-          />
-        ))}
-      </View>
-    </View>
-  );
+  return {
+    nombre: nombre.trim() ? undefined : 'Ingresa tu nombre',
+    email: errorEmail(email),
+    password: errorPasswordNueva(password),
+  };
 }
 
 export default function RegistroScreen({ navigation }) {
@@ -70,7 +44,7 @@ export default function RegistroScreen({ navigation }) {
     if (enviandoRef.current) return;
     const nuevosErrores = validar({ nombre, email, password });
     setErrores(nuevosErrores);
-    if (Object.keys(nuevosErrores).length > 0) return;
+    if (hayErrores(nuevosErrores)) return;
 
     enviandoRef.current = true;
     setEnviando(true);
@@ -145,7 +119,7 @@ export default function RegistroScreen({ navigation }) {
         editable={!enviando}
       />
 
-      {errorApi ? <Text style={styles.errorApi}>{errorApi}</Text> : null}
+      {errorApi ? <TextoError formulario>{errorApi}</TextoError> : null}
 
       <Boton
         titulo="Crear cuenta"
@@ -171,40 +145,6 @@ export default function RegistroScreen({ navigation }) {
 
 const crearEstilos = (colors) =>
   StyleSheet.create({
-    // mt-1 px-1
-    pistaFila: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginTop: 4,
-      paddingHorizontal: 4,
-    },
-    // body-sm: Inter 400 12/16, tracking 0.01em, text-outline
-    pista: {
-      fontFamily: fonts.sans,
-      color: colors.outline,
-      fontSize: 12,
-      lineHeight: 16,
-      letterSpacing: 0.12,
-    },
-    // gap-1
-    barras: {
-      flexDirection: 'row',
-      gap: 4,
-    },
-    // w-5 h-1 rounded-full
-    barra: {
-      width: 20,
-      height: 4,
-      borderRadius: 2,
-    },
-    errorApi: {
-      fontFamily: fonts.sans,
-      color: colors.alertaTexto,
-      fontSize: 14,
-      textAlign: 'center',
-      marginBottom: 12,
-    },
     // body-sm text-outline text-center mt-4 px-2 leading-relaxed
     terminos: {
       fontFamily: fonts.sans,
