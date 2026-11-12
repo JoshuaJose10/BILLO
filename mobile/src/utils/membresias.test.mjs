@@ -117,6 +117,58 @@ describe('utils/membresias', () => {
       assert.equal(calcularTotalEsteMes(membresias, mesFijo), 199);
     });
 
+    test('incluye el cobro anual de este mes aunque su día ya haya pasado', () => {
+      const membresias = [
+        { nombre: 'Netflix', costo: 199, frecuencia: 'mensual', fecha_cobro: '2026-11-20' },
+        { nombre: 'iCloud', costo: 1200, frecuencia: 'anual', fecha_cobro: '2026-11-05' },
+      ];
+
+      for (const referencia of ['2026-11-01', '2026-11-05', '2026-11-12', '2026-11-30']) {
+        assert.equal(calcularTotalEsteMes(membresias, referencia), 1399, referencia);
+      }
+    });
+
+    test('conserva el cobro del mes después de normalizar al siguiente ciclo', () => {
+      const referencia = '2026-11-12';
+      const membresias = [
+        { nombre: 'Netflix', costo: 199, frecuencia: 'mensual', fecha_cobro: '2026-11-20' },
+        { nombre: 'iCloud', costo: 1200, frecuencia: 'anual', fecha_cobro: '2026-11-05' },
+      ].map((m) => ajustarAlSiguienteCiclo(m, referencia));
+
+      assert.equal(membresias[1].fecha_cobro, '2027-11-05');
+      assert.equal(membresias[1].fecha_cobro_original, '2026-11-05');
+      assert.equal(calcularTotalEsteMes(membresias, referencia), 1399);
+      assert.equal(calcularTotalAnual(membresias), 3588);
+      assert.equal(calcularTotalMensual(membresias), 299);
+    });
+
+    test('incluye una anual de años anteriores cuyo cobro de este mes ya pasó', () => {
+      const referencia = '2026-11-12';
+      const membresias = [
+        { nombre: 'iCloud', costo: 1200, frecuencia: 'anual', fecha_cobro: '2025-11-05' },
+      ].map((m) => ajustarAlSiguienteCiclo(m, referencia));
+
+      assert.equal(calcularTotalEsteMes(membresias, referencia), 1200);
+    });
+
+    test('no anticipa un cobro anual que comienza el mismo mes del año siguiente', () => {
+      const referencia = '2026-11-12';
+      const membresias = [
+        { nombre: 'iCloud', costo: 1200, frecuencia: 'anual', fecha_cobro: '2027-11-05' },
+      ].map((m) => ajustarAlSiguienteCiclo(m, referencia));
+
+      assert.equal(calcularTotalEsteMes(membresias, referencia), 0);
+    });
+
+    test('una referencia de mes completo incluye los mismos cobros que una fecha del mes', () => {
+      const membresias = [
+        { nombre: 'iCloud', costo: 1200, frecuencia: 'anual', fecha_cobro: '2026-11-05' },
+      ];
+
+      assert.equal(calcularTotalEsteMes(membresias, '2026-11'), 1200);
+      assert.equal(calcularTotalEsteMes(membresias, mesFijo), 1200);
+    });
+
     test('anual con cobro del año anterior que al avanzar de ciclo cae en este mes se incluye', () => {
       const membresias = [
         { nombre: 'Disney+', costo: 1500, frecuencia: 'anual', fecha_cobro: '2025-11-15' },

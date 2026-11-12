@@ -107,6 +107,7 @@ export function calcularTotalEsteMes(membresias = [], fechaReferenciaStr) {
       ? fechaReferenciaStr
       : obtenerFechaHoyLocal();
   const mesActualStr = hoyStr.slice(0, 7);
+  const inicioMesStr = `${mesActualStr}-01`;
 
   const suma = membresias.reduce((total, m) => {
     const costo = Number(m?.costo) || 0;
@@ -117,12 +118,11 @@ export function calcularTotalEsteMes(membresias = [], fechaReferenciaStr) {
       return total + costo;
     }
 
-    const fechaBase = m?.fecha_cobro ? String(m.fecha_cobro).slice(0, 10) : '';
-    const proximaFecha = avanzarFechaCobro(
-      fechaBase,
-      'anual',
-      hoyStr.length === 7 ? `${hoyStr}-01` : hoyStr,
-    );
+    // La lista normalizada ya pudo avanzar al año siguiente. Recuperar la fecha
+    // original y proyectar desde el inicio del mes incluye los cobros ya ocurridos.
+    const fechaOriginal = m?.fecha_cobro_original ?? m?.fecha_cobro;
+    const fechaBase = fechaOriginal ? String(fechaOriginal).slice(0, 10) : '';
+    const proximaFecha = avanzarFechaCobro(fechaBase, 'anual', inicioMesStr);
     const mesCobro = proximaFecha ? proximaFecha.slice(0, 7) : '';
 
     if (mesCobro === mesActualStr) {
