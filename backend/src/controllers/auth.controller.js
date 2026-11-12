@@ -415,34 +415,38 @@ const eliminarCuenta = async (req, res) => {
       });
     }
 
-    const userRes = await pool.query(
-      'SELECT id, password_hash FROM usuarios WHERE id = $1',
-      [usuarioId]
-    );
-
-    const user = userRes.rows[0];
-    if (!user) {
-      return res.status(404).json({
-        error: {
-          code: 'USUARIO_NO_ENCONTRADO',
-          message: 'Usuario no encontrado',
-        },
-      });
-    }
-
-    const coincide = await bcrypt.compare(password, user.password_hash);
-    if (!coincide) {
-      return res.status(401).json({
-        error: {
-          code: 'PASSWORD_INCORRECTA',
-          message: 'Contraseña incorrecta',
-        },
-      });
-    }
-
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
+      const userRes = await client.query(
+        'SELECT id, password_hash FROM usuarios WHERE id = $1 FOR UPDATE',
+        [usuarioId]
+      );
+      const user = userRes.rows[0];
+      if (!user) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({
+          error: {
+            code: 'USUARIO_NO_ENCONTRADO',
+            message: 'Usuario no encontrado',
+          },
+        });
+      }
+
+      const coincide = await bcrypt.compare(password, user.password_hash);
+      if (!coincide) {
+        await client.query('ROLLBACK');
+        return res.status(401).json({
+          error: {
+            code: 'PASSWORD_INCORRECTA',
+            message: 'Contraseña incorrecta',
+          },
+        });
+      }
+
+      await client.query('DELETE FROM ingresos WHERE usuario_id = $1', [
+        usuarioId,
+      ]);
       await client.query('DELETE FROM gastos WHERE usuario_id = $1', [usuarioId]);
       await client.query('DELETE FROM presupuestos WHERE usuario_id = $1', [
         usuarioId,
@@ -453,7 +457,7 @@ const eliminarCuenta = async (req, res) => {
       await client.query('DELETE FROM usuarios WHERE id = $1', [usuarioId]);
       await client.query('COMMIT');
     } catch (txError) {
-      await client.query('ROLLBACK');
+      await client.query('ROLLBACK').catch(() => {});
       throw txError;
     } finally {
       client.release();

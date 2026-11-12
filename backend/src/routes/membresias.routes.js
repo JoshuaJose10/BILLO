@@ -5,6 +5,7 @@ const {
   listarMembresias,
   actualizarMembresia,
   eliminarMembresia,
+  marcarMembresiaPagada,
 } = require('../controllers/membresias.controller');
 
 const router = Router();
@@ -15,6 +16,7 @@ router.post('/', crearMembresia);
 router.get('/', listarMembresias);
 router.put('/:id', actualizarMembresia);
 router.delete('/:id', eliminarMembresia);
+router.post('/:id/pagada', marcarMembresiaPagada);
 
 module.exports = router;
 

@@ -33,6 +33,7 @@ import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
 import { formatearMontoCorto, LOCALE, resumirTexto } from '../utils/formato';
 import {
   estiloServicio,
+  fechaCobroCiclo,
   filtrarCatalogo,
   formatearDiaMes,
   inicialServicio,
@@ -74,7 +75,7 @@ function useAlturaTeclado() {
 export default function MembresiaScreen({ navigation, route }) {
   const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
-  const { listarCatalogo, crearMembresia, actualizarMembresia, eliminarMembresia } =
+  const { listarCatalogo, crearMembresia, actualizarMembresia, eliminarMembresia, marcarPagada } =
     useMembresiasService();
 
   const membresiaEditada = route.params?.membresia;
@@ -85,9 +86,10 @@ export default function MembresiaScreen({ navigation, route }) {
     editando ? textoDesdeMonto(membresiaEditada.costo) : '',
   );
   const [frecuencia, setFrecuencia] = useState(() => membresiaEditada?.frecuencia ?? 'mensual');
-  const [fecha, setFecha] = useState(() =>
-    membresiaEditada?.fecha_cobro ? parsearFechaLocal(membresiaEditada.fecha_cobro) : new Date(),
-  );
+  const [fecha, setFecha] = useState(() => {
+    const fStr = fechaCobroCiclo(membresiaEditada);
+    return fStr ? parsearFechaLocal(fStr) : new Date();
+  });
   const [servicioId, setServicioId] = useState(() => membresiaEditada?.servicio_id ?? null);
   const [panel, setPanel] = useState(null); // 'nombre' | 'frecuencia' | 'fecha'
 
@@ -102,10 +104,11 @@ export default function MembresiaScreen({ navigation, route }) {
   const [errorApi, setErrorApi] = useState('');
   const [guardando, setGuardando] = useState(false);
   const [eliminando, setEliminando] = useState(false);
+  const [marcandoPagada, setMarcandoPagada] = useState(false);
   const enviando = useRef(false);
   const hojaRef = useRef(null);
 
-  const ocupado = guardando || eliminando;
+  const ocupado = guardando || eliminando || marcandoPagada;
 
   // Cargar catálogo de servicios predefinidos si estamos agregando
   useEffect(() => {
@@ -249,6 +252,30 @@ export default function MembresiaScreen({ navigation, route }) {
     ]);
   };
 
+  const confirmarMarcarPagada = () => {
+    if (enviando.current || !editando) return;
+    Alert.alert('¿Marcar como pagada?', 'El próximo cobro avanzará al siguiente ciclo.', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Marcar pagada',
+        onPress: async () => {
+          enviando.current = true;
+          setMarcandoPagada(true);
+          setErrorApi('');
+          try {
+            await marcarPagada(membresiaEditada.id);
+            enviando.current = false;
+            hojaRef.current?.cerrar();
+          } catch (error) {
+            enviando.current = false;
+            setMarcandoPagada(false);
+            setErrorApi(mensajeError(error?.code, error?.message));
+          }
+        },
+      },
+    ]);
+  };
+
   const frecuenciaActual =
     OPCIONES_FRECUENCIA.find((f) => f.valor === frecuencia) || OPCIONES_FRECUENCIA[0];
   const fechaTexto = `Cobro ${formatearDiaMes(fechaLocalISO(fecha))}`;
@@ -370,7 +397,7 @@ export default function MembresiaScreen({ navigation, route }) {
             icono="check"
             onPress={guardar}
             cargando={guardando}
-            disabled={eliminando}
+            disabled={ocupado}
             compacto
           />
         </>
@@ -378,12 +405,21 @@ export default function MembresiaScreen({ navigation, route }) {
       {editando ? (
         <View style={styles.zonaEliminar}>
           <Boton
+            titulo="Marcar como pagada"
+            icono="check-circle-outline"
+            onPress={confirmarMarcarPagada}
+            cargando={marcandoPagada}
+            disabled={ocupado}
+            secundario
+            compacto
+          />
+          <Boton
             titulo="Eliminar suscripción"
             icono="trash-can-outline"
             destructivo
             onPress={confirmarEliminar}
             cargando={eliminando}
-            disabled={guardando}
+            disabled={ocupado}
           />
         </View>
       ) : null}
@@ -539,6 +575,7 @@ const crearEstilos = (colors) =>
     },
     zonaEliminar: {
       marginTop: 10,
+      gap: 10,
     },
     errorApi: {
       ...tipografia.bodyMd,
