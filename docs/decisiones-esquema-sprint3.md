@@ -9,6 +9,8 @@ El esquema de seis tablas está congelado desde el 2026-10-13 (`docs/api-contrat
 | C-01 | `usuarios.expo_push_token` (varchar 255, nulo) | Guardar el token del teléfono para el push de RF7 | **Aprobar**: sin él no hay aviso de cobro |
 | C-02 | `membresias.ultima_notificacion` (date, nulo) | No mandar dos veces el aviso del mismo cobro | **Aprobar**: evita notificaciones repetidas del cron diario |
 | X-01 | `gastos.moneda` (default `MXN`), `gastos.monto_original`, `gastos.tipo_cambio` | Guardar en qué moneda se capturó un gasto (RF11) | **Aprobar** porque la HU-23 dio **IR** a RF11. `monto` sigue en MXN, así que reportes y presupuestos no cambian |
+| C-03 | `usuarios.reset_token_hash` (varchar 255, nulo), `usuarios.reset_token_expira` (timestamp, nulo) | Guardar el hash del código de recuperación de contraseña y su caducidad de 30 min | **Aprobar**: permite recuperar cuentas sin guardar tokens en claro (migración 014) |
+| C-04 | Tabla `ingresos` (`id`, `usuario_id` con `ON DELETE CASCADE`, `monto`, `fecha`, `descripcion`, `fuente`, `created_at`) | Guardar los ingresos del usuario en su cuenta para consultarlos desde cualquier dispositivo (HU-82) | **Aprobar**: tabla nueva e independiente; no modifica presupuestos ni reportes (migración 015) |
 
 No cambian el esquema: RF12 (voz) y RF13 (widget). RF9 usa la columna `usuarios.rol`, que ya existe; falta agregar el rol al token y las rutas de administración.
 

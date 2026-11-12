@@ -21,5 +21,6 @@ describe('API real + PostgreSQL temporal', { timeout: 55000 }, () => {
   require('./suites/membresias-reportes.cjs')(() => context);
   require('./suites/notificaciones.cjs')(() => context);
   require('./suites/divisas.cjs')(() => context);
+  require('./suites/ingresos.cjs')(() => context);
   require('./suites/mobile.cjs')(() => context);
 });
