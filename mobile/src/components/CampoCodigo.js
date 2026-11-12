@@ -132,7 +132,7 @@ const crearEstilos = (colors) =>
     },
     // Cubre toda la fila para que cualquier toque (o mantener para pegar) llegue al campo real.
     entrada: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       color: 'transparent',
       opacity: 0.02,
     },
