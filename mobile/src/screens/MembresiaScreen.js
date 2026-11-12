@@ -230,9 +230,20 @@ export default function MembresiaScreen({ navigation, route }) {
 
     // Aviso de servicio repetido (HU-74)
     if (!forzar) {
+      let listaActual = membresiasExistentes;
+      try {
+        const frescas = await listarMembresias();
+        if (Array.isArray(frescas)) {
+          listaActual = frescas;
+          setMembresiasExistentes(frescas);
+        }
+      } catch {
+        // En caso de corte de red, usar la lista existente
+      }
+
       const repetido = detectarServicioRepetido(
         payload,
-        membresiasExistentes,
+        listaActual,
         editando ? membresiaEditada.id : null,
       );
 
@@ -258,6 +269,7 @@ export default function MembresiaScreen({ navigation, route }) {
       } else {
         await crearMembresia(payload);
       }
+      route.params?.onGuardado?.();
       enviando.current = false;
       hojaRef.current?.cerrar();
     } catch (error) {
@@ -275,6 +287,7 @@ export default function MembresiaScreen({ navigation, route }) {
 
     try {
       await eliminarMembresia(membresiaEditada.id);
+      route.params?.onGuardado?.();
       enviando.current = false;
       hojaRef.current?.cerrar();
     } catch (error) {
