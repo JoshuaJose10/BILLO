@@ -79,7 +79,12 @@ export async function apiFetch(ruta, { method = 'GET', body, token, signal } = {
   }
 
   if (!respuesta.ok) {
-    if (respuesta.status === 401 && token && alNoAutorizado) {
+    if (
+      respuesta.status === 401 &&
+      token &&
+      alNoAutorizado &&
+      datos?.error?.code !== 'PASSWORD_INCORRECTA'
+    ) {
       alNoAutorizado(token);
     }
     throw normalizarError(respuesta.status, datos);

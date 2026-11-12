@@ -258,9 +258,12 @@ module.exports = (getContext) =>
       await crear({ monto: 18000 }, ctx.a);
       const ingresoB = await crear({ monto: 22000 }, ctx.b);
 
-      const res = await call('delete', '/auth/cuenta', undefined, ctx.a).expect(
-        200
-      );
+      const res = await call(
+        'delete',
+        '/auth/cuenta',
+        { password: ctx.password },
+        ctx.a
+      ).expect(200);
       assert.deepEqual(res.body, { eliminado: true });
 
       const { rows: ingresosA } = await ctx.pool.query(
