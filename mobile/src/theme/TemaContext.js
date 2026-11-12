@@ -1,4 +1,5 @@
-import { createContext, useContext, useMemo } from 'react';
+import * as SystemUI from 'expo-system-ui';
+import { createContext, useContext, useEffect, useMemo } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { temas } from './colors';
@@ -8,12 +9,21 @@ const TemaContext = createContext(null);
 // Tema claro u oscuro según el modo del sistema. useColorScheme se actualiza en vivo, así que al
 // cambiar el modo con la app abierta todo se repinta sin reiniciar. Si el sistema no informa un
 // modo se queda en oscuro, el diseño original de la app.
+// El fondo de la vista raíz nativa (lo que se ve detrás de las pantallas al abrir la app, al
+// navegar o al rotar) también sigue al tema: expo-system-ui lo fija con `background`.
 export function TemaProvider({ children }) {
   const esOscuro = useColorScheme() !== 'light';
   const valor = useMemo(
     () => ({ colors: esOscuro ? temas.oscuro : temas.claro, esOscuro }),
     [esOscuro],
   );
+
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(valor.colors.background).catch(() => {
+      // Sin el módulo nativo solo se pierde el fondo raíz; la app sigue igual.
+    });
+  }, [valor]);
+
   return <TemaContext.Provider value={valor}>{children}</TemaContext.Provider>;
 }
 

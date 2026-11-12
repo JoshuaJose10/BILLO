@@ -1,7 +1,9 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import * as Haptics from 'expo-haptics';
 import { useRef, useState } from 'react';
 import {
+  AccessibilityInfo,
   ActivityIndicator,
   Alert,
   Platform,
@@ -14,8 +16,10 @@ import {
 } from 'react-native';
 
 import Boton from '../components/Boton';
+import BotonMicrofono from '../components/BotonMicrofono';
 import ChipCategoria from '../components/ChipCategoria';
 import ChipSelector from '../components/ChipSelector';
+import EscuchaVoz from '../components/EscuchaVoz';
 import HojaInferior from '../components/HojaInferior';
 import MontoGrande from '../components/MontoGrande';
 import PanelHoja from '../components/PanelHoja';
@@ -24,6 +28,7 @@ import { useAvisos } from '../context/AvisosContext';
 import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/CategoriasContext';
 import { useDivisasService } from '../services/divisas';
 import { METODO_PAGO_DEFECTO, METODOS_PAGO, NOTA_MAX, useGastosService } from '../services/gastos';
+import { useDictado } from '../services/reconocimientoVoz';
 import { useActualizarWidget } from '../widget/useActualizarWidget';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
@@ -33,6 +38,7 @@ import { mensajeError } from '../utils/errores';
 import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
 import { fechaRelativa, formatearMonto, LOCALE, resumirTexto } from '../utils/formato';
 import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
+import { avisoDictado, interpretarGasto, mensajeFalloVoz } from '../utils/voz';
 
 // Hoja inferior sobre Inicio y las tabs (ruta NuevoGasto con presentation: 'transparentModal').
 // El alto lo da el contenido (~65% de la pantalla en un iPhone de 6.1").
@@ -78,7 +84,8 @@ export default function NuevoGastoScreen({ navigation, route }) {
   );
   const [nota, setNota] = useState(gastoEditado?.nota ?? '');
   const [panel, setPanel] = useState(null); // 'metodo' | 'fecha' | 'nota' | 'moneda'
-
+  // Aviso del dictado por voz (permiso negado, monto no entendido…); la captura manual sigue.
+  const [avisoVoz, setAvisoVoz] = useState(null);
   const [errores, setErrores] = useState({});
   const [errorApi, setErrorApi] = useState('');
   const [guardando, setGuardando] = useState(false);
@@ -103,12 +110,66 @@ export default function NuevoGastoScreen({ navigation, route }) {
     setTexto((actual) => aplicarTecla(actual, tecla));
     if (errores.monto) setErrores((e) => ({ ...e, monto: undefined }));
     if (errorApi) setErrorApi('');
+    if (avisoVoz) setAvisoVoz(null);
   };
 
   const elegirCategoria = (id) => {
     setCategoriaId(id);
     if (errores.categoria) setErrores((e) => ({ ...e, categoria: undefined }));
     if (errorApi) setErrorApi('');
+  };
+
+  // Dictado (HU-57, RF12): llena lo que entendió y el usuario revisa y toca Confirmar; nunca
+  // guarda solo. Lo que no entendió se queda como estaba.
+  const alTerminarDictado = (transcripcion) => {
+    const resultado = interpretarGasto(
+      transcripcion,
+      categorias.map((c) => c.nombre),
+    );
+    const categoria = resultado.categoria
+      ? (categorias.find((c) => c.nombre === resultado.categoria) ?? null)
+      : null;
+    if (resultado.monto != null) {
+      setTexto(textoDesdeMonto(resultado.monto));
+      if (errores.monto) setErrores((e) => ({ ...e, monto: undefined }));
+    }
+    if (categoria) elegirCategoria(categoria.id);
+    if (resultado.nota && !nota.trim()) setNota(resultado.nota);
+    setErrorApi('');
+
+    const aviso = avisoDictado(transcripcion, { monto: resultado.monto, categoria });
+    setAvisoVoz(aviso);
+    Haptics.notificationAsync(
+      aviso ? Haptics.NotificationFeedbackType.Warning : Haptics.NotificationFeedbackType.Success,
+    ).catch(() => {});
+    const entendido = [
+      resultado.monto != null ? `Monto ${formatearMonto(resultado.monto)}` : null,
+      categoria ? `categoría ${categoria.nombre}` : null,
+    ].filter(Boolean);
+    AccessibilityInfo.announceForAccessibility(
+      [entendido.join(', '), aviso ?? 'Revisa y confirma el gasto.'].filter(Boolean).join('. '),
+    );
+  };
+
+  const alFallarDictado = (codigo) => {
+    const aviso = mensajeFalloVoz(codigo);
+    setAvisoVoz(aviso);
+    if (!aviso) return;
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+    AccessibilityInfo.announceForAccessibility(aviso);
+  };
+
+  const dictado = useDictado({
+    onTerminado: alTerminarDictado,
+    onFallo: alFallarDictado,
+    frases: categorias.map((c) => c.nombre),
+  });
+  const dictando = dictado.estado !== 'inactivo';
+
+  const dictar = () => {
+    setAvisoVoz(null);
+    setPanel(null);
+    dictado.empezar();
   };
 
   const abrirFecha = () => {
@@ -152,7 +213,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
   };
 
   const confirmar = async () => {
-    if (enviando.current) return;
+    if (enviando.current || dictando) return;
 
     const montoNum = montoDesdeTexto(texto);
     const nuevos = {};
@@ -344,18 +405,40 @@ export default function NuevoGastoScreen({ navigation, route }) {
       {errores.categoria ? <Text style={styles.errorCampo}>{errores.categoria}</Text> : null}
 
       <View style={styles.zonaTeclado}>
-        <TecladoNumerico onTecla={alPulsarTecla} disabled={ocupado} />
+        {dictando ? (
+          <EscuchaVoz
+            estado={dictado.estado}
+            transcripcion={dictado.transcripcion}
+            onDetener={dictado.detener}
+          />
+        ) : (
+          <TecladoNumerico onTecla={alPulsarTecla} disabled={ocupado} />
+        )}
       </View>
 
+      {avisoVoz ? (
+        <View style={styles.avisoVoz} accessibilityRole="alert">
+          <MaterialCommunityIcons name="microphone-off" size={16} color={colors.textSecondary} />
+          <Text style={styles.avisoVozTexto}>{avisoVoz}</Text>
+        </View>
+      ) : null}
       {errorApi ? <Text style={styles.errorApi}>{errorApi}</Text> : null}
-      <Boton
-        titulo={editando ? 'Guardar cambios' : 'Confirmar gasto'}
-        icono={editando ? 'check' : 'arrow-right'}
-        onPress={confirmar}
-        cargando={guardando}
-        disabled={eliminando}
-        compacto
-      />
+      <View style={styles.filaConfirmar}>
+        {/* Sin el módulo nativo (Expo Go) no hay micrófono: solo la captura manual. */}
+        {dictado.disponible && !dictando ? (
+          <BotonMicrofono onPress={dictar} disabled={ocupado} />
+        ) : null}
+        <View style={styles.confirmar}>
+          <Boton
+            titulo={editando ? 'Guardar cambios' : 'Confirmar gasto'}
+            icono={editando ? 'check' : 'arrow-right'}
+            onPress={confirmar}
+            cargando={guardando}
+            disabled={eliminando || dictando}
+            compacto
+          />
+        </View>
+      </View>
       {editando ? (
         <View style={styles.zonaEliminar}>
           <Boton
@@ -520,6 +603,29 @@ const crearEstilos = (colors) =>
     // gap-2.5 entre teclado y botón
     zonaTeclado: {
       marginBottom: 10,
+    },
+    // Micrófono a la izquierda de Confirmar (gap-2)
+    filaConfirmar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    confirmar: {
+      flex: 1,
+    },
+    avisoVoz: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 10,
+      paddingHorizontal: 4,
+    },
+    avisoVozTexto: {
+      flex: 1,
+      fontFamily: fonts.sans,
+      fontSize: 13,
+      lineHeight: 18,
+      color: colors.textVariant,
     },
     // Debajo del botón principal
     zonaEliminar: {

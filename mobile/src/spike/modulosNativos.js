@@ -2,28 +2,16 @@
 // Antes de cada require se revisa que el módulo nativo exista: en desarrollo, Metro manda a la
 // pantalla roja los errores de un require hecho fuera de la carga inicial aunque haya try/catch.
 // El try/catch queda como segunda protección.
-import { requireOptionalNativeModule } from 'expo';
 import { NativeModules, Platform, TurboModuleRegistry } from 'react-native';
 
-let voz;
+// La voz pasó a la app (HU-57): se reexporta para la pantalla del laboratorio.
+export { cargarVoz } from '../services/reconocimientoVoz';
+
 let widget;
 
 const existeModuloWidget = () =>
   Platform.OS === 'android' &&
   (TurboModuleRegistry.get('AndroidWidget') ?? NativeModules.AndroidWidget) != null;
-
-// Devuelve el módulo de expo-speech-recognition o null si no está en el binario.
-export function cargarVoz() {
-  if (voz !== undefined) return voz;
-  voz = null;
-  if (!requireOptionalNativeModule('ExpoSpeechRecognition')) return voz;
-  try {
-    voz = require('expo-speech-recognition').ExpoSpeechRecognitionModule ?? null;
-  } catch {
-    voz = null;
-  }
-  return voz;
-}
 
 // Devuelve { requestWidgetUpdate, ResumenMesWidget } o null fuera de Android o sin el módulo
 // nativo (react-native-android-widget lanza un error al importarse en Expo Go).
