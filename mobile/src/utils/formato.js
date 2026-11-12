@@ -1,4 +1,4 @@
-import { ayer, fechaLocalISO, parsearFechaLocal } from './fechas';
+import { ayer, fechaLocalISO, parsearFechaLocal } from './fechas.js';
 
 // Moneda y región de toda la app. Único lugar donde se definen.
 export const MONEDA = 'MXN';
@@ -36,6 +36,16 @@ export function aNumero(valor) {
 // 1237.25 → "$1,237.25"
 export function formatearMonto(valor) {
   return formatoMoneda.format(aNumero(valor));
+}
+
+// Monto para mostrarlo con los centavos más pequeños (saldo de Inicio, Stitch):
+// 7854.55 → { entero: '$7,854', centavos: '.55' }.
+export function partesMonto(valor) {
+  const texto = formatearMonto(valor);
+  const punto = texto.lastIndexOf('.');
+  return punto < 0
+    ? { entero: texto, centavos: '' }
+    : { entero: texto.slice(0, punto), centavos: texto.slice(punto) };
 }
 
 const formatoMonedaEntero = new Intl.NumberFormat(LOCALE, {

@@ -38,3 +38,15 @@ export function cobrosDeLaSemana(membresias, hoy = new Date()) {
   const total = Math.round(cobros.reduce((suma, c) => suma + c.costo, 0) * 100) / 100;
   return { cobros, total };
 }
+
+// Evita repetir en «Esta semana cobran» lo que ya muestra «Próximo cobro» (HU-72). `cobro` sale de
+// proximoCobro ({ dias, ... }): si cae dentro de la semana, se quitan los cobros de ese día (la
+// suscripción mostrada y las que cuenta su "+N más"), se recalcula el total y `tambien` es true
+// (la tarjeta se titula «También esta semana»). Si no cae en la semana, la semana queda igual.
+export function semanaSinProximoCobro(semana, cobro) {
+  const base = { cobros: semana?.cobros ?? [], total: semana?.total ?? 0, tambien: false };
+  if (!cobro || cobro.dias > DIAS_SEMANA_COBROS) return base;
+  const cobros = base.cobros.filter((c) => c.dias !== cobro.dias);
+  const total = Math.round(cobros.reduce((suma, c) => suma + c.costo, 0) * 100) / 100;
+  return { cobros, total, tambien: true };
+}

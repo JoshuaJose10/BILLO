@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { cobrosDeLaSemana, diaDeCobro } from './cobrosSemana.js';
+import { cobrosDeLaSemana, diaDeCobro, semanaSinProximoCobro } from './cobrosSemana.js';
 
 // Martes 10 de noviembre de 2026.
 const HOY = new Date(2026, 10, 10);
@@ -55,5 +55,41 @@ describe('cobrosDeLaSemana', () => {
   it('acepta costos como texto y entradas inválidas', () => {
     assert.equal(cobrosDeLaSemana([m(1, 'A', '49.90', 1)], HOY).total, 49.9);
     assert.deepEqual(cobrosDeLaSemana(null, HOY), { cobros: [], total: 0 });
+  });
+});
+
+describe('semanaSinProximoCobro (HU-72)', () => {
+  const semana = {
+    cobros: [
+      { id: 1, nombre: 'Netflix', costo: 269, dias: 2 },
+      { id: 2, nombre: 'Spotify', costo: 139, dias: 2 },
+      { id: 3, nombre: 'iCloud', costo: 49, dias: 5 },
+    ],
+    total: 457,
+  };
+
+  it('quita el próximo cobro y los del mismo día, recalcula el total y cambia el título', () => {
+    const r = semanaSinProximoCobro(semana, { dias: 2, mas: 1 });
+    assert.deepEqual(
+      r.cobros.map((c) => c.id),
+      [3],
+    );
+    assert.equal(r.total, 49);
+    assert.equal(r.tambien, true);
+  });
+
+  it('si no queda ninguno, la lista queda vacía (la tarjeta no aparece)', () => {
+    const r = semanaSinProximoCobro({ cobros: [semana.cobros[0]], total: 269 }, { dias: 2 });
+    assert.deepEqual(r.cobros, []);
+    assert.equal(r.total, 0);
+  });
+
+  it('próximo cobro en más de 7 días o sin próximo cobro: nada cambia', () => {
+    for (const cobro of [{ dias: 8 }, null]) {
+      const r = semanaSinProximoCobro(semana, cobro);
+      assert.equal(r.cobros, semana.cobros);
+      assert.equal(r.total, 457);
+      assert.equal(r.tambien, false);
+    }
   });
 });
