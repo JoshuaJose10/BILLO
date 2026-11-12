@@ -368,10 +368,72 @@ const eliminarMembresia = async (req, res) => {
   }
 };
 
+// POST /membresias/:id/pagada (HU-66)
+const marcarMembresiaPagada = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+    const membresiaId = Number(req.params.id);
+
+    if (
+      !Number.isInteger(membresiaId) ||
+      membresiaId <= 0 ||
+      membresiaId > 2147483647
+    ) {
+      return res.status(404).json({
+        error: {
+          code: 'MEMBRESIA_NO_ENCONTRADA',
+          message: 'Membresía no encontrada',
+        },
+      });
+    }
+
+    const updateQuery = `
+      UPDATE membresias
+      SET fecha_cobro = CASE
+        WHEN frecuencia = 'anual' THEN (fecha_cobro + INTERVAL '1 year')::date
+        ELSE (fecha_cobro + INTERVAL '1 month')::date
+      END
+      WHERE id = $1 AND usuario_id = $2
+      RETURNING
+        id,
+        servicio_id,
+        nombre,
+        costo,
+        frecuencia,
+        TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro,
+        (fecha_cobro - CURRENT_DATE)::integer AS dias_para_cobro
+    `;
+
+    const { rows } = await pool.query(updateQuery, [membresiaId, usuarioId]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        error: {
+          code: 'MEMBRESIA_NO_ENCONTRADA',
+          message: 'Membresía no encontrada',
+        },
+      });
+    }
+
+    return res
+      .status(200)
+      .json({ membresia: formatearMembresiaConDias(rows[0]) });
+  } catch (error) {
+    console.error('Error al marcar membresía como pagada:', error.message);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'No se pudo marcar la membresía como pagada',
+      },
+    });
+  }
+};
+
 module.exports = {
   crearMembresia,
   listarMembresias,
   actualizarMembresia,
   eliminarMembresia,
+  marcarMembresiaPagada,
 };
 

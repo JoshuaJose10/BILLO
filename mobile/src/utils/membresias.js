@@ -190,6 +190,56 @@ export function calcularTotalMensual(membresias = []) {
   return Math.round(suma * 100) / 100;
 }
 
+// Proyección anual de gasto en suscripciones (HU-71):
+// Mensuales multiplicadas por 12 más las anuales. Redondeado a 2 decimales.
+export function calcularTotalAnual(membresias = []) {
+  if (!Array.isArray(membresias) || membresias.length === 0) return 0;
+  const suma = membresias.reduce((total, m) => {
+    const costo = Number(m?.costo) || 0;
+    if (m?.frecuencia === 'anual') {
+      return total + costo;
+    }
+    return total + costo * 12;
+  }, 0);
+  return Math.round(suma * 100) / 100;
+}
+
+// Total real que se cobra en el mes en curso (HU-71):
+// Suma de todas las mensuales más las anuales cuya fecha de cobro cae en el mes en curso.
+export function calcularTotalEsteMes(membresias = [], fechaReferenciaStr) {
+  if (!Array.isArray(membresias) || membresias.length === 0) return 0;
+  const hoyStr =
+    fechaReferenciaStr && /^\d{4}-\d{2}/.test(fechaReferenciaStr)
+      ? fechaReferenciaStr
+      : obtenerFechaHoyLocal();
+  const mesActualStr = hoyStr.slice(0, 7);
+  const inicioMesStr = `${mesActualStr}-01`;
+
+  const suma = membresias.reduce((total, m) => {
+    const costo = Number(m?.costo) || 0;
+    if (costo <= 0) return total;
+
+    const frecuencia = m?.frecuencia === 'anual' ? 'anual' : 'mensual';
+    if (frecuencia === 'mensual') {
+      return total + costo;
+    }
+
+    // La lista normalizada ya pudo avanzar al año siguiente. Recuperar la fecha
+    // original y proyectar desde el inicio del mes incluye los cobros ya ocurridos.
+    const fechaOriginal = m?.fecha_cobro_original ?? m?.fecha_cobro;
+    const fechaBase = fechaOriginal ? String(fechaOriginal).slice(0, 10) : '';
+    const proximaFecha = avanzarFechaCobro(fechaBase, 'anual', inicioMesStr);
+    const mesCobro = proximaFecha ? proximaFecha.slice(0, 7) : '';
+
+    if (mesCobro === mesActualStr) {
+      return total + costo;
+    }
+    return total;
+  }, 0);
+
+  return Math.round(suma * 100) / 100;
+}
+
 // Costo mensual de una membresía: las anuales se reparten en 12 meses.
 const costoMensual = (m) => {
   const costo = Number(m?.costo) || 0;
@@ -246,10 +296,35 @@ export const ORDEN_SUSCRIPCIONES = {
   frecuencia: 'frecuencia', // secciones Mensuales y Anuales, cada una por fecha
 };
 
-const diasOrden = (m) =>
-  typeof m?.dias_para_cobro === 'number' && !Number.isNaN(m.dias_para_cobro)
-    ? m.dias_para_cobro
-    : Infinity;
+/**
+ * Obtiene la fecha de cobro alineada con el ciclo que se paga (HU-66 / HU-51).
+ * Si la app adelantó visualmente una fecha vencida (HU-51), el ciclo que efectivamente
+ * se paga al marcar como pagada es la fecha persistida (`fecha_cobro_original`).
+ */
+export function fechaCobroCiclo(membresia) {
+  if (!membresia || typeof membresia !== 'object') return '';
+  return membresia.fecha_cobro_original || membresia.fecha_cobro || '';
+}
+
+/**
+ * Calcula los días para el cobro del ciclo que se paga (HU-66 / HU-51).
+ * Si tiene fecha original vencida adelantada visualmente, devuelve los días respecto a esa fecha persistida.
+ */
+export function diasParaCobroCiclo(membresia, fechaReferenciaStr) {
+  if (!membresia || typeof membresia !== 'object') return undefined;
+  if (membresia.fecha_cobro_original && membresia.fecha_cobro_original !== membresia.fecha_cobro) {
+    return calcularDiasParaCobro(membresia.fecha_cobro_original, fechaReferenciaStr);
+  }
+  if (typeof membresia.dias_para_cobro === 'number' && !Number.isNaN(membresia.dias_para_cobro)) {
+    return membresia.dias_para_cobro;
+  }
+  return calcularDiasParaCobro(membresia.fecha_cobro, fechaReferenciaStr);
+}
+
+const diasOrden = (m) => {
+  const d = diasParaCobroCiclo(m);
+  return typeof d === 'number' && !Number.isNaN(d) ? d : Infinity;
+};
 
 const porNombre = (a, b) => String(a?.nombre ?? '').localeCompare(String(b?.nombre ?? ''), 'es');
 
