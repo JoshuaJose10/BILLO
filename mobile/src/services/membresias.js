@@ -79,6 +79,14 @@ export function useMembresiasService() {
         return normalizarMembresia(respuesta.membresia);
       },
 
+      // POST /membresias/:id/pagada → 200 { membresia } (HU-66)
+      marcarPagada: async (id) => {
+        const respuesta = await api(`/membresias/${encodeURIComponent(id)}/pagada`, {
+          method: 'POST',
+        });
+        return normalizarMembresia(respuesta.membresia);
+      },
+
       // GET /catalogo → [{ id, nombre, logo_url, costo_sugerido }]
       listarCatalogo: async () => {
         const lista = await api('/catalogo');

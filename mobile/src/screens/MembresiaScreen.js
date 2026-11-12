@@ -32,7 +32,9 @@ import { vistaLista } from '../utils/estadoCarga';
 import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
 import { formatearMontoCorto, LOCALE, resumirTexto } from '../utils/formato';
 import {
+  detectarServicioRepetido,
   estiloServicio,
+  fechaCobroCiclo,
   filtrarCatalogo,
   formatearDiaMes,
   inicialServicio,
@@ -76,25 +78,45 @@ export default function MembresiaScreen({ navigation, route }) {
   const styles = useEstilos(crearEstilos);
   const {
     listarCatalogo,
+    listarMembresias,
     crearMembresia,
     actualizarMembresia,
     eliminarMembresia,
     pausarMembresia,
     reactivarMembresia,
+    marcarPagada,
   } = useMembresiasService();
 
   const membresiaEditada = route.params?.membresia;
   const editando = Boolean(membresiaEditada);
   const estaPausada = membresiaEditada?.estado === 'pausada';
 
+  const [membresiasExistentes, setMembresiasExistentes] = useState(
+    () => route.params?.membresiasExistentes ?? [],
+  );
+
+  useEffect(() => {
+    let activo = true;
+    listarMembresias()
+      .then((items) => {
+        if (!activo) return;
+        setMembresiasExistentes(items || []);
+      })
+      .catch(() => {});
+    return () => {
+      activo = false;
+    };
+  }, [listarMembresias]);
+
   const [nombre, setNombre] = useState(() => membresiaEditada?.nombre ?? '');
   const [texto, setTexto] = useState(() =>
     editando ? textoDesdeMonto(membresiaEditada.costo) : '',
   );
   const [frecuencia, setFrecuencia] = useState(() => membresiaEditada?.frecuencia ?? 'mensual');
-  const [fecha, setFecha] = useState(() =>
-    membresiaEditada?.fecha_cobro ? parsearFechaLocal(membresiaEditada.fecha_cobro) : new Date(),
-  );
+  const [fecha, setFecha] = useState(() => {
+    const fStr = fechaCobroCiclo(membresiaEditada);
+    return fStr ? parsearFechaLocal(fStr) : new Date();
+  });
   const [servicioId, setServicioId] = useState(() => membresiaEditada?.servicio_id ?? null);
   const [panel, setPanel] = useState(null); // 'nombre' | 'frecuencia' | 'fecha'
 
@@ -110,10 +132,11 @@ export default function MembresiaScreen({ navigation, route }) {
   const [guardando, setGuardando] = useState(false);
   const [eliminando, setEliminando] = useState(false);
   const [pausando, setPausando] = useState(false);
+  const [marcandoPagada, setMarcandoPagada] = useState(false);
   const enviando = useRef(false);
   const hojaRef = useRef(null);
 
-  const ocupado = guardando || eliminando || pausando;
+  const ocupado = guardando || eliminando || pausando || marcandoPagada;
 
   // Cargar catálogo de servicios predefinidos si estamos agregando
   useEffect(() => {
@@ -188,7 +211,7 @@ export default function MembresiaScreen({ navigation, route }) {
     }
   };
 
-  const guardar = async () => {
+  const guardar = async (forzar = false) => {
     if (enviando.current) return;
 
     // El teclado deja textos como "12." o "": se validan como número (igual que Nuevo gasto).
@@ -205,10 +228,6 @@ export default function MembresiaScreen({ navigation, route }) {
       return;
     }
 
-    enviando.current = true;
-    setGuardando(true);
-    setErrorApi('');
-
     const payload = {
       servicio_id: servicioId,
       nombre: nombre.trim(),
@@ -217,12 +236,48 @@ export default function MembresiaScreen({ navigation, route }) {
       fecha_cobro: fechaCobroISO,
     };
 
+    // Aviso de servicio repetido (HU-74)
+    if (!forzar) {
+      let listaActual = membresiasExistentes;
+      try {
+        const frescas = await listarMembresias();
+        if (Array.isArray(frescas)) {
+          listaActual = frescas;
+          setMembresiasExistentes(frescas);
+        }
+      } catch {
+        // En caso de corte de red, usar la lista existente
+      }
+
+      const repetido = detectarServicioRepetido(
+        payload,
+        listaActual,
+        editando ? membresiaEditada.id : null,
+      );
+
+      if (repetido.repetido) {
+        Alert.alert('Servicio repetido', `Ya tienes ${repetido.nombreServicio}, ¿es otro plan?`, [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Guardar de todos modos',
+            onPress: () => guardar(true),
+          },
+        ]);
+        return;
+      }
+    }
+
+    enviando.current = true;
+    setGuardando(true);
+    setErrorApi('');
+
     try {
       if (editando) {
         await actualizarMembresia(membresiaEditada.id, payload);
       } else {
         await crearMembresia(payload);
       }
+      route.params?.onGuardado?.();
       enviando.current = false;
       hojaRef.current?.cerrar();
     } catch (error) {
@@ -261,6 +316,7 @@ export default function MembresiaScreen({ navigation, route }) {
 
     try {
       await eliminarMembresia(membresiaEditada.id);
+      route.params?.onGuardado?.();
       enviando.current = false;
       hojaRef.current?.cerrar();
     } catch (error) {
@@ -275,6 +331,30 @@ export default function MembresiaScreen({ navigation, route }) {
     Alert.alert('¿Eliminar suscripción?', 'Esta acción no se puede deshacer.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Eliminar', style: 'destructive', onPress: eliminar },
+    ]);
+  };
+
+  const confirmarMarcarPagada = () => {
+    if (enviando.current || !editando) return;
+    Alert.alert('¿Marcar como pagada?', 'El próximo cobro avanzará al siguiente ciclo.', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Marcar pagada',
+        onPress: async () => {
+          enviando.current = true;
+          setMarcandoPagada(true);
+          setErrorApi('');
+          try {
+            await marcarPagada(membresiaEditada.id);
+            enviando.current = false;
+            hojaRef.current?.cerrar();
+          } catch (error) {
+            enviando.current = false;
+            setMarcandoPagada(false);
+            setErrorApi(mensajeError(error?.code, error?.message));
+          }
+        },
+      },
     ]);
   };
 
@@ -397,9 +477,9 @@ export default function MembresiaScreen({ navigation, route }) {
           <Boton
             titulo={editando ? 'Guardar cambios' : 'Guardar suscripción'}
             icono="check"
-            onPress={guardar}
+            onPress={() => guardar()}
             cargando={guardando}
-            disabled={eliminando || pausando}
+            disabled={ocupado}
             compacto
           />
         </>
@@ -412,7 +492,16 @@ export default function MembresiaScreen({ navigation, route }) {
             secundario
             onPress={alternarPausar}
             cargando={pausando}
-            disabled={guardando || eliminando}
+            disabled={ocupado}
+          />
+          <Boton
+            titulo="Marcar como pagada"
+            icono="check-circle-outline"
+            onPress={confirmarMarcarPagada}
+            cargando={marcandoPagada}
+            disabled={ocupado}
+            secundario
+            compacto
           />
           <Boton
             titulo="Eliminar suscripción"
@@ -420,7 +509,7 @@ export default function MembresiaScreen({ navigation, route }) {
             destructivo
             onPress={confirmarEliminar}
             cargando={eliminando}
-            disabled={guardando || pausando}
+            disabled={ocupado}
           />
         </View>
       ) : null}

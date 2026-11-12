@@ -2,6 +2,7 @@ const { describe, it, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const { spawnSync } = require('node:child_process');
 const path = require('node:path');
+const fs = require('node:fs');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { expectError } = require('../helpers/fixtures.cjs');
@@ -274,6 +275,99 @@ module.exports = getContext => describe('Autenticación (Postman 01 / RF1)', () 
     ]);
   });
 
+  it('Migración 016: invalida códigos ambiguos de una base existente y conserva códigos nuevos al reaplicarse', async () => {
+    const sql = fs.readFileSync(
+      path.resolve(__dirname, '../../migrations/016_recuperacion_zona_horaria.sql'),
+      'utf8'
+    );
+    const client = await ctx.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const originales = await client.query(
+        'SELECT id, email, password_hash FROM usuarios ORDER BY id'
+      );
+      // Simular el esquema anterior dentro de la base temporal; se revierte al terminar.
+      await client.query(`
+        ALTER TABLE usuarios ALTER COLUMN reset_token_expira TYPE TIMESTAMP
+        USING reset_token_expira AT TIME ZONE 'UTC'
+      `);
+      await client.query(`
+        UPDATE usuarios SET reset_token_hash = 'codigo-anterior',
+          reset_token_expira = TIMESTAMP '2026-11-12 12:30:00'
+      `);
+      await client.query(sql);
+      const tipo = await client.query(`
+        SELECT data_type FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'usuarios'
+          AND column_name = 'reset_token_expira'
+      `);
+      assert.equal(tipo.rows[0].data_type, 'timestamp with time zone');
+      const invalidados = await client.query(
+        'SELECT reset_token_hash, reset_token_expira FROM usuarios ORDER BY id'
+      );
+      assert.deepEqual(invalidados.rows, originales.rows.map(() => ({
+        reset_token_hash: null, reset_token_expira: null,
+      })));
+      const usuarios = await client.query(
+        'SELECT id, email, password_hash FROM usuarios ORDER BY id'
+      );
+      assert.deepEqual(usuarios.rows, originales.rows);
+
+      const nuevo = await client.query(`
+        UPDATE usuarios SET reset_token_hash = 'codigo-nuevo',
+          reset_token_expira = NOW() + INTERVAL '30 minutes'
+        WHERE id = $1 RETURNING reset_token_hash, reset_token_expira
+      `, [ctx.a.usuario.id]);
+      await client.query(sql);
+      const conservado = await client.query(
+        'SELECT reset_token_hash, reset_token_expira FROM usuarios WHERE id = $1',
+        [ctx.a.usuario.id]
+      );
+      assert.deepEqual(conservado.rows, nuevo.rows);
+    } finally {
+      try { await client.query('ROLLBACK'); } finally { client.release(); }
+    }
+  });
+
+  for (const zona of ['UTC', 'America/Mexico_City']) {
+    it(`Recuperación: respeta vencimiento y vigencia con PostgreSQL en ${zona}`, async () => {
+      await ctx.api.post('/auth/olvide-contrasena')
+        .send({ email: ctx.a.usuario.email }).expect(200);
+      const { token } = obtenerUltimoCorreoEnviado();
+
+      async function ajustarVencimiento(minutos) {
+        const client = await ctx.pool.connect();
+        try {
+          await client.query('BEGIN');
+          await client.query("SELECT set_config('TimeZone', $1, true)", [zona]);
+          await client.query(`
+            UPDATE usuarios
+            SET reset_token_expira = NOW() + $1 * INTERVAL '1 minute'
+            WHERE id = $2
+          `, [minutos, ctx.a.usuario.id]);
+          await client.query('COMMIT');
+        } catch (error) {
+          await client.query('ROLLBACK');
+          throw error;
+        } finally {
+          client.release();
+        }
+      }
+
+      await ajustarVencimiento(-1);
+      expectError(await ctx.api.post('/auth/restablecer-contrasena')
+        .send({ token, password: 'NuevaPasswordSegura99' }), 400, 'TOKEN_INVALIDO');
+      await ctx.api.post('/auth/login')
+        .send({ email: ctx.a.usuario.email, password: ctx.password }).expect(200);
+
+      await ajustarVencimiento(30);
+      await ctx.api.post('/auth/restablecer-contrasena')
+        .send({ token, password: 'NuevaPasswordSegura99' }).expect(200);
+      await ctx.api.post('/auth/login')
+        .send({ email: ctx.a.usuario.email, password: 'NuevaPasswordSegura99' }).expect(200);
+    });
+  }
+
   it('Flujo completo: pedir código → verificar hash y caducidad 30 min → restablecer → iniciar sesión', async () => {
     const antesMs = Date.now();
     const resOlvide = await ctx.api
@@ -474,5 +568,123 @@ module.exports = getContext => describe('Autenticación (Postman 01 / RF1)', () 
     });
     assert.deepEqual(payload.to, [{ email: 'ana@example.com', name: 'Ana' }]);
     assert.match(payload.textContent, /654321/);
+  });
+
+  describe('HU-68: Eliminar cuenta y todos los datos (DELETE /auth/cuenta)', () => {
+    it('elimina cuenta, gastos, presupuestos y membresias con contraseña correcta', async () => {
+      // 1. Crear datos asociados al usuario A
+      await ctx.crearGasto(ctx.a, { monto: 150 });
+      const catRes = await ctx.api.get('/categorias').auth(ctx.a.token, { type: 'bearer' });
+      const catId = catRes.body[0].id;
+      await ctx.api
+        .post('/presupuestos')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({ categoria_id: catId, monto_limite: 1000, mes: '2026-11' })
+        .expect(201);
+      await ctx.api
+        .post('/membresias')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({ nombre: 'Gym', costo: 500, frecuencia: 'mensual', fecha_cobro: '2026-11-20' })
+        .expect(201);
+
+      // Crear también un gasto para el usuario B para validar que no se borre
+      const gastoB = await ctx.crearGasto(ctx.b, { monto: 200 });
+
+      // 2. Ejecutar DELETE /auth/cuenta con contraseña correcta
+      const res = await ctx.api
+        .delete('/auth/cuenta')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({ password: ctx.password })
+        .expect(200);
+
+      assert.deepEqual(res.body, { eliminado: true });
+
+      // 3. Verificar en la base de datos que no queda nada del usuario A
+      const uRes = await ctx.pool.query('SELECT 1 FROM usuarios WHERE id = $1', [ctx.a.usuario.id]);
+      assert.equal(uRes.rows.length, 0, 'El usuario debe eliminarse de la tabla usuarios');
+
+      const gRes = await ctx.pool.query('SELECT 1 FROM gastos WHERE usuario_id = $1', [ctx.a.usuario.id]);
+      assert.equal(gRes.rows.length, 0, 'No deben quedar gastos del usuario');
+
+      const pRes = await ctx.pool.query('SELECT 1 FROM presupuestos WHERE usuario_id = $1', [ctx.a.usuario.id]);
+      assert.equal(pRes.rows.length, 0, 'No deben quedar presupuestos del usuario');
+
+      const mRes = await ctx.pool.query('SELECT 1 FROM membresias WHERE usuario_id = $1', [ctx.a.usuario.id]);
+      assert.equal(mRes.rows.length, 0, 'No deben quedar membresias del usuario');
+
+      // 4. Los datos del usuario B siguen intactos
+      const gBRes = await ctx.pool.query('SELECT 1 FROM gastos WHERE id = $1', [gastoB.id]);
+      assert.equal(gBRes.rows.length, 1, 'Los datos del usuario B no deben verse afectados');
+
+      // 5. Ya no se puede iniciar sesión con la cuenta eliminada
+      expectError(
+        await ctx.api.post('/auth/login').send({ email: ctx.a.usuario.email, password: ctx.password }),
+        401,
+        'CREDENCIALES_INVALIDAS',
+      );
+
+      // 6. El mismo correo se puede registrar de nuevo inmediatamente
+      const nuevoRegistro = await ctx.api
+        .post('/auth/register')
+        .send({ nombre: 'Nuevo Nombre', email: ctx.a.usuario.email, password: 'NuevaPassword123' })
+        .expect(201);
+
+      assert.equal(nuevoRegistro.body.usuario.email, ctx.a.usuario.email);
+      assert.ok(nuevoRegistro.body.token);
+    });
+
+    it('contraseña incorrecta responde 401 PASSWORD_INCORRECTA y no borra nada', async () => {
+      await ctx.crearGasto(ctx.a, { monto: 350 });
+
+      const res = await ctx.api
+        .delete('/auth/cuenta')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({ password: 'PasswordTotalmenteErronea1' });
+
+      expectError(res, 401, 'PASSWORD_INCORRECTA');
+
+      // La cuenta y los datos siguen intactos
+      const uRes = await ctx.pool.query('SELECT 1 FROM usuarios WHERE id = $1', [ctx.a.usuario.id]);
+      assert.equal(uRes.rows.length, 1);
+
+      const gRes = await ctx.pool.query('SELECT 1 FROM gastos WHERE usuario_id = $1', [ctx.a.usuario.id]);
+      assert.equal(gRes.rows.length, 1);
+
+      // El login sigue funcionando normalmente
+      await ctx.api
+        .post('/auth/login')
+        .send({ email: ctx.a.usuario.email, password: ctx.password })
+        .expect(200);
+    });
+
+    it('sin contraseña o cuerpo vacío responde 401 PASSWORD_INCORRECTA y no borra nada', async () => {
+      const resVacio = await ctx.api
+        .delete('/auth/cuenta')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({});
+
+      expectError(resVacio, 401, 'PASSWORD_INCORRECTA');
+
+      const resSinPassword = await ctx.api
+        .delete('/auth/cuenta')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({ password: '' });
+
+      expectError(resSinPassword, 401, 'PASSWORD_INCORRECTA');
+
+      const uRes = await ctx.pool.query('SELECT 1 FROM usuarios WHERE id = $1', [ctx.a.usuario.id]);
+      assert.equal(uRes.rows.length, 1);
+    });
+
+    it('requiere autenticación con token válido', async () => {
+      const resSinToken = await ctx.api.delete('/auth/cuenta').send({ password: ctx.password });
+      expectError(resSinToken, 401, 'NO_AUTORIZADO');
+
+      const resTokenInvalido = await ctx.api
+        .delete('/auth/cuenta')
+        .auth('token-invalido', { type: 'bearer' })
+        .send({ password: ctx.password });
+      expectError(resTokenInvalido, 401, 'NO_AUTORIZADO');
+    });
   });
 });

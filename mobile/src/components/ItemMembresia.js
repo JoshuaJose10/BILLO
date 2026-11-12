@@ -6,7 +6,14 @@ import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { tipografia } from '../theme/tipografia';
 import { formatearMonto } from '../utils/formato';
-import { estiloServicio, inicialServicio, nivelCobro, textoCobro } from '../utils/membresias';
+import {
+  diasParaCobroCiclo,
+  estiloServicio,
+  fechaCobroCiclo,
+  inicialServicio,
+  nivelCobro,
+  textoCobro,
+} from '../utils/membresias';
 
 // Tarjeta de una membresía / suscripción en Cartera (HU-05; diseño HU-81, Stitch
 // 13_cartera_subs_oscuro_brillo / _claro_brillo): logo en squircle del color de marca (o la
@@ -17,10 +24,12 @@ export default function ItemMembresia({ membresia, opaca = false }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
-  const { nombre, costo, frecuencia, fecha_cobro, dias_para_cobro, estado } = membresia;
+  const { nombre, costo, frecuencia, estado } = membresia;
+  const fechaCobro = fechaCobroCiclo(membresia);
+  const diasCobro = diasParaCobroCiclo(membresia);
   const { color: colorMarca, icono, predefinido } = estiloServicio(nombre);
   const pausada = estado === 'pausada';
-  const nivel = nivelCobro(dias_para_cobro);
+  const nivel = nivelCobro(diasCobro);
   const colorPunto = pausada
     ? colors.outline
     : nivel === 'aviso'
@@ -70,7 +79,7 @@ export default function ItemMembresia({ membresia, opaca = false }) {
             ]}
             numberOfLines={1}
           >
-            {pausada ? 'Pausada' : textoCobro(dias_para_cobro, fecha_cobro)}
+            {pausada ? 'Pausada' : textoCobro(diasCobro, fechaCobro)}
           </Text>
         </View>
       </View>

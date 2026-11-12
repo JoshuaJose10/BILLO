@@ -1,25 +1,57 @@
+import { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import Avatar from '../components/Avatar';
 import Boton from '../components/Boton';
 import HojaInferior from '../components/HojaInferior';
-import { useAuth } from '../context/AuthContext';
+import Input from '../components/Input';
+import PanelHoja from '../components/PanelHoja';
+import { useApi, useAuth } from '../context/AuthContext';
 import { useEstilos } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { esAdmin } from '../utils/auth';
+import { mensajeError } from '../utils/errores';
 
 // Hoja inferior de Perfil (ruta Perfil con presentation: 'transparentModal'), se abre
 // desde el avatar de Inicio. Al cerrar sesión el token se borra y RootNavigator muestra Login.
 export default function PerfilScreen({ navigation }) {
   const { usuario, token, cerrarSesion } = useAuth();
+  const api = useApi();
   const styles = useEstilos(crearEstilos);
   const esAdministrador = esAdmin(token);
+
+  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+  const [password, setPassword] = useState('');
+  const [eliminando, setEliminando] = useState(false);
+  const [errorApi, setErrorApi] = useState('');
 
   const confirmarCerrarSesion = () =>
     Alert.alert('¿Cerrar sesión?', 'Tendrás que ingresar tu correo y contraseña de nuevo.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Cerrar sesión', style: 'destructive', onPress: cerrarSesion },
     ]);
+
+  const handleEliminarCuenta = async () => {
+    if (eliminando) return;
+    if (!password) {
+      setErrorApi('Ingresa tu contraseña para confirmar.');
+      return;
+    }
+    setEliminando(true);
+    setErrorApi('');
+    try {
+      await api('/auth/cuenta', {
+        method: 'DELETE',
+        body: { password },
+      });
+      setEliminando(false);
+      setMostrarConfirmacion(false);
+      await cerrarSesion();
+    } catch (error) {
+      setEliminando(false);
+      setErrorApi(mensajeError(error?.code, error?.message));
+    }
+  };
 
   return (
     <HojaInferior
@@ -55,6 +87,19 @@ export default function PerfilScreen({ navigation }) {
 
       <Boton titulo="Cerrar sesión" icono="logout" onPress={confirmarCerrarSesion} secundario />
 
+      <View style={styles.seccionEliminar}>
+        <Boton
+          titulo="Eliminar mi cuenta"
+          icono="account-remove-outline"
+          onPress={() => {
+            setErrorApi('');
+            setPassword('');
+            setMostrarConfirmacion(true);
+          }}
+          destructivo
+        />
+      </View>
+
       {/* HU-23 (spike): acceso a la pantalla de pruebas, solo en desarrollo. */}
       {__DEV__ ? (
         <View style={styles.laboratorio}>
@@ -65,6 +110,57 @@ export default function PerfilScreen({ navigation }) {
             secundario
           />
         </View>
+      ) : null}
+
+      {mostrarConfirmacion ? (
+        <PanelHoja
+          titulo="Eliminar cuenta"
+          onCerrar={() => {
+            if (!eliminando) {
+              setMostrarConfirmacion(false);
+              setPassword('');
+              setErrorApi('');
+            }
+          }}
+        >
+          <Text style={styles.textoAdvertencia}>
+            Esta acción es irreversible. Se eliminarán permanentemente tus gastos, presupuestos,
+            suscripciones y tu cuenta.
+          </Text>
+          <Input
+            etiqueta="Contraseña actual"
+            icono="lock-outline"
+            password
+            placeholder="Ingresa tu contraseña"
+            value={password}
+            onChangeText={(t) => {
+              setPassword(t);
+              if (errorApi) setErrorApi('');
+            }}
+            error={errorApi}
+            autoCapitalize="none"
+          />
+          <View style={styles.accionesConfirmacion}>
+            <Boton
+              titulo="Eliminar definitivamente"
+              icono="trash-can-outline"
+              onPress={handleEliminarCuenta}
+              cargando={eliminando}
+              disabled={eliminando}
+              destructivo
+            />
+            <Boton
+              titulo="Cancelar"
+              onPress={() => {
+                setMostrarConfirmacion(false);
+                setPassword('');
+                setErrorApi('');
+              }}
+              disabled={eliminando}
+              secundario
+            />
+          </View>
+        </PanelHoja>
       ) : null}
     </HojaInferior>
   );
@@ -99,5 +195,19 @@ const crearEstilos = (colors) =>
     },
     seccionAdmin: {
       marginBottom: 12,
+    },
+    seccionEliminar: {
+      marginTop: 12,
+    },
+    textoAdvertencia: {
+      fontFamily: fonts.sans,
+      fontSize: 14,
+      lineHeight: 20,
+      color: colors.textSecondary,
+      marginBottom: 16,
+    },
+    accionesConfirmacion: {
+      marginTop: 16,
+      gap: 10,
     },
   });

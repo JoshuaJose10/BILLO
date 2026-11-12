@@ -118,6 +118,94 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
     assert.equal(membresiaDuo.nombre, 'Spotify Duo');
     assert.equal(membresiaDuo.costo, spotifyDuo.costo_sugerido);
   });
+
+  describe('HU-66: marcar membresía como pagada (POST /membresias/:id/pagada)', () => {
+    it('mensual del 15 pasa al 15 del mes siguiente', async () => {
+      const m = await crear(datos({ fecha_cobro: '2026-10-15', frecuencia: 'mensual' }));
+      const res = await ctx.api
+        .post(`/membresias/${m.id}/pagada`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+
+      assert.equal(res.body.membresia.id, m.id);
+      assert.equal(res.body.membresia.fecha_cobro, '2026-11-15');
+      assert.equal(typeof res.body.membresia.dias_para_cobro, 'number');
+
+      const lista = await get('/membresias');
+      assert.equal(lista[0].fecha_cobro, '2026-11-15');
+    });
+
+    it('anual avanza un año exacto', async () => {
+      const m = await crear(datos({ fecha_cobro: '2026-05-10', frecuencia: 'anual', costo: 1200 }));
+      const res = await ctx.api
+        .post(`/membresias/${m.id}/pagada`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+
+      assert.equal(res.body.membresia.fecha_cobro, '2027-05-10');
+      assert.equal(res.body.membresia.frecuencia, 'anual');
+    });
+
+    it('fin de mes: 31 de enero pasa a 28 de febrero sin romperse', async () => {
+      const m = await crear(datos({ fecha_cobro: '2026-01-31', frecuencia: 'mensual' }));
+      const res = await ctx.api
+        .post(`/membresias/${m.id}/pagada`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+
+      assert.equal(res.body.membresia.fecha_cobro, '2026-02-28');
+    });
+
+    it('fin de mes: 31 de marzo pasa a 30 de abril', async () => {
+      const m = await crear(datos({ fecha_cobro: '2026-03-31', frecuencia: 'mensual' }));
+      const res = await ctx.api
+        .post(`/membresias/${m.id}/pagada`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+
+      assert.equal(res.body.membresia.fecha_cobro, '2026-04-30');
+    });
+
+    it('NO crea ningún gasto en la tabla gastos y el total mensual en reportes no se duplica', async () => {
+      const m = await crear(datos({ costo: 300, frecuencia: 'mensual', fecha_cobro: '2026-10-15' }));
+      const gastosAntes = await ctx.pool.query('SELECT COUNT(*) AS total FROM gastos WHERE usuario_id = $1', [ctx.a.usuario.id]);
+      const totalGastosAntes = Number(gastosAntes.rows[0].total);
+
+      await ctx.api
+        .post(`/membresias/${m.id}/pagada`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+
+      const gastosDespues = await ctx.pool.query('SELECT COUNT(*) AS total FROM gastos WHERE usuario_id = $1', [ctx.a.usuario.id]);
+      const totalGastosDespues = Number(gastosDespues.rows[0].total);
+      assert.equal(totalGastosDespues, totalGastosAntes);
+
+      // Reportes concilia exactamente el gasto fijo sin gasto variable extra
+      await conciliar(ctx.a, 0, 300, 300);
+    });
+
+    it('aislamiento A/B: otro usuario no puede marcar una membresía ajena (404)', async () => {
+      const m = await crear(datos(), ctx.a);
+      const resAjeno = await ctx.api
+        .post(`/membresias/${m.id}/pagada`)
+        .auth(ctx.b.token, { type: 'bearer' });
+
+      expectError(resAjeno, 404, 'MEMBRESIA_NO_ENCONTRADA');
+
+      // La fecha del usuario A sigue intacta
+      const listaA = await get('/membresias', ctx.a);
+      assert.equal(listaA[0].fecha_cobro, '2026-10-20');
+    });
+
+    it('responde 404 para ID inexistente o inválido', async () => {
+      for (const idInvalido of ['999999', '0', '-1', 'abc']) {
+        const res = await ctx.api
+          .post(`/membresias/${idInvalido}/pagada`)
+          .auth(ctx.a.token, { type: 'bearer' });
+        expectError(res, 404, 'MEMBRESIA_NO_ENCONTRADA');
+      }
+    });
+  });
   it('CP-RF6-01: variable 500 + fijo 300 = total 800', async () => {
     await ctx.crearGasto(ctx.a, { monto: 350 });
     await ctx.crearGasto(ctx.a, { monto: 150 });
