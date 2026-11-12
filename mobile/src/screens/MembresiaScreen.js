@@ -33,6 +33,7 @@ import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
 import { formatearMontoCorto, LOCALE, resumirTexto } from '../utils/formato';
 import {
   estiloServicio,
+  fechaCobroCiclo,
   filtrarCatalogo,
   formatearDiaMes,
   inicialServicio,
@@ -85,9 +86,10 @@ export default function MembresiaScreen({ navigation, route }) {
     editando ? textoDesdeMonto(membresiaEditada.costo) : '',
   );
   const [frecuencia, setFrecuencia] = useState(() => membresiaEditada?.frecuencia ?? 'mensual');
-  const [fecha, setFecha] = useState(() =>
-    membresiaEditada?.fecha_cobro ? parsearFechaLocal(membresiaEditada.fecha_cobro) : new Date(),
-  );
+  const [fecha, setFecha] = useState(() => {
+    const fStr = fechaCobroCiclo(membresiaEditada);
+    return fStr ? parsearFechaLocal(fStr) : new Date();
+  });
   const [servicioId, setServicioId] = useState(() => membresiaEditada?.servicio_id ?? null);
   const [panel, setPanel] = useState(null); // 'nombre' | 'frecuencia' | 'fecha'
 

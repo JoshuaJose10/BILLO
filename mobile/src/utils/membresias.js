@@ -140,10 +140,35 @@ export const ORDEN_SUSCRIPCIONES = {
   frecuencia: 'frecuencia', // secciones Mensuales y Anuales, cada una por fecha
 };
 
-const diasOrden = (m) =>
-  typeof m?.dias_para_cobro === 'number' && !Number.isNaN(m.dias_para_cobro)
-    ? m.dias_para_cobro
-    : Infinity;
+/**
+ * Obtiene la fecha de cobro alineada con el ciclo que se paga (HU-66 / HU-51).
+ * Si la app adelantó visualmente una fecha vencida (HU-51), el ciclo que efectivamente
+ * se paga al marcar como pagada es la fecha persistida (`fecha_cobro_original`).
+ */
+export function fechaCobroCiclo(membresia) {
+  if (!membresia || typeof membresia !== 'object') return '';
+  return membresia.fecha_cobro_original || membresia.fecha_cobro || '';
+}
+
+/**
+ * Calcula los días para el cobro del ciclo que se paga (HU-66 / HU-51).
+ * Si tiene fecha original vencida adelantada visualmente, devuelve los días respecto a esa fecha persistida.
+ */
+export function diasParaCobroCiclo(membresia, fechaReferenciaStr) {
+  if (!membresia || typeof membresia !== 'object') return undefined;
+  if (membresia.fecha_cobro_original && membresia.fecha_cobro_original !== membresia.fecha_cobro) {
+    return calcularDiasParaCobro(membresia.fecha_cobro_original, fechaReferenciaStr);
+  }
+  if (typeof membresia.dias_para_cobro === 'number' && !Number.isNaN(membresia.dias_para_cobro)) {
+    return membresia.dias_para_cobro;
+  }
+  return calcularDiasParaCobro(membresia.fecha_cobro, fechaReferenciaStr);
+}
+
+const diasOrden = (m) => {
+  const d = diasParaCobroCiclo(m);
+  return typeof d === 'number' && !Number.isNaN(d) ? d : Infinity;
+};
 
 const porNombre = (a, b) => String(a?.nombre ?? '').localeCompare(String(b?.nombre ?? ''), 'es');
 

@@ -8,8 +8,10 @@ import {
   avanzarFechaCobro,
   calcularDiasParaCobro,
   calcularTotalMensual,
+  diasParaCobroCiclo,
   esCobroProximo,
   estiloServicio,
+  fechaCobroCiclo,
   textoCobro,
   validarMembresia,
 } from './membresias.js';
@@ -264,6 +266,86 @@ describe('utils/membresias', () => {
       assert.equal(totalAntes, 129 + 100 + 219);
       assert.equal(totalDespues, totalAntes);
       assert.equal(totalDespues, 448);
+    });
+  });
+
+  describe('alineación de fecha mostrada con el ciclo que se paga (HU-66 / interacción con HU-51)', () => {
+    const hoyFijo = '2026-11-12';
+
+    test('fecha persistida del 15/octubre muestra 15/octubre antes del pago y avanza visiblemente a 15/noviembre tras el pago', () => {
+      // 1. Estado persistido en BD: cobro vencido el 15 de octubre
+      const persistidaOctubre = {
+        id: 10,
+        nombre: 'Netflix',
+        costo: 219,
+        frecuencia: 'mensual',
+        fecha_cobro: '2026-10-15',
+        dias_para_cobro: -28,
+      };
+
+      // 2. HU-51 adelanta visualmente la membresía al ciclo vigente
+      const ajustadaHU51 = ajustarAlSiguienteCiclo(persistidaOctubre, hoyFijo);
+      assert.equal(ajustadaHU51.fecha_cobro, '2026-11-15');
+      assert.equal(ajustadaHU51.fecha_cobro_original, '2026-10-15');
+
+      // 3. Antes de pagar: la fecha mostrada se alinea con el ciclo que se paga (15/octubre, no 15/noviembre)
+      const fechaAntes = fechaCobroCiclo(ajustadaHU51);
+      const diasAntes = diasParaCobroCiclo(ajustadaHU51, hoyFijo);
+      assert.equal(fechaAntes, '2026-10-15');
+      assert.equal(diasAntes, -28);
+      assert.equal(textoCobro(diasAntes, fechaAntes), 'Venció hace 28 días (15 oct)');
+
+      // 4. Se marca como pagada (POST /membresias/:id/pagada): el backend avanza la fecha de BD a 2026-11-15
+      const respuestaBackendTrasPago = {
+        id: 10,
+        nombre: 'Netflix',
+        costo: 219,
+        frecuencia: 'mensual',
+        fecha_cobro: '2026-11-15',
+        dias_para_cobro: 3,
+      };
+      const ajustadaTrasPago = ajustarAlSiguienteCiclo(respuestaBackendTrasPago, hoyFijo);
+
+      // 5. Tras el pago: la fecha mostrada avanza visiblemente al siguiente ciclo (15/noviembre)
+      const fechaDespues = fechaCobroCiclo(ajustadaTrasPago);
+      const diasDespues = diasParaCobroCiclo(ajustadaTrasPago, hoyFijo);
+      assert.equal(fechaDespues, '2026-11-15');
+      assert.equal(diasDespues, 3);
+      assert.equal(textoCobro(diasDespues, fechaDespues), 'Cobra en 3 días (15 nov)');
+
+      // 6. Comprobación crucial: no deja la misma fecha visible antes y después del pago
+      assert.notEqual(fechaAntes, fechaDespues);
+      assert.equal(fechaAntes, '2026-10-15');
+      assert.equal(fechaDespues, '2026-11-15');
+    });
+
+    test('suscripción al corriente (fecha futura) muestra su ciclo vigente y avanza al siguiente ciclo tras el pago', () => {
+      const persistidaNoviembre = {
+        id: 11,
+        nombre: 'Spotify',
+        costo: 129,
+        frecuencia: 'mensual',
+        fecha_cobro: '2026-11-20',
+        dias_para_cobro: 8,
+      };
+      const ajustada = ajustarAlSiguienteCiclo(persistidaNoviembre, hoyFijo);
+      assert.equal(fechaCobroCiclo(ajustada), '2026-11-20');
+      assert.equal(diasParaCobroCiclo(ajustada, hoyFijo), 8);
+
+      // Tras pagar ciclo 20/nov, backend avanza a 20/dic
+      const trasPago = ajustarAlSiguienteCiclo(
+        { ...persistidaNoviembre, fecha_cobro: '2026-12-20', dias_para_cobro: 38 },
+        hoyFijo,
+      );
+      assert.equal(fechaCobroCiclo(trasPago), '2026-12-20');
+      assert.notEqual(fechaCobroCiclo(ajustada), fechaCobroCiclo(trasPago));
+    });
+
+    test('tolera objetos nulos o indefinidos devolviendo valores seguros', () => {
+      assert.equal(fechaCobroCiclo(null), '');
+      assert.equal(fechaCobroCiclo(undefined), '');
+      assert.equal(diasParaCobroCiclo(null), undefined);
+      assert.equal(diasParaCobroCiclo(undefined), undefined);
     });
   });
 });
