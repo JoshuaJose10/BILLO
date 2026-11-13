@@ -22,6 +22,7 @@ function serviciosFalsos({ fallar = [] } = {}) {
     servicios: {
       obtenerResumen: servicio('resumen', { gasto_variable: 120, gasto_fijo: 0, total: 120 }),
       listarGastos: servicio('gastos', [{ id: 1, monto: 120, categoria_id: 1 }]),
+      listarIngresos: servicio('ingresos', [{ id: 3, monto: 1000, fecha: '2026-11-01' }]),
       listarPresupuestos: servicio('presupuestos', [{ id: 5, estado: 'alerta' }]),
       listarMembresias: (...args) =>
         servicio('membresias', [{ id: 9, dias_para_cobro: 2 }])(...args),
@@ -30,7 +31,7 @@ function serviciosFalsos({ fallar = [] } = {}) {
 }
 
 describe('cargarDatosInicio', () => {
-  it('hace exactamente 4 peticiones del mes, todas antes de que responda alguna', async () => {
+  it('hace exactamente 5 peticiones del mes, todas antes de que responda alguna', async () => {
     const f = serviciosFalsos();
     const carga = cargarDatosInicio(f.servicios, '2026-11');
     assert.deepEqual(f.llamadas, [
@@ -38,10 +39,12 @@ describe('cargarDatosInicio', () => {
       { nombre: 'membresias', arg: undefined },
       { nombre: 'resumen', arg: '2026-11' },
       { nombre: 'gastos', arg: { mes: '2026-11' } },
+      { nombre: 'ingresos', arg: { mes: '2026-11' } },
     ]);
     f.responder();
     const datos = await carga;
-    assert.equal(f.llamadas.length, 4);
+    assert.equal(f.llamadas.length, 5);
+    assert.equal(datos.ingresos.length, 1);
     assert.equal(datos.resumen.gasto_variable, 120);
     assert.equal(datos.gastos.length, 1);
     assert.equal(datos.presupuestos.length, 1);
@@ -72,8 +75,8 @@ describe('cargarDatosInicio', () => {
     assert.equal((await carga).presupuestos, null);
   });
 
-  it('si falla el resumen o los gastos lanza el error', async () => {
-    for (const nombre of ['resumen', 'gastos']) {
+  it('si falla el resumen, los gastos o los ingresos lanza el error', async () => {
+    for (const nombre of ['resumen', 'gastos', 'ingresos']) {
       const f = serviciosFalsos({ fallar: [nombre] });
       const carga = cargarDatosInicio(f.servicios, '2026-11');
       f.responder();
