@@ -65,10 +65,26 @@ const register = async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
 
     // 4. Insertar en la base de datos de forma segura (parametrizada)
+    // La cuenta nueva queda con categorias_configuradas = FALSE (la app mostrará «Elige tus
+    // categorías»), pero nace con todas las predefinidas de gasto seleccionadas para que nunca
+    // quede sin categorías si todavía no las ha elegido. Todo en una sola sentencia atómica.
     const insertQuery = `
-      INSERT INTO usuarios (nombre, email, password_hash, categorias_configuradas)
-      VALUES ($1, $2, $3, FALSE)
-      RETURNING id, nombre, email, rol, categorias_configuradas
+      WITH nuevo AS (
+        INSERT INTO usuarios (nombre, email, password_hash, categorias_configuradas)
+        VALUES ($1, $2, $3, FALSE)
+        RETURNING id, nombre, email, rol, categorias_configuradas
+      ),
+      seleccion AS (
+        INSERT INTO usuario_categorias (usuario_id, categoria_id)
+        SELECT nuevo.id, c.id
+        FROM nuevo
+        CROSS JOIN categorias c
+        WHERE c.es_predefinida = TRUE
+          AND c.usuario_id IS NULL
+          AND c.tipo = 'gasto'
+        RETURNING 1
+      )
+      SELECT id, nombre, email, rol, categorias_configuradas FROM nuevo
     `;
     const result = await pool.query(insertQuery, [
       nombre,

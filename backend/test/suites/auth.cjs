@@ -52,6 +52,18 @@ module.exports = getContext => describe('Autenticación (Postman 01 / RF1)', () 
     assert.ok(await bcrypt.compare(ctx.password, rows[0].password_hash));
   });
 
+  it('registro deja la cuenta nueva con las categorías predefinidas de gasto seleccionadas', async () => {
+    const { body } = await ctx.api.post('/auth/register').send(registro()).expect(201);
+    assert.equal(body.usuario.categorias_configuradas, false);
+    const { body: categorias } = await ctx.api.get('/categorias?tipo=gasto')
+      .auth(body.token, { type: 'bearer' }).expect(200);
+    assert.ok(categorias.length > 0, 'una cuenta nueva no debe quedar sin categorías');
+    assert.ok(categorias.every(c => c.es_predefinida === true));
+    const { rows } = await ctx.pool.query(
+      "SELECT COUNT(*)::int AS n FROM categorias WHERE es_predefinida = TRUE AND usuario_id IS NULL AND tipo = 'gasto'");
+    assert.equal(categorias.length, rows[0].n);
+  });
+
   it('registro normaliza correo y permite login con mayúsculas y espacios', async () => {
     await ctx.api.post('/auth/register').send(registro({ email: ' Ana@EXAMPLE.com ' })).expect(201);
     const { body } = await ctx.api.post('/auth/login')

@@ -40,6 +40,12 @@ module.exports = (getContext) =>
         .expect(201);
       assert.equal(regBody.usuario.categorias_configuradas, false);
 
+      // El registro ya le asignó las predefinidas de gasto: la migración no debe cambiar eso
+      const { rows: antesNuevo } = await ctx.pool.query(
+        'SELECT categoria_id FROM usuario_categorias WHERE usuario_id = $1 ORDER BY categoria_id',
+        [regBody.usuario.id]
+      );
+
       // Re-ejecutar migración 020 dos veces
       await ctx.pool.query(MIGRACION_020);
       await ctx.pool.query(MIGRACION_020);
@@ -58,12 +64,17 @@ module.exports = (getContext) =>
         predefinidas.map((r) => r.id)
       );
 
-      // Usuario nuevo conserva categorias_configuradas = FALSE y 0 filas en usuario_categorias
+      // Usuario nuevo conserva categorias_configuradas = FALSE y su selección queda igual
       const { rows: ucNuevo } = await ctx.pool.query(
-        'SELECT categoria_id FROM usuario_categorias WHERE usuario_id = $1',
+        'SELECT categoria_id FROM usuario_categorias WHERE usuario_id = $1 ORDER BY categoria_id',
         [regBody.usuario.id]
       );
-      assert.equal(ucNuevo.length, 0);
+      assert.deepEqual(ucNuevo, antesNuevo);
+      const { rows: cfg } = await ctx.pool.query(
+        'SELECT categorias_configuradas FROM usuarios WHERE id = $1',
+        [regBody.usuario.id]
+      );
+      assert.equal(cfg[0].categorias_configuradas, false);
     });
 
     it('usuario existente conserva predefinidas disponibles y recibe error 401 sin token', async () => {
@@ -108,12 +119,13 @@ module.exports = (getContext) =>
       assert.equal(regBody.usuario.categorias_configuradas, false);
       const token = regBody.token;
 
-      // Al registrarse aún no tiene categorías seleccionadas
+      // Al registrarse ya tiene las predefinidas de gasto seleccionadas (nunca queda sin categorías)
       const { body: catInicial } = await ctx.api
         .get('/categorias')
         .auth(token, { type: 'bearer' })
         .expect(200);
-      assert.deepEqual(catInicial, []);
+      assert.ok(catInicial.length >= 6);
+      assert.ok(catInicial.every((c) => c.es_predefinida === true));
 
       // Catálogo completo de predefinidas con seleccionada: false
       const { body: predAntes } = await ctx.api
@@ -121,7 +133,9 @@ module.exports = (getContext) =>
         .auth(token, { type: 'bearer' })
         .expect(200);
       assert.ok(predAntes.categorias.length >= 6);
-      assert.ok(predAntes.categorias.every((c) => c.seleccionada === false));
+      assert.ok(
+        predAntes.categorias.filter((c) => c.tipo === 'gasto').every((c) => c.seleccionada === true)
+      );
 
       // Seleccionar 2 predefinidas
       const elegidas = [
