@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { radios } from '../theme/colors';
+import { estiloTarjeta } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { formatearMonto } from '../utils/formato';
@@ -57,12 +57,11 @@ export default function TarjetaCobrosSemana({ cobros, total, tambien = false, on
 
 const crearEstilos = (colors) =>
   StyleSheet.create({
+    // Misma tarjeta que «Próximo cobro» y «Gastado este mes», con la misma separación
     tarjeta: {
-      marginTop: 18,
-      padding: 14,
+      marginTop: 14,
       gap: 8,
-      borderRadius: radios['2xl'],
-      backgroundColor: colors.filaOpaca,
+      ...estiloTarjeta(colors),
     },
     presionada: {
       opacity: 0.7,

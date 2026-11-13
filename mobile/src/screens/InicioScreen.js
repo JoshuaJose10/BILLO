@@ -29,7 +29,7 @@ import { useRecargar } from '../hooks/useRecargar';
 import { vistaPantalla } from '../utils/estadoCarga';
 import { mesActual } from '../utils/fechas';
 import { cargarDatosInicio, MOVIMIENTOS_RECIENTES } from '../utils/inicio';
-import { saldoDelMes } from '../utils/ingresos';
+import { saldoDelMes, totalIngresos } from '../utils/ingresos';
 import { proximoCobro } from '../utils/membresias';
 import { presupuestosEnRiesgo, resumenPresupuestos } from '../utils/presupuestos';
 import { gastoPorCategoria, resumenGastoMes } from '../utils/resumenMes';
@@ -198,7 +198,11 @@ export default function InicioScreen({ navigation }) {
         </View>
       </View>
 
-      <TarjetaSaldo saldo={saldo} onRegistrarIngreso={abrirNuevoIngreso} />
+      <TarjetaSaldo
+        saldo={saldo}
+        ingresos={totalIngresos(ingresosMes)}
+        onRegistrarIngreso={abrirNuevoIngreso}
+      />
 
       <TarjetaResumen
         resumen={resumenMes}

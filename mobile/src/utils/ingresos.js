@@ -19,11 +19,14 @@ export const DESCRIPCION_MAX = 200;
 
 const redondear2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
 
+export const totalIngresos = (ingresos) =>
+  redondear2((ingresos || []).reduce((suma, i) => suma + i.monto, 0));
+
 // Saldo disponible de Inicio: ingresos del mes − gastos del mes (gasto_variable de
-// /reportes/resumen, el mismo «Gastado este mes»; las suscripciones no se restan). Sin ingresos en
-// el mes → null: TarjetaSaldo invita a registrarlos en vez de mostrar un saldo negativo.
+// /reportes/resumen, el mismo «Gastado este mes»; las suscripciones no se restan). Puede ser
+// negativo (también sin ingresos si ya hubo gastos). Solo un mes sin ingresos ni gastos da null:
+// TarjetaSaldo invita a registrar ingresos en vez de mostrar un $0.00.
 export function saldoDelMes(ingresos, gastoMes) {
-  if (!ingresos?.length) return null;
-  const totalIngresos = ingresos.reduce((suma, i) => suma + i.monto, 0);
-  return redondear2(totalIngresos - (gastoMes || 0));
+  if (!ingresos?.length && !(gastoMes > 0)) return null;
+  return redondear2(totalIngresos(ingresos) - (gastoMes || 0));
 }

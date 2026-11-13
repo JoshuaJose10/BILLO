@@ -2,21 +2,24 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { radios } from '../theme/colors';
+import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { tipografia } from '../theme/tipografia';
 import { formatearMonto, MONEDA, partesMonto } from '../utils/formato';
 import Etiqueta from './Etiqueta';
 
 // Bloque "Saldo disponible" de Inicio (Stitch 07_inicio_*_fondo_1), entre el saludo y la tarjeta
-// del mes. `saldo` = ingresos − gastos del mes (HU-82): sin él (null, sin ingresos) muestra una
-// invitación a registrarlos (no un $0.00); con un número, el monto grande en mono con los centavos
-// pequeños y "MXN" al lado. Debajo, la pastilla «↓ Ingreso» llama a `onRegistrarIngreso`.
+// del mes. `saldo` = ingresos − gastos del mes (HU-82): sin él (null: mes sin movimientos) muestra
+// una invitación a registrar ingresos (no un $0.00); con un número, el monto grande en mono con los
+// centavos pequeños y "MXN" al lado, en alertaTexto si es negativo. Con `ingresos` > 0 (total del
+// mes), debajo «↗ +$X este mes». Al final, la pastilla de acción «↓ Ingreso» llama a
+// `onRegistrarIngreso`.
 // El ojo es decorativo por ahora. Sin la pila de tarjetas (Tarjetas está en "Próximamente").
-export default function TarjetaSaldo({ saldo, onRegistrarIngreso }) {
+export default function TarjetaSaldo({ saldo, ingresos = 0, onRegistrarIngreso }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
   const conSaldo = typeof saldo === 'number' && Number.isFinite(saldo);
+  const negativo = conSaldo && saldo < 0;
   const { entero, centavos } = conSaldo ? partesMonto(saldo) : {};
 
   const registrar = () => {
@@ -28,11 +31,14 @@ export default function TarjetaSaldo({ saldo, onRegistrarIngreso }) {
     <View style={styles.bloque}>
       <View
         accessible
-        accessibilityLabel={
+        accessibilityLabel={[
           conSaldo
             ? `Saldo disponible: ${formatearMonto(saldo)} ${MONEDA}`
-            : 'Saldo disponible: registra tus ingresos para ver tu saldo'
-        }
+            : 'Saldo disponible: registra tus ingresos para ver tu saldo',
+          ingresos > 0 ? `Ingresos de este mes: ${formatearMonto(ingresos)}` : null,
+        ]
+          .filter(Boolean)
+          .join('. ')}
       >
         <View style={styles.etiquetaFila}>
           <Etiqueta style={styles.etiqueta}>Saldo disponible</Etiqueta>
@@ -41,25 +47,39 @@ export default function TarjetaSaldo({ saldo, onRegistrarIngreso }) {
 
         {conSaldo ? (
           <View style={styles.filaMonto}>
-            <Text style={styles.monto} numberOfLines={1} adjustsFontSizeToFit>
+            <Text
+              style={[styles.monto, negativo ? styles.negativo : null]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
               {entero}
-              <Text style={styles.centavos}>{centavos}</Text>
+              <Text style={[styles.centavos, negativo ? styles.negativo : null]}>{centavos}</Text>
             </Text>
             <Text style={styles.moneda}>{MONEDA}</Text>
           </View>
         ) : (
           <Text style={styles.invitacion}>Registra tus ingresos para ver tu saldo</Text>
         )}
+
+        {ingresos > 0 ? (
+          <View style={styles.filaIngresos}>
+            <MaterialCommunityIcons name="arrow-top-right" size={14} color={colors.exitoTexto} />
+            <Text style={styles.ingresos}>+{formatearMonto(ingresos)}</Text>
+            <Text style={styles.ingresosTexto}>este mes</Text>
+          </View>
+        ) : null}
       </View>
 
       <Pressable
         onPress={registrar}
-        hitSlop={8}
+        hitSlop={{ top: 4, bottom: 4 }}
         accessibilityRole="button"
         accessibilityLabel="Registrar ingreso"
         style={({ pressed }) => [styles.pastilla, pressed ? styles.pastillaPresionada : null]}
       >
-        <MaterialCommunityIcons name="arrow-down" size={12} color={colors.exito} />
+        <View style={styles.pastillaIcono}>
+          <MaterialCommunityIcons name="arrow-down" size={16} color={colors.exito} />
+        </View>
         <Text style={styles.pastillaTexto}>Ingreso</Text>
       </Pressable>
     </View>
@@ -108,18 +128,40 @@ const crearEstilos = (colors) =>
       fontSize: 22,
       color: colors.textSecondary,
     },
+    negativo: {
+      color: colors.alertaTexto,
+    },
     invitacion: {
       ...tipografia.bodyMd,
       color: colors.textSecondary,
     },
-    // px-2.5 py-1 rounded-full con vidrio neutro y borde sutil
+    // «↗ +$X este mes» entre el saldo y la pastilla
+    filaIngresos: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginTop: espacios.sm,
+    },
+    ingresos: {
+      ...tipografia.financialMetricMd,
+      fontSize: 14,
+      lineHeight: 18,
+      color: colors.exitoTexto,
+    },
+    ingresosTexto: {
+      ...tipografia.bodyMd,
+      color: colors.textSecondary,
+    },
+    // Pastilla de acción (Stitch, «Send / Request»): h-10 rounded-full px-4 con vidrio neutro y
+    // borde sutil; con el hitSlop vertical el área táctil llega a 48.
     pastilla: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
-      marginTop: 12,
-      paddingHorizontal: 10,
-      paddingVertical: 4,
+      gap: espacios.sm,
+      height: 40,
+      marginTop: espacios.md,
+      paddingLeft: espacios.sm,
+      paddingRight: espacios.md,
       borderRadius: radios.full,
       backgroundColor: colors.glass05,
       borderWidth: 1,
@@ -128,11 +170,17 @@ const crearEstilos = (colors) =>
     pastillaPresionada: {
       borderColor: colors.borderPressed,
     },
+    // Círculo de 24 con la flecha en exito
+    pastillaIcono: {
+      width: 24,
+      height: 24,
+      borderRadius: radios.full,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.exitoSuave,
+    },
     pastillaTexto: {
-      ...tipografia.labelCaps,
-      fontSize: 10,
-      letterSpacing: 0,
-      textTransform: 'none',
+      ...tipografia.labelAccion,
       color: colors.text,
     },
   });
