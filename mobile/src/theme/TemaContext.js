@@ -1,33 +1,124 @@
+import * as SecureStore from 'expo-secure-store';
 import * as SystemUI from 'expo-system-ui';
-import { createContext, useContext, useEffect, useMemo } from 'react';
-import { useColorScheme } from 'react-native';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { Platform, useColorScheme } from 'react-native';
 
+import { MONEDA_DEFECTO } from '../utils/divisas';
+import {
+  MODO_TEMA_DEFECTO,
+  normalizarModoTema,
+  normalizarMonedaPreferida,
+  resolverEsOscuro,
+} from '../utils/preferencias';
 import { temas } from './colors';
+
+const CLAVE_MODO_TEMA = 'billo_preferencia_tema';
+const CLAVE_MONEDA_PREFERIDA = 'billo_preferencia_moneda';
+
+// Caché en memoria para evitar parpadeos si TemaProvider se vuelve a montar (p. ej. al terminar
+// de cargar las fuentes en App.js).
+const preferenciasMemoria = {
+  modoTema: MODO_TEMA_DEFECTO,
+  monedaPreferida: MONEDA_DEFECTO,
+  cargado: false,
+};
+
+async function leerClavePreferencia(clave) {
+  try {
+    if (Platform.OS === 'web') {
+      return typeof localStorage !== 'undefined' ? localStorage.getItem(clave) : null;
+    }
+    return await SecureStore.getItemAsync(clave);
+  } catch {
+    return null;
+  }
+}
+
+async function guardarClavePreferencia(clave, valor) {
+  try {
+    if (Platform.OS === 'web') {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(clave, valor);
+      }
+      return;
+    }
+    await SecureStore.setItemAsync(clave, valor);
+  } catch {
+    // El estado en memoria sigue activo aunque falle el almacenamiento local.
+  }
+}
 
 const TemaContext = createContext(null);
 
-// Tema claro u oscuro según el modo del sistema. useColorScheme se actualiza en vivo, así que al
-// cambiar el modo con la app abierta todo se repinta sin reiniciar. Si el sistema no informa un
-// modo se queda en oscuro, el diseño original de la app.
-// El fondo de la vista raíz nativa (lo que se ve detrás de las pantallas al abrir la app, al
-// navegar o al rotar) también sigue al tema: expo-system-ui lo fija con `background`.
+// Tema claro u oscuro según la preferencia del usuario (HU-87: 'automatico' | 'claro' | 'oscuro')
+// o el modo del sistema cuando está en 'automatico'. También expone y persiste en el teléfono la
+// moneda preferida por defecto para Nuevo gasto. Estas preferencias viven en el dispositivo y se
+// conservan al cerrar sesión o reiniciar la app.
 export function TemaProvider({ children }) {
-  const esOscuro = useColorScheme() !== 'light';
+  const esquemaSistema = useColorScheme();
+  const [modoTema, setModoTema] = useState(() => preferenciasMemoria.modoTema);
+  const [monedaPreferida, setMonedaPreferida] = useState(() => preferenciasMemoria.monedaPreferida);
+
+  useEffect(() => {
+    let activo = true;
+    (async () => {
+      const [temaGuardado, monedaGuardada] = await Promise.all([
+        leerClavePreferencia(CLAVE_MODO_TEMA),
+        leerClavePreferencia(CLAVE_MONEDA_PREFERIDA),
+      ]);
+      const temaNormalizado = normalizarModoTema(temaGuardado);
+      const monedaNormalizada = normalizarMonedaPreferida(monedaGuardada);
+      preferenciasMemoria.modoTema = temaNormalizado;
+      preferenciasMemoria.monedaPreferida = monedaNormalizada;
+      preferenciasMemoria.cargado = true;
+      if (activo) {
+        setModoTema(temaNormalizado);
+        setMonedaPreferida(monedaNormalizada);
+      }
+    })();
+    return () => {
+      activo = false;
+    };
+  }, []);
+
+  const cambiarModoTema = useCallback(async (nuevoModo) => {
+    const normalizado = normalizarModoTema(nuevoModo);
+    preferenciasMemoria.modoTema = normalizado;
+    setModoTema(normalizado);
+    await guardarClavePreferencia(CLAVE_MODO_TEMA, normalizado);
+  }, []);
+
+  const cambiarMonedaPreferida = useCallback(async (nuevaMoneda) => {
+    const normalizada = normalizarMonedaPreferida(nuevaMoneda);
+    preferenciasMemoria.monedaPreferida = normalizada;
+    setMonedaPreferida(normalizada);
+    await guardarClavePreferencia(CLAVE_MONEDA_PREFERIDA, normalizada);
+  }, []);
+
+  const esOscuro = resolverEsOscuro(modoTema, esquemaSistema);
+
   const valor = useMemo(
-    () => ({ colors: esOscuro ? temas.oscuro : temas.claro, esOscuro }),
-    [esOscuro],
+    () => ({
+      colors: esOscuro ? temas.oscuro : temas.claro,
+      esOscuro,
+      modoTema,
+      cambiarModoTema,
+      monedaPreferida,
+      cambiarMonedaPreferida,
+    }),
+    [esOscuro, modoTema, cambiarModoTema, monedaPreferida, cambiarMonedaPreferida],
   );
 
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(valor.colors.background).catch(() => {
       // Sin el módulo nativo solo se pierde el fondo raíz; la app sigue igual.
     });
-  }, [valor]);
+  }, [valor.colors.background]);
 
   return <TemaContext.Provider value={valor}>{children}</TemaContext.Provider>;
 }
 
-// { colors, esOscuro } del tema activo.
+// { colors, esOscuro, modoTema, cambiarModoTema, monedaPreferida, cambiarMonedaPreferida } del tema activo.
 export function useTema() {
   const ctx = useContext(TemaContext);
   if (!ctx) {

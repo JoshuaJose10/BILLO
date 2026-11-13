@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import * as Haptics from 'expo-haptics';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
   ActivityIndicator,
@@ -33,11 +33,12 @@ import { useActualizarWidget } from '../widget/useActualizarWidget';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { contenidoAviso } from '../utils/avisos';
-import { MONEDA_DEFECTO, MONEDAS_DISPONIBLES, prepararDatosGasto } from '../utils/divisas';
+import { MONEDAS_DISPONIBLES, prepararDatosGasto } from '../utils/divisas';
 import { mensajeError } from '../utils/errores';
 import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
 import { fechaRelativa, formatearMonto, LOCALE, resumirTexto } from '../utils/formato';
 import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
+import { resolverMonedaInicialGasto } from '../utils/preferencias';
 import { avisoDictado, interpretarGasto, mensajeFalloVoz } from '../utils/voz';
 
 // Hoja inferior sobre Inicio y las tabs (ruta NuevoGasto con presentation: 'transparentModal').
@@ -58,15 +59,42 @@ export default function NuevoGastoScreen({ navigation, route }) {
   // Si la primera carga falló (backend apagado, recién iniciada la sesión), se reintenta al enfocar.
   useReintentarCategoriasAlEnfocar();
   const { mostrarAviso } = useAvisos();
-  const { colors, esOscuro } = useTema();
+  const { colors, esOscuro, monedaPreferida } = useTema();
   const styles = useEstilos(crearEstilos);
 
   const { obtenerTipoCambio } = useDivisasService();
 
-  const [moneda, setMoneda] = useState(() => gastoEditado?.moneda || MONEDA_DEFECTO);
+  const [moneda, setMoneda] = useState(() =>
+    resolverMonedaInicialGasto(gastoEditado, monedaPreferida),
+  );
   const [tipoCambio, setTipoCambio] = useState(() => gastoEditado?.tipo_cambio ?? null);
-  const [cargandoTipoCambio, setCargandoTipoCambio] = useState(false);
+  const [cargandoTipoCambio, setCargandoTipoCambio] = useState(
+    () => !editando && resolverMonedaInicialGasto(gastoEditado, monedaPreferida) !== 'MXN',
+  );
   const [avisoTipoCambio, setAvisoTipoCambio] = useState('');
+
+  // Si Nuevo gasto abre con una moneda preferida extranjera (HU-87), se consulta su tipo de cambio.
+  useEffect(() => {
+    if (editando || moneda === 'MXN' || tipoCambio != null) return undefined;
+    let activo = true;
+    obtenerTipoCambio(moneda)
+      .then((resp) => {
+        if (!activo) return;
+        setTipoCambio(Number(Number(resp.tipo_cambio).toFixed(6)));
+        setCargandoTipoCambio(false);
+      })
+      .catch(() => {
+        if (!activo) return;
+        setCargandoTipoCambio(false);
+        setTipoCambio(null);
+        setAvisoTipoCambio(
+          'Tipo de cambio no disponible en este momento. Puedes continuar capturando en MXN.',
+        );
+      });
+    return () => {
+      activo = false;
+    };
+  }, [editando, moneda, tipoCambio, obtenerTipoCambio]);
 
   // Al editar se precargan los datos del gasto; si tiene moneda extranjera, se usa su monto_original.
   const [texto, setTexto] = useState(() => {
