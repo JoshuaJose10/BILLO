@@ -1,5 +1,5 @@
 -- Esquema de base de datos de BILLO
--- Resultado consolidado de las migraciones (001 a 016)
+-- Resultado consolidado de las migraciones (001 a 019)
 -- Fuente de verdad para cambios de esquema: backend/migrations/
 
 CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -84,6 +84,16 @@ CREATE TABLE IF NOT EXISTS membresias (
 
 CREATE INDEX IF NOT EXISTS idx_membresias_usuario_fecha_cobro
 ON membresias (usuario_id, fecha_cobro);
+
+CREATE TABLE IF NOT EXISTS pagos_membresia (
+  id           SERIAL PRIMARY KEY,
+  membresia_id INTEGER NOT NULL REFERENCES membresias(id) ON DELETE CASCADE,
+  fecha        DATE NOT NULL,
+  monto        NUMERIC(12, 2) NOT NULL CHECK (monto > 0)
+);
+
+CREATE INDEX IF NOT EXISTS idx_pagos_membresia_membresia_fecha
+ON pagos_membresia (membresia_id, fecha DESC, id DESC);
 
 CREATE TABLE IF NOT EXISTS ingresos (
   id          SERIAL PRIMARY KEY,

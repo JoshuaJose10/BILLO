@@ -43,6 +43,12 @@ export const normalizarCatalogo = (item) => ({
   costo_sugerido: aNumero(item.costo_sugerido),
 });
 
+// Normaliza un registro del historial de pagos de una membresía.
+export const normalizarPagoMembresia = (pago) => ({
+  ...pago,
+  monto: aNumero(pago?.monto),
+});
+
 // Servicio de membresías y suscripciones (RF5) con el token de sesión activo.
 export function useMembresiasService() {
   const api = useApi();
@@ -97,12 +103,18 @@ export function useMembresiasService() {
         return normalizarMembresia(respuesta.membresia);
       },
 
-      // POST /membresias/:id/pagada → 200 { membresia } (HU-66)
+      // POST /membresias/:id/pagada → 200 { membresia, pago } (HU-66)
       marcarPagada: async (id) => {
         const respuesta = await api(`/membresias/${encodeURIComponent(id)}/pagada`, {
           method: 'POST',
         });
         return normalizarMembresia(respuesta.membresia);
+      },
+
+      // GET /membresias/:id/pagos → [{ id, membresia_id, fecha, monto }]
+      listarPagos: async (id) => {
+        const lista = await api(`/membresias/${encodeURIComponent(id)}/pagos`);
+        return (lista || []).map(normalizarPagoMembresia);
       },
 
       // GET /catalogo → [{ id, nombre, logo_url, costo_sugerido }]
