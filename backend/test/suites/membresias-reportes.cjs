@@ -824,4 +824,173 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
       );
     });
   });
+
+  describe('Historial de pagos de una suscripción (pagos_membresia / Migración 019)', () => {
+    it('Migración 019: crea la tabla pagos_membresia con ON DELETE CASCADE y es idempotente en base existente', async () => {
+      const fs = require('node:fs');
+      const path = require('node:path');
+
+      const { rows: cols } = await ctx.pool.query(`
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'pagos_membresia'
+        ORDER BY column_name
+      `);
+      assert.deepEqual(
+        cols.map((c) => c.column_name),
+        ['fecha', 'id', 'membresia_id', 'monto']
+      );
+
+      const { rows: fk } = await ctx.pool.query(`
+        SELECT rc.delete_rule
+        FROM information_schema.referential_constraints rc
+        INNER JOIN information_schema.table_constraints tc
+          ON rc.constraint_name = tc.constraint_name
+        WHERE tc.table_schema = 'public'
+          AND tc.table_name = 'pagos_membresia'
+          AND tc.constraint_type = 'FOREIGN KEY'
+      `);
+      assert.equal(fk[0]?.delete_rule, 'CASCADE');
+
+      // Reaplicar la migración sobre una base existente que ya tiene un pago no falla ni pierde datos
+      const m = await crear(datos({ costo: 199, fecha_cobro: '2026-10-15' }));
+      await ctx.api
+        .post(`/membresias/${m.id}/pagada`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+
+      const sql = fs.readFileSync(
+        path.resolve(__dirname, '../../migrations/019_pagos_membresia.sql'),
+        'utf8'
+      );
+      await ctx.pool.query(sql);
+
+      const historial = await get(`/membresias/${m.id}/pagos`);
+      assert.equal(historial.length, 1);
+      assert.equal(historial[0].monto, 199);
+    });
+
+    it('tres pagos se ven en orden con fecha y monto y NO crean ningún gasto', async () => {
+      const m = await crear(datos({ nombre: 'Netflix', costo: 199, frecuencia: 'mensual', fecha_cobro: '2026-10-15' }));
+      assert.deepEqual(await get(`/membresias/${m.id}/pagos`), []);
+
+      const gastosAntes = Number(
+        (await ctx.pool.query('SELECT COUNT(*) AS total FROM gastos WHERE usuario_id = $1', [ctx.a.usuario.id])).rows[0].total
+      );
+
+      // Pago 1: $199
+      const res1 = await ctx.api
+        .post(`/membresias/${m.id}/pagada`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+      assert.equal(res1.body.pago.membresia_id, m.id);
+      assert.equal(res1.body.pago.monto, 199);
+      assert.match(res1.body.pago.fecha, /^\d{4}-\d{2}-\d{2}$/);
+
+      // Actualizar costo a $219 y registrar Pago 2
+      await ctx.api
+        .put(`/membresias/${m.id}`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send(datos({ costo: 219, fecha_cobro: res1.body.membresia.fecha_cobro }))
+        .expect(200);
+      const res2 = await ctx.api
+        .post(`/membresias/${m.id}/pagada`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+
+      // Actualizar costo a $249 y registrar Pago 3
+      await ctx.api
+        .put(`/membresias/${m.id}`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send(datos({ costo: 249, fecha_cobro: res2.body.membresia.fecha_cobro }))
+        .expect(200);
+      const res3 = await ctx.api
+        .post(`/membresias/${m.id}/pagada`)
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+
+      // Ajustar fechas históricas para validar ordenamiento por fecha descendente e id descendente
+      await ctx.pool.query("UPDATE pagos_membresia SET fecha = '2026-09-15' WHERE id = $1", [res1.body.pago.id]);
+      await ctx.pool.query("UPDATE pagos_membresia SET fecha = '2026-10-15' WHERE id = $1", [res2.body.pago.id]);
+      await ctx.pool.query("UPDATE pagos_membresia SET fecha = '2026-11-15' WHERE id = $1", [res3.body.pago.id]);
+
+      const pagos = await get(`/membresias/${m.id}/pagos`);
+      assert.deepEqual(pagos, [
+        { id: res3.body.pago.id, membresia_id: m.id, fecha: '2026-11-15', monto: 249 },
+        { id: res2.body.pago.id, membresia_id: m.id, fecha: '2026-10-15', monto: 219 },
+        { id: res1.body.pago.id, membresia_id: m.id, fecha: '2026-09-15', monto: 199 },
+      ]);
+
+      // No se creó ningún gasto en la tabla gastos y reportes siguen conciliando solo gasto fijo
+      const gastosDespues = Number(
+        (await ctx.pool.query('SELECT COUNT(*) AS total FROM gastos WHERE usuario_id = $1', [ctx.a.usuario.id])).rows[0].total
+      );
+      assert.equal(gastosDespues, gastosAntes);
+      await conciliar(ctx.a, 0, 249, 249);
+    });
+
+    it('eliminar la membresía borra su historial en cascada sin afectar otras membresías', async () => {
+      const m1 = await crear(datos({ nombre: 'Netflix', costo: 199 }));
+      const m2 = await crear(datos({ nombre: 'Spotify', costo: 129 }));
+
+      await ctx.api.post(`/membresias/${m1.id}/pagada`).auth(ctx.a.token, { type: 'bearer' }).expect(200);
+      await ctx.api.post(`/membresias/${m1.id}/pagada`).auth(ctx.a.token, { type: 'bearer' }).expect(200);
+      await ctx.api.post(`/membresias/${m2.id}/pagada`).auth(ctx.a.token, { type: 'bearer' }).expect(200);
+
+      await ctx.api.delete(`/membresias/${m1.id}`).auth(ctx.a.token, { type: 'bearer' }).expect(200);
+
+      const huerfanos = await ctx.pool.query('SELECT id FROM pagos_membresia WHERE membresia_id = $1', [m1.id]);
+      assert.deepEqual(huerfanos.rows, []);
+
+      const pagosM2 = await get(`/membresias/${m2.id}/pagos`);
+      assert.equal(pagosM2.length, 1);
+      assert.equal(pagosM2[0].monto, 129);
+    });
+
+    it('eliminar la cuenta (DELETE /auth/cuenta HU-68) borra el historial de pagos sin tocar el de otro usuario', async () => {
+      const mA = await crear(datos({ nombre: 'Netflix A', costo: 199 }), ctx.a);
+      const mB = await crear(datos({ nombre: 'Spotify B', costo: 129 }), ctx.b);
+
+      await ctx.api.post(`/membresias/${mA.id}/pagada`).auth(ctx.a.token, { type: 'bearer' }).expect(200);
+      await ctx.api.post(`/membresias/${mB.id}/pagada`).auth(ctx.b.token, { type: 'bearer' }).expect(200);
+
+      await ctx.api
+        .delete('/auth/cuenta')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({ password: ctx.password })
+        .expect(200);
+
+      const pagosA = await ctx.pool.query('SELECT id FROM pagos_membresia WHERE membresia_id = $1', [mA.id]);
+      assert.deepEqual(pagosA.rows, []);
+
+      const pagosB = await get(`/membresias/${mB.id}/pagos`, ctx.b);
+      assert.equal(pagosB.length, 1);
+      assert.equal(pagosB[0].monto, 129);
+    });
+
+    it('aislamiento A/B, IDs inválidos y autenticación en GET /membresias/:id/pagos', async () => {
+      const mA = await crear(datos(), ctx.a);
+
+      expectError(
+        await ctx.api.get(`/membresias/${mA.id}/pagos`).auth(ctx.b.token, { type: 'bearer' }),
+        404,
+        'MEMBRESIA_NO_ENCONTRADA'
+      );
+
+      for (const idInvalido of ['999999', '0', '-1', 'abc']) {
+        expectError(
+          await ctx.api.get(`/membresias/${idInvalido}/pagos`).auth(ctx.a.token, { type: 'bearer' }),
+          404,
+          'MEMBRESIA_NO_ENCONTRADA'
+        );
+      }
+
+      for (const token of [null, 'token-invalido']) {
+        const req = ctx.api.get(`/membresias/${mA.id}/pagos`);
+        if (token) req.auth(token, { type: 'bearer' });
+        expectError(await req, 401, 'NO_AUTORIZADO');
+      }
+    });
+  });
 });
