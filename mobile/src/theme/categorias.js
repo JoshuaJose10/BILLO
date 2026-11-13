@@ -80,6 +80,17 @@ export function degradadoCategoria(nombre, esOscuro) {
   return esOscuro ? categoria.degradado : categoria.degradadoClaro;
 }
 
+// Ícono de un ingreso (HU-82): degradado en el verde exito, con el centro algo más profundo para
+// que el glifo blanco conserve contraste (como Servicios).
+const INGRESO = {
+  degradado: ['#34D399', '#0E9F6E', '#0B7F58'],
+  degradadoClaro: ['#3FBF8F', '#0FA372', '#0E8F64'],
+};
+
+export function degradadoIngreso(esOscuro) {
+  return esOscuro ? INGRESO.degradado : INGRESO.degradadoClaro;
+}
+
 // Color de la sombra de IconoCategoria: la base en oscuro y la base viva del degradado en claro
 // (baseClaro es más profundo para el micro-punto y ensuciaría la sombra).
 export function sombraCategoria(nombre, esOscuro) {
