@@ -1,19 +1,11 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import BarraCategorias from '../components/BarraCategorias';
-import Boton from '../components/Boton';
 import DonaCategorias from '../components/DonaCategorias';
+import EstadoPantalla from '../components/EstadoPantalla';
 import Etiqueta from '../components/Etiqueta';
 import FondoDegradado from '../components/FondoDegradado';
 import IconoCategoria from '../components/IconoCategoria';
@@ -36,7 +28,7 @@ import {
   etiquetaComparacion,
   textoComparacion,
 } from '../utils/analisis';
-import { mensajeError } from '../utils/errores';
+import { useRecargar } from '../hooks/useRecargar';
 import { mesActual, sumarMeses } from '../utils/fechas';
 import { formatearMonto, MONEDA, nombreMes } from '../utils/formato';
 import { resumenPresupuestos } from '../utils/presupuestos';
@@ -71,7 +63,6 @@ const PROXIMAMENTE = {
 // frente al mes anterior con el avance del presupuesto, desglose por categoría y "Consejo Billo".
 // Los cálculos viven en utils/analisis.js (con pruebas).
 export default function ReportesScreen() {
-  const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
   const { obtenerResumen } = useReportesService();
   const { listarGastos } = useGastosService();
@@ -88,8 +79,7 @@ export default function ReportesScreen() {
   // { mes, resumen, gastos, anterior (null si falló), presupuestos (null si falló) }.
   const [datos, setDatos] = useState(null);
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
-  const [textoError, setTextoError] = useState('');
-  const [refrescando, setRefrescando] = useState(false);
+  const [errorCarga, setErrorCarga] = useState(null);
 
   // Cada petición recibe un número; si al responder ya hay una más nueva, se descarta.
   const ultimaPeticion = useRef(0);
@@ -106,10 +96,12 @@ export default function ReportesScreen() {
       if (peticion !== ultimaPeticion.current) return;
       setDatos({ mes, resumen, gastos, anterior, presupuestos });
       setEstado('listo');
+      return true;
     } catch (error) {
       if (peticion !== ultimaPeticion.current) return;
-      setTextoError(mensajeError(error?.code, error?.message));
+      setErrorCarga(error);
       setEstado('error');
+      return false;
     }
   }, [obtenerResumen, listarGastos, listarPresupuestos, mes]);
 
@@ -121,12 +113,6 @@ export default function ReportesScreen() {
     }, [cargar]),
   );
 
-  const refrescar = async () => {
-    setRefrescando(true);
-    await cargar();
-    setRefrescando(false);
-  };
-
   // Al cambiar de mes se conservan los datos anteriores (atenuados) mientras llegan los nuevos.
   // Desde el estado de error se vuelve al indicador de carga.
   const cambiarMes = (nuevo) => {
@@ -134,10 +120,13 @@ export default function ReportesScreen() {
     if (estado === 'error') setEstado('cargando');
   };
 
-  const reintentar = () => {
-    setEstado('cargando');
-    cargar();
-  };
+  // Jalar para recargar, Reintentar y el aviso de arriba piden otra vez el mes. Si falla con ese
+  // mes a la vista, los datos se quedan y el error sale como aviso fijo arriba (useRecargar).
+  const hayDatos = datos?.mes === mes;
+  const recarga = useRecargar(cargar, {
+    error: estado === 'error' ? errorCarga : null,
+    hayDatos,
+  });
 
   const analisis = useMemo(() => {
     if (!datos) return null;
@@ -172,22 +161,8 @@ export default function ReportesScreen() {
   const cambiandoMes = estado === 'listo' && datos?.mes !== mes;
 
   let contenido;
-  if (estado === 'cargando') {
-    contenido = (
-      <View style={styles.estado}>
-        <ActivityIndicator size="large" color={colors.text} />
-      </View>
-    );
-  } else if (estado === 'error') {
-    contenido = (
-      <View style={styles.estado}>
-        <MaterialCommunityIcons name="wifi-off" size={40} color={colors.textSecondary} />
-        <Text style={styles.estadoTitulo}>{textoError}</Text>
-        <View style={styles.estadoBoton}>
-          <Boton titulo="Reintentar" onPress={reintentar} />
-        </View>
-      </View>
-    );
+  if (estado !== 'listo' && !hayDatos) {
+    contenido = <EstadoPantalla estado={estado} error={errorCarga} onReintentar={cargar} />;
   } else {
     const { resumen, gastos } = datos;
     const { desglose, dona, comparacion, proyectado, consejo } = analisis;
@@ -211,15 +186,17 @@ export default function ReportesScreen() {
               animacion={datos.mes}
             />
           ) : (
-            <View style={styles.vacio}>
-              <MaterialCommunityIcons name="chart-donut" size={40} color={colors.textSecondary} />
-              <Text style={styles.estadoTitulo}>Sin gastos este mes</Text>
-              <Text style={styles.estadoTexto}>
-                {esMesSinDatos(resumen, gastos)
+            <EstadoPantalla
+              estado="vacio"
+              icono="chart-donut"
+              titulo="Sin gastos este mes"
+              mensaje={
+                esMesSinDatos(resumen, gastos)
                   ? 'Registra un gasto para ver en qué se va tu dinero.'
-                  : 'Aún no hay gastos; el total solo incluye tus suscripciones.'}
-              </Text>
-            </View>
+                  : 'Aún no hay gastos; el total solo incluye tus suscripciones.'
+              }
+              style={styles.vacio}
+            />
           )}
         </View>
 
@@ -276,11 +253,9 @@ export default function ReportesScreen() {
         contentContainerStyle={[
           styles.lista,
           // El último bloque queda por encima de la navbar flotante con aire de sobra.
-          { paddingTop: insets.top + 4, paddingBottom: alturaNavbar + espacios.xl },
+          { paddingTop: 4, paddingBottom: alturaNavbar + espacios.xl },
         ]}
-        refreshControl={
-          <RefreshControl refreshing={refrescando} onRefresh={refrescar} tintColor={colors.text} />
-        }
+        {...recarga.propsLista}
       >
         {/* a) Encabezado */}
         <View style={styles.encabezado}>
@@ -311,6 +286,7 @@ export default function ReportesScreen() {
           />
         )}
       </ScrollView>
+      {recarga.aviso}
     </View>
   );
 }
@@ -690,30 +666,6 @@ const crearEstilos = (colors) =>
     },
     // Estados de carga, error y vacío: los de Inicio y Movimientos
     vacio: {
-      alignItems: 'center',
-      gap: 10,
       paddingVertical: espacios.sm,
-    },
-    estado: {
-      alignItems: 'center',
-      gap: 10,
-      paddingVertical: 48,
-      paddingHorizontal: espacios.sm + 4,
-    },
-    estadoTitulo: {
-      ...tipografia.headlineSm,
-      letterSpacing: 0,
-      color: colors.text,
-      textAlign: 'center',
-      marginTop: espacios.sm,
-    },
-    estadoTexto: {
-      ...tipografia.bodyMd,
-      color: colors.textSecondary,
-      textAlign: 'center',
-    },
-    estadoBoton: {
-      alignSelf: 'stretch',
-      marginTop: espacios.sm + 4,
     },
   });

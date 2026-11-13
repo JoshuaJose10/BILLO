@@ -19,7 +19,7 @@ import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import PantallaCarga from './src/components/PantallaCarga';
+import EstadoPantalla from './src/components/EstadoPantalla';
 import { AuthProvider } from './src/context/AuthContext';
 import { AvisosProvider } from './src/context/AvisosContext';
 import { CategoriasProvider } from './src/context/CategoriasContext';
@@ -90,7 +90,7 @@ export default function App() {
     return (
       <GestureHandlerRootView style={styles.raiz}>
         <TemaProvider>
-          <PantallaCarga />
+          <EstadoPantalla estado="cargando" completa fondo />
         </TemaProvider>
       </GestureHandlerRootView>
     );

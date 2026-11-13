@@ -1,18 +1,9 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  RefreshControl,
-  SectionList,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ActivityIndicator, SectionList, StyleSheet, Text, View } from 'react-native';
 
-import Boton from '../components/Boton';
 import EncabezadoDia from '../components/EncabezadoDia';
+import EstadoPantalla from '../components/EstadoPantalla';
 import Etiqueta from '../components/Etiqueta';
 import FiltroCategorias from '../components/FiltroCategorias';
 import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizable';
@@ -26,7 +17,7 @@ import { useActualizarWidget } from '../widget/useActualizarWidget';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
-import { mensajeError } from '../utils/errores';
+import { useRecargar } from '../hooks/useRecargar';
 import { mesActual } from '../utils/fechas';
 import { formatearMonto, nombreMes, tituloDia } from '../utils/formato';
 
@@ -51,7 +42,6 @@ const agruparPorDia = (gastos) => {
 };
 
 export default function MovimientosScreen({ navigation }) {
-  const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
   const { listarGastos, eliminarGasto } = useGastosService();
   const actualizarWidgetResumen = useActualizarWidget();
@@ -75,8 +65,7 @@ export default function MovimientosScreen({ navigation }) {
   const [gastos, setGastos] = useState([]);
   const [filtroCargado, setFiltroCargado] = useState(null);
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
-  const [textoError, setTextoError] = useState('');
-  const [refrescando, setRefrescando] = useState(false);
+  const [errorCarga, setErrorCarga] = useState(null);
 
   // Cada petición recibe un número; si al responder ya hay una más nueva, se descarta.
   const ultimaPeticion = useRef(0);
@@ -89,10 +78,12 @@ export default function MovimientosScreen({ navigation }) {
       setGastos(lista);
       setFiltroCargado({ mes, categoriaId });
       setEstado('listo');
+      return true;
     } catch (error) {
       if (peticion !== ultimaPeticion.current) return;
-      setTextoError(mensajeError(error?.code, error?.message));
+      setErrorCarga(error);
       setEstado('error');
+      return false;
     }
   }, [listarGastos, mes, categoriaId]);
 
@@ -104,18 +95,6 @@ export default function MovimientosScreen({ navigation }) {
     }, [cargar]),
   );
 
-  // Si las categorías fallaron, refrescar y Reintentar también las vuelven a pedir.
-  const recargarCategoriasSiFallaron = () => {
-    if (estadoCategorias === 'error') recargarCategorias();
-  };
-
-  const refrescar = async () => {
-    recargarCategoriasSiFallaron();
-    setRefrescando(true);
-    await cargar();
-    setRefrescando(false);
-  };
-
   // Al cambiar de filtro se conserva la lista anterior (atenuada) mientras llega la nueva.
   // Desde el estado de error se vuelve al indicador de carga.
   const cambiarFiltro = (aplicar) => {
@@ -123,11 +102,18 @@ export default function MovimientosScreen({ navigation }) {
     if (estado === 'error') setEstado('cargando');
   };
 
+  // Jalar para recargar, Reintentar y el aviso de arriba piden otra vez la lista y, si fallaron,
+  // las categorías. Si falla con la lista de este mismo filtro a la vista, la lista se queda y el
+  // error sale como aviso fijo arriba (useRecargar).
   const reintentar = () => {
-    recargarCategoriasSiFallaron();
-    setEstado('cargando');
-    cargar();
+    if (estadoCategorias === 'error') recargarCategorias();
+    return cargar();
   };
+  const hayDatos = filtroCargado?.mes === mes && filtroCargado?.categoriaId === categoriaId;
+  const recarga = useRecargar(reintentar, {
+    error: estado === 'error' ? errorCarga : null,
+    hayDatos,
+  });
 
   // Filas deslizables: Editar abre la hoja en modo edición; al eliminar, la fila se quita al
   // momento y se recargan la lista y el total.
@@ -155,7 +141,8 @@ export default function MovimientosScreen({ navigation }) {
     ? `Sin gastos de ${categoriaMostrada} ${periodo}`
     : `Sin gastos ${periodo}`;
 
-  const listo = estado === 'listo';
+  // Con datos a la vista: cargados, o el error de una recarga que no los borra (aviso arriba).
+  const listo = estado === 'listo' || (estado === 'error' && hayDatos);
   // Se eligió otro mes o categoría y la respuesta aún no llega: la lista anterior se atenúa.
   const cambiandoFiltro =
     listo && (filtroCargado?.mes !== mes || filtroCargado?.categoriaId !== categoriaId);
@@ -193,42 +180,21 @@ export default function MovimientosScreen({ navigation }) {
     </View>
   );
 
-  let contenidoVacio;
-  if (estado === 'cargando') {
-    contenidoVacio = (
-      <View style={styles.estado}>
-        <ActivityIndicator size="large" color={colors.text} />
-      </View>
-    );
-  } else if (estado === 'error') {
-    contenidoVacio = (
-      <View style={styles.estado}>
-        <MaterialCommunityIcons name="wifi-off" size={40} color={colors.textSecondary} />
-        <Text style={styles.estadoTitulo}>{textoError}</Text>
-        <View style={styles.estadoBoton}>
-          <Boton titulo="Reintentar" onPress={reintentar} />
-        </View>
-      </View>
-    );
-  } else {
-    contenidoVacio = (
-      <View style={[styles.estado, atenuado]}>
-        <MaterialCommunityIcons
-          name="receipt-text-outline"
-          size={40}
-          color={colors.textSecondary}
-        />
-        <Text style={styles.estadoTitulo}>{textoVacio}</Text>
-        <View style={styles.estadoBoton}>
-          <Boton
-            titulo="Registrar gasto"
-            icono="plus"
-            onPress={() => navigation.navigate('NuevoGasto')}
-          />
-        </View>
-      </View>
-    );
-  }
+  const contenidoVacio = (
+    <EstadoPantalla
+      estado={listo ? 'vacio' : estado}
+      error={errorCarga}
+      titulo={listo ? textoVacio : null}
+      icono={listo ? 'receipt-text-outline' : undefined}
+      onReintentar={reintentar}
+      accion={{
+        titulo: 'Registrar gasto',
+        icono: 'plus',
+        onPress: () => navigation.navigate('NuevoGasto'),
+      }}
+      style={atenuado}
+    />
+  );
 
   return (
     <View style={styles.pantalla}>
@@ -269,14 +235,10 @@ export default function MovimientosScreen({ navigation }) {
         ListEmptyComponent={contenidoVacio}
         ListFooterComponent={listo && secciones.length > 0 ? <FinDeLista /> : null}
         stickySectionHeadersEnabled={false}
-        contentContainerStyle={[
-          styles.lista,
-          { paddingTop: insets.top + 4, paddingBottom: alturaNavbar + 16 },
-        ]}
-        refreshControl={
-          <RefreshControl refreshing={refrescando} onRefresh={refrescar} tintColor={colors.text} />
-        }
+        contentContainerStyle={[styles.lista, { paddingTop: 4, paddingBottom: alturaNavbar + 16 }]}
+        {...recarga.propsLista}
       />
+      {recarga.aviso}
     </View>
   );
 }
@@ -371,24 +333,6 @@ const crearEstilos = (colors) =>
     },
     atenuado: {
       opacity: 0.45,
-    },
-    estado: {
-      alignItems: 'center',
-      gap: 10,
-      paddingVertical: 48,
-      paddingHorizontal: 12,
-    },
-    estadoTitulo: {
-      fontFamily: fonts.sansSemiBold,
-      color: colors.text,
-      fontSize: 18,
-      lineHeight: 24,
-      textAlign: 'center',
-      marginTop: 8,
-    },
-    estadoBoton: {
-      alignSelf: 'stretch',
-      marginTop: 12,
     },
     // mt-space-xl flex flex-col items-center py-4
     fin: {

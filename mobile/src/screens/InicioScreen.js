@@ -1,19 +1,9 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import Avatar from '../components/Avatar';
-import Boton from '../components/Boton';
+import EstadoPantalla from '../components/EstadoPantalla';
 import Etiqueta from '../components/Etiqueta';
 import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizable';
 import FondoDegradado from '../components/FondoDegradado';
@@ -31,10 +21,11 @@ import { useMembresiasService } from '../services/membresias';
 import { usePresupuestosService } from '../services/presupuestos';
 import { useReportesService } from '../services/reportes';
 import { radios } from '../theme/colors';
-import { useEstilos, useTema } from '../theme/TemaContext';
+import { useEstilos } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { cobrosDeLaSemana, semanaSinProximoCobro } from '../utils/cobrosSemana';
-import { mensajeError } from '../utils/errores';
+import { useRecargar } from '../hooks/useRecargar';
+import { vistaPantalla } from '../utils/estadoCarga';
 import { mesActual } from '../utils/fechas';
 import { cargarDatosInicio, MOVIMIENTOS_RECIENTES } from '../utils/inicio';
 import { proximoCobro } from '../utils/membresias';
@@ -58,7 +49,6 @@ const CHIPS_CATEGORIA = 3;
 // "Saldo disponible" (HU-72) es el espacio reservado para los ingresos (HU-82): hoy va sin saldo.
 // Los nombres de las categorías salen de la caché de la sesión (useCategorias).
 export default function InicioScreen({ navigation }) {
-  const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
   const { usuario } = useAuth();
   const { listarGastos, eliminarGasto } = useGastosService();
@@ -73,7 +63,6 @@ export default function InicioScreen({ navigation }) {
   } = useCategorias();
   // Si la primera carga falló (backend apagado, recién iniciada la sesión), se reintenta al enfocar.
   useReintentarCategoriasAlEnfocar();
-  const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
   const [resumen, setResumen] = useState(null);
@@ -84,8 +73,7 @@ export default function InicioScreen({ navigation }) {
   const [membresias, setMembresias] = useState(null);
   const [mesCargado, setMesCargado] = useState(null);
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
-  const [textoError, setTextoError] = useState('');
-  const [refrescando, setRefrescando] = useState(false);
+  const [errorCarga, setErrorCarga] = useState(null);
   const [hayDatos, setHayDatos] = useState(false);
 
   // Cada petición recibe un número; si al responder ya hay una más nueva, se descarta.
@@ -111,10 +99,12 @@ export default function InicioScreen({ navigation }) {
       setHayDatos(true);
       // HU-58: el widget de Android muestra el mismo total del mes que acaba de cargar Inicio.
       actualizarWidget(datos.resumen, mes);
+      return true;
     } catch (error) {
       if (peticion !== ultimaPeticion.current) return;
-      setTextoError(mensajeError(error?.code, error?.message));
+      setErrorCarga(error);
       setEstado('error');
+      return false;
     }
   }, [obtenerResumen, listarGastos, listarPresupuestos, listarMembresias]);
 
@@ -125,17 +115,16 @@ export default function InicioScreen({ navigation }) {
     }, [cargar]),
   );
 
-  // Si las categorías fallaron, refrescar y Reintentar también las vuelven a pedir.
-  const recargarCategoriasSiFallaron = () => {
+  // Jalar para recargar, Reintentar y el aviso de arriba piden otra vez Inicio y, si fallaron,
+  // las categorías. Con datos a la vista, un fallo sale como aviso fijo arriba (useRecargar).
+  const reintentar = () => {
     if (estadoCategorias === 'error') recargarCategorias();
+    return cargar();
   };
-
-  const refrescar = async () => {
-    recargarCategoriasSiFallaron();
-    setRefrescando(true);
-    await cargar();
-    setRefrescando(false);
-  };
+  const recarga = useRecargar(reintentar, {
+    error: estado === 'error' ? errorCarga : null,
+    hayDatos,
+  });
 
   const nombresCategoria = useMemo(
     () => Object.fromEntries(categorias.map((c) => [c.id, c.nombre])),
@@ -275,30 +264,12 @@ export default function InicioScreen({ navigation }) {
     </View>
   );
 
-  if (estado === 'cargando') {
+  const vista = vistaPantalla(estado, hayDatos);
+  if (vista === 'cargando' || vista === 'error') {
     return (
-      <View style={[styles.pantalla, styles.centro]}>
+      <View style={styles.pantalla}>
         <FondoDegradado />
-        <ActivityIndicator size="large" color={colors.text} />
-      </View>
-    );
-  }
-
-  const reintentar = () => {
-    recargarCategoriasSiFallaron();
-    setEstado('cargando');
-    cargar();
-  };
-
-  if (estado === 'error' && !hayDatos) {
-    return (
-      <View style={[styles.pantalla, styles.centro, styles.relleno]}>
-        <FondoDegradado />
-        <MaterialCommunityIcons name="wifi-off" size={40} color={colors.textSecondary} />
-        <Text style={styles.estadoTitulo}>{textoError}</Text>
-        <View style={styles.botonEstado}>
-          <Boton titulo="Reintentar" onPress={reintentar} />
-        </View>
+        <EstadoPantalla estado={vista} error={errorCarga} onReintentar={reintentar} completa />
       </View>
     );
   }
@@ -327,41 +298,33 @@ export default function InicioScreen({ navigation }) {
         ListHeaderComponent={
           <>
             {encabezado}
-            {estado === 'error' ? (
-              <View style={styles.avisoError}>
-                <Text style={styles.avisoTexto}>{textoError}</Text>
-                <Pressable onPress={cargar} hitSlop={8} accessibilityRole="button">
-                  <Text style={styles.avisoAccion}>Reintentar</Text>
-                </Pressable>
-              </View>
-            ) : null}
             {panelInicio}
           </>
         }
         ListFooterComponent={pieInicio}
         ListEmptyComponent={
-          <View style={[styles.panelFila, styles.vacio]}>
-            <MaterialCommunityIcons
-              name="receipt-text-outline"
-              size={40}
-              color={colors.textSecondary}
-            />
-            <Text style={styles.estadoTitulo}>Sin gastos este mes</Text>
-            <Pressable onPress={abrirNuevoGasto} hitSlop={8} accessibilityRole="button">
+          <EstadoPantalla
+            estado="vacio"
+            icono="receipt-text-outline"
+            titulo="Sin gastos este mes"
+            style={styles.panelFila}
+          >
+            <Pressable
+              onPress={abrirNuevoGasto}
+              hitSlop={8}
+              accessibilityRole="button"
+              style={styles.enlaceVacio}
+            >
               <Text style={styles.enlace}>Registra un gasto</Text>
             </Pressable>
-          </View>
+          </EstadoPantalla>
         }
         ItemSeparatorComponent={Separador}
         onScrollBeginDrag={filas.cerrarAbierta}
-        contentContainerStyle={[
-          styles.lista,
-          { paddingTop: insets.top + 8, paddingBottom: alturaNavbar + 16 },
-        ]}
-        refreshControl={
-          <RefreshControl refreshing={refrescando} onRefresh={refrescar} tintColor={colors.text} />
-        }
+        contentContainerStyle={[styles.lista, { paddingTop: 8, paddingBottom: alturaNavbar + 16 }]}
+        {...recarga.propsLista}
       />
+      {recarga.aviso}
     </View>
   );
 }
@@ -376,13 +339,6 @@ const crearEstilos = (colors) =>
     pantalla: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    centro: {
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    relleno: {
-      paddingHorizontal: 32,
     },
     // px-margin (20)
     lista: {
@@ -505,49 +461,13 @@ const crearEstilos = (colors) =>
       height: 10,
       backgroundColor: colors.surfaceLowest80,
     },
-    vacio: {
-      alignItems: 'center',
-      gap: 10,
-      paddingVertical: 32,
-    },
-    estadoTitulo: {
-      fontFamily: fonts.sansSemiBold,
-      color: colors.text,
-      fontSize: 18,
-      lineHeight: 24,
-      textAlign: 'center',
-      marginTop: 8,
+    enlaceVacio: {
+      alignSelf: 'center',
     },
     enlace: {
       fontFamily: fonts.sansMedium,
       color: colors.text,
       fontSize: 14,
       textDecorationLine: 'underline',
-    },
-    botonEstado: {
-      alignSelf: 'stretch',
-      marginTop: 20,
-    },
-    avisoError: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 12,
-      marginTop: 12,
-      padding: 12,
-      borderRadius: radios['2xl'],
-      borderWidth: 1,
-      borderColor: colors.alerta,
-    },
-    avisoTexto: {
-      fontFamily: fonts.sans,
-      flex: 1,
-      color: colors.alertaTexto,
-      fontSize: 14,
-    },
-    avisoAccion: {
-      fontFamily: fonts.sansBold,
-      color: colors.text,
-      fontSize: 14,
     },
   });

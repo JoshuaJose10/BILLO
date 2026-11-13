@@ -1,17 +1,17 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeOut,
   LinearTransition,
   useReducedMotion,
 } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import BarraCategorias from '../components/BarraCategorias';
 import Boton from '../components/Boton';
+import EstadoPantalla from '../components/EstadoPantalla';
 import Etiqueta from '../components/Etiqueta';
 import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizable';
 import FondoDegradado from '../components/FondoDegradado';
@@ -27,6 +27,7 @@ import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { tipografia } from '../theme/tipografia';
+import { useRecargar } from '../hooks/useRecargar';
 import { mensajeError } from '../utils/errores';
 import { mesActual, sumarMeses } from '../utils/fechas';
 import { formatearMonto, nombreMes } from '../utils/formato';
@@ -83,7 +84,6 @@ let ordenRecordado = ORDEN_SUSCRIPCIONES.fecha;
 // Parámetros opcionales (los manda el aviso de presupuesto, HU-35): `seccion`, `mes` y `solicitud`
 // (marca de tiempo para volver a aplicarlos aunque Cartera ya esté abierta).
 export default function CarteraScreen({ navigation, route }) {
-  const insets = useSafeAreaInsets();
   const alturaNavbar = useAlturaNavbar();
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
@@ -100,8 +100,7 @@ export default function CarteraScreen({ navigation, route }) {
   const [presupuestos, setPresupuestos] = useState([]);
   const [mesCargado, setMesCargado] = useState(null);
   const [estadoPresupuestos, setEstadoPresupuestos] = useState('cargando');
-  const [textoErrorPresupuestos, setTextoErrorPresupuestos] = useState('');
-  const [refrescandoPresupuestos, setRefrescandoPresupuestos] = useState(false);
+  const [errorPresupuestos, setErrorPresupuestos] = useState(null);
   const [copiandoPresupuestos, setCopiandoPresupuestos] = useState(false);
   const [avisoCopia, setAvisoCopia] = useState('');
   const ultimaPeticionPresupuestos = useRef(0);
@@ -109,8 +108,8 @@ export default function CarteraScreen({ navigation, route }) {
   // --- Estado de Membresías / Suscripciones ---
   const [membresias, setMembresias] = useState([]);
   const [estadoMembresias, setEstadoMembresias] = useState('cargando');
-  const [textoErrorMembresias, setTextoErrorMembresias] = useState('');
-  const [refrescandoMembresias, setRefrescandoMembresias] = useState(false);
+  const [errorMembresias, setErrorMembresias] = useState(null);
+  const [membresiasCargadas, setMembresiasCargadas] = useState(false);
   const ultimaPeticionMembresias = useRef(0);
   const [ordenSubs, setOrdenSubs] = useState(() => ordenRecordado);
 
@@ -135,10 +134,12 @@ export default function CarteraScreen({ navigation, route }) {
       setPresupuestos(lista);
       setMesCargado(mes);
       setEstadoPresupuestos('listo');
+      return true;
     } catch (error) {
       if (peticion !== ultimaPeticionPresupuestos.current) return;
-      setTextoErrorPresupuestos(mensajeError(error?.code, error?.message));
+      setErrorPresupuestos(error);
       setEstadoPresupuestos('error');
+      return false;
     }
   }, [listarPresupuestos, mes]);
 
@@ -148,11 +149,14 @@ export default function CarteraScreen({ navigation, route }) {
       const lista = await listarMembresias();
       if (peticion !== ultimaPeticionMembresias.current) return;
       setMembresias(lista);
+      setMembresiasCargadas(true);
       setEstadoMembresias('listo');
+      return true;
     } catch (error) {
       if (peticion !== ultimaPeticionMembresias.current) return;
-      setTextoErrorMembresias(mensajeError(error?.code, error?.message));
+      setErrorMembresias(error);
       setEstadoMembresias('error');
+      return false;
     }
   }, [listarMembresias]);
 
@@ -173,17 +177,18 @@ export default function CarteraScreen({ navigation, route }) {
     }
   };
 
-  const refrescar = async () => {
-    if (enPresupuestos) {
-      setRefrescandoPresupuestos(true);
-      await cargarPresupuestos();
-      setRefrescandoPresupuestos(false);
-    } else if (enSuscripciones) {
-      setRefrescandoMembresias(true);
-      await cargarMembresias();
-      setRefrescandoMembresias(false);
-    }
-  };
+  // Jalar para recargar y el aviso de arriba, uno por sección (useRecargar). Si una recarga falla
+  // con datos de esa sección a la vista, se quedan y el error sale como aviso fijo arriba.
+  const presupuestosCargados = mesCargado === mes;
+  const recargaPresupuestos = useRecargar(cargarPresupuestos, {
+    error: estadoPresupuestos === 'error' ? errorPresupuestos : null,
+    hayDatos: presupuestosCargados,
+  });
+  const recargaMembresias = useRecargar(cargarMembresias, {
+    error: estadoMembresias === 'error' ? errorMembresias : null,
+    hayDatos: membresiasCargadas,
+  });
+  const recarga = enPresupuestos ? recargaPresupuestos : enSuscripciones ? recargaMembresias : null;
 
   const cambiarMes = (nuevo) => {
     setMes(nuevo);
@@ -206,15 +211,8 @@ export default function CarteraScreen({ navigation, route }) {
     }
   };
 
-  const reintentar = () => {
-    if (enPresupuestos) {
-      setEstadoPresupuestos('cargando');
-      cargarPresupuestos();
-    } else if (enSuscripciones) {
-      setEstadoMembresias('cargando');
-      cargarMembresias();
-    }
-  };
+  // Reintentar deja el error a la vista con el botón en cargando y pide solo la sección que falló.
+  const reintentar = () => (enPresupuestos ? cargarPresupuestos() : cargarMembresias());
 
   const filas = useFilasDeslizables();
 
@@ -254,7 +252,8 @@ export default function CarteraScreen({ navigation, route }) {
         ? colors.avisoTexto
         : colors.textSecondary;
 
-  const listoPresupuestos = estadoPresupuestos === 'listo';
+  const listoPresupuestos =
+    estadoPresupuestos === 'listo' || (estadoPresupuestos === 'error' && presupuestosCargados);
   const cambiandoMes = listoPresupuestos && mesCargado !== mes;
   const atenuadoP = cambiandoMes ? styles.atenuado : null;
   const nombreDelMes = nombreMes(mesCargado ?? mes);
@@ -266,7 +265,8 @@ export default function CarteraScreen({ navigation, route }) {
   const totalAnualSuscripciones = useMemo(() => calcularTotalAnual(membresias), [membresias]);
   const totalEsteMesSuscripciones = useMemo(() => calcularTotalEsteMes(membresias), [membresias]);
   const tramosSubs = useMemo(() => tramosSuscripciones(membresias), [membresias]);
-  const listaMembresiasLista = estadoMembresias === 'listo';
+  const listaMembresiasLista =
+    estadoMembresias === 'listo' || (estadoMembresias === 'error' && membresiasCargadas);
   const hayMembresias = listaMembresiasLista && membresias.length > 0;
   const proximaMembresia = useMemo(() => {
     if (!hayMembresias) return null;
@@ -508,80 +508,50 @@ export default function CarteraScreen({ navigation, route }) {
       </Animated.View>
     );
   } else if (enPresupuestos) {
-    if (estadoPresupuestos === 'cargando') {
-      contenidoVacio = (
-        <View style={styles.estado}>
-          <ActivityIndicator size="large" color={colors.text} />
-        </View>
-      );
-    } else if (estadoPresupuestos === 'error') {
-      contenidoVacio = (
-        <View style={styles.estado}>
-          <MaterialCommunityIcons name="wifi-off" size={40} color={colors.textSecondary} />
-          <Text style={styles.estadoTitulo}>{textoErrorPresupuestos}</Text>
-          <View style={styles.estadoBoton}>
-            <Boton titulo="Reintentar" onPress={reintentar} />
-          </View>
-        </View>
-      );
-    } else {
-      contenidoVacio = (
-        <View style={[styles.estado, atenuadoP]}>
-          <MaterialCommunityIcons name="wallet-outline" size={40} color={colors.textSecondary} />
-          <Text style={styles.estadoTitulo}>Sin presupuestos {periodo}</Text>
-          <Text style={styles.estadoTexto}>
-            Ponle un límite a cada categoría y ve cuánto llevas gastado.
-          </Text>
-          <View style={styles.estadoBoton}>
-            <Boton titulo="Crear tu primer presupuesto" icono="plus" onPress={crearPresupuesto} />
-            <Boton
-              titulo="Copiar del mes anterior"
-              icono="content-copy"
-              secundario
-              cargando={copiandoPresupuestos}
-              onPress={copiarDelMesAnterior}
-            />
-          </View>
-          {avisoCopia ? <Text style={styles.avisoCopia}>{avisoCopia}</Text> : null}
-        </View>
-      );
-    }
+    const vacio = listoPresupuestos;
+    contenidoVacio = (
+      <EstadoPantalla
+        estado={vacio ? 'vacio' : estadoPresupuestos}
+        error={errorPresupuestos}
+        titulo={vacio ? `Sin presupuestos ${periodo}` : null}
+        mensaje={vacio ? 'Ponle un límite a cada categoría y ve cuánto llevas gastado.' : null}
+        icono={vacio ? 'wallet-outline' : undefined}
+        onReintentar={reintentar}
+        accion={{ titulo: 'Crear tu primer presupuesto', icono: 'plus', onPress: crearPresupuesto }}
+        style={atenuadoP}
+      >
+        <Boton
+          titulo="Copiar del mes anterior"
+          icono="content-copy"
+          secundario
+          cargando={copiandoPresupuestos}
+          onPress={copiarDelMesAnterior}
+        />
+        {avisoCopia ? <Text style={styles.avisoCopia}>{avisoCopia}</Text> : null}
+      </EstadoPantalla>
+    );
   } else {
     // enSuscripciones
-    if (estadoMembresias === 'cargando') {
-      contenidoVacio = (
-        <View style={styles.estado}>
-          <ActivityIndicator size="large" color={colors.text} />
-        </View>
-      );
-    } else if (estadoMembresias === 'error') {
-      contenidoVacio = (
-        <View style={styles.estado}>
-          <MaterialCommunityIcons name="wifi-off" size={40} color={colors.textSecondary} />
-          <Text style={styles.estadoTitulo}>{textoErrorMembresias}</Text>
-          <View style={styles.estadoBoton}>
-            <Boton titulo="Reintentar" onPress={reintentar} />
-          </View>
-        </View>
-      );
-    } else {
-      contenidoVacio = (
-        <View style={styles.estado}>
-          <MaterialCommunityIcons
-            name="calendar-sync-outline"
-            size={40}
-            color={colors.textSecondary}
-          />
-          <Text style={styles.estadoTitulo}>Sin suscripciones registradas</Text>
-          <Text style={styles.estadoTexto}>
-            Agrega tus suscripciones para controlar tus cobros recurrentes y fechas de pago.
-          </Text>
-          <View style={styles.estadoBoton}>
-            <Boton titulo="Agregar tu primera suscripción" icono="plus" onPress={crearMembresia} />
-          </View>
-        </View>
-      );
-    }
+    const vacio = listaMembresiasLista;
+    contenidoVacio = (
+      <EstadoPantalla
+        estado={vacio ? 'vacio' : estadoMembresias}
+        error={errorMembresias}
+        titulo={vacio ? 'Sin suscripciones registradas' : null}
+        mensaje={
+          vacio
+            ? 'Agrega tus suscripciones para controlar tus cobros recurrentes y fechas de pago.'
+            : null
+        }
+        icono={vacio ? 'calendar-sync-outline' : undefined}
+        onReintentar={reintentar}
+        accion={{
+          titulo: 'Agregar tu primera suscripción',
+          icono: 'plus',
+          onPress: crearMembresia,
+        }}
+      />
+    );
   }
 
   // Lista de datos según la sección
@@ -661,20 +631,11 @@ export default function CarteraScreen({ navigation, route }) {
         onScrollBeginDrag={filas.cerrarAbierta}
         ListHeaderComponent={encabezado}
         ListEmptyComponent={contenidoVacio}
-        contentContainerStyle={[
-          styles.lista,
-          { paddingTop: insets.top + 4, paddingBottom: alturaNavbar + 16 },
-        ]}
-        refreshControl={
-          enPresupuestos || enSuscripciones ? (
-            <RefreshControl
-              refreshing={enPresupuestos ? refrescandoPresupuestos : refrescandoMembresias}
-              onRefresh={refrescar}
-              tintColor={colors.text}
-            />
-          ) : undefined
-        }
+        contentContainerStyle={[styles.lista, { paddingTop: 4, paddingBottom: alturaNavbar + 16 }]}
+        style={recargaPresupuestos.propsLista.style}
+        refreshControl={recarga?.propsLista.refreshControl}
       />
+      {recarga?.aviso}
     </View>
   );
 }
@@ -936,32 +897,6 @@ const crearEstilos = (colors) =>
     },
     atenuado: {
       opacity: 0.45,
-    },
-    estado: {
-      alignItems: 'center',
-      gap: 10,
-      paddingVertical: 48,
-      paddingHorizontal: 12,
-    },
-    estadoTitulo: {
-      fontFamily: fonts.sansSemiBold,
-      color: colors.text,
-      fontSize: 18,
-      lineHeight: 24,
-      textAlign: 'center',
-      marginTop: 8,
-    },
-    estadoTexto: {
-      fontFamily: fonts.sans,
-      color: colors.textSecondary,
-      fontSize: 14,
-      lineHeight: 20,
-      textAlign: 'center',
-    },
-    estadoBoton: {
-      alignSelf: 'stretch',
-      marginTop: 12,
-      gap: 10,
     },
     avisoCopia: {
       fontFamily: fonts.sansMedium,

@@ -11,3 +11,32 @@ export function vistaLista(estado, lista) {
 // Solo se vuelve a pedir sola (al enfocar o al regresar a la app) una carga que falló: si está
 // cargando ya va en camino y si está lista no hace falta.
 export const debeReintentar = (estado) => estado === 'error';
+
+// Pantalla con datos que se conservan entre recargas (Inicio, HU-69): 'cargando' | 'error' |
+// 'aviso' | 'datos'. Si ya hay datos a la vista, un error no los tapa: se avisa en una franja
+// ('aviso') con Reintentar; sin datos, el error ocupa la pantalla. Nunca queda en blanco.
+export function vistaPantalla(estado, hayDatos) {
+  if (estado === 'error') return hayDatos ? 'aviso' : 'error';
+  if (estado === 'listo' || hayDatos) return 'datos';
+  return 'cargando';
+}
+
+// Corre una carga con feedback (HU-69): `alEmpezar()` antes de pedir y `alTerminar(ok)` al
+// responder. `tarea` devuelve true (respondió), false (falló) o nada (la pantalla muestra su propio
+// cargando); si lanza cuenta como false. Mientras no termina, quien llama sigue «reintentando».
+export async function intentar(tarea, { alEmpezar, alTerminar }) {
+  alEmpezar();
+  let ok;
+  try {
+    ok = await tarea();
+  } catch {
+    ok = false;
+  }
+  alTerminar(ok);
+  return ok;
+}
+
+// La franja «sin conexión» de arriba sale solo si falló una recarga con datos a la vista y no se
+// cerró; tras cerrarla vuelve con el siguiente fallo.
+export const avisoVisible = ({ error, hayDatos, cerrado }) =>
+  Boolean(error) && hayDatos && !cerrado;

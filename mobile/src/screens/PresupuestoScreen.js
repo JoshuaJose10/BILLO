@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import Boton from '../components/Boton';
 import ChipCategoria from '../components/ChipCategoria';
-import ChipSelector from '../components/ChipSelector';
+import EstadoPantalla from '../components/EstadoPantalla';
 import Etiqueta from '../components/Etiqueta';
 import HojaInferior from '../components/HojaInferior';
 import IconoCategoria from '../components/IconoCategoria';
@@ -12,9 +12,11 @@ import TecladoNumerico from '../components/TecladoNumerico';
 import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/CategoriasContext';
 import { usePresupuestosService } from '../services/presupuestos';
 import { radios } from '../theme/colors';
-import { useEstilos, useTema } from '../theme/TemaContext';
+import { useEstilos } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
+import { TEXTO_ESTADO_CATEGORIAS } from '../utils/categorias';
 import { mensajeError } from '../utils/errores';
+import { vistaLista } from '../utils/estadoCarga';
 import { mesActual } from '../utils/fechas';
 import { nombreMesAnio } from '../utils/formato';
 import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
@@ -31,7 +33,6 @@ export default function PresupuestoScreen({ navigation, route }) {
   const mes = route.params?.mes ?? mesActual();
   const { listarPresupuestos, crearPresupuesto, actualizarPresupuesto, eliminarPresupuesto } =
     usePresupuestosService();
-  const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
   // El presupuesto que se edita; null al crear. Puede pasar de crear a editar (categoría que
@@ -61,6 +62,7 @@ export default function PresupuestoScreen({ navigation, route }) {
       : estadoCache === 'listo' && estadoExistentes === 'listo'
         ? 'listo'
         : 'cargando';
+  const vistaCategorias = vistaLista(estadoCategorias, categorias);
 
   const [errores, setErrores] = useState({});
   const [errorApi, setErrorApi] = useState('');
@@ -241,18 +243,13 @@ export default function PresupuestoScreen({ navigation, route }) {
         </View>
       ) : (
         <View style={styles.zonaCategorias}>
-          {estadoCategorias === 'cargando' ? (
-            <View style={styles.estadoCategorias}>
-              <ActivityIndicator color={colors.textSecondary} />
-              <Text style={styles.textoEstado}>Cargando categorías…</Text>
-            </View>
-          ) : estadoCategorias === 'error' ? (
-            <View style={styles.estadoCategorias}>
-              <Text style={styles.textoEstado}>No se pudieron cargar</Text>
-              <ChipSelector icono="refresh" etiqueta="Reintentar" onPress={reintentarCategorias} />
-            </View>
-          ) : categorias.length === 0 ? (
-            <Text style={styles.textoEstado}>No hay categorías disponibles</Text>
+          {vistaCategorias !== 'lista' ? (
+            <EstadoPantalla
+              estado={vistaCategorias}
+              titulo={TEXTO_ESTADO_CATEGORIAS[vistaCategorias]}
+              onReintentar={reintentarCategorias}
+              compacta
+            />
           ) : (
             <ScrollView
               horizontal
@@ -330,17 +327,6 @@ const crearEstilos = (colors) =>
       justifyContent: 'center',
       marginTop: 12,
       marginBottom: 8,
-    },
-    estadoCategorias: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
-    },
-    textoEstado: {
-      fontFamily: fonts.sans,
-      color: colors.textSecondary,
-      fontSize: 14,
-      lineHeight: 20,
     },
     categoriaFija: {
       flexDirection: 'row',

@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Boton from '../components/Boton';
 import ChipSelector from '../components/ChipSelector';
+import EstadoPantalla from '../components/EstadoPantalla';
 import HojaInferior from '../components/HojaInferior';
 import Input from '../components/Input';
 import MontoGrande from '../components/MontoGrande';
@@ -160,7 +161,7 @@ export default function MembresiaScreen({ navigation, route }) {
   // silencio: se muestra con Reintentar, y una lista vacía dice que no hay servicios (HU-80).
   const [catalogo, setCatalogo] = useState([]);
   const [estadoCatalogo, setEstadoCatalogo] = useState('cargando');
-  const [errorCatalogo, setErrorCatalogo] = useState('');
+  const [errorCatalogo, setErrorCatalogo] = useState(null);
   const [intentoCatalogo, setIntentoCatalogo] = useState(0);
 
   const [errores, setErrores] = useState({});
@@ -218,7 +219,7 @@ export default function MembresiaScreen({ navigation, route }) {
       })
       .catch((error) => {
         if (!activo) return;
-        setErrorCatalogo(mensajeError(error?.code, error?.message));
+        setErrorCatalogo(error);
         setEstadoCatalogo('error');
       });
 
@@ -574,20 +575,18 @@ export default function MembresiaScreen({ navigation, route }) {
         {/* Catálogo de servicios (solo al agregar), en el lugar de las categorías de Nuevo gasto */}
         {!editando ? (
           <View style={styles.zonaCatalogo}>
-            {vistaCatalogo === 'cargando' ? (
-              <View style={styles.estadoCatalogo}>
-                <ActivityIndicator size="small" color={colors.textSecondary} />
-                <Text style={styles.textoEstado}>Cargando catálogo…</Text>
-              </View>
-            ) : vistaCatalogo === 'error' ? (
-              <View style={styles.estadoCatalogo}>
-                <Text style={[styles.textoEstado, styles.textoEstadoFlexible]} numberOfLines={2}>
-                  {errorCatalogo}
-                </Text>
-                <ChipSelector icono="refresh" etiqueta="Reintentar" onPress={reintentarCatalogo} />
-              </View>
-            ) : vistaCatalogo === 'vacio' ? (
-              <Text style={styles.textoEstado}>No hay servicios en el catálogo</Text>
+            {vistaCatalogo !== 'lista' ? (
+              <EstadoPantalla
+                estado={vistaCatalogo}
+                error={errorCatalogo}
+                titulo={
+                  vistaCatalogo === 'cargando'
+                    ? 'Cargando catálogo…'
+                    : 'No hay servicios en el catálogo'
+                }
+                onReintentar={reintentarCatalogo}
+                compacta
+              />
             ) : (
               <>
                 <Input
