@@ -17,6 +17,7 @@ describe('API real + PostgreSQL temporal', { timeout: 120000 }, () => {
 
   // Cada módulo registra casos independientes; el beforeEach reinicia sus datos.
   require('./suites/auth.cjs')(() => context);
+  require('./suites/categorias.cjs')(() => context);
   require('./suites/gastos.cjs')(() => context);
   require('./suites/presupuestos.cjs')(() => context);
   require('./suites/reportes.cjs')(() => context);

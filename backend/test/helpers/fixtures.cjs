@@ -12,7 +12,9 @@ async function createFixtures(database) {
   // Mismo hash bcrypt que usa producción; se calcula una sola vez por ejecución.
   const hash = await bcrypt.hash(password, 10);
   const api = request(database.app);
-  const categories = await database.pool.query('SELECT id FROM categorias ORDER BY id');
+  const categories = await database.pool.query(
+    'SELECT id FROM categorias WHERE es_predefinida = TRUE AND usuario_id IS NULL ORDER BY id'
+  );
   assert.ok(categories.rows.length >= 2, 'Las migraciones deben cargar categorías');
   return {
     ...database,
@@ -23,10 +25,28 @@ async function createFixtures(database) {
     async reset() {
       limpiarEstadoRecuperacion();
       await database.pool.query('TRUNCATE usuarios RESTART IDENTITY CASCADE');
+      await database.pool.query(
+        `INSERT INTO categorias (nombre, tipo, es_predefinida)
+         VALUES
+           ('Comida', 'gasto', TRUE),
+           ('Transporte', 'gasto', TRUE),
+           ('Entretenimiento', 'gasto', TRUE),
+           ('Servicios', 'gasto', TRUE),
+           ('Salud', 'gasto', TRUE),
+           ('Otros', 'gasto', TRUE)`
+      );
       const { rows } = await database.pool.query(
         `INSERT INTO usuarios (nombre, email, password_hash) VALUES
           ('Usuario A', 'a@example.com', $1), ('Usuario B', 'b@example.com', $1)
           RETURNING id, nombre, email`, [hash]
+      );
+      await database.pool.query(
+        `INSERT INTO usuario_categorias (usuario_id, categoria_id)
+         SELECT u.id, c.id
+         FROM usuarios u
+         CROSS JOIN categorias c
+         WHERE c.es_predefinida = TRUE AND c.usuario_id IS NULL AND c.tipo = 'gasto'
+         ON CONFLICT (usuario_id, categoria_id) DO NOTHING`
       );
       [this.a, this.b] = rows.map(usuario => ({
         usuario,

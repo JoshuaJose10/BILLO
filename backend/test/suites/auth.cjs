@@ -27,17 +27,41 @@ module.exports = getContext => describe('Autenticación (Postman 01 / RF1)', () 
 
   it('AUTH-QA-01 / CP-RF1-01: registro devuelve usuario y JWT utilizable', async () => {
     const { body } = await ctx.api.post('/auth/register').send(registro()).expect(201);
-    publicUser(body.usuario);
+    assert.deepEqual(Object.keys(body.usuario).sort(), [
+      'categorias_configuradas',
+      'email',
+      'id',
+      'nombre',
+    ]);
+    assert.equal(typeof body.usuario.id, 'number');
     assert.equal(body.usuario.email, 'ana@example.com');
     assert.equal(body.usuario.nombre, 'Ana');
+    assert.equal(body.usuario.categorias_configuradas, false);
     const claims = jwt.verify(body.token, process.env.JWT_SECRET);
     assert.equal(claims.id, body.usuario.id);
     assert.equal(claims.rol, 'usuario');
     const perfil = await ctx.api.get('/auth/perfil').auth(body.token, { type: 'bearer' }).expect(200);
-    assert.deepEqual(perfil.body, body.usuario);
+    publicUser(perfil.body);
+    assert.deepEqual(perfil.body, {
+      id: body.usuario.id,
+      nombre: body.usuario.nombre,
+      email: body.usuario.email,
+    });
     const { rows } = await ctx.pool.query('SELECT password_hash FROM usuarios WHERE id=$1', [body.usuario.id]);
     assert.notEqual(rows[0].password_hash, ctx.password);
     assert.ok(await bcrypt.compare(ctx.password, rows[0].password_hash));
+  });
+
+  it('registro deja la cuenta nueva con las categorías predefinidas de gasto seleccionadas', async () => {
+    const { body } = await ctx.api.post('/auth/register').send(registro()).expect(201);
+    assert.equal(body.usuario.categorias_configuradas, false);
+    const { body: categorias } = await ctx.api.get('/categorias?tipo=gasto')
+      .auth(body.token, { type: 'bearer' }).expect(200);
+    assert.ok(categorias.length > 0, 'una cuenta nueva no debe quedar sin categorías');
+    assert.ok(categorias.every(c => c.es_predefinida === true));
+    const { rows } = await ctx.pool.query(
+      "SELECT COUNT(*)::int AS n FROM categorias WHERE es_predefinida = TRUE AND usuario_id IS NULL AND tipo = 'gasto'");
+    assert.equal(categorias.length, rows[0].n);
   });
 
   it('registro normaliza correo y permite login con mayúsculas y espacios', async () => {
@@ -77,7 +101,11 @@ module.exports = getContext => describe('Autenticación (Postman 01 / RF1)', () 
   it('CP-RF1-02: login devuelve solo datos públicos y token válido', async () => {
     const { body } = await ctx.api.post('/auth/login')
       .send({ email: ctx.a.usuario.email, password: ctx.password }).expect(200);
-    assert.deepEqual(body.usuario, { ...ctx.a.usuario, rol: 'usuario' });
+    assert.deepEqual(body.usuario, {
+      ...ctx.a.usuario,
+      rol: 'usuario',
+      categorias_configuradas: true,
+    });
     const claims = jwt.verify(body.token, process.env.JWT_SECRET);
     assert.equal(claims.id, ctx.a.usuario.id);
     assert.equal(claims.rol, 'usuario');
@@ -168,6 +196,7 @@ module.exports = getContext => describe('Autenticación (Postman 01 / RF1)', () 
       .send({ email: emailAdmin, password: passAdmin })
       .expect(200);
     assert.deepEqual(Object.keys(body.usuario).sort(), [
+      'categorias_configuradas',
       'email',
       'id',
       'nombre',
@@ -175,6 +204,7 @@ module.exports = getContext => describe('Autenticación (Postman 01 / RF1)', () 
     ]);
     assert.equal(body.usuario.email, emailAdmin);
     assert.equal(body.usuario.rol, 'admin');
+    assert.equal(body.usuario.categorias_configuradas, true);
     const claims = jwt.verify(body.token, process.env.JWT_SECRET);
     assert.equal(claims.id, primera.usuario.id);
     assert.equal(claims.rol, 'admin');

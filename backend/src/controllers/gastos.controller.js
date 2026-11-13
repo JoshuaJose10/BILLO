@@ -1,4 +1,5 @@
 const { pool } = require('../db');
+const { esCategoriaDisponibleParaUsuario } = require('./categorias.controller');
 const { calcularAlertaPresupuesto } = require('./presupuestos.controller');
 const { esMonedaValida } = require('./tipoCambio.controller');
 
@@ -63,7 +64,10 @@ const formatearGasto = (row) => ({
   nota: row.nota,
 });
 
-const validarDatosGasto = async (body) => {
+const validarDatosGasto = async (
+  body,
+  { usuarioId, categoriaActualId = null } = {}
+) => {
   const {
     monto,
     moneda,
@@ -187,17 +191,19 @@ const validarDatosGasto = async (body) => {
     };
   }
 
-  const catResult = await pool.query(
-    'SELECT id FROM categorias WHERE id = $1',
-    [categoria_id]
-  );
-  if (catResult.rows.length === 0) {
-    return {
-      error: {
-        code: 'CATEGORIA_INEXISTENTE',
-        message: 'La categoría seleccionada no existe',
-      },
-    };
+  if (categoriaActualId === null || Number(categoriaActualId) !== categoria_id) {
+    const catDisponible = await esCategoriaDisponibleParaUsuario(
+      usuarioId,
+      categoria_id
+    );
+    if (!catDisponible) {
+      return {
+        error: {
+          code: 'CATEGORIA_INEXISTENTE',
+          message: 'La categoría seleccionada no existe',
+        },
+      };
+    }
   }
 
   return {
@@ -218,7 +224,7 @@ const validarDatosGasto = async (body) => {
 const crearGasto = async (req, res) => {
   try {
     const usuarioId = req.usuario.id;
-    const validacion = await validarDatosGasto(req.body);
+    const validacion = await validarDatosGasto(req.body, { usuarioId });
 
     if (validacion.error) {
       return res.status(400).json({ error: validacion.error });
@@ -347,7 +353,19 @@ const actualizarGasto = async (req, res) => {
       });
     }
 
-    const validacion = await validarDatosGasto(req.body);
+    const existenteResult = await pool.query(
+      'SELECT categoria_id FROM gastos WHERE id = $1 AND usuario_id = $2',
+      [gastoId, usuarioId]
+    );
+    const categoriaActualId =
+      existenteResult.rows.length > 0
+        ? existenteResult.rows[0].categoria_id
+        : null;
+
+    const validacion = await validarDatosGasto(req.body, {
+      usuarioId,
+      categoriaActualId,
+    });
     if (validacion.error) {
       return res.status(400).json({ error: validacion.error });
     }

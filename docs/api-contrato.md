@@ -12,10 +12,10 @@ Verificado con `curl` contra el backend de `develop` (commit `ec43600`), Postgre
 
 | Ruta | Implementada | ¿Cumple el contrato? |
 |---|---|---|
-| `POST /auth/register`, `POST /auth/login` | Sí | Sí (`{ usuario, token }`; correo sin distinguir mayúsculas). Detalle: el registro sin cuerpo responde `NOMBRE_REQUERIDO`, no `CAMPOS_REQUERIDOS` |
+| `POST /auth/register`, `POST /auth/login` | Sí | Sí (`{ usuario, token }`; incluye `usuario.categorias_configuradas`; correo sin distinguir mayúsculas). Detalle: el registro sin cuerpo responde `NOMBRE_REQUERIDO`, no `CAMPOS_REQUERIDOS` |
 | `GET /auth/perfil` | Sí | Sí |
 | `DELETE /auth/cuenta` | Sí (S3) | Sí (HU-68: requiere token y contraseña, borra en transacción ingresos, gastos, presupuestos, membresías y usuario) |
-| `GET /categorias?tipo=gasto` | Sí | Sí (incluye `tipo` y `es_predefinida`) |
+| `GET /categorias?tipo=gasto`, `GET /categorias/predefinidas`, `PUT /categorias/seleccion`, `POST/PUT/DELETE /categorias` | Sí (S1/S3) | Sí (incluye `tipo`, `es_predefinida`, `propia` y `color`; selección por usuario y CRUD de categorías propias) |
 | `POST/GET/PUT/DELETE /gastos` | Sí (S1/S3) | Sí (validación de monto, moneda, `monto_original × tipo_cambio = monto` y categoría; JSON malformado → `JSON_INVALIDO`) |
 | `POST/GET/PUT/DELETE /presupuestos` y aviso `alerta` | Sí (S2) | Sí |
 | `GET /catalogo` | Sí (S2) | Sí |
@@ -69,7 +69,7 @@ Registro y login devuelven la misma forma, `{ usuario, token }`, para que la app
 
 ### POST /auth/register  (público)
 Body: { "nombre": "Ana", "email": "ana@correo.com", "password": "Segura123" }
-- 201 → { "usuario": { "id": 7, "nombre": "Ana", "email": "ana@correo.com" }, "token": "eyJhbGciOi..." }
+- 201 → { "usuario": { "id": 7, "nombre": "Ana", "email": "ana@correo.com", "categorias_configuradas": false }, "token": "eyJhbGciOi..." }
 - 400 → NOMBRE_REQUERIDO, EMAIL_INVALIDO, PASSWORD_MUY_CORTA (mínimo 8 caracteres). Sin cuerpo se valida como campos vacíos (400, no 500).
 - 409 → EMAIL_DUPLICADO
 
@@ -82,7 +82,7 @@ Ejemplo 409 → { "error": { "code": "EMAIL_DUPLICADO", "message": "El correo ya
 
 ### POST /auth/login  (público)
 Body: { "email": "ana@correo.com", "password": "Segura123" }
-- 200 → { "usuario": { "id": 7, "nombre": "Ana", "email": "ana@correo.com" }, "token": "eyJhbGciOi..." }
+- 200 → { "usuario": { "id": 7, "nombre": "Ana", "email": "ana@correo.com", "rol": "usuario", "categorias_configuradas": true }, "token": "eyJhbGciOi..." }
 - 400 → CAMPOS_REQUERIDOS (falta correo o contraseña, o no hay cuerpo)
 - 401 → CREDENCIALES_INVALIDAS (mismo mensaje si el correo no existe o la contraseña es incorrecta)
 
@@ -123,14 +123,47 @@ Body: { "password": "MiPasswordActual1" }
 - 401 → PASSWORD_INCORRECTA (contraseña incorrecta o no enviada; no borra ningún dato), NO_AUTORIZADO (token ausente o inválido)
 - 404 → USUARIO_NO_ENCONTRADO
 
-## Categorías (S1)
+## Categorías (S1 / S3 por usuario)
+
+Cada usuario elige qué categorías predefinidas mostrar y puede crear categorías propias (hasta 30 por usuario, con color asignado rotando sobre una paleta fija de 12 colores). Los usuarios existentes conservan todas las predefinidas y `categorias_configuradas = true`; los usuarios nuevos inician con `categorias_configuradas = false` y deben configurar su selección mediante `PUT /categorias/seleccion`. Ocultar una predefinida conserva sus gastos históricos en listados y reportes, pero impide usarla al crear nuevos gastos o presupuestos (400 `CATEGORIA_INEXISTENTE`).
 
 ### GET /categorias?tipo=gasto  (requiere token)
-Query opcional: `tipo` = `gasto` o `membresia`. Sin `tipo` devuelve todas.
-- 200 → [ { "id": 1, "nombre": "Comida", "tipo": "gasto", "es_predefinida": true }, ... ]
+Query opcional: `tipo` = `gasto` o `membresia`. Devuelve únicamente las categorías disponibles del usuario autenticado (predefinidas seleccionadas + propias).
+- 200 → [ { "id": 1, "nombre": "Comida", "tipo": "gasto", "es_predefinida": true, "propia": false, "color": null }, { "id": 15, "nombre": "Mascotas", "tipo": "gasto", "es_predefinida": false, "propia": true, "color": "#EF4444" } ]
 - 400 → TIPO_INVALIDO
 
 Lista inicial (cargada por migración o seed): Comida, Transporte, Entretenimiento, Servicios, Salud y Otros. Los `id` dependen del orden de carga: la app y las pruebas deben leerlos de esta ruta, no fijarlos.
+
+### GET /categorias/predefinidas  (requiere token)
+Devuelve el catálogo completo de categorías predefinidas globales indicando cuáles tiene seleccionadas el usuario autenticado.
+- 200 → { "categorias": [ { "id": 1, "nombre": "Comida", "tipo": "gasto", "es_predefinida": true, "propia": false, "color": null, "seleccionada": true }, ... ] }
+
+### PUT /categorias/seleccion  (requiere token)
+Reemplaza las categorías predefinidas seleccionadas por el usuario autenticado y marca `usuarios.categorias_configuradas = true`. Requiere al menos una categoría predefinida válida.
+Body: { "categoria_ids": [1, 2, 3] }
+- 200 → { "categoria_ids": [1, 2, 3], "categorias_configuradas": true, "categorias": [ ... ] }
+- 400 → SELECCION_VACIA, CATEGORIA_INEXISTENTE
+
+### POST /categorias  (requiere token)
+Crea una categoría propia de tipo `gasto` para el usuario autenticado (nombre de 1 a 40 caracteres tras recortar espacios, única por usuario sin distinguir mayúsculas, máximo 30 propias; asigna color de paleta fija rotando).
+Body: { "nombre": "Mascotas" }
+- 201 → { "categoria": { "id": 15, "nombre": "Mascotas", "tipo": "gasto", "es_predefinida": false, "propia": true, "color": "#EF4444" } }
+- 400 → NOMBRE_INVALIDO, LIMITE_CATEGORIAS_ALCANZADO
+- 409 → CATEGORIA_DUPLICADA
+
+### PUT /categorias/:id  (requiere token)
+Renombra una categoría propia del usuario autenticado. Las predefinidas y las de otros usuarios responden 404.
+Body: { "nombre": "Veterinario" }
+- 200 → { "categoria": { "id": 15, "nombre": "Veterinario", "tipo": "gasto", "es_predefinida": false, "propia": true, "color": "#EF4444" } }
+- 400 → NOMBRE_INVALIDO
+- 404 → CATEGORIA_NO_ENCONTRADA
+- 409 → CATEGORIA_DUPLICADA
+
+### DELETE /categorias/:id  (requiere token)
+Elimina una categoría propia del usuario autenticado si no tiene gastos ni presupuestos asociados.
+- 200 → { "eliminado": true }
+- 404 → CATEGORIA_NO_ENCONTRADA
+- 409 → CATEGORIA_EN_USO
 
 > **Diferencia histórica (corregida en HU-18):** responde 200 `[ { "id": 1, "nombre": "Entretenimiento" }, ... ]`, sin `tipo` ni `es_predefinida`; el parámetro `tipo` se ignora (también un valor inválido devuelve 200 con todas las categorías, en lugar de 400 `TIPO_INVALIDO`).
 
@@ -378,6 +411,7 @@ Son campos nuevos y opcionales (no rompen nada de lo existente). Se aplican en u
 | C-04 | Tabla `ingresos` (`id`, `usuario_id` con `ON DELETE CASCADE`, `monto`, `fecha`, `descripcion`, `fuente`, `created_at`) | Guardar los ingresos del usuario en su cuenta para consultarlos desde cualquier dispositivo (HU-82). | Aplicado en migración 015 (S3) |
 | C-05 | `membresias.estado` (varchar(20), activa o pausada, default 'activa') | Pausar o cancelar suscripción sin borrarla (HU-75). | Aplicado en migración 017 |
 | C-06 | Tabla `pagos_membresia` (`id`, `membresia_id` con `ON DELETE CASCADE`, `fecha`, `monto`) | Guardar historial de pagos al marcar una suscripción como pagada (HU-66). | Aplicado en migración 019 |
+| C-07 | `categorias.usuario_id` (int, nulo, CASCADE), `categorias.color` (varchar 7, nulo), `usuarios.categorias_configuradas` (bool, default TRUE) y tabla `usuario_categorias` | Permitir que cada usuario seleccione categorías predefinidas y cree categorías propias con color asignado. | Aplicado en migración 020 |
 
 ### Extensiones propuestas, fuera del congelamiento
 
@@ -420,3 +454,4 @@ Pendiente en la colección Postman (**HU-22**, Luis Dorian): agregar las asercio
 - 2026-11-11 — v1.4 — Sprint 3 (HU-68: Eliminar cuenta y todos los datos). Se agrega `DELETE /auth/cuenta` (requiere token y contraseña actual en el cuerpo). Borra en una transacción atómica ingresos, gastos, presupuestos, membresías y usuario. Contraseña incorrecta responde 401 `PASSWORD_INCORRECTA` sin borrar nada. En la app móvil se agrega la opción «Eliminar mi cuenta» en el perfil con panel de confirmación, campo de contraseña y cierre de sesión tras la eliminación. Autor: Iker.
 - 2026-11-11 — v1.4 — Sprint 3 (HU-66: Marcar membresía como pagada). Se implementa `POST /membresias/:id/pagada` con token. Avanza automáticamente `fecha_cobro` un mes o un año según su `frecuencia` con ajuste de fin de mes en PostgreSQL (`INTERVAL '1 month'` o `INTERVAL '1 year'`), respondiendo 200 con la membresía actualizada (`id`, `servicio_id`, `nombre`, `costo`, `frecuencia`, `fecha_cobro` y `dias_para_cobro`). Aislamiento A/B de usuarios (404 `MEMBRESIA_NO_ENCONTRADA`). No crea registros en la tabla `gastos` para evitar duplicar el gasto fijo en reportes. En la app móvil se agrega el botón «Marcar como pagada» en la hoja de edición. Autor: Iker.
 - 2026-11-12 — v1.4 — Sprint 3 (Historial de pagos de suscripciones). Se aplica la migración 019 (tabla `pagos_membresia` con `ON DELETE CASCADE`), `POST /membresias/:id/pagada` registra el pago en `pagos_membresia` (sin crear gasto) y se agrega `GET /membresias/:id/pagos` con línea de tiempo corta en el detalle móvil de la suscripción.
+- 2026-11-12 — v1.5 — Categorías por usuario (migración 020). Se agregan `categorias.usuario_id`, `categorias.color`, `usuarios.categorias_configuradas` y `usuario_categorias`. `POST /auth/register` crea cuentas con `categorias_configuradas = false` e incluye el campo en registro y login. Se agregan `GET /categorias/predefinidas`, `PUT /categorias/seleccion`, `POST /categorias`, `PUT /categorias/:id` y `DELETE /categorias/:id`; `GET /categorias` filtra por usuario e incluye `propia` y `color`. `POST /gastos` y `POST /presupuestos` validan que la categoría esté disponible para el usuario, mientras `PUT /gastos/:id` permite conservar la categoría oculta previa del gasto.

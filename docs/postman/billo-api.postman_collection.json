@@ -1001,6 +1001,134 @@
       "name": "02 Categorías — catálogo",
       "item": [
         {
+          "name": "PRE-CAT-01 — Catálogo de predefinidas",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/categorias/predefinidas",
+            "description": "Obtiene las categorías predefinidas globales para configurar la selección de los usuarios de prueba."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Catálogo de predefinidas válido',function(){pm.expect(body.categorias).to.be.an('array').and.not.empty;body.categorias.forEach(function(x){pm.expect(x).to.include.all.keys('id','nombre','tipo','es_predefinida','propia','color','seleccionada');});});",
+                  "if(Array.isArray(body.categorias)&&body.categorias.length){const ids=JSON.stringify(body.categorias.map(x=>x.id));pm.collectionVariables.set('predefinidasIds',ids);pm.variables.set('predefinidasIds',ids);}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "PRE-CAT-02 — Seleccionar predefinidas Usuario A",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/categorias/seleccion",
+            "description": "Configura las categorías predefinidas para Usuario A.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_ids\": {{predefinidasIds}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Categorías configuradas',function(){pm.expect(body.categorias_configuradas).to.equal(true);pm.expect(body.categorias).to.be.an('array').and.not.empty;});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "PRE-CAT-03 — Seleccionar predefinidas Usuario B",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/categorias/seleccion",
+            "description": "Configura las categorías predefinidas para Usuario B.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_ids\": {{predefinidasIds}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Categorías configuradas B',function(){pm.expect(body.categorias_configuradas).to.equal(true);});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
           "name": "QA-CAT-01 — Consultar categorías y preparar IDs",
           "request": {
             "method": "GET",
@@ -1026,7 +1154,7 @@
                 "exec": [
                   "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
                   "let body={}; try {body=pm.response.json();} catch {}",
-                  "pm.test('Catálogo no vacío',function(){pm.expect(body).to.be.an('array').and.not.empty;body.forEach(function(x){pm.expect(x.id).to.be.a('number');pm.expect(x.nombre).to.be.a('string').and.not.empty;});});if(Array.isArray(body)&&body.length){pm.collectionVariables.set('categoriaId',String(body[0].id));pm.variables.set('categoriaId',String(body[0].id));pm.collectionVariables.set('categoriaInexistente',String(Math.max(...body.map(x=>x.id))+1));pm.variables.set('categoriaInexistente',String(Math.max(...body.map(x=>x.id))+1));}pm.test('CONTRATO: campos del catálogo',function(){body.forEach(function(x){pm.expect(x).to.include.all.keys('tipo','es_predefinida');});});"
+                  "pm.test('Catálogo no vacío',function(){pm.expect(body).to.be.an('array').and.not.empty;body.forEach(function(x){pm.expect(x.id).to.be.a('number');pm.expect(x.nombre).to.be.a('string').and.not.empty;});});if(Array.isArray(body)&&body.length){pm.collectionVariables.set('categoriaId',String(body[0].id));pm.variables.set('categoriaId',String(body[0].id));pm.collectionVariables.set('categoriaInexistente',String(Math.max(...body.map(x=>x.id))+1));pm.variables.set('categoriaInexistente',String(Math.max(...body.map(x=>x.id))+1));}pm.test('CONTRATO: campos del catálogo',function(){body.forEach(function(x){pm.expect(x).to.include.all.keys('tipo','es_predefinida','propia','color');});});"
                 ]
               }
             }
@@ -1124,6 +1252,181 @@
                   "pm.test('CONTRATO: error.code y error.message (v1.1)',function(){pm.expect(body.error).to.include.all.keys('code','message');});",
                   "",
                   "pm.test('CONTRATO: 401 NO_AUTORIZADO', function(){pm.expect(body.error.code).to.equal('NO_AUTORIZADO');});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "CAT-SEL-VACIA — Selección vacía (400)",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/categorias/seleccion",
+            "description": "Valida rechazo SELECCION_VACIA al enviar un arreglo vacío.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_ids\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', function(){pm.response.to.have.status(400);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Código SELECCION_VACIA',function(){pm.expect(body.error.code).to.equal('SELECCION_VACIA');});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "CAT-PROPIA-POST — Crear categoría propia",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/categorias",
+            "description": "Crea una categoría propia para Usuario A.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Mascotas QA\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function(){pm.response.to.have.status(201);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Categoría propia creada con color',function(){pm.expect(body.categoria.propia).to.equal(true);pm.expect(body.categoria.color).to.match(/^#[0-9A-F]{6}$/i);});",
+                  "if(body.categoria){pm.collectionVariables.set('propiaCatId',String(body.categoria.id));pm.variables.set('propiaCatId',String(body.categoria.id));}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "CAT-PROPIA-PUT — Renombrar categoría propia",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/categorias/{{propiaCatId}}",
+            "description": "Renombra la categoría propia creada para Usuario A.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Veterinario QA\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Nombre actualizado',function(){pm.expect(body.categoria.nombre).to.equal('Veterinario QA');});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "CAT-PROPIA-DELETE — Eliminar categoría propia",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/categorias/{{propiaCatId}}",
+            "description": "Elimina la categoría propia sin gastos ni presupuestos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function(){pm.response.to.have.status(200);});",
+                  "let body={}; try {body=pm.response.json();} catch {}",
+                  "pm.test('Eliminada',function(){pm.expect(body).to.deep.equal({eliminado:true});});"
                 ]
               }
             }
