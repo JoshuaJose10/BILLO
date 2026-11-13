@@ -81,4 +81,11 @@ export const tipografia = {
     lineHeight: 16,
     letterSpacing: 0,
   },
+  // 15/20 semibold: pastillas de acción (Stitch, «Send / Request»), p. ej. «↓ Ingreso» de Inicio
+  labelAccion: {
+    fontFamily: fonts.sansSemiBold,
+    fontSize: 15,
+    lineHeight: 20,
+    letterSpacing: -0.15,
+  },
 };

@@ -6,44 +6,31 @@ import EncabezadoDia from '../components/EncabezadoDia';
 import EstadoPantalla from '../components/EstadoPantalla';
 import Etiqueta from '../components/Etiqueta';
 import FiltroCategorias from '../components/FiltroCategorias';
-import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizable';
+import { useFilasDeslizables } from '../components/FilaDeslizable';
+import FilaMovimiento from '../components/FilaMovimiento';
 import FondoDegradado from '../components/FondoDegradado';
-import ItemGasto from '../components/ItemGasto';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
 import SelectorMes from '../components/SelectorMes';
 import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/CategoriasContext';
 import { etiquetaMetodoPago, useGastosService } from '../services/gastos';
+import { useIngresosService } from '../services/ingresos';
 import { useActualizarWidget } from '../widget/useActualizarWidget';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { useRecargar } from '../hooks/useRecargar';
 import { mesActual } from '../utils/fechas';
-import { formatearMonto, nombreMes, tituloDia } from '../utils/formato';
+import { formatearMonto, nombreMes } from '../utils/formato';
+import { agruparPorDia, claveMovimiento } from '../utils/movimientos';
 
-// Secciones por día para SectionList: [{ fecha, titulo, total, data }], del día más reciente
-// al más antiguo y, dentro de cada día, del gasto más reciente al más antiguo (id descendente).
-// `fecha` ya es "YYYY-MM-DD" local (el backend guarda DATE), así que se agrupa por el texto.
-const agruparPorDia = (gastos) => {
-  const ordenados = [...gastos].sort((a, b) =>
-    a.fecha === b.fecha ? b.id - a.id : a.fecha < b.fecha ? 1 : -1,
-  );
-  const secciones = [];
-  ordenados.forEach((g) => {
-    const ultima = secciones[secciones.length - 1];
-    if (ultima && ultima.fecha === g.fecha) {
-      ultima.data.push(g);
-      ultima.total += g.monto;
-    } else {
-      secciones.push({ fecha: g.fecha, titulo: tituloDia(g.fecha), total: g.monto, data: [g] });
-    }
-  });
-  return secciones;
-};
+// Ingresos (HU-82): sin filtro de categoría, los del mes van mezclados por día con los gastos
+// (agruparPorDia); el total del mes y de cada día siguen sumando solo gastos. Con una categoría
+// elegida no se piden: son de otro tipo.
 
 export default function MovimientosScreen({ navigation }) {
   const alturaNavbar = useAlturaNavbar();
   const { listarGastos, eliminarGasto } = useGastosService();
+  const { listarIngresos, eliminarIngreso } = useIngresosService();
   const actualizarWidgetResumen = useActualizarWidget();
   // Categorías de la caché de la sesión (filtro y nombres de cada gasto).
   const {
@@ -63,6 +50,7 @@ export default function MovimientosScreen({ navigation }) {
 
   // Datos de la última respuesta válida y el filtro con el que se pidieron.
   const [gastos, setGastos] = useState([]);
+  const [ingresos, setIngresos] = useState([]);
   const [filtroCargado, setFiltroCargado] = useState(null);
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
   const [errorCarga, setErrorCarga] = useState(null);
@@ -73,9 +61,13 @@ export default function MovimientosScreen({ navigation }) {
   const cargar = useCallback(async () => {
     const peticion = ++ultimaPeticion.current;
     try {
-      const lista = await listarGastos({ mes, categoria_id: categoriaId });
+      const [lista, listaIngresos] = await Promise.all([
+        listarGastos({ mes, categoria_id: categoriaId }),
+        categoriaId == null ? listarIngresos({ mes }) : [],
+      ]);
       if (peticion !== ultimaPeticion.current) return;
       setGastos(lista);
+      setIngresos(listaIngresos);
       setFiltroCargado({ mes, categoriaId });
       setEstado('listo');
       return true;
@@ -85,7 +77,7 @@ export default function MovimientosScreen({ navigation }) {
       setEstado('error');
       return false;
     }
-  }, [listarGastos, mes, categoriaId]);
+  }, [listarGastos, listarIngresos, mes, categoriaId]);
 
   // Recarga al ganar foco (un gasto nuevo aparece al volver de NuevoGasto) y, como `cargar`
   // cambia con el filtro, también al cambiar de mes o de categoría.
@@ -118,14 +110,19 @@ export default function MovimientosScreen({ navigation }) {
   // Filas deslizables: Editar abre la hoja en modo edición; al eliminar, la fila se quita al
   // momento y se recargan la lista y el total.
   const filas = useFilasDeslizables();
-  const editarGasto = (gasto) => navigation.navigate('NuevoGasto', { gasto });
-  const gastoEliminado = (id) => {
-    actualizarWidgetResumen(); // HU-58: sin esperar
-    setGastos((lista) => lista.filter((g) => g.id !== id));
+  const editar = (m) =>
+    navigation.navigate('NuevoGasto', m.tipo === 'ingreso' ? { ingreso: m } : { gasto: m });
+  const eliminado = (m) => {
+    if (m.tipo === 'ingreso') {
+      setIngresos((lista) => lista.filter((i) => i.id !== m.id));
+    } else {
+      actualizarWidgetResumen(); // HU-58: sin esperar
+      setGastos((lista) => lista.filter((g) => g.id !== m.id));
+    }
     cargar();
   };
 
-  const secciones = useMemo(() => agruparPorDia(gastos), [gastos]);
+  const secciones = useMemo(() => agruparPorDia(gastos, ingresos), [gastos, ingresos]);
   const total = useMemo(() => gastos.reduce((suma, g) => suma + g.monto, 0), [gastos]);
 
   // Textos del resumen y del estado vacío: describen lo que se está mostrando.
@@ -201,7 +198,7 @@ export default function MovimientosScreen({ navigation }) {
       <FondoDegradado />
       <SectionList
         sections={listo ? secciones : []}
-        keyExtractor={(g) => String(g.id)}
+        keyExtractor={claveMovimiento}
         renderSectionHeader={({ section }) => (
           <EncabezadoDia
             titulo={section.titulo}
@@ -211,22 +208,15 @@ export default function MovimientosScreen({ navigation }) {
         )}
         renderItem={({ item }) => (
           <View style={atenuado}>
-            <FilaDeslizable
+            <FilaMovimiento
+              movimiento={item}
               filas={filas}
-              onEditar={() => editarGasto(item)}
-              eliminar={() => eliminarGasto(item.id)}
-              onEliminado={() => gastoEliminado(item.id)}
-              tituloEliminar="¿Eliminar gasto?"
-              codigoNoExiste="GASTO_NO_ENCONTRADO"
-              mensajeNoExiste="Este gasto ya no existe"
-            >
-              <ItemGasto
-                gasto={item}
-                nombreCategoria={nombrePorId(item.categoria_id)}
-                metodoPago={etiquetaMetodoPago(item.metodo_pago)}
-                opaca
-              />
-            </FilaDeslizable>
+              onEditar={() => editar(item)}
+              eliminar={item.tipo === 'ingreso' ? eliminarIngreso : eliminarGasto}
+              onEliminado={() => eliminado(item)}
+              nombreCategoria={nombrePorId(item.categoria_id)}
+              metodoPago={etiquetaMetodoPago(item.metodo_pago)}
+            />
           </View>
         )}
         ItemSeparatorComponent={Separador}

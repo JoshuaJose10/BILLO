@@ -45,6 +45,17 @@ const GASTOS_MES_ACTUAL = [
   [COMIDA, 248, 12, 'tarjeta', 'Cena'],
 ];
 
+// Ingresos (HU-82): [monto, día del mes, fuente, descripcion]; el día se recorta igual que en
+// los gastos. Con ellos el saldo de Inicio (ingresos − gastos del mes) queda en positivo.
+const INGRESOS_MES_ANTERIOR = [
+  [9000, 1, 'Sueldo', 'Quincena'],
+  [1500, 15, 'Beca', 'Beca mensual'],
+];
+const INGRESOS_MES_ACTUAL = [
+  [9000, 1, 'Sueldo', 'Quincena'],
+  [2500, 7, 'Freelance', 'Diseño de logo'],
+];
+
 // Presupuestos del mes actual: Comida queda en 'ok', Servicios en 'alerta' y Entretenimiento en
 // 'excedido' con los gastos de arriba.
 const PRESUPUESTOS = [
@@ -84,6 +95,16 @@ function armarGastos(filas, mes, diaMaximo, primerId) {
   }));
 }
 
+function armarIngresos(filas, mes, diaMaximo, primerId) {
+  return filas.map(([monto, dia, fuente, descripcion], i) => ({
+    id: primerId + i,
+    monto,
+    fecha: `${mes}-${String(Math.min(dia, diaMaximo)).padStart(2, '0')}`,
+    descripcion,
+    fuente,
+  }));
+}
+
 // Todos los datos de ejemplo relativos a `hoy`. Cada llamada devuelve objetos nuevos.
 export function crearDatosEjemplo(hoy = new Date()) {
   const mes = mesActual(hoy);
@@ -93,6 +114,12 @@ export function crearDatosEjemplo(hoy = new Date()) {
   const gastos = [
     ...armarGastos(GASTOS_MES_ANTERIOR, anterior, 31, 1),
     ...armarGastos(GASTOS_MES_ACTUAL, mes, hoy.getDate(), GASTOS_MES_ANTERIOR.length + 1),
+  ];
+
+  const [anioAnterior, numeroAnterior] = anterior.split('-').map(Number);
+  const ingresos = [
+    ...armarIngresos(INGRESOS_MES_ANTERIOR, anterior, diasEnMes(anioAnterior, numeroAnterior), 1),
+    ...armarIngresos(INGRESOS_MES_ACTUAL, mes, hoy.getDate(), INGRESOS_MES_ANTERIOR.length + 1),
   ];
 
   const presupuestos = PRESUPUESTOS.map(([categoria_id, monto_limite], i) => ({
@@ -121,13 +148,15 @@ export function crearDatosEjemplo(hoy = new Date()) {
   return {
     categorias: CATEGORIAS.map((c) => ({ ...c })),
     gastos,
+    ingresos,
     presupuestos,
     membresias,
     catalogo: CATALOGO.map((s) => ({ ...s })),
   };
 }
 
-const delMes = (gastos, mes) => gastos.filter((g) => g.fecha.startsWith(`${mes}-`));
+// Gastos o ingresos del mes.
+const delMes = (lista, mes) => lista.filter((m) => m.fecha.startsWith(`${mes}-`));
 
 // Mismas reglas que GET /presupuestos (backend/src/controllers/presupuestos.controller.js).
 function presupuestosConEstado({ presupuestos, gastos, categorias }, mes) {
@@ -180,7 +209,8 @@ function porCategoria({ gastos, categorias }, mes) {
   return resultado;
 }
 
-const ordenarGastos = (a, b) => (a.fecha === b.fecha ? b.id - a.id : a.fecha < b.fecha ? 1 : -1);
+// Fecha descendente y, en la misma fecha, id descendente (gastos e ingresos).
+const ordenarPorFecha = (a, b) => (a.fecha === b.fecha ? b.id - a.id : a.fecha < b.fecha ? 1 : -1);
 
 function leerQuery(query) {
   const params = {};
@@ -210,9 +240,13 @@ export function responderEjemplo(ruta, { method = 'GET' } = {}, hoy = new Date()
       const categoriaId = params.categoria_id ? Number(params.categoria_id) : null;
       const lista = (params.mes ? delMes(datos.gastos, params.mes) : datos.gastos)
         .filter((g) => categoriaId == null || g.categoria_id === categoriaId)
-        .sort(ordenarGastos);
+        .sort(ordenarPorFecha);
       return Promise.resolve(lista);
     }
+    case '/ingresos':
+      return Promise.resolve(
+        (params.mes ? delMes(datos.ingresos, params.mes) : datos.ingresos).sort(ordenarPorFecha),
+      );
     case '/presupuestos':
       return Promise.resolve(presupuestosConEstado(datos, params.mes));
     case '/membresias':

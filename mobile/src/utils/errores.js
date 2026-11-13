@@ -34,6 +34,11 @@ const MENSAJES = {
   FUENTE_NO_DISPONIBLE:
     'El tipo de cambio no está disponible en este momento. Puedes capturar en MXN.',
 
+  // Ingresos (HU-82)
+  DESCRIPCION_INVALIDA: 'La nota puede tener hasta 200 caracteres.',
+  FUENTE_INVALIDA: 'Elige una fuente válida.',
+  INGRESO_NO_ENCONTRADO: 'Ese ingreso ya no existe.',
+
   // Presupuestos, catálogo, membresías y notificaciones (S2/S3)
   PRESUPUESTO_DUPLICADO: 'Ya tienes un presupuesto para esa categoría en este mes.',
   PRESUPUESTO_NO_ENCONTRADO: 'Ese presupuesto ya no existe.',

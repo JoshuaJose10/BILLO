@@ -51,6 +51,18 @@ for (const hoy of FECHAS) {
       assert.ok(comida.length > 0 && comida.every((g) => g.categoria_id === 1));
     });
 
+    it('tiene ingresos del mes, ninguno en el futuro, y el saldo queda en positivo', async () => {
+      const ingresos = await pedir(`/ingresos?mes=${mes}`, hoy);
+      const resumen = await pedir(`/reportes/resumen?mes=${mes}`, hoy);
+      assert.equal(ingresos.length, 2);
+      for (const i of ingresos) {
+        assert.ok(i.fecha.startsWith(`${mes}-`), i.fecha);
+        assert.ok(new Date(`${i.fecha}T00:00:00`) <= hoy, `ingreso en el futuro: ${i.fecha}`);
+      }
+      assert.ok(sumar(ingresos, 'monto') > resumen.gasto_variable);
+      assert.equal((await pedir('/ingresos', hoy)).length, 4);
+    });
+
     it('el resumen suma los gastos del mes y las suscripciones', async () => {
       for (const m of [mes, anterior]) {
         const gastos = await pedir(`/gastos?mes=${m}`, hoy);
