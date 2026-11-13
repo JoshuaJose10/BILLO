@@ -72,6 +72,17 @@ describe('utils/membresias', () => {
     });
   });
 
+  describe('membresías pausadas', () => {
+    const lista = [
+      { costo: 100, frecuencia: 'mensual', estado: 'activa' },
+      { costo: 50, frecuencia: 'mensual', estado: 'pausada' },
+    ];
+    it('no cuentan en el total anual ni en el de este mes', () => {
+      assert.equal(calcularTotalAnual(lista), 1200);
+      assert.equal(calcularTotalEsteMes(lista, '2026-11-12'), 100);
+    });
+  });
+
   describe('calcularTotalAnual (HU-71)', () => {
     test('devuelve 0 con lista vacía o nula', () => {
       assert.equal(calcularTotalAnual([]), 0);
