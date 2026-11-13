@@ -262,6 +262,10 @@ export default function CarteraScreen({ navigation, route }) {
 
   // Resumen de Suscripciones
   const totalMensualSuscripciones = useMemo(() => calcularTotalMensual(membresias), [membresias]);
+  const cantidadActivas = useMemo(
+    () => membresias.filter((m) => m?.estado !== 'pausada').length,
+    [membresias],
+  );
   const totalAnualSuscripciones = useMemo(() => calcularTotalAnual(membresias), [membresias]);
   const totalEsteMesSuscripciones = useMemo(() => calcularTotalEsteMes(membresias), [membresias]);
   const tramosSubs = useMemo(() => tramosSuscripciones(membresias), [membresias]);
@@ -466,8 +470,8 @@ export default function CarteraScreen({ navigation, route }) {
               />
               <Text style={styles.resumenDetalleSubs} numberOfLines={2}>
                 <Text style={styles.resumenDetalleFuerte}>
-                  {membresias.length}{' '}
-                  {membresias.length === 1 ? 'suscripción activa' : 'suscripciones activas'}
+                  {cantidadActivas}{' '}
+                  {cantidadActivas === 1 ? 'suscripción activa' : 'suscripciones activas'}
                 </Text>
                 {proximaMembresia
                   ? ` · Próximo cobro el ${formatearDiaMes(fechaCobroCiclo(proximaMembresia))}`

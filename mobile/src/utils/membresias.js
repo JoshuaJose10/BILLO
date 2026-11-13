@@ -196,6 +196,7 @@ export function calcularTotalMensual(membresias = []) {
 export function calcularTotalAnual(membresias = []) {
   if (!Array.isArray(membresias) || membresias.length === 0) return 0;
   const suma = membresias.reduce((total, m) => {
+    if (m?.estado === 'pausada') return total;
     const costo = Number(m?.costo) || 0;
     if (m?.frecuencia === 'anual') {
       return total + costo;
@@ -217,6 +218,7 @@ export function calcularTotalEsteMes(membresias = [], fechaReferenciaStr) {
   const inicioMesStr = `${mesActualStr}-01`;
 
   const suma = membresias.reduce((total, m) => {
+    if (m?.estado === 'pausada') return total;
     const costo = Number(m?.costo) || 0;
     if (costo <= 0) return total;
 
