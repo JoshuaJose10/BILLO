@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useSaldoOculto } from '../hooks/useSaldoOculto';
 import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { tipografia } from '../theme/tipografia';
@@ -11,16 +12,25 @@ import Etiqueta from './Etiqueta';
 // Bloque "Saldo disponible" de Inicio (Stitch 07_inicio_*_fondo_1), entre el saludo y la tarjeta
 // del mes. `saldo` = ingresos − gastos del mes (HU-82): sin él (null: mes sin movimientos) muestra
 // una invitación a registrar ingresos (no un $0.00); con un número, el monto grande en mono con los
-// centavos pequeños y "MXN" al lado, en alertaTexto si es negativo. Con `ingresos` > 0 (total del
-// mes), debajo «↗ +$X este mes». Al final, la pastilla de acción «↓ Ingreso» llama a
-// `onRegistrarIngreso`.
-// El ojo es decorativo por ahora. Sin la pila de tarjetas (Tarjetas está en "Próximamente").
+// centavos pequeños y "MXN" al lado; si es negativo, con "−" en el color normal y debajo el aviso
+// «Gastaste más de lo que entró este mes». Con `ingresos` > 0 (total del mes), «↗ +$X este mes».
+// Al final, la pastilla de acción «↓ Ingreso» llama a `onRegistrarIngreso`.
+// El ojo oculta saldo, aviso e ingresos ("••••••" con el mismo estilo, para que el layout no
+// salte); la preferencia se recuerda (useSaldoOculto). Sin la pila de tarjetas (Próximamente).
 export default function TarjetaSaldo({ saldo, ingresos = 0, onRegistrarIngreso }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
   const conSaldo = typeof saldo === 'number' && Number.isFinite(saldo);
   const negativo = conSaldo && saldo < 0;
-  const { entero, centavos } = conSaldo ? partesMonto(saldo) : {};
+  // El signo va con "−" (menos tipográfico), no con el guion de Intl.
+  const partes = conSaldo ? partesMonto(Math.abs(saldo)) : {};
+  const entero = negativo ? `−${partes.entero}` : partes.entero;
+  const [oculto, alternarOculto] = useSaldoOculto();
+
+  const alternar = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    alternarOculto();
+  };
 
   const registrar = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
@@ -29,31 +39,43 @@ export default function TarjetaSaldo({ saldo, ingresos = 0, onRegistrarIngreso }
 
   return (
     <View style={styles.bloque}>
+      <View style={styles.etiquetaFila}>
+        <Etiqueta style={styles.etiqueta}>Saldo disponible</Etiqueta>
+        <Pressable
+          onPress={alternar}
+          hitSlop={15}
+          accessibilityRole="button"
+          accessibilityLabel={oculto ? 'Mostrar saldo' : 'Ocultar saldo'}
+        >
+          <MaterialCommunityIcons
+            name={oculto ? 'eye-off-outline' : 'eye-outline'}
+            size={14}
+            color={colors.textSecondary}
+          />
+        </Pressable>
+      </View>
+
       <View
         accessible
-        accessibilityLabel={[
-          conSaldo
-            ? `Saldo disponible: ${formatearMonto(saldo)} ${MONEDA}`
-            : 'Saldo disponible: registra tus ingresos para ver tu saldo',
-          ingresos > 0 ? `Ingresos de este mes: ${formatearMonto(ingresos)}` : null,
-        ]
-          .filter(Boolean)
-          .join('. ')}
+        accessibilityLabel={
+          oculto
+            ? 'Saldo oculto'
+            : [
+                conSaldo
+                  ? `Saldo disponible: ${formatearMonto(saldo)} ${MONEDA}`
+                  : 'Registra tus ingresos para ver tu saldo',
+                negativo ? 'Gastaste más de lo que entró este mes' : null,
+                ingresos > 0 ? `Ingresos de este mes: ${formatearMonto(ingresos)}` : null,
+              ]
+                .filter(Boolean)
+                .join('. ')
+        }
       >
-        <View style={styles.etiquetaFila}>
-          <Etiqueta style={styles.etiqueta}>Saldo disponible</Etiqueta>
-          <MaterialCommunityIcons name="eye-outline" size={14} color={colors.textSecondary} />
-        </View>
-
         {conSaldo ? (
           <View style={styles.filaMonto}>
-            <Text
-              style={[styles.monto, negativo ? styles.negativo : null]}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-            >
-              {entero}
-              <Text style={[styles.centavos, negativo ? styles.negativo : null]}>{centavos}</Text>
+            <Text style={styles.monto} numberOfLines={1} adjustsFontSizeToFit>
+              {oculto ? OCULTO : entero}
+              {oculto ? null : <Text style={styles.centavos}>{partes.centavos}</Text>}
             </Text>
             <Text style={styles.moneda}>{MONEDA}</Text>
           </View>
@@ -61,10 +83,21 @@ export default function TarjetaSaldo({ saldo, ingresos = 0, onRegistrarIngreso }
           <Text style={styles.invitacion}>Registra tus ingresos para ver tu saldo</Text>
         )}
 
+        {negativo && !oculto ? (
+          <View style={styles.filaLinea}>
+            <MaterialCommunityIcons
+              name="alert-circle-outline"
+              size={14}
+              color={colors.alertaTexto}
+            />
+            <Text style={styles.avisoNegativo}>Gastaste más de lo que entró este mes</Text>
+          </View>
+        ) : null}
+
         {ingresos > 0 ? (
-          <View style={styles.filaIngresos}>
+          <View style={styles.filaLinea}>
             <MaterialCommunityIcons name="arrow-top-right" size={14} color={colors.exitoTexto} />
-            <Text style={styles.ingresos}>+{formatearMonto(ingresos)}</Text>
+            <Text style={styles.ingresos}>{oculto ? OCULTO : `+${formatearMonto(ingresos)}`}</Text>
             <Text style={styles.ingresosTexto}>este mes</Text>
           </View>
         ) : null}
@@ -85,6 +118,8 @@ export default function TarjetaSaldo({ saldo, ingresos = 0, onRegistrarIngreso }
     </View>
   );
 }
+
+const OCULTO = '••••••';
 
 const crearEstilos = (colors) =>
   StyleSheet.create({
@@ -128,15 +163,12 @@ const crearEstilos = (colors) =>
       fontSize: 22,
       color: colors.textSecondary,
     },
-    negativo: {
-      color: colors.alertaTexto,
-    },
     invitacion: {
       ...tipografia.bodyMd,
       color: colors.textSecondary,
     },
-    // «↗ +$X este mes» entre el saldo y la pastilla
-    filaIngresos: {
+    // Aviso de saldo negativo y «↗ +$X este mes», entre el saldo y la pastilla
+    filaLinea: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
@@ -147,6 +179,11 @@ const crearEstilos = (colors) =>
       fontSize: 14,
       lineHeight: 18,
       color: colors.exitoTexto,
+    },
+    avisoNegativo: {
+      ...tipografia.bodySm,
+      flexShrink: 1,
+      color: colors.textSecondary,
     },
     ingresosTexto: {
       ...tipografia.bodyMd,

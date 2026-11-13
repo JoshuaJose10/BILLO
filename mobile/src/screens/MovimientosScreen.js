@@ -6,9 +6,9 @@ import EncabezadoDia from '../components/EncabezadoDia';
 import EstadoPantalla from '../components/EstadoPantalla';
 import Etiqueta from '../components/Etiqueta';
 import FiltroCategorias from '../components/FiltroCategorias';
-import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizable';
+import { useFilasDeslizables } from '../components/FilaDeslizable';
+import FilaMovimiento from '../components/FilaMovimiento';
 import FondoDegradado from '../components/FondoDegradado';
-import ItemGasto from '../components/ItemGasto';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
 import SelectorMes from '../components/SelectorMes';
 import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/CategoriasContext';
@@ -26,7 +26,6 @@ import { agruparPorDia, claveMovimiento } from '../utils/movimientos';
 // Ingresos (HU-82): sin filtro de categoría, los del mes van mezclados por día con los gastos
 // (agruparPorDia); el total del mes y de cada día siguen sumando solo gastos. Con una categoría
 // elegida no se piden: son de otro tipo.
-const NO_EXISTE = { gasto: 'GASTO_NO_ENCONTRADO', ingreso: 'INGRESO_NO_ENCONTRADO' };
 
 export default function MovimientosScreen({ navigation }) {
   const alturaNavbar = useAlturaNavbar();
@@ -209,26 +208,15 @@ export default function MovimientosScreen({ navigation }) {
         )}
         renderItem={({ item }) => (
           <View style={atenuado}>
-            <FilaDeslizable
+            <FilaMovimiento
+              movimiento={item}
               filas={filas}
               onEditar={() => editar(item)}
-              eliminar={() => (item.tipo === 'ingreso' ? eliminarIngreso : eliminarGasto)(item.id)}
+              eliminar={item.tipo === 'ingreso' ? eliminarIngreso : eliminarGasto}
               onEliminado={() => eliminado(item)}
-              tituloEliminar={`¿Eliminar ${item.tipo}?`}
-              codigoNoExiste={NO_EXISTE[item.tipo]}
-              mensajeNoExiste={`Este ${item.tipo} ya no existe`}
-            >
-              {item.tipo === 'ingreso' ? (
-                <ItemGasto ingreso={item} opaca />
-              ) : (
-                <ItemGasto
-                  gasto={item}
-                  nombreCategoria={nombrePorId(item.categoria_id)}
-                  metodoPago={etiquetaMetodoPago(item.metodo_pago)}
-                  opaca
-                />
-              )}
-            </FilaDeslizable>
+              nombreCategoria={nombrePorId(item.categoria_id)}
+              metodoPago={etiquetaMetodoPago(item.metodo_pago)}
+            />
           </View>
         )}
         ItemSeparatorComponent={Separador}

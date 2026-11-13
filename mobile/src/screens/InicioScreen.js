@@ -5,9 +5,9 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import Avatar from '../components/Avatar';
 import EstadoPantalla from '../components/EstadoPantalla';
 import Etiqueta from '../components/Etiqueta';
-import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizable';
+import { useFilasDeslizables } from '../components/FilaDeslizable';
+import FilaMovimiento from '../components/FilaMovimiento';
 import FondoDegradado from '../components/FondoDegradado';
-import ItemGasto from '../components/ItemGasto';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
 import TarjetaCobrosSemana from '../components/TarjetaCobrosSemana';
 import TarjetaPresupuesto, { NOMBRE_ESTADO } from '../components/TarjetaPresupuesto';
@@ -28,7 +28,8 @@ import { cobrosDeLaSemana, semanaSinProximoCobro } from '../utils/cobrosSemana';
 import { useRecargar } from '../hooks/useRecargar';
 import { vistaPantalla } from '../utils/estadoCarga';
 import { mesActual } from '../utils/fechas';
-import { cargarDatosInicio, MOVIMIENTOS_RECIENTES } from '../utils/inicio';
+import { cargarDatosInicio, movimientosRecientes } from '../utils/inicio';
+import { claveMovimiento } from '../utils/movimientos';
 import { saldoDelMes, totalIngresos } from '../utils/ingresos';
 import { proximoCobro } from '../utils/membresias';
 import { presupuestosEnRiesgo, resumenPresupuestos } from '../utils/presupuestos';
@@ -54,7 +55,7 @@ export default function InicioScreen({ navigation }) {
   const alturaNavbar = useAlturaNavbar();
   const { usuario } = useAuth();
   const { listarGastos, eliminarGasto } = useGastosService();
-  const { listarIngresos } = useIngresosService();
+  const { listarIngresos, eliminarIngreso } = useIngresosService();
   const { listarPresupuestos } = usePresupuestosService();
   const { obtenerResumen } = useReportesService();
   const { listarMembresias } = useMembresiasService();
@@ -152,7 +153,11 @@ export default function InicioScreen({ navigation }) {
     [membresias, cobroProximo],
   );
   const enRiesgo = useMemo(() => presupuestosEnRiesgo(presupuestos), [presupuestos]);
-  const recientes = useMemo(() => gastosMes.slice(0, MOVIMIENTOS_RECIENTES), [gastosMes]);
+  const recientes = useMemo(
+    () => movimientosRecientes(gastosMes, ingresosMes),
+    [gastosMes, ingresosMes],
+  );
+  const movimientosMes = gastosMes.length + ingresosMes.length;
   const saldo = saldoDelMes(ingresosMes, resumen?.gasto_variable);
   const primerNombre = (usuario?.nombre || '').trim().split(' ')[0];
 
@@ -172,9 +177,12 @@ export default function InicioScreen({ navigation }) {
   // Filas deslizables: Editar abre la hoja en modo edición; al eliminar, la fila se quita al
   // momento y se recargan la lista y los totales.
   const filas = useFilasDeslizables();
-  const editarGasto = (gasto) => navigation.navigate('NuevoGasto', { gasto });
-  const gastoEliminado = (id) => {
-    setGastosMes((lista) => lista.filter((g) => g.id !== id));
+  const editar = (m) =>
+    navigation.navigate('NuevoGasto', m.tipo === 'ingreso' ? { ingreso: m } : { gasto: m });
+  const eliminado = (m) => {
+    const quitar = (lista) => lista.filter((x) => x.id !== m.id);
+    if (m.tipo === 'ingreso') setIngresosMes(quitar);
+    else setGastosMes(quitar);
     cargar();
   };
 
@@ -261,7 +269,7 @@ export default function InicioScreen({ navigation }) {
   // Si el mes tiene más gastos que los recientes, el pie enlaza a Movimientos.
   const pieInicio = (
     <View style={styles.panelPie}>
-      {gastosMes.length > recientes.length ? (
+      {movimientosMes > recientes.length ? (
         <Pressable
           onPress={() => navigation.navigate('Movimientos')}
           hitSlop={8}
@@ -269,7 +277,7 @@ export default function InicioScreen({ navigation }) {
           accessibilityHint="Abre Movimientos"
           style={styles.verTodos}
         >
-          <Text style={styles.enlace}>Ver los {gastosMes.length} movimientos del mes</Text>
+          <Text style={styles.enlace}>Ver los {movimientosMes} movimientos del mes</Text>
         </Pressable>
       ) : null}
     </View>
@@ -290,20 +298,17 @@ export default function InicioScreen({ navigation }) {
       <FondoDegradado />
       <FlatList
         data={recientes}
-        keyExtractor={(g) => String(g.id)}
+        keyExtractor={claveMovimiento}
         renderItem={({ item }) => (
           <View style={styles.panelFila}>
-            <FilaDeslizable
+            <FilaMovimiento
+              movimiento={item}
               filas={filas}
-              onEditar={() => editarGasto(item)}
-              eliminar={() => eliminarGasto(item.id)}
-              onEliminado={() => gastoEliminado(item.id)}
-              tituloEliminar="¿Eliminar gasto?"
-              codigoNoExiste="GASTO_NO_ENCONTRADO"
-              mensajeNoExiste="Este gasto ya no existe"
-            >
-              <ItemGasto gasto={item} nombreCategoria={nombrePorId(item.categoria_id)} opaca />
-            </FilaDeslizable>
+              onEditar={() => editar(item)}
+              eliminar={item.tipo === 'ingreso' ? eliminarIngreso : eliminarGasto}
+              onEliminado={() => eliminado(item)}
+              nombreCategoria={nombrePorId(item.categoria_id)}
+            />
           </View>
         )}
         ListHeaderComponent={
@@ -317,7 +322,7 @@ export default function InicioScreen({ navigation }) {
           <EstadoPantalla
             estado="vacio"
             icono="receipt-text-outline"
-            titulo="Sin gastos este mes"
+            titulo="Sin movimientos este mes"
             style={styles.panelFila}
           >
             <Pressable

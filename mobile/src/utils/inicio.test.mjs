@@ -2,7 +2,26 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { cargarDatosInicio } from './inicio.js';
+import { cargarDatosInicio, movimientosRecientes } from './inicio.js';
+
+describe('movimientosRecientes', () => {
+  const gasto = (id, fecha) => ({ id, fecha, monto: 10 });
+  const ingreso = (id, fecha) => ({ id, fecha, monto: 100 });
+
+  it('mezcla gastos e ingresos por fecha y se queda con los 5 más recientes', () => {
+    const gastos = [1, 2, 3, 4, 5].map((d) => gasto(d, `2026-11-0${d}`));
+    const ingresos = [ingreso(1, '2026-11-04'), ingreso(2, '2026-11-01')];
+    assert.deepEqual(
+      movimientosRecientes(gastos, ingresos).map((m) => `${m.tipo}-${m.fecha.slice(-2)}`),
+      ['gasto-05', 'ingreso-04', 'gasto-04', 'gasto-03', 'gasto-02'],
+    );
+  });
+
+  it('con pocos movimientos devuelve todos; sin ninguno, vacío', () => {
+    assert.equal(movimientosRecientes([gasto(1, '2026-11-01')], []).length, 1);
+    assert.deepEqual(movimientosRecientes([], []), []);
+  });
+});
 
 // Servicios falsos que cuentan las llamadas y responden cuando se les indica.
 function serviciosFalsos({ fallar = [] } = {}) {

@@ -10,17 +10,17 @@ const m = (id, nombre, costo, dias) => ({ id, nombre, costo, dias_para_cobro: di
 
 describe('diaDeCobro', () => {
   it('hoy, mañana o el día de la semana', () => {
-    assert.equal(diaDeCobro(0, HOY), 'hoy');
-    assert.equal(diaDeCobro(1, HOY), 'mañana');
-    assert.equal(diaDeCobro(2, HOY), 'jueves');
-    assert.equal(diaDeCobro(7, HOY), 'martes');
+    assert.equal(diaDeCobro(0, HOY), 'Hoy');
+    assert.equal(diaDeCobro(1, HOY), 'Mañana');
+    assert.equal(diaDeCobro(2, HOY), 'jue');
+    assert.equal(diaDeCobro(7, HOY), 'mar');
   });
 });
 
 describe('cobrosDeLaSemana', () => {
   it('con un cobro en 2 días aparece con nombre, monto y día', () => {
     const { cobros, total } = cobrosDeLaSemana([m(1, 'Netflix', 199, 2)], HOY);
-    assert.deepEqual(cobros, [{ id: 1, nombre: 'Netflix', costo: 199, dias: 2, dia: 'jueves' }]);
+    assert.deepEqual(cobros, [{ id: 1, nombre: 'Netflix', costo: 199, dias: 2, dia: 'jue' }]);
     assert.equal(total, 199);
   });
 

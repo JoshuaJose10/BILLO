@@ -1,9 +1,18 @@
 // Carga de Inicio (HU-39, RF6; HU-73; HU-82): exactamente 5 peticiones en paralelo por cada apertura
 // o foco.
-// Recibe los servicios para poder probarlo con node --test sin red. Sin imports.
+// Recibe los servicios para poder probarlo con node --test sin red. Sin imports de React Native.
 
-// Movimientos recientes que se muestran en Inicio (los primeros del mes; la API los ordena).
+import { agruparPorDia } from './movimientos.js';
+
+// Movimientos recientes que se muestran en Inicio.
 export const MOVIMIENTOS_RECIENTES = 5;
+
+// Los `n` movimientos más recientes del mes, gastos e ingresos mezclados (HU-82) en el mismo orden
+// que Movimientos (agruparPorDia), cada uno con su `tipo`.
+export const movimientosRecientes = (gastos, ingresos, n = MOVIMIENTOS_RECIENTES) =>
+  agruparPorDia(gastos, ingresos)
+    .flatMap((s) => s.data)
+    .slice(0, n);
 
 // { obtenerResumen, listarGastos, listarIngresos, listarPresupuestos, listarMembresias } →
 // { resumen, gastos, ingresos, presupuestos, membresias }.
