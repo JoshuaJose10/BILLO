@@ -16,6 +16,7 @@ import {
   estiloServicio,
   fechaCobroCiclo,
   obtenerMarcaServicio,
+  resumenPagosMembresia,
   textoCobro,
   validarMembresia,
 } from './membresias.js';
@@ -595,6 +596,45 @@ describe('utils/membresias', () => {
       assert.equal(fechaCobroCiclo(undefined), '');
       assert.equal(diasParaCobroCiclo(null), undefined);
       assert.equal(diasParaCobroCiclo(undefined), undefined);
+    });
+  });
+
+  describe('resumenPagosMembresia', () => {
+    test('devuelve totales en cero cuando la lista está vacía o no es un arreglo', () => {
+      assert.deepEqual(resumenPagosMembresia(), {
+        totalPagado: 0,
+        cantidad: 0,
+        recientes: [],
+      });
+      assert.deepEqual(resumenPagosMembresia(null), {
+        totalPagado: 0,
+        cantidad: 0,
+        recientes: [],
+      });
+    });
+
+    test('suma el total pagado y conserva el orden de hasta limite entradas', () => {
+      const pagos = [
+        { id: 3, fecha: '2026-11-12', monto: 199.33 },
+        { id: 2, fecha: '2026-10-12', monto: 199.33 },
+        { id: 1, fecha: '2026-09-12', monto: 199.34 },
+      ];
+      const resumen = resumenPagosMembresia(pagos, 2);
+      assert.equal(resumen.cantidad, 3);
+      assert.equal(resumen.totalPagado, 598);
+      assert.deepEqual(resumen.recientes, pagos.slice(0, 2));
+    });
+
+    test('redondea decimales con precisión de 2 dígitos e ignora montos inválidos', () => {
+      const pagos = [
+        { id: 1, fecha: '2026-11-01', monto: 10.1 },
+        { id: 2, fecha: '2026-11-02', monto: '20.2' },
+        { id: 3, fecha: '2026-11-03', monto: 'invalido' },
+      ];
+      const resumen = resumenPagosMembresia(pagos);
+      assert.equal(resumen.cantidad, 3);
+      assert.equal(resumen.totalPagado, 30.3);
+      assert.equal(resumen.recientes.length, 3);
     });
   });
 });

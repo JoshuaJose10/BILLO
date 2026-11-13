@@ -561,3 +561,17 @@ export function validarMembresia({ nombre, costoTexto, fechaCobro }) {
     costo: costoNumero,
   };
 }
+
+// Resume el historial de pagos de una suscripción para la línea de tiempo corta del detalle:
+// conserva el orden recibido (más reciente primero), limita a `limite` entradas y calcula el total pagado.
+export function resumenPagosMembresia(pagos = [], limite = 5) {
+  const lista = Array.isArray(pagos) ? pagos.filter((p) => p && typeof p === 'object') : [];
+  const totalPagado =
+    Math.round(lista.reduce((suma, p) => suma + (Number(p.monto) || 0), 0) * 100) / 100;
+  const maxItems = typeof limite === 'number' && limite > 0 ? limite : lista.length;
+  return {
+    totalPagado,
+    cantidad: lista.length,
+    recientes: lista.slice(0, maxItems),
+  };
+}

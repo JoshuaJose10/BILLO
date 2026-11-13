@@ -173,7 +173,12 @@ export function crearVinculoPush({
 // de la API ({ code, message, status }), de Expo (Error con `code`) o cualquier otro valor.
 export function describirFallo(etapa, error) {
   const code = error?.code ?? error?.name ?? 'ERROR';
-  const message = error?.message || (error?.status ? `HTTP ${error.status}` : String(error ?? ''));
+  const fallback = error?.status
+    ? `HTTP ${error.status}`
+    : typeof error === 'object' && error !== null
+      ? ''
+      : String(error ?? '');
+  const message = error?.message || fallback;
   return `[notificaciones] ${etapa}: ${code} ${message}`.trim();
 }
 

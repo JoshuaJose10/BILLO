@@ -38,7 +38,13 @@ import {
 import { mensajeError } from '../utils/errores';
 import { vistaLista } from '../utils/estadoCarga';
 import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
-import { formatearMonto, formatearMontoCorto, LOCALE, resumirTexto } from '../utils/formato';
+import {
+  fechaRelativa,
+  formatearMonto,
+  formatearMontoCorto,
+  LOCALE,
+  resumirTexto,
+} from '../utils/formato';
 import {
   detectarServicioRepetido,
   estiloServicio,
@@ -46,6 +52,7 @@ import {
   filtrarCatalogo,
   formatearDiaMes,
   inicialServicio,
+  resumenPagosMembresia,
   validarMembresia,
 } from '../utils/membresias';
 import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
@@ -93,6 +100,7 @@ export default function MembresiaScreen({ navigation, route }) {
     pausarMembresia,
     reactivarMembresia,
     marcarPagada,
+    listarPagos,
   } = useMembresiasService();
 
   const membresiaEditada = route.params?.membresia;
@@ -162,10 +170,42 @@ export default function MembresiaScreen({ navigation, route }) {
   const [eliminando, setEliminando] = useState(false);
   const [pausando, setPausando] = useState(false);
   const [marcandoPagada, setMarcandoPagada] = useState(false);
+  const [pagos, setPagos] = useState([]);
+  const [estadoPagos, setEstadoPagos] = useState(editando ? 'cargando' : 'listo');
+  const [errorPagos, setErrorPagos] = useState('');
+  const [intentoPagos, setIntentoPagos] = useState(0);
   const enviando = useRef(false);
   const hojaRef = useRef(null);
 
   const ocupado = guardando || eliminando || pausando || marcandoPagada;
+
+  useEffect(() => {
+    if (!editando || !membresiaEditada?.id) return;
+    let activo = true;
+    listarPagos(membresiaEditada.id)
+      .then((items) => {
+        if (!activo) return;
+        setPagos(items);
+        setEstadoPagos('listo');
+      })
+      .catch((error) => {
+        if (!activo) return;
+        setErrorPagos(mensajeError(error?.code, error?.message));
+        setEstadoPagos('error');
+      });
+
+    return () => {
+      activo = false;
+    };
+  }, [editando, membresiaEditada?.id, listarPagos, intentoPagos]);
+
+  const reintentarPagos = () => {
+    setErrorPagos('');
+    setEstadoPagos('cargando');
+    setIntentoPagos((n) => n + 1);
+  };
+
+  const resumenPagos = useMemo(() => resumenPagosMembresia(pagos, 5), [pagos]);
 
   // Cargar catálogo de servicios predefinidos si estamos agregando
   useEffect(() => {
@@ -451,182 +491,265 @@ export default function MembresiaScreen({ navigation, route }) {
       bloqueada={ocupado}
     >
       <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filaScroll}
-        contentContainerStyle={styles.filaChips}
+        style={styles.cuerpoScroll}
+        contentContainerStyle={styles.cuerpoContenido}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled
       >
-        <ChipSelector
-          icono="cash-multiple"
-          etiqueta={moneda}
-          chevron
-          onPress={() => setPanel('moneda')}
-          accessibilityLabel={`Moneda: ${moneda}`}
-        />
-        <ChipSelector
-          icono="card-text-outline"
-          etiqueta={nombreTexto}
-          onPress={() => setPanel('nombre')}
-          accessibilityLabel={nombre.trim() ? `Nombre: ${nombre.trim()}` : 'Escribir nombre'}
-        />
-        <ChipSelector
-          icono={frecuenciaActual.icono}
-          etiqueta={frecuenciaActual.etiqueta}
-          chevron
-          onPress={() => setPanel('frecuencia')}
-          accessibilityLabel={`Frecuencia de cobro: ${frecuenciaActual.etiqueta}`}
-        />
-        <ChipSelector
-          icono="calendar-blank-outline"
-          etiqueta={fechaTexto}
-          chevron
-          onPress={abrirFecha}
-          accessibilityLabel={`Próxima fecha de cobro: ${formatearDiaMes(fechaLocalISO(fecha))}`}
-        />
-      </ScrollView>
-      {errorFormulario ? <Text style={styles.errorCampo}>{errorFormulario}</Text> : null}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filaScroll}
+          contentContainerStyle={styles.filaChips}
+        >
+          <ChipSelector
+            icono="cash-multiple"
+            etiqueta={moneda}
+            chevron
+            onPress={() => setPanel('moneda')}
+            accessibilityLabel={`Moneda: ${moneda}`}
+          />
+          <ChipSelector
+            icono="card-text-outline"
+            etiqueta={nombreTexto}
+            onPress={() => setPanel('nombre')}
+            accessibilityLabel={nombre.trim() ? `Nombre: ${nombre.trim()}` : 'Escribir nombre'}
+          />
+          <ChipSelector
+            icono={frecuenciaActual.icono}
+            etiqueta={frecuenciaActual.etiqueta}
+            chevron
+            onPress={() => setPanel('frecuencia')}
+            accessibilityLabel={`Frecuencia de cobro: ${frecuenciaActual.etiqueta}`}
+          />
+          <ChipSelector
+            icono="calendar-blank-outline"
+            etiqueta={fechaTexto}
+            chevron
+            onPress={abrirFecha}
+            accessibilityLabel={`Próxima fecha de cobro: ${formatearDiaMes(fechaLocalISO(fecha))}`}
+          />
+        </ScrollView>
+        {errorFormulario ? <Text style={styles.errorCampo}>{errorFormulario}</Text> : null}
 
-      <View style={styles.zonaMonto}>
-        <MontoGrande
-          texto={texto}
-          error={!!errores.costo}
-          etiqueta={moneda === 'MXN' ? 'Costo' : `Costo en ${moneda}`}
-          moneda={moneda}
-        />
-        {cargandoTipoCambio ? (
-          <View style={styles.filaEquivalente}>
-            <ActivityIndicator size="small" color={colors.textSecondary} />
-            <Text style={styles.textoTasa}>Consultando tipo de cambio...</Text>
-          </View>
-        ) : tipoCambio && montoIngresado > 0 ? (
-          <View style={styles.filaEquivalente}>
-            <MaterialCommunityIcons name="swap-horizontal" size={16} color={colors.textSecondary} />
-            <Text style={styles.textoEquivalente}>≈ {formatearMonto(equivalenteMxn)} MXN</Text>
-            <Text style={styles.textoTasa}>
-              (1 {moneda} = ${tipoCambio.toFixed(4)} MXN)
-            </Text>
-          </View>
-        ) : tipoCambio ? (
-          <View style={styles.filaEquivalente}>
-            <Text style={styles.textoTasa}>
-              Tipo de cambio: 1 {moneda} = ${tipoCambio.toFixed(4)} MXN
-            </Text>
+        <View style={styles.zonaMonto}>
+          <MontoGrande
+            texto={texto}
+            error={!!errores.costo}
+            etiqueta={moneda === 'MXN' ? 'Costo' : `Costo en ${moneda}`}
+            moneda={moneda}
+          />
+          {cargandoTipoCambio ? (
+            <View style={styles.filaEquivalente}>
+              <ActivityIndicator size="small" color={colors.textSecondary} />
+              <Text style={styles.textoTasa}>Consultando tipo de cambio...</Text>
+            </View>
+          ) : tipoCambio && montoIngresado > 0 ? (
+            <View style={styles.filaEquivalente}>
+              <MaterialCommunityIcons
+                name="swap-horizontal"
+                size={16}
+                color={colors.textSecondary}
+              />
+              <Text style={styles.textoEquivalente}>≈ {formatearMonto(equivalenteMxn)} MXN</Text>
+              <Text style={styles.textoTasa}>
+                (1 {moneda} = ${tipoCambio.toFixed(4)} MXN)
+              </Text>
+            </View>
+          ) : tipoCambio ? (
+            <View style={styles.filaEquivalente}>
+              <Text style={styles.textoTasa}>
+                Tipo de cambio: 1 {moneda} = ${tipoCambio.toFixed(4)} MXN
+              </Text>
+            </View>
+          ) : null}
+        </View>
+        {avisoTipoCambio ? (
+          <View style={styles.avisoTipoCambioContenedor}>
+            <MaterialCommunityIcons name="information-outline" size={16} color={colors.alerta} />
+            <Text style={styles.avisoTipoCambioTexto}>{avisoTipoCambio}</Text>
           </View>
         ) : null}
-      </View>
-      {avisoTipoCambio ? (
-        <View style={styles.avisoTipoCambioContenedor}>
-          <MaterialCommunityIcons name="information-outline" size={16} color={colors.alerta} />
-          <Text style={styles.avisoTipoCambioTexto}>{avisoTipoCambio}</Text>
-        </View>
-      ) : null}
-      {errores.costo ? <Text style={styles.errorCampo}>{errores.costo}</Text> : null}
+        {errores.costo ? <Text style={styles.errorCampo}>{errores.costo}</Text> : null}
 
-      {/* Catálogo de servicios (solo al agregar), en el lugar de las categorías de Nuevo gasto */}
-      {!editando ? (
-        <View style={styles.zonaCatalogo}>
-          {vistaCatalogo !== 'lista' ? (
-            <EstadoPantalla
-              estado={vistaCatalogo}
-              error={errorCatalogo}
-              titulo={
-                vistaCatalogo === 'cargando'
-                  ? 'Cargando catálogo…'
-                  : 'No hay servicios en el catálogo'
-              }
-              onReintentar={reintentarCatalogo}
-              compacta
-            />
-          ) : (
-            <>
-              <Input
-                icono="magnify"
-                value={busqueda}
-                onChangeText={setBusqueda}
-                limpiable
-                placeholder="Buscar servicio o plan"
-                accessibilityLabel="Buscar en el catálogo"
-                returnKeyType="search"
-                onSubmitEditing={Keyboard.dismiss}
-                onFocus={() => setBuscando(true)}
-                onBlur={() => setBuscando(false)}
+        {/* Catálogo de servicios (solo al agregar), en el lugar de las categorías de Nuevo gasto */}
+        {!editando ? (
+          <View style={styles.zonaCatalogo}>
+            {vistaCatalogo !== 'lista' ? (
+              <EstadoPantalla
+                estado={vistaCatalogo}
+                error={errorCatalogo}
+                titulo={
+                  vistaCatalogo === 'cargando'
+                    ? 'Cargando catálogo…'
+                    : 'No hay servicios en el catálogo'
+                }
+                onReintentar={reintentarCatalogo}
+                compacta
               />
-              {catalogoFiltrado.length === 0 ? (
-                <Text style={styles.textoEstado} accessibilityLiveRegion="polite">
-                  Sin coincidencias
-                </Text>
-              ) : (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  keyboardShouldPersistTaps="handled"
-                  style={styles.filaScroll}
-                  contentContainerStyle={styles.filaCatalogo}
-                >
-                  {catalogoFiltrado.map((item) => (
-                    <ChipServicio
-                      key={item.id}
-                      servicio={item}
-                      seleccionado={servicioId === item.id}
-                      onPress={() => seleccionarDelCatalogo(item)}
-                    />
-                  ))}
-                </ScrollView>
-              )}
-            </>
-          )}
-        </View>
-      ) : null}
-
-      {buscando ? (
-        // El teclado del sistema ocupa el lugar del numérico: la hoja sube por encima de él.
-        <View style={{ height: Math.max(0, alturaTeclado - insets.bottom - 12) }} />
-      ) : (
-        <>
-          <View style={styles.zonaTeclado}>
-            <TecladoNumerico onTecla={alPulsarTecla} disabled={ocupado} />
+            ) : (
+              <>
+                <Input
+                  icono="magnify"
+                  value={busqueda}
+                  onChangeText={setBusqueda}
+                  limpiable
+                  placeholder="Buscar servicio o plan"
+                  accessibilityLabel="Buscar en el catálogo"
+                  returnKeyType="search"
+                  onSubmitEditing={Keyboard.dismiss}
+                  onFocus={() => setBuscando(true)}
+                  onBlur={() => setBuscando(false)}
+                />
+                {catalogoFiltrado.length === 0 ? (
+                  <Text style={styles.textoEstado} accessibilityLiveRegion="polite">
+                    Sin coincidencias
+                  </Text>
+                ) : (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    style={styles.filaScroll}
+                    contentContainerStyle={styles.filaCatalogo}
+                  >
+                    {catalogoFiltrado.map((item) => (
+                      <ChipServicio
+                        key={item.id}
+                        servicio={item}
+                        seleccionado={servicioId === item.id}
+                        onPress={() => seleccionarDelCatalogo(item)}
+                      />
+                    ))}
+                  </ScrollView>
+                )}
+              </>
+            )}
           </View>
+        ) : null}
 
-          {errorApi ? <Text style={styles.errorApi}>{errorApi}</Text> : null}
-          <Boton
-            titulo={editando ? 'Guardar cambios' : 'Guardar suscripción'}
-            icono="check"
-            onPress={() => guardar()}
-            cargando={guardando}
-            disabled={ocupado}
-            compacto
-          />
-        </>
-      )}
-      {editando ? (
-        <View style={styles.zonaEliminar}>
-          <Boton
-            titulo={estaPausada ? 'Reactivar suscripción' : 'Pausar suscripción'}
-            icono={estaPausada ? 'play-circle-outline' : 'pause-circle-outline'}
-            secundario
-            onPress={alternarPausar}
-            cargando={pausando}
-            disabled={ocupado}
-          />
-          <Boton
-            titulo="Marcar como pagada"
-            icono="check-circle-outline"
-            onPress={confirmarMarcarPagada}
-            cargando={marcandoPagada}
-            disabled={ocupado}
-            secundario
-            compacto
-          />
-          <Boton
-            titulo="Eliminar suscripción"
-            icono="trash-can-outline"
-            destructivo
-            onPress={confirmarEliminar}
-            cargando={eliminando}
-            disabled={ocupado}
-          />
-        </View>
-      ) : null}
+        {buscando ? (
+          // El teclado del sistema ocupa el lugar del numérico: la hoja sube por encima de él.
+          <View style={{ height: Math.max(0, alturaTeclado - insets.bottom - 12) }} />
+        ) : (
+          <>
+            <View style={styles.zonaTeclado}>
+              <TecladoNumerico onTecla={alPulsarTecla} disabled={ocupado} />
+            </View>
+
+            {errorApi ? <Text style={styles.errorApi}>{errorApi}</Text> : null}
+            <Boton
+              titulo={editando ? 'Guardar cambios' : 'Guardar suscripción'}
+              icono="check"
+              onPress={() => guardar()}
+              cargando={guardando}
+              disabled={ocupado}
+              compacto
+            />
+          </>
+        )}
+        {editando && !buscando ? (
+          <View style={styles.zonaHistorial}>
+            <View style={styles.historialEncabezado}>
+              <Text style={styles.historialTitulo}>Historial de pagos</Text>
+              {estadoPagos === 'listo' && resumenPagos.cantidad > 0 ? (
+                <Text style={styles.historialTotal}>
+                  Total {formatearMonto(resumenPagos.totalPagado)}
+                </Text>
+              ) : null}
+            </View>
+
+            {estadoPagos === 'cargando' ? (
+              <View style={styles.estadoCatalogo}>
+                <ActivityIndicator size="small" color={colors.textSecondary} />
+                <Text style={styles.textoEstado}>Cargando pagos…</Text>
+              </View>
+            ) : null}
+
+            {estadoPagos === 'error' ? (
+              <Pressable
+                onPress={reintentarPagos}
+                style={styles.estadoCatalogo}
+                accessibilityRole="button"
+                accessibilityLabel="Reintentar carga de historial de pagos"
+              >
+                <Text style={[styles.textoEstado, styles.textoEstadoFlexible]}>
+                  {errorPagos || 'No se pudo cargar el historial. Toca para reintentar'}
+                </Text>
+                <Text style={styles.historialReintentar}>Reintentar</Text>
+              </Pressable>
+            ) : null}
+
+            {estadoPagos === 'listo' && resumenPagos.cantidad === 0 ? (
+              <Text style={styles.textoEstado}>Aún no hay pagos registrados</Text>
+            ) : null}
+
+            {estadoPagos === 'listo' && resumenPagos.recientes.length > 0 ? (
+              <View style={styles.timelineLista}>
+                {resumenPagos.recientes.map((pago, indice) => {
+                  const esUltimo = indice === resumenPagos.recientes.length - 1;
+                  return (
+                    <View key={pago.id} style={styles.timelineFila}>
+                      <View style={styles.timelineEje}>
+                        <View
+                          style={[
+                            styles.timelinePunto,
+                            indice === 0 ? styles.timelinePuntoReciente : null,
+                          ]}
+                        />
+                        {!esUltimo ? <View style={styles.timelineLinea} /> : null}
+                      </View>
+                      <View
+                        style={[
+                          styles.timelineContenido,
+                          !esUltimo ? styles.timelineContenidoEspacio : null,
+                        ]}
+                      >
+                        <Text style={styles.timelineFecha}>{fechaRelativa(pago.fecha)}</Text>
+                        <Text style={styles.timelineMonto}>{formatearMonto(pago.monto)}</Text>
+                      </View>
+                    </View>
+                  );
+                })}
+                {resumenPagos.cantidad > resumenPagos.recientes.length ? (
+                  <Text style={styles.timelineMas}>
+                    +{resumenPagos.cantidad - resumenPagos.recientes.length} pagos anteriores
+                  </Text>
+                ) : null}
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+        {editando ? (
+          <View style={styles.zonaEliminar}>
+            <Boton
+              titulo={estaPausada ? 'Reactivar suscripción' : 'Pausar suscripción'}
+              icono={estaPausada ? 'play-circle-outline' : 'pause-circle-outline'}
+              secundario
+              onPress={alternarPausar}
+              cargando={pausando}
+              disabled={ocupado}
+            />
+            <Boton
+              titulo="Marcar como pagada"
+              icono="check-circle-outline"
+              onPress={confirmarMarcarPagada}
+              cargando={marcandoPagada}
+              disabled={ocupado}
+              secundario
+              compacto
+            />
+            <Boton
+              titulo="Eliminar suscripción"
+              icono="trash-can-outline"
+              destructivo
+              onPress={confirmarEliminar}
+              cargando={eliminando}
+              disabled={ocupado}
+            />
+          </View>
+        ) : null}
+      </ScrollView>
 
       {panel === 'nombre' ? (
         <PanelHoja titulo="Nombre del servicio" onCerrar={() => setPanel(null)}>
@@ -782,9 +905,17 @@ const crearEstilos = (colors) =>
       justifyContent: 'center',
       marginBottom: espacios.sm,
     },
+    estadoCatalogo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
     textoEstado: {
       ...tipografia.bodyMd,
       color: colors.textSecondary,
+    },
+    textoEstadoFlexible: {
+      flex: 1,
     },
     errorCampo: {
       ...tipografia.bodySm,
@@ -935,5 +1066,94 @@ const crearEstilos = (colors) =>
       fontFamily: fonts.sans,
       fontSize: 12,
       color: colors.textSecondary,
+    },
+    zonaHistorial: {
+      marginTop: 14,
+      padding: 12,
+      borderRadius: radios.lg,
+      backgroundColor: colors.surfaceLow,
+      borderWidth: 1,
+      borderColor: colors.border,
+      gap: 10,
+    },
+    historialEncabezado: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 8,
+    },
+    historialTitulo: {
+      ...tipografia.labelCaps,
+      color: colors.textSecondary,
+    },
+    historialTotal: {
+      ...tipografia.bodySm,
+      fontFamily: fonts.monoMedium,
+      color: colors.exitoTexto,
+    },
+    historialReintentar: {
+      ...tipografia.labelPill,
+      color: colors.acento,
+    },
+    timelineLista: {
+      gap: 0,
+    },
+    timelineFila: {
+      flexDirection: 'row',
+      alignItems: 'stretch',
+      gap: 10,
+    },
+    timelineEje: {
+      width: 12,
+      alignItems: 'center',
+    },
+    timelinePunto: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      marginTop: 5,
+      backgroundColor: colors.borderStrong,
+    },
+    timelinePuntoReciente: {
+      backgroundColor: colors.exito,
+    },
+    timelineLinea: {
+      width: 1.5,
+      flex: 1,
+      minHeight: 14,
+      marginTop: 3,
+      backgroundColor: colors.border,
+    },
+    timelineContenido: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    timelineContenidoEspacio: {
+      paddingBottom: 10,
+    },
+    timelineFecha: {
+      ...tipografia.bodyMd,
+      color: colors.textSecondary,
+    },
+    timelineMonto: {
+      ...tipografia.bodyMd,
+      fontFamily: fonts.monoMedium,
+      color: colors.text,
+    },
+    timelineMas: {
+      ...tipografia.bodySm,
+      color: colors.textSecondary,
+      marginTop: 4,
+    },
+    cuerpoScroll: {
+      flexGrow: 0,
+      flexShrink: 1,
+      marginHorizontal: -espacios.margen,
+    },
+    cuerpoContenido: {
+      paddingHorizontal: espacios.margen,
+      paddingBottom: 6,
     },
   });
