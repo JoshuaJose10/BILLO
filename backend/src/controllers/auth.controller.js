@@ -66,9 +66,9 @@ const register = async (req, res) => {
 
     // 4. Insertar en la base de datos de forma segura (parametrizada)
     const insertQuery = `
-      INSERT INTO usuarios (nombre, email, password_hash)
-      VALUES ($1, $2, $3)
-      RETURNING id, nombre, email, rol
+      INSERT INTO usuarios (nombre, email, password_hash, categorias_configuradas)
+      VALUES ($1, $2, $3, FALSE)
+      RETURNING id, nombre, email, rol, categorias_configuradas
     `;
     const result = await pool.query(insertQuery, [
       nombre,
@@ -91,6 +91,7 @@ const register = async (req, res) => {
         id: newUser.id,
         nombre: newUser.nombre,
         email: newUser.email,
+        categorias_configuradas: Boolean(newUser.categorias_configuradas),
       },
       token,
     });
@@ -128,7 +129,7 @@ const login = async (req, res) => {
 
     // 1. Buscar al usuario por correo
     const query =
-      'SELECT id, nombre, email, password_hash, rol FROM usuarios WHERE LOWER(email) = $1';
+      'SELECT id, nombre, email, password_hash, rol, categorias_configuradas FROM usuarios WHERE LOWER(email) = $1';
     const result = await pool.query(query, [email.trim().toLowerCase()]);
 
     const user = result.rows[0];
@@ -168,6 +169,7 @@ const login = async (req, res) => {
         nombre: user.nombre,
         email: user.email,
         rol: user.rol,
+        categorias_configuradas: Boolean(user.categorias_configuradas),
       },
       token,
     });

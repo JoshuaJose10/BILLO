@@ -22,7 +22,7 @@ function add(group, name, method, route, status, body, checks = [], save = [], t
     header: body === undefined ? [] : [{ key: 'Content-Type', value: 'application/json' }],
   };
   if (body !== undefined) request.body = {
-    mode: 'raw', raw: JSON.stringify(body, null, 2).replace(/"\{\{(categoriaId|otraCategoria)\}\}"/g, '{{$1}}'),
+    mode: 'raw', raw: JSON.stringify(body, null, 2).replace(/"\{\{(categoriaId|otraCategoria|predefinidasIds)\}\}"/g, '{{$1}}'),
     options: { raw: { language: 'json' } },
   };
   const item = { name, request, event: [script('test', [
@@ -61,8 +61,16 @@ for (const user of ['A', 'B']) {
   if (user === 'A') item.event.unshift(script('prerequest', [
     "const run = pm.variables.replaceIn('{{$guid}}').replace(/-/g,'');",
     "pm.collectionVariables.set('qaRun',run); pm.collectionVariables.set('qaPassword','Qa!'+run);",
-    "['qaTokenA','qaTokenB','categoriaId','otraCategoria','presupuestoId','gastoId','propioA','gastoPropioA'].forEach(k => pm.collectionVariables.unset(k));",
+    "['qaTokenA','qaTokenB','predefinidasIds','categoriaId','otraCategoria','presupuestoId','gastoId','propioA','gastoPropioA'].forEach(k => pm.collectionVariables.unset(k));",
   ]));
+}
+add(prep, 'PREP-PREDEFINIDAS', 'GET', '/categorias/predefinidas', 200, undefined, [
+  ['Catálogo de predefinidas', "pm.expect(body.categorias).to.be.an('array'); pm.expect(body.categorias.length).to.be.at.least(2);"],
+], ["if(Array.isArray(body?.categorias)) pm.collectionVariables.set('predefinidasIds', JSON.stringify(body.categorias.map(c=>c.id)));"]);
+for (const user of ['A', 'B']) {
+  add(prep, `PREP-SELECCION-${user}`, 'PUT', '/categorias/seleccion', 200, { categoria_ids: '{{predefinidasIds}}' }, [
+    ['Categorías configuradas', 'pm.expect(body.categorias_configuradas).to.equal(true);'],
+  ], [], `qaToken${user}`);
 }
 add(prep, 'PREP-CATEGORIAS', 'GET', '/categorias', 200, undefined, [
   ['Dos categorías disponibles', "pm.expect(body).to.be.an('array'); pm.expect(body.length).to.be.at.least(2);"],
