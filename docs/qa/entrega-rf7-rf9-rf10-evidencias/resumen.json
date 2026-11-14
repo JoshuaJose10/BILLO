@@ -1,0 +1,70 @@
+{
+  "fecha_local": "2026-11-12",
+  "zona_horaria": "America/Mexico_City",
+  "ejecutor_automatico": "Codex",
+  "rama": "develop",
+  "commit": "0b84c0bb8b02fd850930abd8b446858e25227235",
+  "sistema": "Windows",
+  "node": "v22.15.0",
+  "npm": "10.9.2",
+  "resultados": {
+    "backend": {
+      "comando": "npm test",
+      "directorio": "backend",
+      "codigo_salida": 0,
+      "evidencia": "backend.tap",
+      "tests": 404,
+      "suites": 17,
+      "pass": 404,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "mobile": {
+      "comando": "npm test",
+      "directorio": "mobile",
+      "codigo_salida": 0,
+      "evidencia": "mobile.tap",
+      "tests": 366,
+      "suites": 90,
+      "pass": 366,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "apk_hu53": {
+    "ejecutado": false,
+    "sha256": null,
+    "commit_origen": null,
+    "dispositivo": null,
+    "motivo": "Sin Android fisico; confirmado por el usuario y lista ADB vacia"
+  },
+  "casos_apk": {
+    "objetivo": 15,
+    "regresion": 24,
+    "pasa": 0,
+    "falla": 0,
+    "bloqueado": 39
+  },
+  "decisiones": {
+    "RF7": "NO APROBADO",
+    "RF9": "NO APROBADO",
+    "RF10": "NO APROBADO"
+  },
+  "comunicacion_externa": {
+    "enviada": false,
+    "motivo": "No hay integracion ClickUp disponible en la busqueda; canal y destinatario pendientes"
+  },
+  "comprobacion_adicional": {
+    "caso": "CP-RF9-01",
+    "alcance": "API local, no APK",
+    "resultado": "Falla",
+    "status": 404,
+    "bug": "ENT-RF9-01",
+    "evidencia": "CP-RF9-01-api.json",
+    "base_temporal_eliminada": true
+  }
+}

@@ -59,13 +59,17 @@ repite voz, widget y reinicio en SDK 58 siguiendo la
 
 ### Notificaciones push (HU-47, RF7)
 
-`expo-notifications` necesita Firebase Cloud Messaging en Android. **Paso pendiente:**
-quien administre el proyecto de Firebase genera `google-services.json` para la app
-`com.billo.app`, lo coloca en `mobile/` y agrega a `app.json`
-`"android": { "googleServicesFile": "./google-services.json" }` antes del build.
-Sin ese archivo la app funciona igual, solo que no obtiene token push.
+`expo-notifications` necesita Firebase Cloud Messaging en Android. `app.config.js`
+usa el archivo indicado por `GOOGLE_SERVICES_JSON` en EAS, o
+`mobile/google-services.json` si existe localmente. Además hace falta la credencial
+FCM V1 en EAS; consultar la sección Firebase al final de este documento.
+Sin esa configuración no se puede validar la recepción push de RF7.
 
 ## APK de entrega (HU-53)
+
+Para generar y compartir una nueva versión, seguir la
+[guía de release Android](../docs/release-android.md). La configuración local
+prepara la versión **1.0.1**; no significa que ya exista un APK publicado.
 
 El perfil `release` de `eas.json` genera un APK instalable que ya apunta a la API en línea
 (`EXPO_PUBLIC_API_URL=https://billo-api-v30t.onrender.com`, ver «API en línea» en el README de la raíz). No usa

@@ -34,7 +34,7 @@ Las pruebas unitarias y HTTP no aprueban por sí solas la navegación ni los mó
 |---|---|---|
 | 1 | "Se acerque al presupuesto" (RF4) significa llegar al 80 % del presupuesto. | La propuesta no define el porcentaje. |
 | 2 | Las "pantallas principales" (RNF2) son inicio, lista de gastos, presupuestos, membresías y gráficas. | La propuesta no las enumera. |
-| 3 | La notificación de RF7 se envía 3 días antes del cobro (límite superior del rango). | La propuesta indica entre uno y tres días. |
+| 3 | Para esta entrega se prueba el aviso a 2 y 3 días del cobro; a 10 días no se envía y una segunda ejecución del mismo día no lo repite. | La propuesta indica entre uno y tres días; HU-46 implementa una ventana de 0 a 3 días y deduplicación diaria. Joshua debe confirmar el alcance, incluido el día del cobro y los avisos en días distintos. |
 
 ## 5. Casos de prueba: requisitos funcionales
 
@@ -65,13 +65,20 @@ Las pruebas unitarias y HTTP no aprueban por sí solas la navegación ni los mó
 | CP-RF7-01 | RF7. Notificación de cobro | Membresía "Netflix" con cobro dentro de 3 días y notificaciones permitidas en el dispositivo. | 1) Esperar o simular la ejecución del aviso a 3 días del cobro | El dispositivo recibe una notificación push con el nombre de la membresía y la fecha de cobro. | Positivo | Alta |
 | CP-RF7-02 | RF7. Notificación de cobro | Membresía con cobro dentro de 10 días. | 1) Simular la ejecución del aviso hoy | No se envía ninguna notificación todavía. | Negativo | Media |
 | CP-RF7-03 | RF7. Notificación de cobro | Membresía "Netflix" que se eliminó ayer, con cobro dentro de 3 días. | 1) Simular la ejecución del aviso | No se envía notificación de una membresía eliminada. | Negativo | Media |
+| CP-RF7-04 | RF7. Aviso a 2 días | Android físico con APK HU-53, permiso y token push registrados; membresía activa Netflix de $199, cobro D+2, sin aviso en D. | 1) Registrar fecha D y estado inicial 2) Dejar la app en segundo plano 3) Ejecutar el proceso de avisos con referencia D 4) Abrir la bandeja y tocar el aviso | Llega un aviso con Netflix, 2 días y $199; se abre Cartera → Suscripciones y se guarda `ultima_notificacion = D`. Un ticket de Expo por sí solo no acredita recepción. | Positivo | Alta |
+| CP-RF7-05 | RF7. Aviso repetido | CP-RF7-04 pasó; misma membresía, token y fecha D, sin restablecer `ultima_notificacion`. | 1) Conservar la evidencia del primer envío 2) Ejecutar de nuevo el proceso con D 3) Revisar bandeja, contadores y BD | No hay segundo envío ni segundo aviso; `enviadas = 0`, `yaNotificadas = 1` en datos aislados; la marca sigue siendo D. | Negativo | Alta |
+| CP-RF7-06 | RF7. Usuario sin token push | Cuenta QA A con `expo_push_token = NULL` y membresía activa a D+2; cuenta de control B con token válido y otro cobro a D+2; sin avisos previos en D. | 1) Ejecutar el proceso con D 2) Consultar contadores y marcas 3) Usar la app de A 4) Comprobar recepción en B | A no recibe aviso ni queda marcada como notificada; `sinToken = 1`; el proceso continúa y B recibe su aviso. La app de A funciona sin cierre ni error bloqueante. Se trata del token push, no del JWT. | Negativo | Alta |
 | CP-RF8-01 | RF8. Gráficas por categoría | Gastos del mes en Comida $600, Transporte $300 y Ocio $100. | 1) Abrir Reportes y elegir Gráfica por categoría | La gráfica muestra tres categorías con proporciones 60 %, 30 % y 10 %. | Positivo | Media |
 | CP-RF8-02 | RF8. Gráficas por categoría | Usuario nuevo sin gastos. | 1) Abrir Reportes y elegir Gráfica por categoría | Se muestra un mensaje de que no hay datos, sin errores ni gráfica vacía rota. | Negativo | Baja |
 | CP-RF9-01 | RF9. Catálogo del Administrador | Sesión iniciada como Administrador. | 1) Abrir Catálogo 2) Agregar la categoría "Mascotas" 3) Guardar | La categoría aparece en el catálogo y está disponible para los usuarios. | Positivo | Media |
 | CP-RF9-02 | RF9. Catálogo del Administrador | Sesión iniciada como Usuario registrado (no Administrador). | 1) Intentar abrir Catálogo o llamar al endpoint de administración | Acceso denegado (error 403) y no se modifica el catálogo. | Negativo | Alta |
+| CP-RF9-03 | RF9. Servicios como administrador | APK HU-53, cuentas QA admin y normal; nombre de servicio `QA Entrega` libre. | 1) Como admin abrir Perfil → Administrar catálogo 2) Crear `QA Entrega` con costo 99 3) Editar costo a 109 4) Como usuario normal consultar el catálogo al agregar una suscripción 5) Como admin eliminar el servicio sin membresías y volver a consultar como usuario | Alta, edición y baja persisten y son visibles al otro usuario al recargar; API 201, 200 y 200. El usuario normal puede consultar, pero POST/PUT/DELETE responden 403 `PROHIBIDO` y dejan el catálogo intacto (CP-RF9-02). | Positivo | Alta |
+| CP-RF9-04 | RF9. Servicio en uso | Admin QA y usuario normal con una membresía que referencia el servicio QA mediante `servicio_id`; registrar costo, fecha y totales iniciales. | 1) Como admin intentar eliminar el servicio y confirmar 2) Revisar respuesta y mensaje 3) Recargar catálogo y membresía del usuario | HTTP 409 `SERVICIO_EN_USO`, mensaje comprensible y sin eliminación. Servicio, membresía y totales se conservan. | Negativo | Alta |
 | CP-RF10-01 | RF10. Modo de exploración | La app está instalada y no hay sesión iniciada. | 1) Pulsar Explorar sin cuenta 2) Navegar por gastos, membresías y gráficas | Se muestran datos de ejemplo en todas las pantallas sin pedir registro. | Positivo | Media |
-| CP-RF10-02 | RF10. Modo de exploración | Visitante en modo exploración. | 1) Intentar registrar un gasto nuevo | La app invita a crear una cuenta y no guarda datos reales del visitante. | Negativo | Media |
+| CP-RF10-02 | RF10. Modo de exploración | Visitante en modo exploración; registrar los datos de ejemplo iniciales. | 1) Intentar registrar un gasto nuevo 2) Repetir al crear, editar y eliminar gastos, presupuestos y membresías 3) Elegir Seguir explorando 4) Volver a consultar los datos | Cada acción ofrece crear cuenta; no guarda ni cambia datos reales o de ejemplo ni envía escrituras a la API; Seguir explorando conserva la navegación. Registrar evidencia de cada variante. | Negativo | Media |
 | CP-RF10-03 | RF10. Modo de exploración | La app está instalada y no hay sesión iniciada. | 1) Abrir la app por primera vez 2) Encontrar el botón Explorar sin cuenta | Un visitante lo encuentra en la primera pantalla, sin instrucciones y en máximo 2 toques. | Usabilidad | Baja |
+| CP-RF10-04 | RF10. Visitante sin red | APK HU-53 instalado, sin sesión, Wi-Fi y datos móviles apagados; iniciar la app desde cerrada. | 1) Pulsar Explorar sin cuenta 2) Recorrer Inicio, Movimientos, Cartera y Reportes 3) Cambiar mes y categoría 4) Revisar tráfico y capturar estado de conectividad | Se ven datos locales de ejemplo y cálculos coherentes sin conexión, sin solicitudes de red de Billo ni mensajes de error o cierres. No se requiere Metro ni haber precargado la demo. | Positivo | Alta |
+| CP-RF10-05 | RF10. Crear cuenta desde visitante | Visitante en APK HU-53, red restablecida y correo QA nuevo. | 1) Intentar guardar 2) Elegir Crear cuenta 3) Completar registro 4) Consultar Inicio, gastos, membresías y presupuestos 5) Guardar un gasto real de $80.50 6) Cerrar sesión y entrar de nuevo | Abre Registro, sale de visitante y habilita API; cuenta nueva sin datos demo, gasto real persistido y visible tras reingresar. Cancelar la invitación se cubre en CP-RF10-02. | Positivo | Alta |
 
 ## 6. Casos de prueba: requisitos no funcionales
 
@@ -95,18 +102,50 @@ Las pruebas unitarias y HTTP no aprueban por sí solas la navegación ni los mó
 | RF4 | 7 | 5 | 2 | 0 |
 | RF5 | 4 | 2 | 2 | 0 |
 | RF6 | 2 | 1 | 1 | 0 |
-| RF7 | 3 | 1 | 2 | 0 |
+| RF7 | 6 | 2 | 4 | 0 |
 | RF8 | 2 | 1 | 1 | 0 |
-| RF9 | 2 | 1 | 1 | 0 |
-| RF10 | 3 | 1 | 1 | 1 |
+| RF9 | 4 | 2 | 2 | 0 |
+| RF10 | 5 | 3 | 1 | 1 |
 | RNF1 | 2 | 2 | 0 | 0 |
 | RNF2 | 2 | 2 | 0 | 0 |
 | RNF3 | 2 | 1 | 1 | 0 |
 | RNF4 | 1 | 1 | 0 | 0 |
-| **Total** | **39** | **22** | **16** | **1** |
+| **Total** | **46** | **26** | **19** | **1** |
 
 La ejecución API de RF3/RF4 y sus casos adicionales de aislamiento se documentan
 en [QA presupuestos](qa/presupuestos-reporte.md). Los sufijos `POST`, `PUT`,
 `GET`, `L7999`, `L8000`, `L10000` y `L10001` distinguen variantes del mismo caso.
 Se verifica el estado con montos exactos; la API actual presenta `porcentaje`
 como entero redondeado. Los casos HTTP no sustituyen la verificación visual en dispositivo.
+
+## 8. Entrega RF7, RF9 y RF10 sobre HU-53
+
+El [reporte de entrega](qa/entrega-rf7-rf9-rf10-reporte.md) registra los 15 casos
+de RF7/RF9/RF10 y los 24 de regresión de RF1–RF6 y RF8, con resultado, evidencia
+y decisión. La [lista de requisitos](lista-requisitos.md) conserva la aprobación
+histórica y separa el dictamen de esta entrega.
+
+Usar el APK identificado en HU-53, no Expo Go ni una exportación web. Registrar
+URL de descarga, SHA-256, versión instalada, commit de origen (si se conoce),
+API, SDK del APK, modelo, Android, ejecutor y fecha local. El commit de este
+checkout no demuestra qué código contiene el APK.
+
+Para RF7 preparar datos aislados en un backend QA compatible con el APK y
+ejecutar el job de forma controlada, sin esperar días ni cambiar el reloj del
+teléfono. Registrar D, zona horaria y fechas absolutas D+2/D+3/D+10. La referencia
+del job no cambia el entorno de la app. Usar un solo planificador durante la
+prueba para evitar envíos ajenos a la corrida; guardar estado anterior/posterior
+de `ultima_notificacion`, resumen del job y recepción en el teléfono. Para el
+caso a 10 días comprobar también cero envíos en el job: no basta con que el
+teléfono no muestre nada. Para el aviso eliminado verificar ausencia en BD y
+cero envíos. Si no se puede aislar o ejecutar el job, registrar Bloqueado.
+
+Conservar CP-RF9-01 (alta de categoría Mascotas) como caso independiente del CRUD
+de servicios: no se aprueba mediante CP-RF9-03. Registrar cualquier diferencia
+de alcance con Joshua y cualquier defecto reproducido con la plantilla.
+
+Solo marcar Pasa/Falla tras ejecutar y adjuntar evidencia; Bloqueado no cuenta
+como ninguno. Cada falla lleva una ficha en `docs/qa/bugs/` y aviso al responsable
+el mismo día (America/Mexico_City), registrando enlace, destinatario y hora.
+Reutilizar bugs existentes. No aprobar un RF con casos sin ejecutar o sin
+evidencia, ni con bugs críticos/altos abiertos; aplicar los criterios de calidad.

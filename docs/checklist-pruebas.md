@@ -4,6 +4,11 @@ Fuente: [plan de pruebas](plan-de-pruebas.md), sección 5. Se conservan sus IDs,
 
 ## Uso diario
 
+Para la entrega RF7/RF9/RF10 sobre el APK HU-53, usar el
+[reporte de entrega y regresión](qa/entrega-rf7-rf9-rf10-reporte.md) y la
+[lista de requisitos](lista-requisitos.md). Esa corrida incluye los casos nuevos
+del plan y conserva separados los resultados históricos de este checklist.
+
 Para la migración de plataforma, usar además el [checklist SDK 58](qa/sdk58-migracion.md).
 Anotar SDK de Expo, versión de Expo Go o identificador del development build,
 versión de Node y commit. Los resultados ya registrados abajo pertenecen a su

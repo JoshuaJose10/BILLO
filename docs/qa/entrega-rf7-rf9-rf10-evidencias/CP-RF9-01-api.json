@@ -1,0 +1,30 @@
+{
+  "fecha": "2026-11-12",
+  "zona": "America/Mexico_City",
+  "caso": "CP-RF9-01",
+  "alcance": "API local, no APK",
+  "rol": "admin",
+  "peticion": {
+    "metodo": "POST",
+    "ruta": "/categorias",
+    "body": {
+      "nombre": "Mascotas",
+      "tipo": "gasto",
+      "es_predefinida": true
+    }
+  },
+  "esperado": "Categoria Mascotas creada y disponible para usuarios, segun CP-RF9-01; el plan no fija un HTTP de alta",
+  "obtenido": {
+    "status": 404,
+    "body": {
+      "error": {
+        "code": "RUTA_NO_ENCONTRADA",
+        "message": "La ruta solicitada no existe"
+      }
+    },
+    "categoria_creada": false,
+    "catalogo_sin_cambios": true
+  },
+  "resultado": "Falla en alcance API",
+  "base_temporal_eliminada": true
+}

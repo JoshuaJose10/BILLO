@@ -44,6 +44,10 @@ temas y bundles de Android/iOS. Consulta la [guía de migración y validación](
 
 Estado de implementación de RF2–RF8, evidencia del código y pendientes: [reporte de cobertura del repositorio](docs/qa/prototipo-reporte.md).
 
+Validación de entrega RF7/RF9/RF10 y regresión RF1–RF6/RF8:
+[reporte QA del APK HU-53](docs/qa/entrega-rf7-rf9-rf10-reporte.md) y
+[lista de requisitos](docs/lista-requisitos.md).
+
 ## Instalación del backend
 🛠️ Requisitos Previos
 Node.js 22.13 o superior dentro de la rama 22 (la misma de `.nvmrc` y CI)
