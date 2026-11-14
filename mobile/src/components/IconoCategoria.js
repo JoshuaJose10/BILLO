@@ -2,7 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, View } from 'react-native';
 
-import { degradadoCategoria, sombraCategoria } from '../theme/categorias';
+import { degradadoCategoria, degradadoIngreso, sombraCategoria } from '../theme/categorias';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { iconoCategoria } from '../utils/categorias';
@@ -11,13 +11,16 @@ import { iconoCategoria } from '../utils/categorias';
 // rounded-2xl con degradado diagonal del color de la categoría (uno por tema), reflejo blanco
 // arriba, glifo blanco y sombra suave del mismo color (intensidad por tema). La sombra va en el contenedor exterior: con overflow hidden iOS la
 // recortaría.
-export default function IconoCategoria({ nombre }) {
+// Con `icono` es un ingreso (HU-82): ese glifo sobre el degradado verde de ingresos.
+export default function IconoCategoria({ nombre, icono }) {
   const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
+  const degradado = icono ? degradadoIngreso(esOscuro) : degradadoCategoria(nombre, esOscuro);
+  const sombra = icono ? degradado[1] : sombraCategoria(nombre, esOscuro);
   return (
-    <View style={[styles.sombra, { shadowColor: sombraCategoria(nombre, esOscuro) }]}>
+    <View style={[styles.sombra, { shadowColor: sombra }]}>
       <LinearGradient
-        colors={degradadoCategoria(nombre, esOscuro)}
+        colors={degradado}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.icono}
@@ -27,7 +30,7 @@ export default function IconoCategoria({ nombre }) {
           style={styles.reflejo}
         />
         <MaterialCommunityIcons
-          name={iconoCategoria(nombre)}
+          name={icono || iconoCategoria(nombre)}
           size={20}
           color={colors.textoSobreColor}
         />

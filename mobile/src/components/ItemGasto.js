@@ -4,6 +4,7 @@ import { radios } from '../theme/colors';
 import { useEstilos } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { fechaRelativa, formatearMonto } from '../utils/formato';
+import { iconoFuente } from '../utils/ingresos';
 import IconoCategoria from './IconoCategoria';
 
 // Movimiento de la lista (Stitch: Inicio, panel "Movimientos"): ícono de la categoría en color,
@@ -13,8 +14,28 @@ import IconoCategoria from './IconoCategoria';
 // listas donde la fecha ya va en el encabezado del día (Movimientos).
 // `opaca`: fondo sólido (`filaOpaca`) en vez del translúcido, para FilaDeslizable: así las
 // acciones que van detrás no se ven a través de la fila.
-export default function ItemGasto({ gasto, nombreCategoria, metodoPago, opaca = false }) {
+// Con `ingreso` en lugar de `gasto` (HU-82): ícono de la fuente en verde, título = descripción o
+// fuente, subtítulo "Fuente · Ingreso" y el monto en verde con "+".
+export default function ItemGasto({ gasto, ingreso, nombreCategoria, metodoPago, opaca = false }) {
   const styles = useEstilos(crearEstilos);
+  if (ingreso) {
+    const fuente = ingreso.fuente?.trim() || 'Ingreso';
+    const descripcion = ingreso.descripcion?.trim();
+    return (
+      <View style={[styles.fila, opaca ? styles.filaOpaca : null]}>
+        <IconoCategoria icono={iconoFuente(ingreso.fuente)} />
+        <View style={styles.textos}>
+          <Text style={styles.titulo} numberOfLines={1}>
+            {descripcion || fuente}
+          </Text>
+          <Text style={styles.subtitulo} numberOfLines={1}>
+            {descripcion ? `${fuente} · Ingreso` : 'Ingreso'}
+          </Text>
+        </View>
+        <Text style={[styles.monto, styles.montoIngreso]}>+{formatearMonto(ingreso.monto)}</Text>
+      </View>
+    );
+  }
   const categoria = nombreCategoria || 'Sin categoría';
   const nota = gasto.nota?.trim();
   const titulo = nota || categoria;
@@ -96,6 +117,9 @@ const crearEstilos = (colors) =>
       fontSize: 16,
       letterSpacing: -0.16,
       color: colors.amount,
+    },
+    montoIngreso: {
+      color: colors.exitoTexto,
     },
     monedaOriginal: {
       fontFamily: fonts.monoMedium,

@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Boton from '../components/Boton';
 import ChipSelector from '../components/ChipSelector';
+import ChipServicio from '../components/ChipServicio';
 import EstadoPantalla from '../components/EstadoPantalla';
 import HojaInferior from '../components/HojaInferior';
 import Input from '../components/Input';
@@ -38,20 +39,12 @@ import {
 import { mensajeError } from '../utils/errores';
 import { vistaLista } from '../utils/estadoCarga';
 import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
-import {
-  fechaRelativa,
-  formatearMonto,
-  formatearMontoCorto,
-  LOCALE,
-  resumirTexto,
-} from '../utils/formato';
+import { fechaRelativa, formatearMonto, LOCALE, resumirTexto } from '../utils/formato';
 import {
   detectarServicioRepetido,
-  estiloServicio,
   fechaCobroCiclo,
   filtrarCatalogo,
   formatearDiaMes,
-  inicialServicio,
   resumenPagosMembresia,
   validarMembresia,
 } from '../utils/membresias';
@@ -616,7 +609,8 @@ export default function MembresiaScreen({ navigation, route }) {
                     {catalogoFiltrado.map((item) => (
                       <ChipServicio
                         key={item.id}
-                        servicio={item}
+                        nombre={item.nombre}
+                        monto={item.costo_sugerido}
                         seleccionado={servicioId === item.id}
                         onPress={() => seleccionarDelCatalogo(item)}
                       />
@@ -843,42 +837,6 @@ export default function MembresiaScreen({ navigation, route }) {
   );
 }
 
-// Chip de un servicio del catálogo: mini squircle con el color de marca (ícono o inicial),
-// nombre y costo sugerido. Seleccionado toma el acento, como el chip "Todas" de categorías.
-function ChipServicio({ servicio, seleccionado, onPress }) {
-  const { colors } = useTema();
-  const styles = useEstilos(crearEstilos);
-  const { color, icono, predefinido } = estiloServicio(servicio.nombre);
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected: seleccionado }}
-      accessibilityLabel={`${servicio.nombre}, ${formatearMontoCorto(servicio.costo_sugerido)}`}
-      style={({ pressed }) => [
-        styles.chipServicio,
-        seleccionado ? styles.chipServicioSeleccionado : null,
-        pressed && !seleccionado ? styles.chipServicioPresionado : null,
-      ]}
-    >
-      <View style={[styles.miniSquircle, { backgroundColor: color }]}>
-        {predefinido ? (
-          <MaterialCommunityIcons name={icono} size={12} color={colors.textoSobreColor} />
-        ) : (
-          <Text style={styles.miniInicial}>{inicialServicio(servicio.nombre)}</Text>
-        )}
-      </View>
-      <Text
-        style={[styles.chipServicioTexto, seleccionado ? styles.chipServicioTextoActivo : null]}
-        numberOfLines={1}
-      >
-        {servicio.nombre}
-      </Text>
-      <Text style={styles.chipServicioCosto}>{formatearMontoCorto(servicio.costo_sugerido)}</Text>
-    </Pressable>
-  );
-}
-
 const crearEstilos = (colors) =>
   StyleSheet.create({
     // Filas con scroll horizontal hasta el borde de la hoja (px-5), como Nuevo gasto
@@ -936,52 +894,6 @@ const crearEstilos = (colors) =>
       marginBottom: 10,
     },
     // Chip de servicio: mismas medidas que ChipCategoria (px-3 py-1.5 rounded-xl)
-    chipServicio: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: radios.xl,
-      backgroundColor: colors.glass05,
-      borderWidth: 1,
-      borderColor: colors.borderStrong,
-    },
-    chipServicioSeleccionado: {
-      backgroundColor: colors.acentoSuave,
-      borderColor: colors.acento,
-    },
-    chipServicioPresionado: {
-      borderColor: colors.borderPressed,
-    },
-    miniSquircle: {
-      width: 20,
-      height: 20,
-      borderRadius: 6,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    miniInicial: {
-      fontFamily: fonts.sansSemiBold,
-      fontSize: 11,
-      lineHeight: 14,
-      color: colors.textoSobreColor,
-    },
-    chipServicioTexto: {
-      ...tipografia.labelPill,
-      color: colors.textChip,
-      maxWidth: 120,
-    },
-    chipServicioTextoActivo: {
-      fontFamily: fonts.sansSemiBold,
-      color: colors.text,
-    },
-    chipServicioCosto: {
-      ...tipografia.labelCaps,
-      textTransform: 'none',
-      letterSpacing: 0,
-      color: colors.textSecondary,
-    },
     // Opciones del panel de frecuencia (como el de método de pago)
     opcion: {
       flexDirection: 'row',

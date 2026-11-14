@@ -2,7 +2,26 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { cargarDatosInicio } from './inicio.js';
+import { cargarDatosInicio, movimientosRecientes } from './inicio.js';
+
+describe('movimientosRecientes', () => {
+  const gasto = (id, fecha) => ({ id, fecha, monto: 10 });
+  const ingreso = (id, fecha) => ({ id, fecha, monto: 100 });
+
+  it('mezcla gastos e ingresos por fecha y se queda con los 5 más recientes', () => {
+    const gastos = [1, 2, 3, 4, 5].map((d) => gasto(d, `2026-11-0${d}`));
+    const ingresos = [ingreso(1, '2026-11-04'), ingreso(2, '2026-11-01')];
+    assert.deepEqual(
+      movimientosRecientes(gastos, ingresos).map((m) => `${m.tipo}-${m.fecha.slice(-2)}`),
+      ['gasto-05', 'ingreso-04', 'gasto-04', 'gasto-03', 'gasto-02'],
+    );
+  });
+
+  it('con pocos movimientos devuelve todos; sin ninguno, vacío', () => {
+    assert.equal(movimientosRecientes([gasto(1, '2026-11-01')], []).length, 1);
+    assert.deepEqual(movimientosRecientes([], []), []);
+  });
+});
 
 // Servicios falsos que cuentan las llamadas y responden cuando se les indica.
 function serviciosFalsos({ fallar = [] } = {}) {
@@ -22,6 +41,7 @@ function serviciosFalsos({ fallar = [] } = {}) {
     servicios: {
       obtenerResumen: servicio('resumen', { gasto_variable: 120, gasto_fijo: 0, total: 120 }),
       listarGastos: servicio('gastos', [{ id: 1, monto: 120, categoria_id: 1 }]),
+      listarIngresos: servicio('ingresos', [{ id: 3, monto: 1000, fecha: '2026-11-01' }]),
       listarPresupuestos: servicio('presupuestos', [{ id: 5, estado: 'alerta' }]),
       listarMembresias: (...args) =>
         servicio('membresias', [{ id: 9, dias_para_cobro: 2 }])(...args),
@@ -30,7 +50,7 @@ function serviciosFalsos({ fallar = [] } = {}) {
 }
 
 describe('cargarDatosInicio', () => {
-  it('hace exactamente 4 peticiones del mes, todas antes de que responda alguna', async () => {
+  it('hace exactamente 5 peticiones del mes, todas antes de que responda alguna', async () => {
     const f = serviciosFalsos();
     const carga = cargarDatosInicio(f.servicios, '2026-11');
     assert.deepEqual(f.llamadas, [
@@ -38,10 +58,12 @@ describe('cargarDatosInicio', () => {
       { nombre: 'membresias', arg: undefined },
       { nombre: 'resumen', arg: '2026-11' },
       { nombre: 'gastos', arg: { mes: '2026-11' } },
+      { nombre: 'ingresos', arg: { mes: '2026-11' } },
     ]);
     f.responder();
     const datos = await carga;
-    assert.equal(f.llamadas.length, 4);
+    assert.equal(f.llamadas.length, 5);
+    assert.equal(datos.ingresos.length, 1);
     assert.equal(datos.resumen.gasto_variable, 120);
     assert.equal(datos.gastos.length, 1);
     assert.equal(datos.presupuestos.length, 1);
@@ -72,8 +94,8 @@ describe('cargarDatosInicio', () => {
     assert.equal((await carga).presupuestos, null);
   });
 
-  it('si falla el resumen o los gastos lanza el error', async () => {
-    for (const nombre of ['resumen', 'gastos']) {
+  it('si falla el resumen, los gastos o los ingresos lanza el error', async () => {
+    for (const nombre of ['resumen', 'gastos', 'ingresos']) {
       const f = serviciosFalsos({ fallar: [nombre] });
       const carga = cargarDatosInicio(f.servicios, '2026-11');
       f.responder();

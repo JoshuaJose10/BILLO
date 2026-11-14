@@ -2,7 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colorCategoria } from '../theme/categorias';
-import { radios } from '../theme/colors';
+import { estiloTarjeta, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { iconoCategoria } from '../utils/categorias';
@@ -122,20 +122,7 @@ export default function TarjetaResumen({
 
 const crearEstilos = (colors) =>
   StyleSheet.create({
-    // rounded-[22px] bg-surface-container-low/70 p-3.5 shadow-[0_8px_28px] negro al 35%
-    // El brillo superior del diseño es el borde de arriba, en todo el ancho y con el radio.
-    tarjeta: {
-      padding: 14,
-      borderRadius: radios.tarjeta,
-      borderTopWidth: 1,
-      borderTopColor: colors.borderTop,
-      backgroundColor: colors.surfaceLow70,
-      shadowColor: colors.sombra,
-      shadowOffset: { width: 0, height: 8 },
-      shadowRadius: 14,
-      shadowOpacity: 0.35,
-      elevation: 6,
-    },
+    tarjeta: estiloTarjeta(colors),
     // flex items-center justify-between
     fila: {
       flexDirection: 'row',

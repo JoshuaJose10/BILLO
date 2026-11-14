@@ -24,11 +24,13 @@ import EscuchaVoz from '../components/EscuchaVoz';
 import HojaInferior from '../components/HojaInferior';
 import MontoGrande from '../components/MontoGrande';
 import PanelHoja from '../components/PanelHoja';
+import SelectorSegmentado from '../components/SelectorSegmentado';
 import TecladoNumerico from '../components/TecladoNumerico';
 import { useAvisos } from '../context/AvisosContext';
 import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/CategoriasContext';
 import { useDivisasService } from '../services/divisas';
 import { METODO_PAGO_DEFECTO, METODOS_PAGO, NOTA_MAX, useGastosService } from '../services/gastos';
+import { useIngresosService } from '../services/ingresos';
 import { useDictado } from '../services/reconocimientoVoz';
 import { useActualizarWidget } from '../widget/useActualizarWidget';
 import { useEstilos, useTema } from '../theme/TemaContext';
@@ -40,6 +42,7 @@ import { mensajeError } from '../utils/errores';
 import { vistaLista } from '../utils/estadoCarga';
 import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
 import { fechaRelativa, formatearMonto, LOCALE, resumirTexto } from '../utils/formato';
+import { DESCRIPCION_MAX, FUENTES } from '../utils/ingresos';
 import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
 import { avisoDictado, interpretarGasto, mensajeFalloVoz } from '../utils/voz';
 
@@ -47,10 +50,20 @@ import { avisoDictado, interpretarGasto, mensajeFalloVoz } from '../utils/voz';
 // El alto lo da el contenido (~65% de la pantalla en un iPhone de 6.1").
 // Con `route.params.gasto` (al tocar un movimiento) edita ese gasto: llega completo porque no
 // existe GET /gastos/:id. Sin él registra uno nuevo.
+// Ingresos (HU-82): el selector «Gasto | Ingreso» cambia la hoja de modo; `{ tipo: 'ingreso' }`
+// la abre directo en Ingreso y `{ ingreso }` edita ese ingreso. En Ingreso las categorías se
+// cambian por fuentes y se ocultan moneda (los ingresos son en MXN), método de pago y micrófono.
 export default function NuevoGastoScreen({ navigation, route }) {
   const gastoEditado = route.params?.gasto;
-  const editando = !!gastoEditado;
+  const ingresoEditado = route.params?.ingreso;
+  const editando = !!(gastoEditado || ingresoEditado);
+  const [tipo, setTipo] = useState(
+    ingresoEditado || route.params?.tipo === 'ingreso' ? 'ingreso' : 'gasto',
+  );
+  const esIngreso = tipo === 'ingreso';
+  const nombreTipo = esIngreso ? 'ingreso' : 'gasto';
   const { crearGasto, actualizarGasto, eliminarGasto } = useGastosService();
+  const { crearIngreso, actualizarIngreso, eliminarIngreso } = useIngresosService();
   const actualizarWidgetResumen = useActualizarWidget();
   const {
     categorias,
@@ -74,7 +87,8 @@ export default function NuevoGastoScreen({ navigation, route }) {
 
   // Al editar se precargan los datos del gasto; si tiene moneda extranjera, se usa su monto_original.
   const [texto, setTexto] = useState(() => {
-    if (!editando) return '';
+    if (ingresoEditado) return textoDesdeMonto(ingresoEditado.monto);
+    if (!gastoEditado) return '';
     const valor =
       gastoEditado.moneda && gastoEditado.moneda !== 'MXN' && gastoEditado.monto_original != null
         ? gastoEditado.monto_original
@@ -83,10 +97,12 @@ export default function NuevoGastoScreen({ navigation, route }) {
   });
   const [categoriaId, setCategoriaId] = useState(gastoEditado?.categoria_id ?? null);
   const [metodo, setMetodo] = useState(gastoEditado?.metodo_pago || METODO_PAGO_DEFECTO);
+  const [fuente, setFuente] = useState(ingresoEditado?.fuente ?? null);
   const [fecha, setFecha] = useState(() =>
-    editando ? parsearFechaLocal(gastoEditado.fecha) : new Date(),
+    editando ? parsearFechaLocal((gastoEditado || ingresoEditado).fecha) : new Date(),
   );
-  const [nota, setNota] = useState(gastoEditado?.nota ?? '');
+  // En Ingreso es la `descripcion`.
+  const [nota, setNota] = useState(gastoEditado?.nota ?? ingresoEditado?.descripcion ?? '');
   const [panel, setPanel] = useState(null); // 'metodo' | 'fecha' | 'nota' | 'moneda'
   // Aviso del dictado por voz (permiso negado, monto no entendido…); la captura manual sigue.
   const [avisoVoz, setAvisoVoz] = useState(null);
@@ -119,6 +135,13 @@ export default function NuevoGastoScreen({ navigation, route }) {
 
   const elegirCategoria = (id) => {
     setCategoriaId(id);
+    if (errores.categoria) setErrores((e) => ({ ...e, categoria: undefined }));
+    if (errorApi) setErrorApi('');
+  };
+
+  // `errores.categoria` también es el de la fuente: ocupan el mismo lugar en la hoja.
+  const elegirFuente = (nombre) => {
+    setFuente(nombre);
     if (errores.categoria) setErrores((e) => ({ ...e, categoria: undefined }));
     if (errorApi) setErrorApi('');
   };
@@ -169,6 +192,16 @@ export default function NuevoGastoScreen({ navigation, route }) {
     frases: categorias.map((c) => c.nombre),
   });
   const dictando = dictado.estado !== 'inactivo';
+
+  // El monto, la fecha y la nota se conservan al cambiar de modo.
+  const cambiarTipo = (nuevo) => {
+    if (enviando.current || dictando) return;
+    setTipo(nuevo);
+    setErrores({});
+    setErrorApi('');
+    setAvisoVoz(null);
+    setPanel(null);
+  };
 
   const dictar = () => {
     setAvisoVoz(null);
@@ -222,8 +255,9 @@ export default function NuevoGastoScreen({ navigation, route }) {
     const montoNum = montoDesdeTexto(texto);
     const nuevos = {};
     if (!(montoNum > 0)) nuevos.monto = 'Ingresa un monto mayor a $0';
-    if (!categoriaElegida) nuevos.categoria = 'Elige una categoría';
-    if (moneda !== 'MXN' && !tipoCambio) {
+    if (esIngreso && !fuente) nuevos.categoria = 'Elige una fuente';
+    if (!esIngreso && !categoriaElegida) nuevos.categoria = 'Elige una categoría';
+    if (!esIngreso && moneda !== 'MXN' && !tipoCambio) {
       nuevos.monto = 'Esperando tipo de cambio o cambia a MXN';
     }
     setErrores(nuevos);
@@ -232,29 +266,39 @@ export default function NuevoGastoScreen({ navigation, route }) {
 
     enviando.current = true;
     setGuardando(true);
-    const datos = prepararDatosGasto({
-      montoOriginal: montoNum,
-      moneda,
-      tipoCambio,
-      categoriaId: categoriaElegida,
-      fecha: fechaLocalISO(fecha),
-      metodoPago: metodo,
-      nota,
-    });
     try {
-      const { alerta } = editando
-        ? await actualizarGasto(gastoEditado.id, datos)
-        : await crearGasto(datos);
-      // Con alerta, el nombre sale de la caché de categorías; sin alerta, nada.
-      const contenido = contenidoAviso(alerta, nombrePorId(alerta?.categoria_id));
-      avisoPendiente.current = contenido ? { ...contenido, mes: datos.fecha.slice(0, 7) } : null;
-      actualizarWidgetResumen(); // HU-58: sin esperar
+      if (esIngreso) {
+        const datos = {
+          monto: montoNum,
+          fecha: fechaLocalISO(fecha),
+          descripcion: nota.trim() || null,
+          fuente,
+        };
+        await (editando ? actualizarIngreso(ingresoEditado.id, datos) : crearIngreso(datos));
+      } else {
+        const datos = prepararDatosGasto({
+          montoOriginal: montoNum,
+          moneda,
+          tipoCambio,
+          categoriaId: categoriaElegida,
+          fecha: fechaLocalISO(fecha),
+          metodoPago: metodo,
+          nota,
+        });
+        const { alerta } = editando
+          ? await actualizarGasto(gastoEditado.id, datos)
+          : await crearGasto(datos);
+        // Con alerta, el nombre sale de la caché de categorías; sin alerta, nada.
+        const contenido = contenidoAviso(alerta, nombrePorId(alerta?.categoria_id));
+        avisoPendiente.current = contenido ? { ...contenido, mes: datos.fecha.slice(0, 7) } : null;
+        actualizarWidgetResumen(); // HU-58: sin esperar
+      }
       enviando.current = false;
       hojaRef.current?.cerrar();
     } catch (error) {
       enviando.current = false;
       setGuardando(false);
-      setErrorApi(mensajeErrorGasto(error));
+      setErrorApi(mensajeErrorMovimiento(error));
     }
   };
 
@@ -264,26 +308,33 @@ export default function NuevoGastoScreen({ navigation, route }) {
     setEliminando(true);
     setErrorApi('');
     try {
-      await eliminarGasto(gastoEditado.id);
-      actualizarWidgetResumen(); // HU-58: sin esperar
+      if (esIngreso) {
+        await eliminarIngreso(ingresoEditado.id);
+      } else {
+        await eliminarGasto(gastoEditado.id);
+        actualizarWidgetResumen(); // HU-58: sin esperar
+      }
       enviando.current = false;
       hojaRef.current?.cerrar();
     } catch (error) {
       enviando.current = false;
       setEliminando(false);
-      setErrorApi(mensajeErrorGasto(error));
+      setErrorApi(mensajeErrorMovimiento(error));
     }
   };
 
-  // Cancelar no hace nada; Eliminar borra el gasto y cierra la hoja.
+  // Cancelar no hace nada; Eliminar borra el gasto (o el ingreso) y cierra la hoja.
   const confirmarEliminar = () => {
     if (enviando.current) return;
-    Alert.alert('¿Eliminar gasto?', 'Esta acción no se puede deshacer.', [
+    Alert.alert(`¿Eliminar ${nombreTipo}?`, 'Esta acción no se puede deshacer.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Eliminar', style: 'destructive', onPress: eliminar },
     ]);
   };
 
+  // Los ingresos no tienen moneda en la API: siempre MXN.
+  const monedaCaptura = esIngreso ? 'MXN' : moneda;
+  const notaMax = esIngreso ? DESCRIPCION_MAX : NOTA_MAX;
   const metodoActual = METODOS_PAGO.find((m) => m.valor === metodo) || METODOS_PAGO[0];
   const fechaTexto = fechaRelativa(fechaLocalISO(fecha));
   const montoIngresado = montoDesdeTexto(texto);
@@ -295,8 +346,8 @@ export default function NuevoGastoScreen({ navigation, route }) {
   return (
     <HojaInferior
       ref={hojaRef}
-      titulo={editando ? 'Editar gasto' : 'Nuevo gasto'}
-      etiquetaFondo={editando ? 'Cerrar editar gasto' : 'Cerrar nuevo gasto'}
+      titulo={`${editando ? 'Editar' : 'Nuevo'} ${nombreTipo}`}
+      etiquetaFondo={`Cerrar ${editando ? 'editar' : 'nuevo'} ${nombreTipo}`}
       onCerrada={() => {
         if (avisoPendiente.current) mostrarAviso(avisoPendiente.current);
         avisoPendiente.current = null;
@@ -304,26 +355,40 @@ export default function NuevoGastoScreen({ navigation, route }) {
       }}
       bloqueada={ocupado}
     >
+      {/* Al editar no se cambia de tipo: un gasto no se convierte en ingreso. */}
+      {editando ? null : (
+        <SelectorSegmentado
+          opciones={TIPOS}
+          valor={tipo}
+          onCambiar={cambiarTipo}
+          accessibilityLabel="Tipo de movimiento"
+          style={styles.selectorTipo}
+        />
+      )}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.filaScroll}
         contentContainerStyle={styles.filaChips}
       >
-        <ChipSelector
-          icono="cash-multiple"
-          etiqueta={moneda}
-          chevron
-          onPress={() => setPanel('moneda')}
-          accessibilityLabel={`Moneda: ${moneda}`}
-        />
-        <ChipSelector
-          icono={metodoActual.icono}
-          etiqueta={metodoActual.etiqueta}
-          chevron
-          onPress={() => setPanel('metodo')}
-          accessibilityLabel={`Método de pago: ${metodoActual.etiqueta}`}
-        />
+        {esIngreso ? null : (
+          <>
+            <ChipSelector
+              icono="cash-multiple"
+              etiqueta={moneda}
+              chevron
+              onPress={() => setPanel('moneda')}
+              accessibilityLabel={`Moneda: ${moneda}`}
+            />
+            <ChipSelector
+              icono={metodoActual.icono}
+              etiqueta={metodoActual.etiqueta}
+              chevron
+              onPress={() => setPanel('metodo')}
+              accessibilityLabel={`Método de pago: ${metodoActual.etiqueta}`}
+            />
+          </>
+        )}
         <ChipSelector
           icono="calendar-blank-outline"
           etiqueta={fechaTexto}
@@ -342,10 +407,10 @@ export default function NuevoGastoScreen({ navigation, route }) {
         <MontoGrande
           texto={texto}
           error={!!errores.monto}
-          etiqueta={moneda === 'MXN' ? 'Importe' : `Importe en ${moneda}`}
-          moneda={moneda}
+          etiqueta={monedaCaptura === 'MXN' ? 'Importe' : `Importe en ${monedaCaptura}`}
+          moneda={monedaCaptura}
         />
-        {cargandoTipoCambio ? (
+        {esIngreso ? null : cargandoTipoCambio ? (
           <View style={styles.filaEquivalente}>
             <ActivityIndicator size="small" color={colors.textSecondary} />
             <Text style={styles.textoTasa}>Consultando tipo de cambio...</Text>
@@ -366,7 +431,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
           </View>
         ) : null}
       </View>
-      {avisoTipoCambio ? (
+      {avisoTipoCambio && !esIngreso ? (
         <View style={styles.avisoTipoCambioContenedor}>
           <MaterialCommunityIcons name="information-outline" size={16} color={colors.alerta} />
           <Text style={styles.avisoTipoCambioTexto}>{avisoTipoCambio}</Text>
@@ -375,7 +440,26 @@ export default function NuevoGastoScreen({ navigation, route }) {
       {errores.monto ? <Text style={styles.errorCampo}>{errores.monto}</Text> : null}
 
       <View style={styles.zonaCategorias}>
-        {vistaCategorias !== 'lista' ? (
+        {esIngreso ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filaScroll}
+            contentContainerStyle={styles.filaCategorias}
+          >
+            {FUENTES.map((f) => (
+              <ChipCategoria
+                key={f.nombre}
+                nombre={f.nombre}
+                icono={f.icono}
+                exito
+                seleccionado={f.nombre === fuente}
+                error={!!errores.categoria}
+                onPress={() => elegirFuente(f.nombre)}
+              />
+            ))}
+          </ScrollView>
+        ) : vistaCategorias !== 'lista' ? (
           <EstadoPantalla
             estado={vistaCategorias}
             titulo={TEXTO_ESTADO_CATEGORIAS[vistaCategorias]}
@@ -424,12 +508,12 @@ export default function NuevoGastoScreen({ navigation, route }) {
       {errorApi ? <Text style={styles.errorApi}>{errorApi}</Text> : null}
       <View style={styles.filaConfirmar}>
         {/* Sin el módulo nativo (Expo Go) no hay micrófono: solo la captura manual. */}
-        {dictado.disponible && !dictando ? (
+        {dictado.disponible && !dictando && !esIngreso ? (
           <BotonMicrofono onPress={dictar} disabled={ocupado} />
         ) : null}
         <View style={styles.confirmar}>
           <Boton
-            titulo={editando ? 'Guardar cambios' : 'Confirmar gasto'}
+            titulo={editando ? 'Guardar cambios' : `Confirmar ${nombreTipo}`}
             icono={editando ? 'check' : 'arrow-right'}
             onPress={confirmar}
             cargando={guardando}
@@ -441,7 +525,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
       {editando ? (
         <View style={styles.zonaEliminar}>
           <Boton
-            titulo="Eliminar gasto"
+            titulo={`Eliminar ${nombreTipo}`}
             icono="trash-can-outline"
             onPress={confirmarEliminar}
             cargando={eliminando}
@@ -475,7 +559,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
       ) : null}
 
       {panel === 'fecha' ? (
-        <PanelHoja titulo="Fecha del gasto" onCerrar={() => setPanel(null)}>
+        <PanelHoja titulo={`Fecha del ${nombreTipo}`} onCerrar={() => setPanel(null)}>
           <DateTimePicker
             value={fecha}
             mode="date"
@@ -497,19 +581,19 @@ export default function NuevoGastoScreen({ navigation, route }) {
           <TextInput
             value={nota}
             onChangeText={setNota}
-            placeholder="Ej. Tacos con amigos"
+            placeholder={esIngreso ? 'Ej. Quincena' : 'Ej. Tacos con amigos'}
             placeholderTextColor={colors.textSecondary}
             cursorColor={colors.acento}
             selectionColor={colors.acento}
             keyboardAppearance={esOscuro ? 'dark' : 'light'}
-            maxLength={NOTA_MAX}
+            maxLength={notaMax}
             autoFocus
             returnKeyType="done"
             onSubmitEditing={() => setPanel(null)}
             style={styles.inputNota}
           />
           <Text style={styles.contador}>
-            {nota.length}/{NOTA_MAX}
+            {nota.length}/{notaMax}
           </Text>
           <Boton titulo="Listo" onPress={() => setPanel(null)} />
         </PanelHoja>
@@ -543,15 +627,26 @@ export default function NuevoGastoScreen({ navigation, route }) {
   );
 }
 
-// El gasto que se edita ya no existe (otro dispositivo lo borró): al cerrar la hoja, Inicio y
-// Movimientos recargan la lista con useFocusEffect.
-const mensajeErrorGasto = (error) =>
-  error?.code === 'GASTO_NO_ENCONTRADO'
-    ? 'Este gasto ya no existe. Cierra para actualizar la lista.'
-    : mensajeError(error?.code, error?.message);
+const TIPOS = [
+  { valor: 'gasto', etiqueta: 'Gasto' },
+  { valor: 'ingreso', etiqueta: 'Ingreso' },
+];
+
+// El gasto o ingreso que se edita ya no existe (otro dispositivo lo borró): al cerrar la hoja,
+// Inicio y Movimientos recargan la lista con useFocusEffect.
+const NO_EXISTE = {
+  GASTO_NO_ENCONTRADO: 'Este gasto ya no existe. Cierra para actualizar la lista.',
+  INGRESO_NO_ENCONTRADO: 'Este ingreso ya no existe. Cierra para actualizar la lista.',
+};
+const mensajeErrorMovimiento = (error) =>
+  NO_EXISTE[error?.code] ?? mensajeError(error?.code, error?.message);
 
 const crearEstilos = (colors) =>
   StyleSheet.create({
+    // «Gasto | Ingreso» arriba de los chips (Stitch 08-nuevo-gasto)
+    selectorTipo: {
+      marginTop: 4,
+    },
     // Filas con scroll horizontal hasta el borde de la hoja (px-5)
     filaScroll: {
       marginHorizontal: -20,

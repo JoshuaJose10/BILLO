@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { radios } from '../theme/colors';
+import { estiloTarjeta, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { tipografia } from '../theme/tipografia';
@@ -82,16 +82,7 @@ const crearEstilos = (colors) =>
       alignItems: 'center',
       gap: 12,
       marginTop: 14,
-      padding: 14,
-      borderRadius: radios.tarjeta,
-      borderTopWidth: 1,
-      borderTopColor: colors.borderTop,
-      backgroundColor: colors.surfaceLow70,
-      shadowColor: colors.sombra,
-      shadowOffset: { width: 0, height: 8 },
-      shadowRadius: 14,
-      shadowOpacity: 0.35,
-      elevation: 6,
+      ...estiloTarjeta(colors),
     },
     presionada: {
       opacity: 0.7,

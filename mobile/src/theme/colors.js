@@ -342,3 +342,19 @@ export const radios = {
   hoja: 32,
   full: 9999,
 };
+
+// Tarjeta de vidrio de Inicio («Gastado este mes», «Próximo cobro», «Esta semana cobran»):
+// rounded-[22px] bg-surface-container-low/70 p-3.5 shadow-[0_8px_28px] negro al 35%. El brillo
+// superior del diseño es el borde de arriba, en todo el ancho y con el radio.
+export const estiloTarjeta = (colors) => ({
+  padding: 14,
+  borderRadius: radios.tarjeta,
+  borderTopWidth: 1,
+  borderTopColor: colors.borderTop,
+  backgroundColor: colors.surfaceLow70,
+  shadowColor: colors.sombra,
+  shadowOffset: { width: 0, height: 8 },
+  shadowRadius: 14,
+  shadowOpacity: 0.35,
+  elevation: 6,
+});

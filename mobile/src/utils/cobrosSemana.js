@@ -4,12 +4,12 @@
 // Ventana de la tarjeta: hoy y los 7 días siguientes (dias_para_cobro de 0 a 7).
 export const DIAS_SEMANA_COBROS = 7;
 
-const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+const DIAS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 
-// Nombre del día en que cobra: "hoy", "mañana" o el día de la semana.
+// Día en que cobra, corto para las pastillas: "Hoy", "Mañana" o el día de la semana ("lun").
 export function diaDeCobro(dias, hoy = new Date()) {
-  if (dias === 0) return 'hoy';
-  if (dias === 1) return 'mañana';
+  if (dias === 0) return 'Hoy';
+  if (dias === 1) return 'Mañana';
   const fecha = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + dias);
   return DIAS[fecha.getDay()];
 }

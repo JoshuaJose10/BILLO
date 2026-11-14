@@ -5,9 +5,9 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import Avatar from '../components/Avatar';
 import EstadoPantalla from '../components/EstadoPantalla';
 import Etiqueta from '../components/Etiqueta';
-import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizable';
+import { useFilasDeslizables } from '../components/FilaDeslizable';
+import FilaMovimiento from '../components/FilaMovimiento';
 import FondoDegradado from '../components/FondoDegradado';
-import ItemGasto from '../components/ItemGasto';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
 import TarjetaCobrosSemana from '../components/TarjetaCobrosSemana';
 import TarjetaPresupuesto, { NOMBRE_ESTADO } from '../components/TarjetaPresupuesto';
@@ -17,6 +17,7 @@ import TarjetaSaldo from '../components/TarjetaSaldo';
 import { useAuth } from '../context/AuthContext';
 import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/CategoriasContext';
 import { useGastosService } from '../services/gastos';
+import { useIngresosService } from '../services/ingresos';
 import { useMembresiasService } from '../services/membresias';
 import { usePresupuestosService } from '../services/presupuestos';
 import { useReportesService } from '../services/reportes';
@@ -27,7 +28,9 @@ import { cobrosDeLaSemana, semanaSinProximoCobro } from '../utils/cobrosSemana';
 import { useRecargar } from '../hooks/useRecargar';
 import { vistaPantalla } from '../utils/estadoCarga';
 import { mesActual } from '../utils/fechas';
-import { cargarDatosInicio, MOVIMIENTOS_RECIENTES } from '../utils/inicio';
+import { cargarDatosInicio, movimientosRecientes } from '../utils/inicio';
+import { claveMovimiento } from '../utils/movimientos';
+import { saldoDelMes, totalIngresos } from '../utils/ingresos';
 import { proximoCobro } from '../utils/membresias';
 import { presupuestosEnRiesgo, resumenPresupuestos } from '../utils/presupuestos';
 import { gastoPorCategoria, resumenGastoMes } from '../utils/resumenMes';
@@ -36,22 +39,23 @@ import { actualizarWidget } from '../widget/sincronizar';
 // Categorías con chip en la tarjeta del mes (las de más gasto).
 const CHIPS_CATEGORIA = 3;
 
-// Inicio (RF6, HU-39) con datos del servidor. Al abrir o ganar foco hace exactamente 4 peticiones
+// Inicio (RF6, HU-39) con datos del servidor. Al abrir o ganar foco hace exactamente 5 peticiones
 // en paralelo, todas del mes actual (cargarDatosInicio):
 // - GET /reportes/resumen: "Gastado este mes" = gasto_variable (cuadra con Movimientos y Reportes);
 //   con suscripciones, debajo "Suscripciones $X · Total $Y".
 // - GET /gastos?mes: barra por categorías, chips y los primeros 5 movimientos recientes.
+// - GET /ingresos?mes (HU-82): "Saldo disponible" = ingresos del mes − gasto_variable.
 // - GET /presupuestos?mes: límite de la barra y "Presupuestos en riesgo" (alerta o excedido). Si
 //   falla, Inicio sigue sin barra ni riesgo.
 // - GET /membresias (HU-73): tarjeta «Esta semana cobran» con los cobros de los próximos 7 días;
 //   sin cobros o si falla, no se muestra. La misma respuesta alimenta «Próximo cobro» (HU-72), sin
 //   otra petición.
-// "Saldo disponible" (HU-72) es el espacio reservado para los ingresos (HU-82): hoy va sin saldo.
 // Los nombres de las categorías salen de la caché de la sesión (useCategorias).
 export default function InicioScreen({ navigation }) {
   const alturaNavbar = useAlturaNavbar();
   const { usuario } = useAuth();
   const { listarGastos, eliminarGasto } = useGastosService();
+  const { listarIngresos, eliminarIngreso } = useIngresosService();
   const { listarPresupuestos } = usePresupuestosService();
   const { obtenerResumen } = useReportesService();
   const { listarMembresias } = useMembresiasService();
@@ -67,6 +71,7 @@ export default function InicioScreen({ navigation }) {
 
   const [resumen, setResumen] = useState(null);
   const [gastosMes, setGastosMes] = useState([]);
+  const [ingresosMes, setIngresosMes] = useState([]);
   // null si no se pudieron cargar los presupuestos.
   const [presupuestos, setPresupuestos] = useState(null);
   // null si no se pudieron cargar las membresías.
@@ -86,12 +91,13 @@ export default function InicioScreen({ navigation }) {
     const mes = mesActual();
     try {
       const datos = await cargarDatosInicio(
-        { obtenerResumen, listarGastos, listarPresupuestos, listarMembresias },
+        { obtenerResumen, listarGastos, listarIngresos, listarPresupuestos, listarMembresias },
         mes,
       );
       if (peticion !== ultimaPeticion.current) return;
       setResumen(datos.resumen);
       setGastosMes(datos.gastos);
+      setIngresosMes(datos.ingresos);
       setPresupuestos(datos.presupuestos);
       setMembresias(datos.membresias);
       setMesCargado(mes);
@@ -106,7 +112,7 @@ export default function InicioScreen({ navigation }) {
       setEstado('error');
       return false;
     }
-  }, [obtenerResumen, listarGastos, listarPresupuestos, listarMembresias]);
+  }, [obtenerResumen, listarGastos, listarIngresos, listarPresupuestos, listarMembresias]);
 
   // Recarga cada vez que Inicio gana foco (por ejemplo al cerrar la hoja de Nuevo gasto).
   useFocusEffect(
@@ -147,13 +153,19 @@ export default function InicioScreen({ navigation }) {
     [membresias, cobroProximo],
   );
   const enRiesgo = useMemo(() => presupuestosEnRiesgo(presupuestos), [presupuestos]);
-  const recientes = useMemo(() => gastosMes.slice(0, MOVIMIENTOS_RECIENTES), [gastosMes]);
+  const recientes = useMemo(
+    () => movimientosRecientes(gastosMes, ingresosMes),
+    [gastosMes, ingresosMes],
+  );
+  const movimientosMes = gastosMes.length + ingresosMes.length;
+  const saldo = saldoDelMes(ingresosMes, resumen?.gasto_variable);
   const primerNombre = (usuario?.nombre || '').trim().split(' ')[0];
 
   // Cartera › Suscripciones (ver los parámetros de CarteraScreen).
   const abrirSuscripciones = () =>
     navigation.navigate('Cartera', { seccion: 'suscripciones', solicitud: Date.now() });
   const abrirNuevoGasto = () => navigation.navigate('NuevoGasto');
+  const abrirNuevoIngreso = () => navigation.navigate('NuevoGasto', { tipo: 'ingreso' });
   // Cartera › Presupuestos en el mes de los datos (ver los parámetros de CarteraScreen).
   const abrirPresupuestos = () =>
     navigation.navigate('Cartera', {
@@ -165,9 +177,12 @@ export default function InicioScreen({ navigation }) {
   // Filas deslizables: Editar abre la hoja en modo edición; al eliminar, la fila se quita al
   // momento y se recargan la lista y los totales.
   const filas = useFilasDeslizables();
-  const editarGasto = (gasto) => navigation.navigate('NuevoGasto', { gasto });
-  const gastoEliminado = (id) => {
-    setGastosMes((lista) => lista.filter((g) => g.id !== id));
+  const editar = (m) =>
+    navigation.navigate('NuevoGasto', m.tipo === 'ingreso' ? { ingreso: m } : { gasto: m });
+  const eliminado = (m) => {
+    const quitar = (lista) => lista.filter((x) => x.id !== m.id);
+    if (m.tipo === 'ingreso') setIngresosMes(quitar);
+    else setGastosMes(quitar);
     cargar();
   };
 
@@ -191,7 +206,11 @@ export default function InicioScreen({ navigation }) {
         </View>
       </View>
 
-      <TarjetaSaldo />
+      <TarjetaSaldo
+        saldo={saldo}
+        ingresos={totalIngresos(ingresosMes)}
+        onRegistrarIngreso={abrirNuevoIngreso}
+      />
 
       <TarjetaResumen
         resumen={resumenMes}
@@ -250,7 +269,7 @@ export default function InicioScreen({ navigation }) {
   // Si el mes tiene más gastos que los recientes, el pie enlaza a Movimientos.
   const pieInicio = (
     <View style={styles.panelPie}>
-      {gastosMes.length > recientes.length ? (
+      {movimientosMes > recientes.length ? (
         <Pressable
           onPress={() => navigation.navigate('Movimientos')}
           hitSlop={8}
@@ -258,7 +277,7 @@ export default function InicioScreen({ navigation }) {
           accessibilityHint="Abre Movimientos"
           style={styles.verTodos}
         >
-          <Text style={styles.enlace}>Ver los {gastosMes.length} movimientos del mes</Text>
+          <Text style={styles.enlace}>Ver los {movimientosMes} movimientos del mes</Text>
         </Pressable>
       ) : null}
     </View>
@@ -279,20 +298,17 @@ export default function InicioScreen({ navigation }) {
       <FondoDegradado />
       <FlatList
         data={recientes}
-        keyExtractor={(g) => String(g.id)}
+        keyExtractor={claveMovimiento}
         renderItem={({ item }) => (
           <View style={styles.panelFila}>
-            <FilaDeslizable
+            <FilaMovimiento
+              movimiento={item}
               filas={filas}
-              onEditar={() => editarGasto(item)}
-              eliminar={() => eliminarGasto(item.id)}
-              onEliminado={() => gastoEliminado(item.id)}
-              tituloEliminar="¿Eliminar gasto?"
-              codigoNoExiste="GASTO_NO_ENCONTRADO"
-              mensajeNoExiste="Este gasto ya no existe"
-            >
-              <ItemGasto gasto={item} nombreCategoria={nombrePorId(item.categoria_id)} opaca />
-            </FilaDeslizable>
+              onEditar={() => editar(item)}
+              eliminar={item.tipo === 'ingreso' ? eliminarIngreso : eliminarGasto}
+              onEliminado={() => eliminado(item)}
+              nombreCategoria={nombrePorId(item.categoria_id)}
+            />
           </View>
         )}
         ListHeaderComponent={
@@ -306,7 +322,7 @@ export default function InicioScreen({ navigation }) {
           <EstadoPantalla
             estado="vacio"
             icono="receipt-text-outline"
-            titulo="Sin gastos este mes"
+            titulo="Sin movimientos este mes"
             style={styles.panelFila}
           >
             <Pressable

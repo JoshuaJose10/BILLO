@@ -17,12 +17,15 @@ import { iconoCategoria } from '../utils/categorias';
 // `icono` reemplaza el que corresponde al nombre y marca un chip que no es categoría (por
 // ejemplo "Todas"): sin micro-punto y, seleccionado, con el acento translúcido. No usa acento
 // sólido porque su versión profunda se confunde con el violeta de Entretenimiento.
+// `exito` (con `icono`): chip de una fuente de ingreso (HU-82), con el ícono en exito y,
+// seleccionado, el tinte exitoSuave en lugar del acento.
 // `nota`: texto corto después del nombre, más tenue (p. ej. "Ya tiene" en la hoja Presupuesto).
 export default function ChipCategoria({
   nombre,
   icono,
   seleccionado = false,
   error = false,
+  exito = false,
   nota,
   onPress,
 }) {
@@ -31,11 +34,13 @@ export default function ChipCategoria({
   const esCategoria = !icono;
   const color = colorCategoria(nombre, esOscuro);
   let estiloSeleccionado = null;
-  let colorContenido = colors.textSecondary;
+  let colorContenido = exito ? colors.exitoTexto : colors.textSecondary;
   if (seleccionado && esCategoria) {
     const fondo = fondoChipCategoria(nombre);
     estiloSeleccionado = { backgroundColor: fondo, borderColor: fondo, shadowColor: color };
     colorContenido = colors.textoSobreColor;
+  } else if (seleccionado && exito) {
+    estiloSeleccionado = styles.seleccionadoExito;
   } else if (seleccionado) {
     estiloSeleccionado = styles.seleccionadoAcento;
     colorContenido = colors.acentoTexto;
@@ -102,6 +107,11 @@ const crearEstilos = (colors) =>
       backgroundColor: colors.acentoSuave,
       borderColor: colors.acento,
       shadowColor: colors.acento,
+    },
+    seleccionadoExito: {
+      backgroundColor: colors.exitoSuave,
+      borderColor: colors.exito,
+      shadowColor: colors.exito,
     },
     error: {
       borderColor: colors.alerta,
