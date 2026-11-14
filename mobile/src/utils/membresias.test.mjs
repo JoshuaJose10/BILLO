@@ -77,7 +77,7 @@ describe('utils/membresias', () => {
       { costo: 100, frecuencia: 'mensual', estado: 'activa' },
       { costo: 50, frecuencia: 'mensual', estado: 'pausada' },
     ];
-    it('no cuentan en el total anual ni en el de este mes', () => {
+    test('no cuentan en el total anual ni en el de este mes', () => {
       assert.equal(calcularTotalAnual(lista), 1200);
       assert.equal(calcularTotalEsteMes(lista, '2026-11-12'), 100);
     });
