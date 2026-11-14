@@ -23,6 +23,7 @@ export function cobrosDeLaSemana(membresias, hoy = new Date()) {
     .filter(
       (m) =>
         m &&
+        m.estado !== 'pausada' &&
         typeof m.dias_para_cobro === 'number' &&
         m.dias_para_cobro >= 0 &&
         m.dias_para_cobro <= DIAS_SEMANA_COBROS,

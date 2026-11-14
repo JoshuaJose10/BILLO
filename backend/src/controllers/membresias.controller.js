@@ -74,6 +74,13 @@ const formatearMembresiaConDias = (row) => ({
   dias_para_cobro: Number(row.dias_para_cobro),
 });
 
+const formatearPagoMembresia = (row) => ({
+  id: row.id,
+  membresia_id: Number(row.membresia_id),
+  fecha: row.fecha,
+  monto: Number(row.monto),
+});
+
 const validarDatosMembresia = async (body) => {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return {
@@ -605,7 +612,7 @@ const eliminarMembresia = async (req, res) => {
   }
 };
 
-// POST /membresias/:id/pagada (HU-66)
+// POST /membresias/:id/pagada (HU-66 + historial de pagos)
 const marcarMembresiaPagada = async (req, res) => {
   try {
     const usuarioId = req.usuario.id;
@@ -645,9 +652,66 @@ const marcarMembresiaPagada = async (req, res) => {
         (fecha_cobro - CURRENT_DATE)::integer AS dias_para_cobro
     `;
 
-    const { rows } = await pool.query(updateQuery, [membresiaId, usuarioId]);
+    const client = await pool.connect();
+    let membresiaActualizada;
+    let pagoRegistrado;
+    try {
+      await client.query('BEGIN');
+      const { rows } = await client.query(updateQuery, [membresiaId, usuarioId]);
 
-    if (rows.length === 0) {
+      if (rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({
+          error: {
+            code: 'MEMBRESIA_NO_ENCONTRADA',
+            message: 'Membresía no encontrada',
+          },
+        });
+      }
+
+      membresiaActualizada = rows[0];
+
+      const pagoRes = await client.query(
+        `INSERT INTO pagos_membresia (membresia_id, fecha, monto)
+         VALUES ($1, CURRENT_DATE, $2)
+         RETURNING id, membresia_id, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, monto`,
+        [membresiaId, membresiaActualizada.costo]
+      );
+      pagoRegistrado = pagoRes.rows[0];
+      await client.query('COMMIT');
+    } catch (txError) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw txError;
+    } finally {
+      client.release();
+    }
+
+    return res.status(200).json({
+      membresia: formatearMembresiaConDias(membresiaActualizada),
+      pago: formatearPagoMembresia(pagoRegistrado),
+    });
+  } catch (error) {
+    console.error('Error al marcar membresía como pagada:', error.message);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'No se pudo marcar la membresía como pagada',
+      },
+    });
+  }
+};
+
+// GET /membresias/:id/pagos
+const listarPagosMembresia = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+    const membresiaId = Number(req.params.id);
+
+    if (
+      !Number.isInteger(membresiaId) ||
+      membresiaId <= 0 ||
+      membresiaId > 2147483647
+    ) {
       return res.status(404).json({
         error: {
           code: 'MEMBRESIA_NO_ENCONTRADA',
@@ -656,15 +720,39 @@ const marcarMembresiaPagada = async (req, res) => {
       });
     }
 
-    return res
-      .status(200)
-      .json({ membresia: formatearMembresiaConDias(rows[0]) });
+    const memRes = await pool.query(
+      'SELECT id FROM membresias WHERE id = $1 AND usuario_id = $2',
+      [membresiaId, usuarioId]
+    );
+
+    if (memRes.rows.length === 0) {
+      return res.status(404).json({
+        error: {
+          code: 'MEMBRESIA_NO_ENCONTRADA',
+          message: 'Membresía no encontrada',
+        },
+      });
+    }
+
+    const { rows } = await pool.query(
+      `SELECT
+        id,
+        membresia_id,
+        TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha,
+        monto
+       FROM pagos_membresia
+       WHERE membresia_id = $1
+       ORDER BY fecha DESC, id DESC`,
+      [membresiaId]
+    );
+
+    return res.status(200).json(rows.map(formatearPagoMembresia));
   } catch (error) {
-    console.error('Error al marcar membresía como pagada:', error.message);
+    console.error('Error al listar pagos de membresía:', error.message);
     return res.status(500).json({
       error: {
         code: 'ERROR_SERVIDOR',
-        message: 'No se pudo marcar la membresía como pagada',
+        message: 'No se pudo obtener el historial de pagos',
       },
     });
   }
@@ -678,5 +766,6 @@ module.exports = {
   pausarMembresia,
   reactivarMembresia,
   marcarMembresiaPagada,
+  listarPagosMembresia,
 };
 

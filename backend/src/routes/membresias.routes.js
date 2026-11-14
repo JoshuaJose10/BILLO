@@ -8,6 +8,7 @@ const {
   pausarMembresia,
   reactivarMembresia,
   marcarMembresiaPagada,
+  listarPagosMembresia,
 } = require('../controllers/membresias.controller');
 
 const router = Router();
@@ -16,6 +17,7 @@ router.use(authMiddleware);
 
 router.post('/', crearMembresia);
 router.get('/', listarMembresias);
+router.get('/:id/pagos', listarPagosMembresia);
 router.put('/:id', actualizarMembresia);
 router.delete('/:id', eliminarMembresia);
 router.post('/:id/pausar', pausarMembresia);

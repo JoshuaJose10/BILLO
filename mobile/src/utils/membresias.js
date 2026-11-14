@@ -196,6 +196,7 @@ export function calcularTotalMensual(membresias = []) {
 export function calcularTotalAnual(membresias = []) {
   if (!Array.isArray(membresias) || membresias.length === 0) return 0;
   const suma = membresias.reduce((total, m) => {
+    if (m?.estado === 'pausada') return total;
     const costo = Number(m?.costo) || 0;
     if (m?.frecuencia === 'anual') {
       return total + costo;
@@ -217,6 +218,7 @@ export function calcularTotalEsteMes(membresias = [], fechaReferenciaStr) {
   const inicioMesStr = `${mesActualStr}-01`;
 
   const suma = membresias.reduce((total, m) => {
+    if (m?.estado === 'pausada') return total;
     const costo = Number(m?.costo) || 0;
     if (costo <= 0) return total;
 
@@ -559,5 +561,19 @@ export function validarMembresia({ nombre, costoTexto, fechaCobro }) {
     valido: Object.keys(errores).length === 0,
     errores,
     costo: costoNumero,
+  };
+}
+
+// Resume el historial de pagos de una suscripción para la línea de tiempo corta del detalle:
+// conserva el orden recibido (más reciente primero), limita a `limite` entradas y calcula el total pagado.
+export function resumenPagosMembresia(pagos = [], limite = 5) {
+  const lista = Array.isArray(pagos) ? pagos.filter((p) => p && typeof p === 'object') : [];
+  const totalPagado =
+    Math.round(lista.reduce((suma, p) => suma + (Number(p.monto) || 0), 0) * 100) / 100;
+  const maxItems = typeof limite === 'number' && limite > 0 ? limite : lista.length;
+  return {
+    totalPagado,
+    cantidad: lista.length,
+    recientes: lista.slice(0, maxItems),
   };
 }

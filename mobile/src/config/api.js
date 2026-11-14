@@ -21,4 +21,5 @@ if (error) {
   );
 }
 
-export const TIMEOUT_MS = 10000;
+// Límite de cada petición (HU-69). Al vencer, apiFetch la aborta y falla con SIN_CONEXION.
+export const TIMEOUT_MS = 15000;

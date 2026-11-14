@@ -29,3 +29,10 @@ export function iconoCategoria(nombre) {
   const encontrado = ICONOS.find(({ claves }) => claves.some((c) => n.includes(c)));
   return encontrado ? encontrado.icono : ICONO_GENERICO;
 }
+
+// Texto de la fila de categorías de las hojas (Nuevo gasto, Presupuesto) según vistaLista.
+export const TEXTO_ESTADO_CATEGORIAS = {
+  cargando: 'Cargando categorías…',
+  error: 'No se pudieron cargar',
+  vacio: 'No hay categorías disponibles',
+};

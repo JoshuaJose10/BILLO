@@ -1,4 +1,5 @@
 const { pool } = require('../db');
+const { esCategoriaDisponibleParaUsuario } = require('./categorias.controller');
 
 const esMesValido = (mesStr) => {
   return typeof mesStr === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(mesStr);
@@ -143,11 +144,11 @@ const crearPresupuesto = async (req, res) => {
       });
     }
 
-    const catResult = await pool.query(
-      'SELECT id FROM categorias WHERE id = $1',
-      [categoria_id]
+    const catDisponible = await esCategoriaDisponibleParaUsuario(
+      usuarioId,
+      categoria_id
     );
-    if (catResult.rows.length === 0) {
+    if (!catDisponible) {
       return res.status(400).json({
         error: {
           code: 'CATEGORIA_INEXISTENTE',

@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
+import { espacios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 
@@ -12,6 +13,7 @@ import { fonts } from '../theme/fonts';
 // `secundario`: sin relleno, con borde y texto claro (acciones como "Cerrar sesión").
 // `destructivo`: sin relleno, con borde en `alerta` y texto en `alertaTexto` (acciones como
 // "Eliminar gasto"); al presionar toma `alertaSuave`.
+// `ajustado`: del ancho de su texto, centrado (Reintentar de EstadoPantalla).
 export default function Boton({
   titulo,
   onPress,
@@ -22,6 +24,7 @@ export default function Boton({
   grande = false,
   secundario = false,
   destructivo = false,
+  ajustado = false,
 }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
@@ -46,6 +49,7 @@ export default function Boton({
         grande ? styles.botonGrande : null,
         secundario ? styles.botonSecundario : null,
         destructivo ? styles.botonDestructivo : null,
+        ajustado ? styles.botonAjustado : null,
         pressed && !inactivo ? (grande ? styles.presionadoGrande : styles.presionado) : null,
         pressed && !inactivo && destructivo ? styles.presionadoDestructivo : null,
         inactivo ? styles.inactivo : null,
@@ -117,6 +121,11 @@ const crearEstilos = (colors) =>
       backgroundColor: 'transparent',
       borderWidth: 1,
       borderColor: colors.alerta,
+    },
+    botonAjustado: {
+      width: 'auto',
+      alignSelf: 'center',
+      paddingHorizontal: espacios.lg,
     },
     presionadoDestructivo: {
       backgroundColor: colors.alertaSuave,

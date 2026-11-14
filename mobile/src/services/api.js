@@ -24,17 +24,24 @@ export function setAlNoAutorizado(fn) {
 
 // Contrato v1.1: { error: { code, message } }. Si la respuesta no trae ese formato
 // (HTML de Express, 500 con texto, sin cuerpo) se reporta como ERROR_DESCONOCIDO.
+// Un 5xx genérico (ERROR_SERVIDOR o sin código: proxy o servidor caído) se reporta como
+// SIN_CONEXION para mostrar el mismo error con Reintentar (HU-69); un 5xx con código propio
+// (p. ej. 502 FUENTE_NO_DISPONIBLE) conserva su código.
 function normalizarError(status, body) {
   const error = body?.error;
-  if (error && typeof error === 'object' && typeof error.code === 'string') {
-    return { code: error.code, message: error.message || '', status };
+  const code =
+    error && typeof error === 'object' && typeof error.code === 'string' ? error.code : null;
+  if (status >= 500 && (!code || code === 'ERROR_SERVIDOR')) {
+    return { code: SIN_CONEXION, message: '', status };
   }
+  if (code) return { code, message: error.message || '', status };
   return { code: ERROR_DESCONOCIDO, message: '', status };
 }
 
 // fetch con timeout y errores normalizados. Lanza siempre { code, message, status }.
 // Con `token` se envía el encabezado Authorization y un 401 dispara el cierre de sesión.
-// Con `signal` quien llama puede cancelar la petición (se reporta como SIN_CONEXION).
+// Con `signal` quien llama puede cancelar la petición (HU-47); igual que el timeout (TIMEOUT_MS),
+// se reporta como SIN_CONEXION.
 export async function apiFetch(ruta, { method = 'GET', body, token, signal } = {}) {
   // Guardia del modo exploración: ni el token push ni ninguna otra ruta sale a la red.
   if (modoVisitante) {

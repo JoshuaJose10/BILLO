@@ -93,3 +93,17 @@ describe('semanaSinProximoCobro (HU-72)', () => {
     }
   });
 });
+
+describe('cobrosDeLaSemana con pausadas', () => {
+  it('ignora las suscripciones pausadas', () => {
+    const r = cobrosDeLaSemana([
+      { id: 1, nombre: 'A', costo: 10, dias_para_cobro: 2, estado: 'activa' },
+      { id: 2, nombre: 'B', costo: 20, dias_para_cobro: 3, estado: 'pausada' },
+    ]);
+    assert.deepEqual(
+      r.cobros.map((c) => c.id),
+      [1],
+    );
+    assert.equal(r.total, 10);
+  });
+});

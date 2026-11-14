@@ -53,7 +53,7 @@
                 "exec": [
                   "const run = pm.variables.replaceIn('{{$guid}}').replace(/-/g,'');",
                   "pm.collectionVariables.set('qaRun',run); pm.collectionVariables.set('qaPassword','Qa!'+run);",
-                  "['qaTokenA','qaTokenB','categoriaId','otraCategoria','presupuestoId','gastoId','propioA','gastoPropioA'].forEach(k => pm.collectionVariables.unset(k));"
+                  "['qaTokenA','qaTokenB','predefinidasIds','categoriaId','otraCategoria','presupuestoId','gastoId','propioA','gastoPropioA'].forEach(k => pm.collectionVariables.unset(k));"
                 ]
               }
             },
@@ -105,6 +105,128 @@
                   "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
                   "pm.test(\"Sesión válida\", () => { pm.expect(body.token).to.be.a('string').and.not.empty; pm.expect(body.usuario.id).to.be.a('number'); });",
                   "if (body?.token != null) pm.collectionVariables.set('qaTokenB', body?.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PREP-PREDEFINIDAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/categorias/predefinidas",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Catálogo de predefinidas\", () => { pm.expect(body.categorias).to.be.an('array'); pm.expect(body.categorias.length).to.be.at.least(2); });",
+                  "if(Array.isArray(body?.categorias)) pm.collectionVariables.set('predefinidasIds', JSON.stringify(body.categorias.map(c=>c.id)));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PREP-SELECCION-A",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/categorias/seleccion",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_ids\": {{predefinidasIds}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Categorías configuradas\", () => { pm.expect(body.categorias_configuradas).to.equal(true); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PREP-SELECCION-B",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/categorias/seleccion",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_ids\": {{predefinidasIds}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Categorías configuradas\", () => { pm.expect(body.categorias_configuradas).to.equal(true); });"
                 ]
               }
             }

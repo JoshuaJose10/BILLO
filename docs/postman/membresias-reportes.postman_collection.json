@@ -112,6 +112,128 @@
           ]
         },
         {
+          "name": "PREP-PREDEFINIDAS",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/categorias/predefinidas",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Catálogo de predefinidas\", () => { pm.expect(body.categorias).to.be.an('array'); pm.expect(body.categorias.length).to.be.at.least(3); });",
+                  "if(Array.isArray(body?.categorias)) pm.collectionVariables.set('predefinidasIds', JSON.stringify(body.categorias.map(c=>c.id)));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PREP-SELECCION-A",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/categorias/seleccion",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_ids\": {{predefinidasIds}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Categorías configuradas\", () => { pm.expect(body.categorias_configuradas).to.equal(true); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PREP-SELECCION-B",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/categorias/seleccion",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{qaTokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria_ids\": {{predefinidasIds}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "let body; pm.test(\"Respuesta JSON\", () => { body = pm.response.json(); });",
+                  "pm.test(\"Categorías configuradas\", () => { pm.expect(body.categorias_configuradas).to.equal(true); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "PREP-CATEGORIAS",
           "request": {
             "method": "GET",

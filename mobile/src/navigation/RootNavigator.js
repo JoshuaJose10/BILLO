@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import PantallaCarga from '../components/PantallaCarga';
+import EstadoPantalla from '../components/EstadoPantalla';
 import { useAuth } from '../context/AuthContext';
 import InvitacionCuentaScreen from '../screens/InvitacionCuentaScreen';
 import AdminCatalogoScreen from '../screens/AdminCatalogoScreen';
@@ -44,7 +44,10 @@ export default function RootNavigator() {
     headerTintColor: colors.text,
   };
 
-  if (cargando) return <PantallaCarga />;
+  // Spinner a pantalla completa mientras se cargan las fuentes o la sesión guardada.
+  if (cargando) {
+    return <EstadoPantalla estado="cargando" completa fondo />;
+  }
 
   return (
     <Stack.Navigator>
