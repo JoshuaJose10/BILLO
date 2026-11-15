@@ -63,7 +63,73 @@ const normalizar = (nombre) =>
 
 const porClave = new Map(Object.entries(categorias).map(([nombre, v]) => [normalizar(nombre), v]));
 
-const buscar = (nombre) => porClave.get(normalizar(nombre)) ?? categorias.Otros;
+// Categorías propias del usuario (HU-89 / HU-90): usan el color hexadecimal asignado por el
+// servidor y el ícono genérico `tag-outline`.
+export const ICONO_CATEGORIA_PROPIA = 'tag-outline';
+
+const HEX_COLOR = /^#([0-9a-f]{6})$/i;
+
+function mezclarHex(hex, destinoHex, factor) {
+  const limpio = hex.replace('#', '');
+  const destino = destinoHex.replace('#', '');
+  const canales = [0, 2, 4].map((offset) => {
+    const a = parseInt(limpio.slice(offset, offset + 2), 16);
+    const b = parseInt(destino.slice(offset, offset + 2), 16);
+    const valor = Math.round(a + (b - a) * factor);
+    return Math.max(0, Math.min(255, valor)).toString(16).padStart(2, '0');
+  });
+  return `#${canales.join('').toUpperCase()}`;
+}
+
+export function paletaDesdeColor(colorHex) {
+  const base =
+    typeof colorHex === 'string' && HEX_COLOR.test(colorHex.trim())
+      ? colorHex.trim().toUpperCase()
+      : categorias.Otros.base;
+  const claro = mezclarHex(base, '#FFFFFF', 0.22);
+  const oscuro = mezclarHex(base, '#000000', 0.25);
+  const oscuroClaro = mezclarHex(base, '#000000', 0.1);
+  const fondoChip = mezclarHex(base, '#000000', 0.18);
+  return {
+    base,
+    baseClaro: base,
+    fondoChip,
+    degradado: [claro, base, oscuro],
+    degradadoClaro: [claro, base, oscuroClaro],
+  };
+}
+
+const coloresPropios = new Map();
+
+// Registra en memoria los colores de las categorías propias cargadas de la API para que
+// `colorCategoria`, `fondoChipCategoria`, `degradadoCategoria` y `sombraCategoria` respondan con
+// el color asignado por el servidor en Nuevo gasto, Inicio, Movimientos y Reportes.
+export function registrarColoresCategorias(lista) {
+  coloresPropios.clear();
+  for (const item of lista || []) {
+    if (!item || typeof item.nombre !== 'string') continue;
+    const clave = normalizar(item.nombre);
+    if (!clave || porClave.has(clave)) continue;
+    if (item.color || item.propia || item.es_predefinida === false) {
+      coloresPropios.set(clave, paletaDesdeColor(item.color));
+    }
+  }
+}
+
+export function limpiarColoresCategorias() {
+  coloresPropios.clear();
+}
+
+export function esCategoriaPropia(nombre) {
+  const clave = normalizar(nombre);
+  if (!clave) return false;
+  return !porClave.has(clave);
+}
+
+const buscar = (nombre) => {
+  const clave = normalizar(nombre);
+  return porClave.get(clave) ?? coloresPropios.get(clave) ?? categorias.Otros;
+};
 
 // `esOscuro` es el del tema activo (useTema).
 export function colorCategoria(nombre, esOscuro) {
