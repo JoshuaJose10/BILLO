@@ -1,26 +1,47 @@
 import { mesActual, sumarMeses } from './fechas.js';
 
 // Abanico del botón + (HU-92): geometría del arco y categorías que se ofrecen.
-// Coordenadas relativas al centro del +, con el eje y de la pantalla (negativo hacia arriba).
-// Ángulos en grados: 0 = derecha, 90 = arriba, 180 = izquierda.
+// Coordenadas de pantalla (y hacia abajo) y ángulos en grados en el sentido del reloj:
+// 0 = derecha, 180 = izquierda, 270 = arriba. Un arco de 200 a 340 abre hacia arriba.
+// arco: { ancho, base, radioMax, margen, anguloInicio, anguloFin }
+// - ancho: el de la pantalla; el arco queda centrado en ancho / 2.
+// - base: y del centro de las acciones más bajas (las de los extremos).
+// - margen: distancia mínima del borde de la pantalla al centro de una acción.
 
-// `n` puntos repartidos de anguloInicio a anguloFin (ambos incluidos) sobre un arco de `radio`.
-// Con uno solo queda en medio del arco.
-export function posicionesAbanico(n, radio, anguloInicio, anguloFin) {
+const radianes = (grados) => (grados * Math.PI) / 180;
+
+// radioMax, o menos si la pantalla es angosta: las acciones de los extremos respetan `margen`.
+export function radioAbanico({ ancho, radioMax, margen, anguloInicio, anguloFin }) {
+  const alcance = Math.max(
+    Math.abs(Math.cos(radianes(anguloInicio))),
+    Math.abs(Math.cos(radianes(anguloFin))),
+  );
+  return Math.max(0, Math.min(radioMax, (ancho / 2 - margen) / alcance));
+}
+
+// Centros de `n` acciones repartidas de anguloInicio a anguloFin (ambos incluidos), simétricas
+// respecto al centro de la pantalla. Con una sola queda en medio del arco.
+export function posicionesAbanico(n, arco) {
+  const { ancho, base, anguloInicio, anguloFin } = arco;
+  const radio = radioAbanico(arco);
+  const centroY =
+    base - radio * Math.max(Math.sin(radianes(anguloInicio)), Math.sin(radianes(anguloFin)));
   return Array.from({ length: n }, (_, i) => {
     const t = n === 1 ? 0.5 : i / (n - 1);
-    const angulo = ((anguloInicio + (anguloFin - anguloInicio) * t) * Math.PI) / 180;
-    return { x: radio * Math.cos(angulo), y: -radio * Math.sin(angulo) };
+    const angulo = radianes(anguloInicio + (anguloFin - anguloInicio) * t);
+    return { x: ancho / 2 + radio * Math.cos(angulo), y: centroY + radio * Math.sin(angulo) };
   });
 }
 
 // Índice de la posición más cercana al dedo si está a `tolerancia` o menos; null si no hay
-// ninguna o si el dedo sigue sobre el + (la X), a `tolerancia` o menos del centro.
-// Corre en el hilo de UI dentro del gesto.
-export function accionBajoDedo(punto, posiciones, tolerancia) {
+// ninguna o si el dedo sigue sobre el botón (la X), a `tolerancia` o menos de `centro`.
+// Todo en las mismas coordenadas (las de la pantalla). Corre en el hilo de UI dentro del gesto.
+export function accionBajoDedo(punto, posiciones, tolerancia, centro) {
   'worklet';
   const limite = tolerancia * tolerancia;
-  if (punto.x * punto.x + punto.y * punto.y <= limite) return null;
+  const cx = punto.x - centro.x;
+  const cy = punto.y - centro.y;
+  if (cx * cx + cy * cy <= limite) return null;
   let indice = null;
   let mejor = limite;
   for (let i = 0; i < posiciones.length; i++) {

@@ -93,10 +93,14 @@ export default function NavbarFlotante({ state, descriptors, navigation, accionC
   const styles = useEstilos(crearEstilos);
   const posicionCentral = Math.ceil(state.routes.length / 2);
   const claveActiva = state.routes[state.index]?.key;
+  // El abanico va centrado en la pantalla y por encima de la barra (y del banner de exploración),
+  // sin importar dónde quede el + según la pestaña activa.
+  const altoInferior = useAlturaNavbar();
   const abanico = useGestoAbanico({
     acciones: accionCentral?.acciones ?? SIN_ACCIONES,
     onElegir: accionCentral?.onElegir,
     tamanoBoton: TAMANO_CENTRAL,
+    altoInferior,
     reducirMovimiento,
   });
 

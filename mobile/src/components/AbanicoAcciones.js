@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { usePanGesture } from 'react-native-gesture-handler';
 import Animated, {
@@ -15,27 +15,35 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { tipografia } from '../theme/tipografia';
-import { accionBajoDedo, posicionesAbanico } from '../utils/abanico';
+import { accionBajoDedo, posicionesAbanico, radioAbanico } from '../utils/abanico';
 
 // Abanico de acciones sobre un botón (HU-92; Stitch inicio_men_radial_modo_oscuro y _claro):
 // mantener presionado ~300 ms lo abre y, sin soltar, se desliza hasta una acción. Soltar sobre una
 // acción llama a onElegir(accion); fuera de todas o sobre el botón, solo se cierra.
-//   const abanico = useGestoAbanico({ acciones, onElegir, tamanoBoton, reducirMovimiento });
+//   const abanico = useGestoAbanico({
+//     acciones, onElegir, tamanoBoton, altoInferior, reducirMovimiento,
+//   });
 //   <GestureDetector gesture={abanico.gesto}>…botón…</GestureDetector>
 //   <AbanicoAcciones {...abanico} />  // capa a pantalla completa, detrás de la barra
 // acciones: [{ clave, icono (MaterialCommunityIcons), etiqueta }]. El gesto corre en el hilo de UI.
+// El arco no depende de dónde esté el botón: va centrado en la pantalla y por encima de
+// `altoInferior` (lo que ocupa la barra desde el borde inferior). Solo la línea punteada sale del
+// botón. La capa empieza en la esquina de la pantalla, así que sus coordenadas son las del gesto.
 
 const MANTENER_MS = 300;
 const RADIO = 140;
-// Espacio libre entre la acción de un extremo y el borde de la pantalla (cabe su etiqueta).
-const MARGEN_RADIO = 56;
-const ANGULO_INICIO = 160;
-const ANGULO_FIN = 20;
+// Abre hacia arriba (270 = arriba); no llega a medio círculo.
+const ANGULO_INICIO = 200;
+const ANGULO_FIN = 340;
 // Distancia máxima del dedo a una acción para elegirla; igual de cerca del botón, no elige nada.
 const TOLERANCIA = 40;
 const CIRCULO = 44;
 const ESCALA_ACTIVA = 56 / CIRCULO;
 const ANCHO_ACCION = 96;
+// Del borde de la pantalla a la acción (con su etiqueta) y de la acción más baja a la barra.
+const SEPARACION = 16;
+// Lo que ocupa una acción por debajo de su centro: medio círculo, margen y su etiqueta.
+const BAJO_CENTRO = CIRCULO / 2 + 26;
 const APARECER = { duration: 160 };
 const RESALTAR = { duration: 120 };
 
@@ -43,20 +51,39 @@ const vibrar = (promesa) => promesa.catch(() => {});
 const vibrarAbrir = () => vibrar(Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium));
 const vibrarCambio = () => vibrar(Haptics.selectionAsync());
 
-export function useGestoAbanico({ acciones, onElegir, tamanoBoton, reducirMovimiento }) {
-  const { width } = useWindowDimensions();
-  const radio = Math.min(RADIO, width / 2 - MARGEN_RADIO);
+export function useGestoAbanico({
+  acciones,
+  onElegir,
+  tamanoBoton,
+  altoInferior,
+  reducirMovimiento,
+}) {
+  const ventana = useWindowDimensions();
+  // Tamaño real de la capa (onLayout); antes de medirla, el de la ventana.
+  const [capa, setCapa] = useState(null);
+  const { width: ancho, height: alto } = capa ?? ventana;
+  const alMedir = (e) => {
+    const { width, height } = e.nativeEvent.layout;
+    if (width !== ancho || height !== alto) setCapa({ width, height });
+  };
   const n = acciones.length;
-  const posiciones = useMemo(
-    () => posicionesAbanico(n, radio, ANGULO_INICIO, ANGULO_FIN),
-    [n, radio],
+  const arco = useMemo(
+    () => ({
+      ancho,
+      base: alto - altoInferior - SEPARACION - BAJO_CENTRO,
+      radioMax: RADIO,
+      margen: SEPARACION + ANCHO_ACCION / 2,
+      anguloInicio: ANGULO_INICIO,
+      anguloFin: ANGULO_FIN,
+    }),
+    [ancho, alto, altoInferior],
   );
-  // abierto: 0 cerrado → 1 abierto. activo: índice bajo el dedo o -1. centro: el del botón en la
-  // pantalla (la capa del abanico ocupa toda la pantalla desde 0,0).
+  const posiciones = useMemo(() => posicionesAbanico(n, arco), [n, arco]);
+  // abierto: 0 cerrado → 1 abierto. activo: índice bajo el dedo o -1. boton: centro del botón.
   const abierto = useSharedValue(0);
   const activo = useSharedValue(-1);
-  const centroX = useSharedValue(0);
-  const centroY = useSharedValue(0);
+  const botonX = useSharedValue(0);
+  const botonY = useSharedValue(0);
   const mitad = tamanoBoton / 2;
 
   const soltar = (indice) => {
@@ -69,16 +96,17 @@ export function useGestoAbanico({ acciones, onElegir, tamanoBoton, reducirMovimi
     enabled: n > 0,
     onActivate: (e) => {
       'worklet';
-      centroX.set(e.absoluteX - e.x + mitad);
-      centroY.set(e.absoluteY - e.y + mitad);
+      botonX.set(e.absoluteX - e.x + mitad);
+      botonY.set(e.absoluteY - e.y + mitad);
       activo.set(-1);
       abierto.set(reducirMovimiento ? 1 : withTiming(1, APARECER));
       scheduleOnRN(vibrarAbrir);
     },
     onUpdate: (e) => {
       'worklet';
-      const punto = { x: e.x - mitad, y: e.y - mitad };
-      const indice = accionBajoDedo(punto, posiciones, TOLERANCIA) ?? -1;
+      const dedo = { x: e.absoluteX, y: e.absoluteY };
+      const boton = { x: botonX.get(), y: botonY.get() };
+      const indice = accionBajoDedo(dedo, posiciones, TOLERANCIA, boton) ?? -1;
       if (indice === activo.get()) return;
       activo.set(indice);
       if (indice >= 0) scheduleOnRN(vibrarCambio);
@@ -96,11 +124,12 @@ export function useGestoAbanico({ acciones, onElegir, tamanoBoton, reducirMovimi
     gesto,
     acciones,
     posiciones,
-    radio,
+    arco,
+    alMedir,
     abierto,
     activo,
-    centroX,
-    centroY,
+    botonX,
+    botonY,
     reducirMovimiento,
   };
 }
@@ -110,76 +139,77 @@ const AnimatedLine = Animated.createAnimatedComponent(Line);
 export default function AbanicoAcciones({
   acciones,
   posiciones,
-  radio,
+  arco,
+  alMedir,
   abierto,
   activo,
-  centroX,
-  centroY,
+  botonX,
+  botonY,
   reducirMovimiento,
 }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
-  const lado = 2 * (radio + CIRCULO);
-  const mitad = lado / 2;
-  const arco = useMemo(() => {
-    const [a, b] = posicionesAbanico(2, radio, ANGULO_INICIO + 8, ANGULO_FIN - 8);
-    return `M ${a.x + mitad} ${a.y + mitad} A ${radio} ${radio} 0 0 1 ${b.x + mitad} ${b.y + mitad}`;
-  }, [radio, mitad]);
+  const { trazo, cima } = useMemo(() => {
+    const radio = radioAbanico(arco);
+    const [a, b] = posicionesAbanico(2, arco);
+    return {
+      trazo: `M ${a.x} ${a.y} A ${radio} ${radio} 0 0 1 ${b.x} ${b.y}`,
+      cima: posicionesAbanico(1, arco)[0].y,
+    };
+  }, [arco]);
 
   const estiloCapa = useAnimatedStyle(() => ({ opacity: abierto.get() }));
-  const estiloCentro = useAnimatedStyle(() => ({
-    transform: [{ translateX: centroX.get() }, { translateY: centroY.get() }],
-  }));
-  // Línea punteada del botón a la acción bajo el dedo.
+  // Línea punteada del botón (donde esté) a la acción bajo el dedo.
   const propsLinea = useAnimatedProps(() => {
     const p = posiciones[activo.get()];
+    const x1 = botonX.get();
+    const y1 = botonY.get();
     return p
-      ? { x2: p.x + mitad, y2: p.y + mitad, strokeOpacity: 0.55 }
-      : { x2: mitad, y2: mitad, strokeOpacity: 0 };
+      ? { x1, y1, x2: p.x, y2: p.y, strokeOpacity: 0.55 }
+      : { x1, y1, x2: x1, y2: y1, strokeOpacity: 0 };
   });
 
   if (acciones.length === 0) return null;
 
   return (
-    <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, estiloCapa]}>
+    <Animated.View
+      pointerEvents="none"
+      onLayout={alMedir}
+      style={[StyleSheet.absoluteFill, estiloCapa]}
+    >
       <View style={[StyleSheet.absoluteFill, styles.velo]} />
-      {/* Origen de coordenadas en el centro del botón: todo lo de adentro es relativo a él. */}
-      <Animated.View style={[styles.origen, estiloCentro]}>
-        <Svg width={lado} height={lado} style={[styles.trazos, { left: -mitad, top: -mitad }]}>
-          <Path
-            d={arco}
-            stroke={colors.text}
-            strokeOpacity={0.2}
-            strokeDasharray="3 5"
-            strokeWidth={1}
-            fill="none"
-          />
-          <AnimatedLine
-            x1={mitad}
-            y1={mitad}
-            stroke={colors.text}
-            strokeDasharray="2 3"
-            strokeWidth={1.5}
-            animatedProps={propsLinea}
-          />
-        </Svg>
-        <View style={[styles.filaPista, { top: -radio - CIRCULO * 2 - 16 }]}>
-          <View style={styles.pista}>
-            <MaterialCommunityIcons name="gesture-tap-hold" size={15} color={colors.text} />
-            <Text style={styles.pistaTexto}>Desliza y suelta</Text>
-          </View>
+      <Svg style={StyleSheet.absoluteFill}>
+        <Path
+          d={trazo}
+          stroke={colors.text}
+          strokeOpacity={0.2}
+          strokeDasharray="3 5"
+          strokeWidth={1}
+          fill="none"
+        />
+        <AnimatedLine
+          stroke={colors.text}
+          strokeDasharray="2 3"
+          strokeWidth={1.5}
+          animatedProps={propsLinea}
+        />
+      </Svg>
+      <View style={[styles.filaPista, { top: cima - CIRCULO * 2 - 16 }]}>
+        <View style={styles.pista}>
+          <MaterialCommunityIcons name="gesture-tap-hold" size={15} color={colors.text} />
+          <Text style={styles.pistaTexto}>Desliza y suelta</Text>
         </View>
-        {acciones.map((accion, indice) => (
-          <Accion
-            key={accion.clave}
-            accion={accion}
-            posicion={posiciones[indice]}
-            indice={indice}
-            activo={activo}
-            reducirMovimiento={reducirMovimiento}
-          />
-        ))}
-      </Animated.View>
+      </View>
+      {acciones.map((accion, indice) => (
+        <Accion
+          key={accion.clave}
+          accion={accion}
+          posicion={posiciones[indice]}
+          indice={indice}
+          activo={activo}
+          reducirMovimiento={reducirMovimiento}
+        />
+      ))}
     </Animated.View>
   );
 }
@@ -237,21 +267,11 @@ const crearEstilos = (colors) =>
     velo: {
       backgroundColor: colors.navbar,
     },
-    origen: {
-      position: 'absolute',
-      left: 0,
-      top: 0,
-      width: 0,
-      height: 0,
-    },
-    trazos: {
-      position: 'absolute',
-    },
-    // Centrada sobre el arco
+    // Centrada en la pantalla, sobre el arco
     filaPista: {
       position: 'absolute',
-      left: -ANCHO_ACCION,
-      width: ANCHO_ACCION * 2,
+      left: 0,
+      right: 0,
       alignItems: 'center',
     },
     // px-3.5 py-1.5 rounded-full bg-surface-container-high
