@@ -1,36 +1,39 @@
 # Guía para guardar evidencias del APK HU-53
 
-## Video de la ejecución reportada
+## Formato de evidencia y antecedente de ejecución
+
+Desde el **2026-11-15**, por indicación del usuario, toda evidencia manual
+se entrega como **capturas de pantalla (SS) PNG/JPG**, ordenadas por caso,
+variante y paso. Anotar las acciones y resultados reales entre capturas.
 
 El usuario informó que realizó las pruebas y compartió este enlace el
 2026-11-14: [Video de pruebas en Android](https://youtube.com/shorts/e79WO_K3lpY?feature=share).
 
 El [reporte](../entrega-rf7-rf9-rf10-reporte.md) asocia el mismo video a los
-15 casos objetivo y los 24 de regresión. Puede usarse una grabación conjunta;
-no hace falta duplicar cada flujo en capturas individuales. Falta identificar
-los resultados y minutos de cada caso. El contenido no pudo verificarse desde
+15 casos objetivo y los 24 de regresión como antecedente histórico. Falta identificar
+los resultados individuales. El contenido no pudo verificarse desde
 esta revisión por una limitación de acceso a YouTube.
 
-Las instrucciones siguientes sirven para revisar la cobertura de la grabación
-y preparar evidencia complementaria o futuras repruebas. Los nombres de fotos
-y videos son ejemplos, no archivos que se deban crear si el flujo ya está
-cubierto por el video compartido.
+Las instrucciones siguientes sirven para aportar SS y preparar futuras
+repruebas. Los nombres son ejemplos, no capturas ya existentes.
 
-Guarda capturas y grabaciones en esta misma carpeta:
+Guarda las capturas en esta misma carpeta:
 
 ```text
 docs/qa/entrega-rf7-rf9-rf10-evidencias/
 ```
 
 Usa capturas de pantalla del teléfono (`.png` o `.jpg`); para navegación,
-acciones consecutivas o persistencia, una grabación de pantalla (`.mp4`) ayuda
-a mostrar el flujo completo. Si hay varios archivos de un caso, usa sufijos:
+acciones consecutivas o persistencia, captura los estados antes y después
+y describe los pasos ejecutados. Si hay varios archivos de un caso, usa sufijos:
 
 ```text
 CP-RF10-04-01-sin-red.png
 CP-RF10-04-02-inicio.png
 CP-RF10-04-03-reportes.png
-CP-RF10-05-registro-persistencia.mp4
+CP-RF10-05-01-registro.png
+CP-RF10-05-02-gasto-guardado.png
+CP-RF10-05-03-reingreso-persistencia.png
 ```
 
 No reemplaces los archivos `.tap` ni los JSON de la ejecución anterior. En una
@@ -52,28 +55,28 @@ capturar; no sustituyen sus pasos. No mostrar contraseñas ni tokens.
 
 ## RF10 — empezar por modo visitante
 
-| Caso / prefijo del archivo | Qué mostrar en las capturas o el video |
+| Caso / prefijo del archivo | Qué mostrar en las SS |
 |---|---|
-| `CP-RF10-03` | Desde Login, cómo encuentras «Explorar sin cuenta» y entras en máximo 2 toques. Grabar desde antes de tocar el botón. |
+| `CP-RF10-03` | Login con «Explorar sin cuenta» visible y pantalla de entrada a visitante. Anotar cuántos toques realizaste; máximo 2. |
 | `CP-RF10-01` | Inicio, Movimientos, Cartera y Reportes en visitante, con sus datos de ejemplo visibles. |
 | `CP-RF10-02` | Intento de crear gasto; invitación a crear cuenta; «Seguir explorando» y datos intactos. Repetir las variantes de crear/editar/eliminar gastos, presupuestos y membresías del plan; nombrar cada variante. |
 | `CP-RF10-04` | Wi-Fi y datos móviles apagados (modo avión con Wi-Fi apagado sirve), app arrancando desde cerrada, entrada a visitante y navegación con datos de ejemplo. Capturar también cambios de mes/categoría. |
-| `CP-RF10-05` | Restablecer red; desde visitante intentar guardar → Crear cuenta → registro de cuenta nueva → pantallas sin datos demo → gasto real de $80.50 → cerrar sesión y reingresar → gasto conservado. Evitar grabar la contraseña. |
+| `CP-RF10-05` | Restablecer red; desde visitante intentar guardar → Crear cuenta → registro de cuenta nueva → pantallas sin datos demo → gasto real de $80.50 → cerrar sesión y reingresar → gasto conservado. Capturar cada estado sin mostrar la contraseña. |
 
-La grabación sin red muestra el comportamiento visible. La comprobación
-estricta de ausencia de tráfico de Billo requiere además registro de red; si no
+Las SS sin red muestran los estados visibles. La comprobación
+estricta de ausencia de tráfico de Billo requiere además SS del registro de red; si no
 se dispone de él, anotar que esa aserción sigue pendiente.
 
 ## RF9 — administración del catálogo
 
-| Caso / prefijo del archivo | Qué mostrar en las capturas o el video |
+| Caso / prefijo del archivo | Qué mostrar en las SS |
 |---|---|
 | `CP-RF9-01` | Como admin, buscar el alta de categorías e intentar agregar «Mascotas». Si solo hay servicios, mostrar esa pantalla y registrar que no se puede completar el caso. El usuario informó que la corrección se realizó en otra tarea; comprobar el comportamiento actual y no confundir categoría con servicio. |
 | `CP-RF9-02` | Perfil de usuario normal y ausencia/rechazo de acceso a administración. Las peticiones POST/PUT/DELETE deben verificarse aparte: ver una opción oculta no prueba un 403 del backend. |
 | `CP-RF9-03` | Como admin, crear servicio «QA Entrega» a 99, editarlo a 109; como usuario normal, comprobar el servicio actualizado al agregar una suscripción. Como admin, eliminarlo sin membresías asociadas y comprobar que desaparece al recargar. |
 | `CP-RF9-04` | Crear una membresía que use un servicio QA; como admin intentar borrar ese servicio, mostrar el mensaje de rechazo y volver a comprobar que servicio, membresía y totales se conservan. |
 
-Adjuntar también respuestas HTTP sanitizadas de permisos (403), operaciones
+Adjuntar también SS de respuestas HTTP sanitizadas de permisos (403), operaciones
 admin (201/200) y servicio en uso (409 `SERVICIO_EN_USO`), como exige el plan.
 No modificar ni eliminar servicios que otras personas usan para sus pruebas.
 
@@ -90,17 +93,17 @@ borrar la marca de notificación entre ellas.
 | `CP-RF7-01` | Membresía con cobro a D+3 y notificación recibida en la bandeja con el nombre y datos del cobro; resumen del proceso y marca en BD. |
 | `CP-RF7-02` | Membresía con cobro a D+10; resumen del proceso con cero envíos y marca sin cambios. Una foto de la bandeja vacía no demuestra por sí sola que no se envió. |
 | `CP-RF7-03` | Eliminación de la membresía antes del proceso; ausencia en BD y resumen sin envío para esa membresía. |
-| `CP-RF7-04` | Membresía a D+2; aviso con nombre, 2 días y monto; tocarlo y comprobar Cartera → Suscripciones. Guardar video y resumen/marca del proceso. |
+| `CP-RF7-04` | Membresía a D+2; SS del aviso con nombre, 2 días y monto; tocarlo y capturar Cartera → Suscripciones. Capturar resumen del proceso y marca en BD. |
 | `CP-RF7-05` | Evidencia del primer aviso y segunda ejecución del mismo día sin otro envío; resúmenes de ambas ejecuciones y marca conservada. |
 | `CP-RF7-06` | Cuenta A sin token push usa la app sin fallo; cuenta de control B con token recibe su aviso. Adjuntar estado de tokens como presente/ausente (sin valores), marcas y resumen del proceso que omite A y continúa con B. |
 
-Los registros del proceso y la BD pueden guardarse como `.txt` o `.json` con el
-mismo prefijo del caso. Si no se puede preparar el token, ejecutar el proceso
+Los registros del proceso y la BD se adjuntan como SS de la salida sanitizada,
+con fecha/hora y el mismo prefijo del caso. Si no se puede preparar el token, ejecutar el proceso
 o revisar sus registros, anotar esa dependencia como pendiente/bloqueada.
 
 ## Regresión RF1–RF6 y RF8
 
-Usar el video compartido y asociar sus segmentos al **ID de cada caso**, conservando los datos
+Asociar las SS al **ID de cada caso** y paso, conservando los datos
 iniciales y resultados visibles indicados en el plan. No mezclar los saldos de
 casos independientes; preparar/restablecer los datos entre pruebas.
 
@@ -109,7 +112,7 @@ casos independientes; preparar/restablecer los datos entre pruebas.
 | `CP-RF1-01` a `CP-RF1-04` | Registro y entrada a Inicio; login; rechazo de correo duplicado; rechazo de contraseña incorrecta. |
 | `CP-RF2-01` a `CP-RF2-03` | Gasto de $80.50 con categoría/fecha/método y aparición en lista; rechazo de monto inválido; rechazo de categoría ausente. Si el teclado impide escribir texto, documentarlo y verificar el negativo por API, sin inventar una captura. |
 | `CP-RF3-01` y `CP-RF3-02` | Presupuesto Comida de $2000 guardado; rechazo de -$500. |
-| `CP-RF4-01` a `CP-RF4-07` | Con límite de $1000: alerta al total $800, excedido a $1050, sin alerta a $150; límites exactos de $799.90, $800, $1000 y $1000.10 con su estado. Para ausencia de aviso, grabar desde Guardar hasta la pantalla final. |
+| `CP-RF4-01` a `CP-RF4-07` | Con límite de $1000: alerta al total $800, excedido a $1050, sin alerta a $150; límites exactos de $799.90, $800, $1000 y $1000.10 con su estado. Capturar antes de guardar y el estado final; anotar si apareció un aviso durante la acción. |
 | `CP-RF5-01` a `CP-RF5-04` | Alta Netflix $199 mensual a 10 días, edición a $219 y eliminación; rechazo de nombre vacío y costo inválido. |
 | `CP-RF6-01` y `CP-RF6-02` | Resumen con variable $500, fijo $300, total $800; cuenta nueva sin movimientos con los tres en cero. |
 | `CP-RF8-01` y `CP-RF8-02` | Gráfica con categorías 600/300/100 y proporciones 60/30/10; estado sin datos con cuenta nueva. |
@@ -117,13 +120,13 @@ casos independientes; preparar/restablecer los datos entre pruebas.
 ## Registrar el resultado de cada caso
 
 Actualizar su fila del [reporte](../entrega-rf7-rf9-rf10-reporte.md): resultado
-**Pasa/Falla**, fecha, ejecutor y enlace al video (o archivos complementarios). Un caso no
+**Pasa/Falla**, fecha, ejecutor y enlaces a SS por paso/variante. Un caso no
 ejecutado o con dependencias sin resolver sigue pendiente/bloqueado; si se
 reportó ejecutado pero aún no se conoce su resultado, usar Por confirmar. Ejemplo
-del enlace al video ya proporcionado:
+de enlace a una captura (sustituirlo por el archivo real después de capturar):
 
 ```markdown
-[Video de pruebas en Android](https://youtube.com/shorts/e79WO_K3lpY?feature=share)
+[SS de notificación](entrega-rf7-rf9-rf10-evidencias/CP-RF7-04-01-notificacion.png)
 ```
 
 Si falla, usar la [plantilla de bugs](../../plantilla-reporte-bug.md) y enlazar

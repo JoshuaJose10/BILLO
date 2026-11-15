@@ -10,6 +10,9 @@ Para la entrega RF7/RF9/RF10 sobre el APK HU-53, usar el
 del plan y conserva separados los resultados históricos de este checklist.
 La ejecución reportada por el usuario tiene este [Video de pruebas en Android](https://youtube.com/shorts/e79WO_K3lpY?feature=share), asociado a los
 casos en el reporte de entrega; los resultados individuales están por confirmar.
+Desde el 2026-11-15, por indicación del usuario, toda nueva evidencia manual
+se entrega como SS PNG/JPG por caso y paso. Los enlaces anteriores se conservan
+como antecedentes; registrar también las acciones y resultados observados.
 
 Para la migración de plataforma, usar además el [checklist SDK 58](qa/sdk58-migracion.md).
 Anotar SDK de Expo, versión de Expo Go o identificador del development build,
