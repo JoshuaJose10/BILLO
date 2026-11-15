@@ -180,6 +180,7 @@ function AccionesFila({ progreso, onEditar, onEliminar, deshabilitadas }) {
 // - `onEliminado()`: avisa a la lista para quitar la fila y recargar. Al eliminarse, la fila se
 //   desvanece y las de abajo suben con una transición de layout.
 // - `tituloEliminar`: pregunta de la confirmación (p. ej. "¿Eliminar gasto?").
+// Sin `eliminar` la fila no se desliza: solo se toca para abrir (p. ej. un cobro de suscripción).
 export default function FilaDeslizable({
   filas,
   onEditar,
@@ -191,6 +192,7 @@ export default function FilaDeslizable({
   children,
 }) {
   const styles = useEstilos(crearEstilos);
+  const deslizable = Boolean(eliminarEnApi);
   const swipeRef = useRef(null);
   const enviando = useRef(false);
   // `abierta`: la fila está (o va hacia) abierta. `arrastrando`: hay un gesto o su animación de
@@ -282,7 +284,7 @@ export default function FilaDeslizable({
         overshootFriction={8}
         // El gesto se activa con 20 px horizontales; un arrastre vertical lo toma el scroll.
         dragOffsetFromRightEdge={20}
-        enabled={!eliminando}
+        enabled={deslizable && !eliminando}
         containerStyle={styles.contenedor}
         animationOptions={RESORTE}
         renderRightActions={(progreso) => (
@@ -323,11 +325,19 @@ export default function FilaDeslizable({
           onPressOut={presion.soltar}
           disabled={eliminando}
           accessibilityRole="button"
-          accessibilityHint="Toca para editar. Desliza a la izquierda para más opciones."
-          accessibilityActions={[
-            { name: 'editar', label: 'Editar' },
-            { name: 'eliminar', label: 'Eliminar' },
-          ]}
+          accessibilityHint={
+            deslizable
+              ? 'Toca para editar. Desliza a la izquierda para más opciones.'
+              : 'Toca para abrir.'
+          }
+          accessibilityActions={
+            deslizable
+              ? [
+                  { name: 'editar', label: 'Editar' },
+                  { name: 'eliminar', label: 'Eliminar' },
+                ]
+              : undefined
+          }
           onAccessibilityAction={accionAccesible}
           style={eliminando ? styles.eliminando : null}
         >

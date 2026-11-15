@@ -10,6 +10,7 @@ const ICONOS = [
   { claves: ['entretenimiento', 'ocio', 'cine'], icono: 'filmstrip' },
   { claves: ['servicio', 'luz', 'agua', 'internet'], icono: 'lightning-bolt' },
   { claves: ['salud', 'medic', 'farmacia'], icono: 'shield-plus-outline' },
+  { claves: ['suscripcion'], icono: 'repeat' },
   { claves: ['otro'], icono: 'dots-horizontal-circle-outline' },
 ];
 

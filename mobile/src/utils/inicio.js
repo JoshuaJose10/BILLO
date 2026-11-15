@@ -7,10 +7,16 @@ import { agruparPorDia } from './movimientos.js';
 // Movimientos recientes que se muestran en Inicio.
 export const MOVIMIENTOS_RECIENTES = 5;
 
-// Los `n` movimientos más recientes del mes, gastos e ingresos mezclados (HU-82) en el mismo orden
-// que Movimientos (agruparPorDia), cada uno con su `tipo`.
-export const movimientosRecientes = (gastos, ingresos, n = MOVIMIENTOS_RECIENTES) =>
-  agruparPorDia(gastos, ingresos)
+// Los `n` movimientos más recientes del mes, gastos, ingresos (HU-82) y cobros ya ocurridos de
+// suscripciones mezclados en el mismo orden que Movimientos (agruparPorDia), cada uno con su `tipo`.
+// Se recorta después de mezclar.
+export const movimientosRecientes = (
+  gastos,
+  ingresos,
+  suscripciones = [],
+  n = MOVIMIENTOS_RECIENTES,
+) =>
+  agruparPorDia(gastos, ingresos, suscripciones)
     .flatMap((s) => s.data)
     .slice(0, n);
 

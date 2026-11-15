@@ -14,6 +14,7 @@ import SelectorMes from '../components/SelectorMes';
 import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/CategoriasContext';
 import { etiquetaMetodoPago, useGastosService } from '../services/gastos';
 import { useIngresosService } from '../services/ingresos';
+import { useMembresiasService } from '../services/membresias';
 import { useActualizarWidget } from '../widget/useActualizarWidget';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
@@ -21,16 +22,21 @@ import { fonts } from '../theme/fonts';
 import { useRecargar } from '../hooks/useRecargar';
 import { mesActual } from '../utils/fechas';
 import { formatearMonto, nombreMes } from '../utils/formato';
-import { agruparPorDia, claveMovimiento } from '../utils/movimientos';
+import { cobrosSuscripcionesEnMes } from '../utils/membresias';
+import { agruparPorDia, claveMovimiento, rutaMovimiento } from '../utils/movimientos';
 
 // Ingresos (HU-82): sin filtro de categoría, los del mes van mezclados por día con los gastos
 // (agruparPorDia); el total del mes y de cada día siguen sumando solo gastos. Con una categoría
 // elegida no se piden: son de otro tipo.
+// Cobros de suscripciones: igual que los ingresos (mezclados, sin sumar al total y sin filtro de
+// categoría), solo los ya ocurridos del mes y sin las pausadas (cobrosSuscripcionesEnMes). Si
+// GET /membresias falla, la lista sigue sin ellos.
 
 export default function MovimientosScreen({ navigation }) {
   const alturaNavbar = useAlturaNavbar();
   const { listarGastos, eliminarGasto } = useGastosService();
   const { listarIngresos, eliminarIngreso } = useIngresosService();
+  const { listarMembresias } = useMembresiasService();
   const actualizarWidgetResumen = useActualizarWidget();
   // Categorías de la caché de la sesión (filtro y nombres de cada gasto).
   const {
@@ -51,6 +57,7 @@ export default function MovimientosScreen({ navigation }) {
   // Datos de la última respuesta válida y el filtro con el que se pidieron.
   const [gastos, setGastos] = useState([]);
   const [ingresos, setIngresos] = useState([]);
+  const [membresias, setMembresias] = useState(null);
   const [filtroCargado, setFiltroCargado] = useState(null);
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
   const [errorCarga, setErrorCarga] = useState(null);
@@ -61,13 +68,15 @@ export default function MovimientosScreen({ navigation }) {
   const cargar = useCallback(async () => {
     const peticion = ++ultimaPeticion.current;
     try {
-      const [lista, listaIngresos] = await Promise.all([
+      const [lista, listaIngresos, listaMembresias] = await Promise.all([
         listarGastos({ mes, categoria_id: categoriaId }),
         categoriaId == null ? listarIngresos({ mes }) : [],
+        categoriaId == null ? listarMembresias().catch(() => null) : null,
       ]);
       if (peticion !== ultimaPeticion.current) return;
       setGastos(lista);
       setIngresos(listaIngresos);
+      setMembresias(listaMembresias);
       setFiltroCargado({ mes, categoriaId });
       setEstado('listo');
       return true;
@@ -77,7 +86,7 @@ export default function MovimientosScreen({ navigation }) {
       setEstado('error');
       return false;
     }
-  }, [listarGastos, listarIngresos, mes, categoriaId]);
+  }, [listarGastos, listarIngresos, listarMembresias, mes, categoriaId]);
 
   // Recarga al ganar foco (un gasto nuevo aparece al volver de NuevoGasto) y, como `cargar`
   // cambia con el filtro, también al cambiar de mes o de categoría.
@@ -110,8 +119,7 @@ export default function MovimientosScreen({ navigation }) {
   // Filas deslizables: Editar abre la hoja en modo edición; al eliminar, la fila se quita al
   // momento y se recargan la lista y el total.
   const filas = useFilasDeslizables();
-  const editar = (m) =>
-    navigation.navigate('NuevoGasto', m.tipo === 'ingreso' ? { ingreso: m } : { gasto: m });
+  const editar = (m) => navigation.navigate(...rutaMovimiento(m, membresias));
   const eliminado = (m) => {
     if (m.tipo === 'ingreso') {
       setIngresos((lista) => lista.filter((i) => i.id !== m.id));
@@ -122,7 +130,14 @@ export default function MovimientosScreen({ navigation }) {
     cargar();
   };
 
-  const secciones = useMemo(() => agruparPorDia(gastos, ingresos), [gastos, ingresos]);
+  const suscripciones = useMemo(
+    () => cobrosSuscripcionesEnMes(membresias, filtroCargado?.mes),
+    [membresias, filtroCargado],
+  );
+  const secciones = useMemo(
+    () => agruparPorDia(gastos, ingresos, suscripciones),
+    [gastos, ingresos, suscripciones],
+  );
   const total = useMemo(() => gastos.reduce((suma, g) => suma + g.monto, 0), [gastos]);
 
   // Textos del resumen y del estado vacío: describen lo que se está mostrando.

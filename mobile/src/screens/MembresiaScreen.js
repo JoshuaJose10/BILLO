@@ -23,6 +23,7 @@ import HojaInferior from '../components/HojaInferior';
 import Input from '../components/Input';
 import MontoGrande from '../components/MontoGrande';
 import PanelHoja from '../components/PanelHoja';
+import SelectorSegmentado from '../components/SelectorSegmentado';
 import TecladoNumerico from '../components/TecladoNumerico';
 import { guardarUltimoTipoCambio, useDivisasService } from '../services/divisas';
 import { useMembresiasService } from '../services/membresias';
@@ -41,6 +42,7 @@ import { vistaLista } from '../utils/estadoCarga';
 import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
 import { fechaRelativa, formatearMonto, LOCALE, resumirTexto } from '../utils/formato';
 import {
+  calcularProximoCobroDesdePago,
   detectarServicioRepetido,
   fechaCobroCiclo,
   filtrarCatalogo,
@@ -49,6 +51,12 @@ import {
   validarMembresia,
 } from '../utils/membresias';
 import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
+
+// Al crear (HU-84): con «Ya la pagué» la fecha es la del último pago y el próximo cobro se calcula.
+const OPCIONES_PAGO = [
+  { valor: 'pagada', etiqueta: 'Ya la pagué' },
+  { valor: 'pendiente', etiqueta: 'Aún no la pago' },
+];
 
 const OPCIONES_FRECUENCIA = [
   { valor: 'mensual', etiqueta: 'Mensual', icono: 'calendar-month-outline' },
@@ -140,6 +148,18 @@ export default function MembresiaScreen({ navigation, route }) {
     const fStr = fechaCobroCiclo(membresiaEditada);
     return fStr ? parsearFechaLocal(fStr) : new Date();
   });
+  const [pago, setPago] = useState('pagada');
+  // Al editar no hay selector: la fecha siempre es la próxima de cobro.
+  const conPago = !editando && pago === 'pagada';
+  const fechaISO = fechaLocalISO(fecha);
+  const proximoCobroISO = conPago ? calcularProximoCobroDesdePago(fechaISO, frecuencia) : fechaISO;
+  const tituloFecha = conPago ? 'Fecha de tu último pago' : 'Próxima fecha de cobro';
+  // El último pago no puede ser en el futuro.
+  const fechaMaxima = conPago ? new Date() : undefined;
+  const cambiarPago = (valor) => {
+    setPago(valor);
+    if (valor === 'pagada' && fecha > new Date()) setFecha(new Date());
+  };
   const [servicioId, setServicioId] = useState(() => membresiaEditada?.servicio_id ?? null);
   const [panel, setPanel] = useState(null); // 'nombre' | 'frecuencia' | 'fecha' | 'moneda'
 
@@ -302,6 +322,7 @@ export default function MembresiaScreen({ navigation, route }) {
       DateTimePickerAndroid.open({
         value: fecha,
         mode: 'date',
+        maximumDate: fechaMaxima,
         onValueChange: (_evento, nueva) => setFecha(nueva),
       });
     } else {
@@ -313,7 +334,7 @@ export default function MembresiaScreen({ navigation, route }) {
     if (enviando.current) return;
 
     // El teclado deja textos como "12." o "": se validan como número (igual que Nuevo gasto).
-    const fechaCobroISO = fechaLocalISO(fecha);
+    const fechaCobroISO = proximoCobroISO;
     const validacion = validarMembresia({
       nombre,
       costoTexto: String(montoDesdeTexto(texto)),
@@ -465,7 +486,7 @@ export default function MembresiaScreen({ navigation, route }) {
 
   const frecuenciaActual =
     OPCIONES_FRECUENCIA.find((f) => f.valor === frecuencia) || OPCIONES_FRECUENCIA[0];
-  const fechaTexto = `Cobro ${formatearDiaMes(fechaLocalISO(fecha))}`;
+  const fechaTexto = `${conPago ? 'Pagué' : 'Cobro'} ${formatearDiaMes(fechaISO)}`;
   const nombreTexto = nombre.trim() ? resumirTexto(nombre) : 'Nombre';
   const errorFormulario = errores.nombre || errores.fecha;
 
@@ -489,6 +510,15 @@ export default function MembresiaScreen({ navigation, route }) {
         keyboardShouldPersistTaps="handled"
         nestedScrollEnabled
       >
+        {editando ? null : (
+          <SelectorSegmentado
+            opciones={OPCIONES_PAGO}
+            valor={pago}
+            onCambiar={cambiarPago}
+            accessibilityLabel="¿Ya pagaste esta suscripción?"
+            style={styles.selectorPago}
+          />
+        )}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -520,10 +550,15 @@ export default function MembresiaScreen({ navigation, route }) {
             etiqueta={fechaTexto}
             chevron
             onPress={abrirFecha}
-            accessibilityLabel={`Próxima fecha de cobro: ${formatearDiaMes(fechaLocalISO(fecha))}`}
+            accessibilityLabel={`${tituloFecha}: ${formatearDiaMes(fechaISO)}`}
           />
         </ScrollView>
-        {errorFormulario ? <Text style={styles.errorCampo}>{errorFormulario}</Text> : null}
+        {conPago ? (
+          <Text style={styles.notaCampo}>Próximo cobro: {formatearDiaMes(proximoCobroISO)}</Text>
+        ) : null}
+        {errorFormulario ? (
+          <Text style={[styles.notaCampo, styles.errorCampo]}>{errorFormulario}</Text>
+        ) : null}
 
         <View style={styles.zonaMonto}>
           <MontoGrande
@@ -563,7 +598,9 @@ export default function MembresiaScreen({ navigation, route }) {
             <Text style={styles.avisoTipoCambioTexto}>{avisoTipoCambio}</Text>
           </View>
         ) : null}
-        {errores.costo ? <Text style={styles.errorCampo}>{errores.costo}</Text> : null}
+        {errores.costo ? (
+          <Text style={[styles.notaCampo, styles.errorCampo]}>{errores.costo}</Text>
+        ) : null}
 
         {/* Catálogo de servicios (solo al agregar), en el lugar de las categorías de Nuevo gasto */}
         {!editando ? (
@@ -793,10 +830,11 @@ export default function MembresiaScreen({ navigation, route }) {
       ) : null}
 
       {panel === 'fecha' ? (
-        <PanelHoja titulo="Próxima fecha de cobro" onCerrar={() => setPanel(null)}>
+        <PanelHoja titulo={tituloFecha} onCerrar={() => setPanel(null)}>
           <DateTimePicker
             value={fecha}
             mode="date"
+            maximumDate={fechaMaxima}
             display="inline"
             themeVariant={esOscuro ? 'dark' : 'light'}
             accentColor={colors.text}
@@ -875,9 +913,16 @@ const crearEstilos = (colors) =>
     textoEstadoFlexible: {
       flex: 1,
     },
-    errorCampo: {
+    // Texto bajo un campo: «Próximo cobro: …» y, con errorCampo encima, los errores.
+    notaCampo: {
       ...tipografia.bodySm,
+      color: colors.textSecondary,
+      marginTop: espacios.xs,
+    },
+    errorCampo: {
       color: colors.alertaTexto,
+    },
+    selectorPago: {
       marginTop: espacios.xs,
     },
     zonaTeclado: {

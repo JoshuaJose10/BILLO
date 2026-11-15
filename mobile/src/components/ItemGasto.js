@@ -16,7 +16,15 @@ import IconoCategoria from './IconoCategoria';
 // acciones que van detrás no se ven a través de la fila.
 // Con `ingreso` en lugar de `gasto` (HU-82): ícono de la fuente en verde, título = descripción o
 // fuente, subtítulo "Fuente · Ingreso" y el monto en verde con "+".
-export default function ItemGasto({ gasto, ingreso, nombreCategoria, metodoPago, opaca = false }) {
+// `marca` ({ icono, color }): logo de un servicio en lugar del ícono de la categoría (suscripciones).
+export default function ItemGasto({
+  gasto,
+  ingreso,
+  nombreCategoria,
+  metodoPago,
+  marca,
+  opaca = false,
+}) {
   const styles = useEstilos(crearEstilos);
   if (ingreso) {
     const fuente = ingreso.fuente?.trim() || 'Ingreso';
@@ -53,7 +61,7 @@ export default function ItemGasto({ gasto, ingreso, nombreCategoria, metodoPago,
 
   return (
     <View style={[styles.fila, opaca ? styles.filaOpaca : null]}>
-      <IconoCategoria nombre={nombreCategoria} />
+      <IconoCategoria nombre={nombreCategoria} icono={marca?.icono} color={marca?.color} />
       <View style={styles.textos}>
         <Text style={styles.titulo} numberOfLines={1}>
           {titulo}

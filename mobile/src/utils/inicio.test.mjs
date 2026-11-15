@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import { cargarDatosInicio, movimientosRecientes } from './inicio.js';
+import { cobrosSuscripcionesEnMes } from './membresias.js';
 
 describe('movimientosRecientes', () => {
   const gasto = (id, fecha) => ({ id, fecha, monto: 10 });
@@ -15,6 +16,31 @@ describe('movimientosRecientes', () => {
       movimientosRecientes(gastos, ingresos).map((m) => `${m.tipo}-${m.fecha.slice(-2)}`),
       ['gasto-05', 'ingreso-04', 'gasto-04', 'gasto-03', 'gasto-02'],
     );
+  });
+
+  it('con suscripciones: el cobro de hace 2 días aparece, el de mañana no', () => {
+    const hoy = '2026-11-15';
+    const membresias = [
+      { id: 7, nombre: 'Netflix', frecuencia: 'mensual', costo: 219, fecha_cobro: '2026-12-13' },
+      { id: 8, nombre: 'Spotify', frecuencia: 'mensual', costo: 129, fecha_cobro: '2026-11-16' },
+    ];
+    const recientes = movimientosRecientes(
+      [gasto(1, '2026-11-14')],
+      [],
+      cobrosSuscripcionesEnMes(membresias, '2026-11', hoy),
+    );
+    assert.deepEqual(
+      recientes.map((m) => `${m.tipo}-${m.fecha.slice(-2)}`),
+      ['gasto-14', 'suscripcion-13'],
+    );
+  });
+
+  it('se recorta a n después de mezclar', () => {
+    const gastos = [1, 2, 3, 4, 5].map((d) => gasto(d, `2026-11-0${d}`));
+    const cobros = [{ tipo: 'suscripcion', id: 7, fecha: '2026-11-09', monto: 219 }];
+    const recientes = movimientosRecientes(gastos, [], cobros);
+    assert.equal(recientes.length, 5);
+    assert.equal(recientes[0].tipo, 'suscripcion');
   });
 
   it('con pocos movimientos devuelve todos; sin ninguno, vacío', () => {

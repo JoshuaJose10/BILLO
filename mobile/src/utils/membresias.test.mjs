@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import test, { describe, it } from 'node:test';
+import test, { describe } from 'node:test';
 
 import { coloresServicio } from '../theme/servicios.js';
 
@@ -7,6 +7,9 @@ import {
   ajustarAlSiguienteCiclo,
   avanzarFechaCobro,
   calcularDiasParaCobro,
+  calcularProximoCobroDesdePago,
+  cobrosMembresiaEnMes,
+  cobrosSuscripcionesEnMes,
   calcularTotalAnual,
   calcularTotalEsteMes,
   calcularTotalMensual,
@@ -320,6 +323,126 @@ describe('utils/membresias', () => {
       });
       assert.equal(res.valido, false);
       assert.equal(res.errores.costo, 'El costo puede tener hasta 2 decimales');
+    });
+  });
+
+  describe('cobrosMembresiaEnMes', () => {
+    const hoy = '2026-11-15';
+    const mensual = { id: 1, frecuencia: 'mensual', fecha_cobro: '2026-12-10' };
+
+    test('mensual con fecha_cobro 10 dic: solo sale el 10 nov, no en oct ni sep', () => {
+      assert.deepEqual(cobrosMembresiaEnMes(mensual, '2026-11', hoy), ['2026-11-10']);
+      assert.deepEqual(cobrosMembresiaEnMes(mensual, '2026-10', hoy), []);
+      assert.deepEqual(cobrosMembresiaEnMes(mensual, '2026-09', hoy), []);
+    });
+
+    test('mensual en enero: el último cobro es en diciembre del año anterior', () => {
+      const enero = { id: 4, frecuencia: 'mensual', fecha_cobro: '2027-01-05' };
+      assert.deepEqual(cobrosMembresiaEnMes(enero, '2026-12', '2026-12-20'), ['2026-12-05']);
+    });
+
+    test('anual: solo un año antes de fecha_cobro', () => {
+      const anual = { id: 2, frecuencia: 'anual', fecha_cobro: '2027-03-10' };
+      assert.deepEqual(cobrosMembresiaEnMes(anual, '2026-03', hoy), ['2026-03-10']);
+      assert.deepEqual(cobrosMembresiaEnMes(anual, '2025-03', hoy), []);
+      assert.deepEqual(cobrosMembresiaEnMes(anual, '2026-04', hoy), []);
+      assert.deepEqual(cobrosMembresiaEnMes(anual, '2027-02', hoy), []);
+    });
+
+    test('fin de mes: el día 31 se ajusta en meses cortos', () => {
+      const marzo = { id: 3, frecuencia: 'mensual', fecha_cobro: '2026-03-31' };
+      assert.deepEqual(cobrosMembresiaEnMes(marzo, '2026-02', hoy), ['2026-02-28']);
+      const bisiesto = { id: 5, frecuencia: 'mensual', fecha_cobro: '2028-03-31' };
+      assert.deepEqual(cobrosMembresiaEnMes(bisiesto, '2028-02', '2028-03-01'), ['2028-02-29']);
+      const diciembre = { id: 6, frecuencia: 'mensual', fecha_cobro: '2026-12-31' };
+      assert.deepEqual(cobrosMembresiaEnMes(diciembre, '2026-11', '2026-11-30'), ['2026-11-30']);
+    });
+
+    test('si el último cobro es futuro, no sale', () => {
+      assert.deepEqual(cobrosMembresiaEnMes(mensual, '2026-11', '2026-11-09'), []);
+      const diciembre = { id: 6, frecuencia: 'mensual', fecha_cobro: '2026-12-31' };
+      assert.deepEqual(cobrosMembresiaEnMes(diciembre, '2026-11', hoy), []); // 30 nov aún no llega
+      assert.deepEqual(cobrosMembresiaEnMes(mensual, '2026-12', hoy), []);
+    });
+
+    test('las pausadas y los datos inválidos no generan cobros', () => {
+      assert.deepEqual(cobrosMembresiaEnMes({ ...mensual, estado: 'pausada' }, '2026-11', hoy), []);
+      assert.deepEqual(cobrosMembresiaEnMes({ ...mensual, fecha_cobro: null }, '2026-11', hoy), []);
+      assert.deepEqual(cobrosMembresiaEnMes(mensual, undefined, hoy), []);
+    });
+
+    test('cobrosSuscripcionesEnMes: movimiento con forma de gasto y la membresía original', () => {
+      const netflix = { ...mensual, nombre: 'Netflix', costo: '219.00', moneda: 'MXN' };
+      const [cobro] = cobrosSuscripcionesEnMes([netflix], '2026-11', hoy);
+      assert.equal(cobro.tipo, 'suscripcion');
+      assert.equal(cobro.fecha, '2026-11-10');
+      assert.equal(cobro.monto, 219);
+      assert.equal(cobro.nota, 'Netflix');
+      assert.equal(cobro.membresia, netflix);
+      assert.deepEqual(cobrosSuscripcionesEnMes(null, '2026-11', hoy), []);
+    });
+  });
+
+  describe('calcularProximoCobroDesdePago (HU-84)', () => {
+    test('mensual: un mes después del pago', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2026-11-09', 'mensual', '2026-11-09'),
+        '2026-12-09',
+      );
+    });
+
+    test('anual: un año después del pago', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2026-11-09', 'anual', '2026-11-09'),
+        '2027-11-09',
+      );
+    });
+
+    test('31 ene → 28 feb en año no bisiesto', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2026-01-31', 'mensual', '2026-01-31'),
+        '2026-02-28',
+      );
+    });
+
+    test('31 ene → 29 feb en año bisiesto', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2028-01-31', 'mensual', '2028-01-31'),
+        '2028-02-29',
+      );
+    });
+
+    test('pago mensual del 1 sep con hoy 14 nov → 1 dic', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2026-09-01', 'mensual', '2026-11-14'),
+        '2026-12-01',
+      );
+    });
+
+    test('pago antiguo del 31 conserva el día original después de febrero', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2026-01-31', 'mensual', '2026-03-01'),
+        '2026-03-31',
+      );
+    });
+
+    test('pago antiguo del 31 se ajusta al último día de noviembre', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2026-01-31', 'mensual', '2026-11-15'),
+        '2026-11-30',
+      );
+    });
+
+    test('pago anual del 29 de febrero recupera ese día en el siguiente año bisiesto', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2024-02-29', 'anual', '2028-02-10'),
+        '2028-02-29',
+      );
+    });
+
+    test('tolera entradas inválidas devolviendo la entrada original', () => {
+      assert.equal(calcularProximoCobroDesdePago(null), null);
+      assert.equal(calcularProximoCobroDesdePago('9 nov'), '9 nov');
     });
   });
 
