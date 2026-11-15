@@ -47,6 +47,15 @@ const categorias = {
     degradado: ['#F472B6', '#F25EAC', '#B75689'],
     degradadoClaro: ['#F691C6', '#F472B6', '#DC67A4'],
   },
+  // Cobros de suscripciones en Inicio y Movimientos cuando el servicio no tiene logo propio.
+  // El centro baja a sky-600 para que el glifo blanco llegue a ~4:1.
+  Suscripción: {
+    base: '#38BDF8',
+    baseClaro: '#0284C7',
+    fondoChip: '#0369A1',
+    degradado: ['#38BDF8', '#0284C7', '#0369A1'],
+    degradadoClaro: ['#3A9FD3', '#0284C7', '#0277B3'],
+  },
   Otros: {
     base: '#8E8E93',
     baseClaro: '#7C7C82',

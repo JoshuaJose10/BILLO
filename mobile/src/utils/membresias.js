@@ -431,6 +431,47 @@ export function diasEnMes(anio, mes) {
   return new Date(anio, mes, 0).getDate();
 }
 
+// Último cobro de una membresía si ya ocurrió (≤ hoy) y cae en `mes` ('YYYY-MM'): su `fecha_cobro`
+// (el próximo cobro, ya adelantado por normalizarMembresia) menos un ciclo (un mes o un año), con el
+// día ajustado en meses cortos (31 → 30 o 28/29). Solo ese: sin fecha de alta en la BD, los
+// anteriores no se pueden confirmar. Las pausadas no cobran. → ['YYYY-MM-DD'] (0 o 1).
+export function cobrosMembresiaEnMes(membresia, mes, fechaHoyStr = obtenerFechaHoyLocal()) {
+  const fecha = String(membresia?.fecha_cobro ?? '').slice(0, 10);
+  if (
+    membresia?.estado === 'pausada' ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(fecha) ||
+    !/^\d{4}-\d{2}$/.test(mes ?? '')
+  ) {
+    return [];
+  }
+  const [anio, mesCobro, dia] = fecha.split('-').map(Number);
+  const anual = membresia.frecuencia === 'anual';
+  const anioUltimo = anual || mesCobro === 1 ? anio - 1 : anio;
+  const mesUltimo = anual ? mesCobro : mesCobro === 1 ? 12 : mesCobro - 1;
+  const mm = String(mesUltimo).padStart(2, '0');
+  const dd = String(Math.min(dia, diasEnMes(anioUltimo, mesUltimo))).padStart(2, '0');
+  const ultimo = `${anioUltimo}-${mm}-${dd}`;
+  return ultimo.slice(0, 7) === mes && ultimo <= fechaHoyStr ? [ultimo] : [];
+}
+
+// Cobros ya ocurridos de las suscripciones en `mes` como movimientos de la lista (solo vista):
+// `tipo: 'suscripcion'`, con la forma de un gasto para pintarse con ItemGasto (la nota es el nombre
+// del servicio) y la `membresia` original para abrirla al tocar.
+export function cobrosSuscripcionesEnMes(membresias, mes, fechaHoyStr) {
+  return (Array.isArray(membresias) ? membresias : []).flatMap((m) =>
+    cobrosMembresiaEnMes(m, mes, fechaHoyStr).map((fecha) => ({
+      tipo: 'suscripcion',
+      id: m.id,
+      fecha,
+      monto: Number(m.costo) || 0,
+      moneda: m.moneda,
+      monto_original: m.monto_original,
+      nota: m.nombre,
+      membresia: m,
+    })),
+  );
+}
+
 // Próximo cobro a partir del último pago (HU-84): un ciclo después de `fechaPagoStr`, con el día
 // ajustado en meses cortos (31 ene → 28 o 29 feb); si ese ciclo ya pasó, los que hagan falta hasta
 // `fechaHoyStr` (hoy por defecto) o después. avanzarFechaCobro avanza mientras la fecha sea anterior

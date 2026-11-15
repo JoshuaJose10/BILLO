@@ -29,9 +29,9 @@ import { useRecargar } from '../hooks/useRecargar';
 import { vistaPantalla } from '../utils/estadoCarga';
 import { mesActual } from '../utils/fechas';
 import { cargarDatosInicio, movimientosRecientes } from '../utils/inicio';
-import { claveMovimiento } from '../utils/movimientos';
+import { claveMovimiento, rutaMovimiento } from '../utils/movimientos';
 import { saldoDelMes, totalIngresos } from '../utils/ingresos';
-import { proximoCobro } from '../utils/membresias';
+import { cobrosSuscripcionesEnMes, proximoCobro } from '../utils/membresias';
 import { presupuestosEnRiesgo, resumenPresupuestos } from '../utils/presupuestos';
 import { gastoPorCategoria, resumenGastoMes } from '../utils/resumenMes';
 import { actualizarWidget } from '../widget/sincronizar';
@@ -153,11 +153,16 @@ export default function InicioScreen({ navigation }) {
     [membresias, cobroProximo],
   );
   const enRiesgo = useMemo(() => presupuestosEnRiesgo(presupuestos), [presupuestos]);
-  const recientes = useMemo(
-    () => movimientosRecientes(gastosMes, ingresosMes),
-    [gastosMes, ingresosMes],
+  // Solo los cobros ya ocurridos del mes: los próximos están en «Esta semana cobran».
+  const suscripcionesMes = useMemo(
+    () => cobrosSuscripcionesEnMes(membresias, mesCargado),
+    [membresias, mesCargado],
   );
-  const movimientosMes = gastosMes.length + ingresosMes.length;
+  const recientes = useMemo(
+    () => movimientosRecientes(gastosMes, ingresosMes, suscripcionesMes),
+    [gastosMes, ingresosMes, suscripcionesMes],
+  );
+  const movimientosMes = gastosMes.length + ingresosMes.length + suscripcionesMes.length;
   const saldo = saldoDelMes(ingresosMes, resumen?.gasto_variable);
   const primerNombre = (usuario?.nombre || '').trim().split(' ')[0];
 
@@ -177,8 +182,7 @@ export default function InicioScreen({ navigation }) {
   // Filas deslizables: Editar abre la hoja en modo edición; al eliminar, la fila se quita al
   // momento y se recargan la lista y los totales.
   const filas = useFilasDeslizables();
-  const editar = (m) =>
-    navigation.navigate('NuevoGasto', m.tipo === 'ingreso' ? { ingreso: m } : { gasto: m });
+  const editar = (m) => navigation.navigate(...rutaMovimiento(m, membresias));
   const eliminado = (m) => {
     const quitar = (lista) => lista.filter((x) => x.id !== m.id);
     if (m.tipo === 'ingreso') setIngresosMes(quitar);

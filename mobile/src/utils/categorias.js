@@ -15,6 +15,7 @@ const ICONOS = [
   { claves: ['mascota'], icono: 'paw' },
   { claves: ['viaje'], icono: 'airplane' },
   { claves: ['regalo'], icono: 'gift-outline' },
+  { claves: ['suscripcion'], icono: 'repeat' },
   { claves: ['otro'], icono: 'dots-horizontal-circle-outline' },
 ];
 

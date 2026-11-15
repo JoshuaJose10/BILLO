@@ -12,11 +12,17 @@ import { iconoCategoria } from '../utils/categorias';
 // arriba, glifo blanco y sombra suave del mismo color (intensidad por tema). La sombra va en el contenedor exterior: con overflow hidden iOS la
 // recortaría.
 // Con `icono` es un ingreso (HU-82): ese glifo sobre el degradado verde de ingresos.
-export default function IconoCategoria({ nombre, icono }) {
+// Con `icono` y `color` es el logo de un servicio (cobro de suscripción): el glifo sobre su color de
+// marca sólido, como en Cartera (estiloServicio), con el mismo reflejo y sombra.
+export default function IconoCategoria({ nombre, icono, color }) {
   const { colors, esOscuro } = useTema();
   const styles = useEstilos(crearEstilos);
-  const degradado = icono ? degradadoIngreso(esOscuro) : degradadoCategoria(nombre, esOscuro);
-  const sombra = icono ? degradado[1] : sombraCategoria(nombre, esOscuro);
+  const degradado = color
+    ? [color, color]
+    : icono
+      ? degradadoIngreso(esOscuro)
+      : degradadoCategoria(nombre, esOscuro);
+  const sombra = color ?? (icono ? degradado[1] : sombraCategoria(nombre, esOscuro));
   return (
     <View style={[styles.sombra, { shadowColor: sombra }]}>
       <LinearGradient

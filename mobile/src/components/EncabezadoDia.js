@@ -5,7 +5,8 @@ import { fonts } from '../theme/fonts';
 import { formatearMonto } from '../utils/formato';
 
 // Encabezado de un grupo de movimientos (Stitch: movimientos_modo_oscuro, "Grupo: Hoy"):
-// el día a la izquierda ("Hoy", "Ayer", "Jueves 7 oct") y el total del día a la derecha.
+// el día a la izquierda ("Hoy", "Ayer", "Jueves 7 oct") y el total del día a la derecha. Sin
+// gastos ese día (total 0: solo ingresos o cobros de suscripciones) no se muestra el monto.
 export default function EncabezadoDia({ titulo, total, style }) {
   const styles = useEstilos(crearEstilos);
   return (
@@ -13,7 +14,7 @@ export default function EncabezadoDia({ titulo, total, style }) {
       <Text style={styles.titulo} numberOfLines={1}>
         {titulo}
       </Text>
-      <Text style={styles.total}>{formatearMonto(total)}</Text>
+      {total ? <Text style={styles.total}>{formatearMonto(total)}</Text> : null}
     </View>
   );
 }

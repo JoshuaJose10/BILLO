@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { agruparPorDia, claveMovimiento } from './movimientos.js';
+import { agruparPorDia, claveMovimiento, rutaMovimiento } from './movimientos.js';
 
 const gasto = (id, fecha, monto) => ({ id, fecha, monto });
 
@@ -42,5 +42,38 @@ describe('agruparPorDia', () => {
 
   it('sin movimientos no hay secciones', () => {
     assert.deepEqual(agruparPorDia([], []), []);
+  });
+});
+
+describe('agruparPorDia con cobros de suscripciones', () => {
+  const cobro = (id, fecha, monto) => ({ tipo: 'suscripcion', id, fecha, monto, nota: 'Netflix' });
+
+  it('se mezclan por día, después de los ingresos, y no suman al total del día', () => {
+    const secciones = agruparPorDia(
+      [{ id: 1, fecha: '2026-11-09', monto: 100 }],
+      [{ id: 1, fecha: '2026-11-09', monto: 500 }],
+      [cobro(7, '2026-11-09', 219), cobro(8, '2026-11-02', 99)],
+    );
+    assert.deepEqual(
+      secciones.map((s) => [s.fecha, s.total, s.data.map(claveMovimiento)]),
+      [
+        ['2026-11-09', 100, ['ingreso-1', 'suscripcion-7', 'gasto-1']],
+        ['2026-11-02', 0, ['suscripcion-8']],
+      ],
+    );
+  });
+});
+
+describe('rutaMovimiento', () => {
+  it('gasto e ingreso abren su hoja; la suscripción abre Membresia', () => {
+    const gasto = { tipo: 'gasto', id: 1 };
+    const ingreso = { tipo: 'ingreso', id: 2 };
+    const membresia = { id: 7, nombre: 'Netflix' };
+    assert.deepEqual(rutaMovimiento(gasto), ['NuevoGasto', { gasto }]);
+    assert.deepEqual(rutaMovimiento(ingreso), ['NuevoGasto', { ingreso }]);
+    assert.deepEqual(rutaMovimiento({ tipo: 'suscripcion', id: 7, membresia }, [membresia]), [
+      'Membresia',
+      { membresia, membresiasExistentes: [membresia] },
+    ]);
   });
 });
