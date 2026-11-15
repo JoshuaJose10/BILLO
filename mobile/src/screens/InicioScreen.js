@@ -61,6 +61,7 @@ export default function InicioScreen({ navigation }) {
   const { listarMembresias } = useMembresiasService();
   const {
     categorias,
+    todasCategorias,
     estado: estadoCategorias,
     recargar: recargarCategorias,
     nombrePorId,
@@ -133,8 +134,8 @@ export default function InicioScreen({ navigation }) {
   });
 
   const nombresCategoria = useMemo(
-    () => Object.fromEntries(categorias.map((c) => [c.id, c.nombre])),
-    [categorias],
+    () => Object.fromEntries((todasCategorias || categorias).map((c) => [c.id, c.nombre])),
+    [todasCategorias, categorias],
   );
   const porCategoria = useMemo(
     () => gastoPorCategoria(gastosMes, nombresCategoria),

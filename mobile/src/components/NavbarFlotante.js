@@ -3,6 +3,7 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { Fragment, useCallback, useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
   interpolateColor,
@@ -17,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
+import AbanicoAcciones, { useGestoAbanico } from './AbanicoAcciones';
 import BannerVisitante, { ALTO_BANNER } from './BannerVisitante';
 
 // Medidas del <nav> de Stitch (inicio_navbar_p_ldora_modo_oscuro): px-2 py-2, borde 1px,
@@ -28,6 +30,7 @@ const PADDING_BARRA = 8;
 const ICONO_ACTIVO = 18;
 const ICONO_INACTIVO = 20;
 const ICONO_CENTRAL = 24;
+const TAMANO_CENTRAL = 44;
 const ALTO_CAPSULA = 34;
 // Separación entre el banner del modo exploración y la barra.
 const SEPARACION_BANNER = 8;
@@ -46,6 +49,8 @@ const SOLTAR = { duration: 140, easing: Easing.out(Easing.quad) };
 const DURACION_ETIQUETA = 150;
 const ESCALA_PRESIONADO = 0.95;
 const GIRO_CENTRAL = 90;
+// Con el abanico abierto el + queda girado a X.
+const GIRO_ABIERTO = 45;
 
 // Alto total que ocupa la barra desde el borde inferior (barra + margen + inset, y el banner en el
 // modo exploración). Úsalo como paddingBottom del contenido de cada pestaña para que nada quede
@@ -74,6 +79,8 @@ function useRebote(reducirMovimiento) {
 // De cada pantalla toma `options.tabBarIconName` (MaterialCommunityIcons) y
 // `options.tabBarLabel` u `options.title`. `accionCentral` ({ icono, onPress,
 // accessibilityLabel }) dibuja un botón en medio de las pestañas; es una acción, no una pestaña.
+// Con `accionCentral.acciones` y `onElegir`, mantenerlo presionado abre el abanico de esas
+// acciones (AbanicoAcciones, HU-92) por encima del contenido; el toque corto sigue igual.
 //
 // Animación: un solo indicador blanco (absoluto, detrás de las pestañas) se desliza hasta la
 // pestaña activa midiendo cada una con onLayout; las pestañas reacomodan su posición con una
@@ -86,6 +93,16 @@ export default function NavbarFlotante({ state, descriptors, navigation, accionC
   const styles = useEstilos(crearEstilos);
   const posicionCentral = Math.ceil(state.routes.length / 2);
   const claveActiva = state.routes[state.index]?.key;
+  // El abanico va centrado en la pantalla y por encima de la barra (y del banner de exploración),
+  // sin importar dónde quede el + según la pestaña activa.
+  const altoInferior = useAlturaNavbar();
+  const abanico = useGestoAbanico({
+    acciones: accionCentral?.acciones ?? SIN_ACCIONES,
+    onElegir: accionCentral?.onElegir,
+    tamanoBoton: TAMANO_CENTRAL,
+    altoInferior,
+    reducirMovimiento,
+  });
 
   // Posición y tamaño del indicador, relativos al interior (padding box) de la barra.
   const indX = useSharedValue(0);
@@ -158,39 +175,55 @@ export default function NavbarFlotante({ state, descriptors, navigation, accionC
     );
   });
 
+  const botonCentral = accionCentral ? (
+    <BotonCentral
+      icono={accionCentral.icono}
+      onPress={accionCentral.onPress}
+      accessibilityLabel={accionCentral.accessibilityLabel}
+      reducirMovimiento={reducirMovimiento}
+      gesto={abanico.gesto}
+      abierto={abanico.abierto}
+    />
+  ) : null;
+
   return (
-    <View pointerEvents="box-none" style={[styles.contenedor, { bottom: MARGEN + insets.bottom }]}>
-      {visitante ? (
-        <View style={styles.banner}>
-          <BannerVisitante />
-        </View>
-      ) : null}
-      {/* La sombra va en un contenedor externo porque la barra usa overflow: hidden (blur). */}
-      <View style={styles.sombra}>
-        <View style={styles.barra}>
-          <BlurView
-            tint={esOscuro ? 'dark' : 'light'}
-            intensity={60}
-            style={StyleSheet.absoluteFill}
-          />
-          <View style={[StyleSheet.absoluteFill, styles.capa]} />
-          <Animated.View pointerEvents="none" style={[styles.indicador, estiloIndicador]} />
-          {pestanas.map((pestana, index) => (
-            <Fragment key={state.routes[index].key}>
-              {accionCentral && index === posicionCentral ? (
-                <BotonCentral {...accionCentral} reducirMovimiento={reducirMovimiento} />
-              ) : null}
-              {pestana}
-            </Fragment>
-          ))}
-          {accionCentral && posicionCentral >= pestanas.length ? (
-            <BotonCentral {...accionCentral} reducirMovimiento={reducirMovimiento} />
-          ) : null}
+    <>
+      {/* Detrás de la barra (el + sigue a la vista como X) y encima del contenido. */}
+      <AbanicoAcciones {...abanico} />
+      <View
+        pointerEvents="box-none"
+        style={[styles.contenedor, { bottom: MARGEN + insets.bottom }]}
+      >
+        {visitante ? (
+          <View style={styles.banner}>
+            <BannerVisitante />
+          </View>
+        ) : null}
+        {/* La sombra va en un contenedor externo porque la barra usa overflow: hidden (blur). */}
+        <View style={styles.sombra}>
+          <View style={styles.barra}>
+            <BlurView
+              tint={esOscuro ? 'dark' : 'light'}
+              intensity={60}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={[StyleSheet.absoluteFill, styles.capa]} />
+            <Animated.View pointerEvents="none" style={[styles.indicador, estiloIndicador]} />
+            {pestanas.map((pestana, index) => (
+              <Fragment key={state.routes[index].key}>
+                {index === posicionCentral ? botonCentral : null}
+                {pestana}
+              </Fragment>
+            ))}
+            {posicionCentral >= pestanas.length ? botonCentral : null}
+          </View>
         </View>
       </View>
-    </View>
+    </>
   );
 }
+
+const SIN_ACCIONES = [];
 
 function Pestana({
   activa,
@@ -262,12 +295,22 @@ function Pestana({
   );
 }
 
-function BotonCentral({ icono = 'plus', onPress, accessibilityLabel, reducirMovimiento }) {
+// `gesto` (mantener y deslizar) envuelve al botón; `abierto` (0 → 1) lo gira a X.
+function BotonCentral({
+  icono = 'plus',
+  onPress,
+  accessibilityLabel,
+  reducirMovimiento,
+  gesto,
+  abierto,
+}) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
   const rebote = useRebote(reducirMovimiento);
   const giro = useSharedValue(0);
-  const estiloIcono = useAnimatedStyle(() => ({ transform: [{ rotate: `${giro.value}deg` }] }));
+  const estiloIcono = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${giro.value + abierto.value * GIRO_ABIERTO}deg` }],
+  }));
 
   const alPresionar = () => {
     rebote.alPresionar();
@@ -282,21 +325,24 @@ function BotonCentral({ icono = 'plus', onPress, accessibilityLabel, reducirMovi
     onPress?.();
   };
 
+  // Al activarse el gesto, el Pressable recibe onPressOut (se cancela el toque) y no llama a onPress.
   return (
-    <Animated.View style={rebote.estilo}>
-      <Pressable
-        onPress={alTocar}
-        onPressIn={alPresionar}
-        onPressOut={alSoltar}
-        accessibilityRole="button"
-        accessibilityLabel={accessibilityLabel}
-        style={styles.central}
-      >
-        <Animated.View style={estiloIcono}>
-          <MaterialCommunityIcons name={icono} size={ICONO_CENTRAL} color={colors.onPrimary} />
-        </Animated.View>
-      </Pressable>
-    </Animated.View>
+    <GestureDetector gesture={gesto}>
+      <Animated.View style={rebote.estilo}>
+        <Pressable
+          onPress={alTocar}
+          onPressIn={alPresionar}
+          onPressOut={alSoltar}
+          accessibilityRole="button"
+          accessibilityLabel={accessibilityLabel}
+          style={styles.central}
+        >
+          <Animated.View style={estiloIcono}>
+            <MaterialCommunityIcons name={icono} size={ICONO_CENTRAL} color={colors.onPrimary} />
+          </Animated.View>
+        </Pressable>
+      </Animated.View>
+    </GestureDetector>
   );
 }
 
@@ -376,9 +422,9 @@ const crearEstilos = (colors) =>
     },
     // w-11 h-11 bg-white rounded-full shadow-lg
     central: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
+      width: TAMANO_CENTRAL,
+      height: TAMANO_CENTRAL,
+      borderRadius: TAMANO_CENTRAL / 2,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: colors.primary,

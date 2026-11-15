@@ -100,6 +100,11 @@ export default function PerfilScreen({ navigation }) {
     }
   };
 
+  const abrirMisCategorias = () => {
+    navigation.goBack();
+    navigation.navigate('MisCategorias');
+  };
+
   const confirmarCerrarSesion = () =>
     Alert.alert('¿Cerrar sesión?', 'Tendrás que ingresar tu correo y contraseña de nuevo.', [
       { text: 'Cancelar', style: 'cancel' },
@@ -230,6 +235,25 @@ export default function PerfilScreen({ navigation }) {
             <Text style={styles.textoPastillaValor}>{infoMoneda.codigo}</Text>
             <MaterialCommunityIcons name="chevron-right" size={18} color={colors.textSecondary} />
           </View>
+        </Pressable>
+
+        {/* Mis categorías (HU-90) */}
+        <Pressable
+          onPress={abrirMisCategorias}
+          accessibilityRole="button"
+          accessibilityLabel="Mis categorías"
+          style={({ pressed }) => [styles.filaAjuste, pressed ? styles.filaAjustePresionada : null]}
+        >
+          <View style={styles.iconoAjusteCirculo}>
+            <MaterialCommunityIcons name="tag-multiple-outline" size={20} color={colors.text} />
+          </View>
+          <View style={styles.columnaAjuste}>
+            <Text style={styles.etiquetaAjuste}>Mis categorías</Text>
+            <Text style={styles.subtextoAjuste} numberOfLines={1}>
+              Elegir predefinidas, crear o editar las tuyas
+            </Text>
+          </View>
+          <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textSecondary} />
         </Pressable>
 
         {/* Notificaciones */}
