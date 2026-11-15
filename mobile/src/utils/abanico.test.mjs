@@ -13,7 +13,7 @@ const arco = (ancho) => ({
   ancho,
   base: 600,
   radioMax: 140,
-  margen: 64,
+  margen: 44,
   anguloInicio: 200,
   anguloFin: 340,
 });
@@ -24,8 +24,8 @@ const ANCHOS = [320, 375, 430];
 describe('radioAbanico', () => {
   it('usa el radio máximo si la pantalla alcanza y lo reduce si es angosta', () => {
     assert.equal(radioAbanico(arco(430)), 140);
-    assert.ok(radioAbanico(arco(375)) < 140);
-    assert.ok(radioAbanico(arco(320)) < radioAbanico(arco(375)));
+    assert.equal(radioAbanico(arco(375)), 140);
+    assert.ok(radioAbanico(arco(320)) < 140);
   });
 });
 
@@ -47,7 +47,7 @@ describe('posicionesAbanico', () => {
     for (const ancho of ANCHOS) {
       for (let n = 1; n <= 6; n++) {
         for (const { x, y } of posicionesAbanico(n, arco(ancho))) {
-          assert.ok(x >= 64 - 1e-6 && x <= ancho - 64 + 1e-6, `x=${x} en ancho ${ancho}`);
+          assert.ok(x >= 44 - 1e-6 && x <= ancho - 44 + 1e-6, `x=${x} en ancho ${ancho}`);
           assert.ok(y <= 600 + 1e-6, `y=${y}`);
         }
       }

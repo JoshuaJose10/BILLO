@@ -39,11 +39,11 @@ const ANGULO_FIN = 340;
 const TOLERANCIA = 40;
 const CIRCULO = 44;
 const ESCALA_ACTIVA = 56 / CIRCULO;
-const ANCHO_ACCION = 96;
-// Del borde de la pantalla a la acción (con su etiqueta) y de la acción más baja a la barra.
+// Radio del círculo ya agrandado (bajo el dedo): lo más que ocupa una acción desde su centro.
+const RADIO_ACTIVA = (CIRCULO * ESCALA_ACTIVA) / 2;
+const PASTILLA_MAX = 160;
+// Del borde de la pantalla a la acción (o a la pastilla) y de la acción más baja a la barra.
 const SEPARACION = 16;
-// Lo que ocupa una acción por debajo de su centro: medio círculo, margen y su etiqueta.
-const BAJO_CENTRO = CIRCULO / 2 + 26;
 const APARECER = { duration: 160 };
 const RESALTAR = { duration: 120 };
 
@@ -70,9 +70,9 @@ export function useGestoAbanico({
   const arco = useMemo(
     () => ({
       ancho,
-      base: alto - altoInferior - SEPARACION - BAJO_CENTRO,
+      base: alto - altoInferior - SEPARACION - RADIO_ACTIVA,
       radioMax: RADIO,
-      margen: SEPARACION + ANCHO_ACCION / 2,
+      margen: SEPARACION + RADIO_ACTIVA,
       anguloInicio: ANGULO_INICIO,
       anguloFin: ANGULO_FIN,
     }),
@@ -205,6 +205,7 @@ export default function AbanicoAcciones({
           key={accion.clave}
           accion={accion}
           posicion={posiciones[indice]}
+          ancho={arco.ancho}
           indice={indice}
           activo={activo}
           reducirMovimiento={reducirMovimiento}
@@ -214,12 +215,17 @@ export default function AbanicoAcciones({
   );
 }
 
-// Inactiva: círculo de superficie y su nombre debajo. Bajo el dedo: crece con el círculo
-// resaltado (claro sobre oscuro y viceversa), su nombre arriba en una pastilla y
-// «Soltar para abrir» debajo.
-function Accion({ accion, posicion, indice, activo, reducirMovimiento }) {
+// En reposo solo el ícono. Bajo el dedo crece con el círculo resaltado (claro sobre oscuro y
+// viceversa) y su nombre sale en una pastilla encima, hacia afuera del arco (abre hacia arriba),
+// recorrida de lado lo necesario para quedar dentro de la pantalla.
+function Accion({ accion, posicion, ancho, indice, activo, reducirMovimiento }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
+  const [anchoPastilla, setAnchoPastilla] = useState(0);
+  const izquierda = Math.min(
+    Math.max(posicion.x - anchoPastilla / 2, SEPARACION),
+    ancho - SEPARACION - anchoPastilla,
+  );
 
   const estiloCirculo = useAnimatedStyle(() => {
     const escala = activo.get() === indice ? ESCALA_ACTIVA : 1;
@@ -228,20 +234,23 @@ function Accion({ accion, posicion, indice, activo, reducirMovimiento }) {
     };
   });
   const estiloActiva = useAnimatedStyle(() => ({ opacity: activo.get() === indice ? 1 : 0 }));
-  const estiloInactiva = useAnimatedStyle(() => ({ opacity: activo.get() === indice ? 0 : 1 }));
 
   return (
     <View
-      style={[
-        styles.accion,
-        { left: posicion.x - ANCHO_ACCION / 2, top: posicion.y - CIRCULO / 2 },
-      ]}
+      style={[styles.accion, { left: posicion.x - CIRCULO / 2, top: posicion.y - CIRCULO / 2 }]}
     >
-      <Animated.View style={[styles.pastilla, estiloActiva]}>
-        <MaterialCommunityIcons name={accion.icono} size={13} color={colors.onPrimary} />
-        <Text style={styles.pastillaTexto} numberOfLines={1}>
-          {accion.etiqueta}
-        </Text>
+      <Animated.View
+        style={[styles.filaPastilla, { left: izquierda - posicion.x + CIRCULO / 2 }, estiloActiva]}
+      >
+        <View
+          style={styles.pastilla}
+          onLayout={(e) => setAnchoPastilla(e.nativeEvent.layout.width)}
+        >
+          <MaterialCommunityIcons name={accion.icono} size={13} color={colors.onPrimary} />
+          <Text style={styles.pastillaTexto} numberOfLines={1}>
+            {accion.etiqueta}
+          </Text>
+        </View>
       </Animated.View>
       <Animated.View style={[styles.circulo, estiloCirculo]}>
         <MaterialCommunityIcons name={accion.icono} size={20} color={colors.text} />
@@ -249,14 +258,6 @@ function Accion({ accion, posicion, indice, activo, reducirMovimiento }) {
           <MaterialCommunityIcons name={accion.icono} size={20} color={colors.onPrimary} />
         </Animated.View>
       </Animated.View>
-      <View>
-        <Animated.Text style={[styles.etiqueta, estiloInactiva]} numberOfLines={1}>
-          {accion.etiqueta}
-        </Animated.Text>
-        <Animated.Text style={[styles.soltar, StyleSheet.absoluteFill, estiloActiva]}>
-          Soltar para abrir
-        </Animated.Text>
-      </View>
     </View>
   );
 }
@@ -294,8 +295,6 @@ const crearEstilos = (colors) =>
     },
     accion: {
       position: 'absolute',
-      width: ANCHO_ACCION,
-      alignItems: 'center',
     },
     circulo: {
       width: CIRCULO,
@@ -323,31 +322,20 @@ const crearEstilos = (colors) =>
       shadowRadius: 14,
       shadowOpacity: 0.5,
     },
-    // mt-1.5 text-[10px] uppercase tracking-wider text-on-surface-variant
-    etiqueta: {
-      ...tipografia.labelCaps,
-      fontSize: 10,
-      marginTop: 6,
-      color: colors.textVariant,
-      textAlign: 'center',
-    },
-    // text-[9px] tracking-widest, debajo del círculo ya agrandado
-    soltar: {
-      ...tipografia.labelCaps,
-      fontSize: 9,
-      marginTop: 12,
-      color: colors.text,
-      textAlign: 'center',
-    },
-    // mb-2 px-3 py-1 rounded-full bg-primary, por encima del círculo ya agrandado
-    pastilla: {
+    // Por encima del círculo ya agrandado; `left` la deja dentro de la pantalla.
+    filaPastilla: {
       position: 'absolute',
       bottom: '100%',
       marginBottom: 12,
+      width: PASTILLA_MAX,
+      alignItems: 'flex-start',
+    },
+    // mb-2 px-3 py-1 rounded-full bg-primary
+    pastilla: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
-      maxWidth: ANCHO_ACCION * 1.6,
+      maxWidth: PASTILLA_MAX,
       paddingHorizontal: 12,
       paddingVertical: 4,
       borderRadius: radios.full,
