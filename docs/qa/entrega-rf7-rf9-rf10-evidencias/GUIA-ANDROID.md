@@ -1,5 +1,21 @@
 # Guía para guardar evidencias del APK HU-53
 
+## Video de la ejecución reportada
+
+El usuario informó que realizó las pruebas y compartió este enlace el
+2026-11-14: [Video de pruebas en Android](https://youtube.com/shorts/e79WO_K3lpY?feature=share).
+
+El [reporte](../entrega-rf7-rf9-rf10-reporte.md) asocia el mismo video a los
+15 casos objetivo y los 24 de regresión. Puede usarse una grabación conjunta;
+no hace falta duplicar cada flujo en capturas individuales. Falta identificar
+los resultados y minutos de cada caso. El contenido no pudo verificarse desde
+esta revisión por una limitación de acceso a YouTube.
+
+Las instrucciones siguientes sirven para revisar la cobertura de la grabación
+y preparar evidencia complementaria o futuras repruebas. Los nombres de fotos
+y videos son ejemplos, no archivos que se deban crear si el flujo ya está
+cubierto por el video compartido.
+
 Guarda capturas y grabaciones en esta misma carpeta:
 
 ```text
@@ -52,7 +68,7 @@ se dispone de él, anotar que esa aserción sigue pendiente.
 
 | Caso / prefijo del archivo | Qué mostrar en las capturas o el video |
 |---|---|
-| `CP-RF9-01` | Como admin, buscar el alta de categorías e intentar agregar «Mascotas». Si solo hay servicios, mostrar esa pantalla y registrar que no se puede completar el caso. El defecto local ya tiene ficha ENT-RF9-01; no confundir categoría con servicio. |
+| `CP-RF9-01` | Como admin, buscar el alta de categorías e intentar agregar «Mascotas». Si solo hay servicios, mostrar esa pantalla y registrar que no se puede completar el caso. El usuario informó que la corrección se realizó en otra tarea; comprobar el comportamiento actual y no confundir categoría con servicio. |
 | `CP-RF9-02` | Perfil de usuario normal y ausencia/rechazo de acceso a administración. Las peticiones POST/PUT/DELETE deben verificarse aparte: ver una opción oculta no prueba un 403 del backend. |
 | `CP-RF9-03` | Como admin, crear servicio «QA Entrega» a 99, editarlo a 109; como usuario normal, comprobar el servicio actualizado al agregar una suscripción. Como admin, eliminarlo sin membresías asociadas y comprobar que desaparece al recargar. |
 | `CP-RF9-04` | Crear una membresía que use un servicio QA; como admin intentar borrar ese servicio, mostrar el mensaje de rechazo y volver a comprobar que servicio, membresía y totales se conservan. |
@@ -84,7 +100,7 @@ o revisar sus registros, anotar esa dependencia como pendiente/bloqueada.
 
 ## Regresión RF1–RF6 y RF8
 
-Usar un archivo o secuencia con **el ID de cada caso**, conservando los datos
+Usar el video compartido y asociar sus segmentos al **ID de cada caso**, conservando los datos
 iniciales y resultados visibles indicados en el plan. No mezclar los saldos de
 casos independientes; preparar/restablecer los datos entre pruebas.
 
@@ -98,15 +114,16 @@ casos independientes; preparar/restablecer los datos entre pruebas.
 | `CP-RF6-01` y `CP-RF6-02` | Resumen con variable $500, fijo $300, total $800; cuenta nueva sin movimientos con los tres en cero. |
 | `CP-RF8-01` y `CP-RF8-02` | Gráfica con categorías 600/300/100 y proporciones 60/30/10; estado sin datos con cuenta nueva. |
 
-## Después de cada caso
+## Registrar el resultado de cada caso
 
 Actualizar su fila del [reporte](../entrega-rf7-rf9-rf10-reporte.md): resultado
-**Pasa/Falla**, fecha, ejecutor y enlaces a los archivos reales. Un caso no
-ejecutado o con dependencias sin resolver sigue pendiente/bloqueado. Ejemplo
-del formato del enlace (usar solo tras guardar el archivo):
+**Pasa/Falla**, fecha, ejecutor y enlace al video (o archivos complementarios). Un caso no
+ejecutado o con dependencias sin resolver sigue pendiente/bloqueado; si se
+reportó ejecutado pero aún no se conoce su resultado, usar Por confirmar. Ejemplo
+del enlace al video ya proporcionado:
 
 ```markdown
-[Captura](entrega-rf7-rf9-rf10-evidencias/CP-RF10-04-01-sin-red.png)
+[Video de pruebas en Android](https://youtube.com/shorts/e79WO_K3lpY?feature=share)
 ```
 
 Si falla, usar la [plantilla de bugs](../../plantilla-reporte-bug.md) y enlazar

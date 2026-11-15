@@ -120,6 +120,12 @@ como entero redondeado. Los casos HTTP no sustituyen la verificación visual en 
 
 ## 8. Entrega RF7, RF9 y RF10 sobre HU-53
 
+**Evidencia de ejecución aportada por el usuario:** [Video de pruebas en Android](https://youtube.com/shorts/e79WO_K3lpY?feature=share) (enlace recibido
+el 2026-11-14; fecha de ejecución por confirmar). El reporte asocia esta
+grabación a los casos de esta entrega y de regresión. El contenido y los
+resultados individuales quedan por verificar; se pueden añadir minutos por
+caso sin duplicar el video en archivos locales.
+
 El [reporte de entrega](qa/entrega-rf7-rf9-rf10-reporte.md) registra los 15 casos
 de RF7/RF9/RF10 y los 24 de regresión de RF1–RF6 y RF8, con resultado, evidencia
 y decisión. La [lista de requisitos](lista-requisitos.md) conserva la aprobación
