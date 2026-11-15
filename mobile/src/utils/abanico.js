@@ -1,3 +1,4 @@
+import { iconoCategoria } from './categorias.js';
 import { mesActual, sumarMeses } from './fechas.js';
 
 // Abanico del botón + (HU-92): geometría del arco y categorías que se ofrecen.
@@ -54,6 +55,34 @@ export function accionBajoDedo(punto, posiciones, tolerancia, centro) {
     }
   }
   return indice;
+}
+
+// Por debajo de este ancho (pt) el abanico lleva una categoría menos: no caben seis.
+export const ANCHO_COMPACTO = 360;
+
+// Acciones del abanico del + en orden de izquierda a derecha: las categorías más usadas (4, o 3 en
+// pantallas de menos de ANCHO_COMPACTO), «Ingreso» y «Por voz» (solo con el módulo de voz).
+// Cada una lleva los params con los que se abre NuevoGasto. `tono` es el token de color del ícono.
+export function accionesAbanico({ frecuentes, ancho, conVoz }) {
+  const categorias = (frecuentes || []).slice(0, ancho < ANCHO_COMPACTO ? 3 : 4);
+  return [
+    ...categorias.map((c) => ({
+      clave: `categoria-${c.id}`,
+      icono: iconoCategoria(c.nombre),
+      etiqueta: c.nombre,
+      params: { categoriaId: c.id },
+    })),
+    {
+      clave: 'ingreso',
+      icono: 'arrow-down',
+      tono: 'exito',
+      etiqueta: 'Ingreso',
+      params: { tipo: 'ingreso' },
+    },
+    ...(conVoz
+      ? [{ clave: 'voz', icono: 'microphone', etiqueta: 'Por voz', params: { iniciarVoz: true } }]
+      : []),
+  ];
 }
 
 // Hasta `max` categorías activas, las más usadas primero: cuenta los gastos del mes de `hoy` y del

@@ -4,6 +4,7 @@ import { describe, it } from 'node:test';
 
 import {
   accionBajoDedo,
+  accionesAbanico,
   categoriasFrecuentes,
   posicionesAbanico,
   radioAbanico,
@@ -98,6 +99,51 @@ describe('accionBajoDedo', () => {
     // Sobre el botón no elige aunque una acción esté a tolerancia.
     assert.equal(accionBajoDedo({ x: 195, y: 715 }, posiciones, 400, boton), null);
     assert.equal(accionBajoDedo(medio, [], 40, boton), null);
+  });
+});
+
+describe('accionesAbanico', () => {
+  const frecuentes = ['Salud', 'Comida', 'Transporte', 'Servicios', 'Otros'].map((nombre, i) => ({
+    id: i + 1,
+    nombre,
+  }));
+  const claves = (acciones) => acciones.map((a) => a.clave);
+
+  it('4 categorías más usadas, luego Ingreso y Por voz (6 en total)', () => {
+    const acciones = accionesAbanico({ frecuentes, ancho: 390, conVoz: true });
+    assert.deepEqual(claves(acciones), [
+      'categoria-1',
+      'categoria-2',
+      'categoria-3',
+      'categoria-4',
+      'ingreso',
+      'voz',
+    ]);
+    assert.deepEqual(acciones[0].params, { categoriaId: 1 });
+    assert.deepEqual(acciones[4].params, { tipo: 'ingreso' });
+    assert.equal(acciones[4].tono, 'exito');
+    assert.deepEqual(acciones[5].params, { iniciarVoz: true });
+  });
+
+  it('en pantallas de menos de 360 pt, 3 categorías', () => {
+    assert.deepEqual(claves(accionesAbanico({ frecuentes, ancho: 359, conVoz: true })), [
+      'categoria-1',
+      'categoria-2',
+      'categoria-3',
+      'ingreso',
+      'voz',
+    ]);
+    assert.equal(accionesAbanico({ frecuentes, ancho: 360, conVoz: true }).length, 6);
+  });
+
+  it('sin módulo de voz no hay «Por voz»; sin categorías queda Ingreso', () => {
+    assert.deepEqual(
+      claves(accionesAbanico({ frecuentes: frecuentes.slice(0, 2), ancho: 390, conVoz: false })),
+      ['categoria-1', 'categoria-2', 'ingreso'],
+    );
+    assert.deepEqual(claves(accionesAbanico({ frecuentes: [], ancho: 390, conVoz: false })), [
+      'ingreso',
+    ]);
   });
 });
 

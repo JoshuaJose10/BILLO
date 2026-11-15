@@ -25,7 +25,8 @@ import { accionBajoDedo, posicionesAbanico, radioAbanico } from '../utils/abanic
 //   });
 //   <GestureDetector gesture={abanico.gesto}>…botón…</GestureDetector>
 //   <AbanicoAcciones {...abanico} />  // capa a pantalla completa, detrás de la barra
-// acciones: [{ clave, icono (MaterialCommunityIcons), etiqueta }]. El gesto corre en el hilo de UI.
+// acciones: [{ clave, icono (MaterialCommunityIcons), etiqueta, tono? (token de color del ícono) }].
+// El gesto corre en el hilo de UI.
 // El arco no depende de dónde esté el botón: va centrado en la pantalla y por encima de
 // `altoInferior` (lo que ocupa la barra desde el borde inferior). Solo la línea punteada sale del
 // botón. La capa empieza en la esquina de la pantalla, así que sus coordenadas son las del gesto.
@@ -253,7 +254,11 @@ function Accion({ accion, posicion, ancho, indice, activo, reducirMovimiento }) 
         </View>
       </Animated.View>
       <Animated.View style={[styles.circulo, estiloCirculo]}>
-        <MaterialCommunityIcons name={accion.icono} size={20} color={colors.text} />
+        <MaterialCommunityIcons
+          name={accion.icono}
+          size={20}
+          color={colors[accion.tono] ?? colors.text}
+        />
         <Animated.View style={[StyleSheet.absoluteFill, styles.circuloActivo, estiloActiva]}>
           <MaterialCommunityIcons name={accion.icono} size={20} color={colors.onPrimary} />
         </Animated.View>
