@@ -11,9 +11,12 @@ import { AppState } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { MODO_VISITANTE } from '../services/api';
+import { useCategoriasService } from '../services/categorias';
 import { alCambiarGastos, useGastosService } from '../services/gastos';
+import { limpiarColoresCategorias, registrarColoresCategorias } from '../theme/categorias';
 import { categoriasFrecuentes } from '../utils/abanico';
 import { nombreCategoriaPorId } from '../utils/avisos';
+import { combinarCategoriasConPredefinidas } from '../utils/categorias';
 import { debeReintentar } from '../utils/estadoCarga';
 import { mesActual, sumarMeses } from '../utils/fechas';
 import { categoriasDeGasto } from '../utils/presupuestos';
@@ -21,7 +24,7 @@ import { useAuth } from './AuthContext';
 
 const CategoriasContext = createContext(null);
 
-const SIN_DATOS = { sesion: null, lista: [], estado: 'cargando' };
+const SIN_DATOS = { sesion: null, lista: [], todas: [], estado: 'cargando' };
 const SIN_RECIENTES = { sesion: null, gastos: [] };
 
 // Caché de GET /categorias para la sesión (HU-39): se piden una vez al iniciar sesión (o al abrir
@@ -46,6 +49,7 @@ export function CategoriasProvider({ children }) {
   const { token, visitante } = useAuth();
   const sesion = token ?? (visitante ? MODO_VISITANTE : null);
   const { listarCategorias, listarGastos } = useGastosService();
+  const { listarPredefinidas } = useCategoriasService();
   const [datos, setDatos] = useState(SIN_DATOS);
   // Cada petición recibe un número; si al responder ya hay una más nueva, se descarta.
   const ultimaPeticion = useRef(0);
@@ -54,20 +58,29 @@ export function CategoriasProvider({ children }) {
   // llamar desde el efecto.
   const pedir = useCallback(() => {
     const peticion = ++ultimaPeticion.current;
-    listarCategorias()
-      .then((lista) => {
+    Promise.all([listarCategorias(), listarPredefinidas().catch(() => [])])
+      .then(([lista, predefinidas]) => {
         if (peticion === ultimaPeticion.current) {
-          setDatos({ sesion, lista: lista || [], estado: 'listo' });
+          const activas = lista || [];
+          const todas = combinarCategoriasConPredefinidas(activas, predefinidas);
+          registrarColoresCategorias(todas);
+          setDatos({ sesion, lista: activas, todas, estado: 'listo' });
         }
       })
       .catch(() => {
-        if (peticion === ultimaPeticion.current) setDatos({ sesion, lista: [], estado: 'error' });
+        if (peticion === ultimaPeticion.current) {
+          setDatos({ sesion, lista: [], todas: [], estado: 'error' });
+        }
       });
-  }, [listarCategorias, sesion]);
+  }, [listarCategorias, listarPredefinidas, sesion]);
 
   // Una vez por sesión (listarCategorias cambia solo cuando cambia el token o el modo).
   useEffect(() => {
-    if (sesion) pedir();
+    if (sesion) {
+      pedir();
+    } else {
+      limpiarColoresCategorias();
+    }
   }, [sesion, pedir]);
 
   // Gastos recientes para `frecuentes`. Un fallo deja los últimos que se tenían: no es una lista que
@@ -103,6 +116,7 @@ export function CategoriasProvider({ children }) {
 
   const vigentes = sesion != null && datos.sesion === sesion;
   const categorias = vigentes ? datos.lista : SIN_DATOS.lista;
+  const todasCategorias = vigentes ? datos.todas : SIN_DATOS.todas;
   const estado = !sesion ? 'inactivo' : vigentes ? datos.estado : 'cargando';
   const categoriasGasto = useMemo(() => categoriasDeGasto(categorias), [categorias]);
   const gastosRecientes = sesion != null && recientes.sesion === sesion ? recientes.gastos : null;
@@ -135,13 +149,14 @@ export function CategoriasProvider({ children }) {
       categorias,
       categoriasGasto,
       frecuentes,
+      todasCategorias,
       estado,
       recargar,
-      // Nombre de la categoría con ese id (número o texto); undefined si no está.
-      nombrePorId: (id) => nombreCategoriaPorId(categorias, id),
+      // Nombre de la categoría con ese id (número o texto); incluye predefinidas apagadas (HU-90).
+      nombrePorId: (id) => nombreCategoriaPorId(todasCategorias, id),
       reintentarSiFallo,
     }),
-    [categorias, categoriasGasto, frecuentes, estado, recargar, reintentarSiFallo],
+    [categorias, categoriasGasto, frecuentes, todasCategorias, estado, recargar, reintentarSiFallo],
   );
 
   return <CategoriasContext.Provider value={valor}>{children}</CategoriasContext.Provider>;

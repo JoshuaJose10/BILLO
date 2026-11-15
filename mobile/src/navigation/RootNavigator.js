@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import InvitacionCuentaScreen from '../screens/InvitacionCuentaScreen';
 import AdminCatalogoScreen from '../screens/AdminCatalogoScreen';
 import MembresiaScreen from '../screens/MembresiaScreen';
+import MisCategoriasScreen from '../screens/MisCategoriasScreen';
 import NuevoGastoScreen from '../screens/NuevoGastoScreen';
 import PerfilScreen from '../screens/PerfilScreen';
 import PresupuestoScreen from '../screens/PresupuestoScreen';
@@ -28,7 +29,14 @@ const opcionesHoja = {
 // En el modo exploración (HU-50) las hojas que escriben y Perfil son la invitación a crear cuenta,
 // con los mismos nombres de ruta para que las pantallas naveguen igual. InvitacionCuenta es la que
 // abre FilaDeslizable al intentar eliminar.
-const HOJAS_VISITANTE = ['NuevoGasto', 'Perfil', 'Presupuesto', 'Membresia', 'InvitacionCuenta'];
+const HOJAS_VISITANTE = [
+  'NuevoGasto',
+  'Perfil',
+  'Presupuesto',
+  'Membresia',
+  'MisCategorias',
+  'InvitacionCuenta',
+];
 
 // Con token se muestran Main y las hojas (NuevoGasto, Perfil, Presupuesto, Membresia); en el modo
 // exploración, Main con datos de ejemplo y la invitación en lugar de las hojas; si no, Auth. Al
@@ -61,6 +69,11 @@ export default function RootNavigator() {
           <Stack.Screen
             name="AdminCatalogo"
             component={AdminCatalogoScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="MisCategorias"
+            component={MisCategoriasScreen}
             options={{ headerShown: false }}
           />
           {__DEV__ ? (

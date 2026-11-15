@@ -236,6 +236,15 @@ export function responderEjemplo(ruta, { method = 'GET' } = {}, hoy = new Date()
   switch (camino) {
     case '/categorias':
       return Promise.resolve(datos.categorias);
+    case '/categorias/predefinidas':
+      return Promise.resolve({
+        categorias: datos.categorias.map((c) => ({
+          ...c,
+          propia: false,
+          color: null,
+          seleccionada: true,
+        })),
+      });
     case '/gastos': {
       const categoriaId = params.categoria_id ? Number(params.categoria_id) : null;
       const lista = (params.mes ? delMes(datos.gastos, params.mes) : datos.gastos)
