@@ -7,6 +7,7 @@ import {
   ajustarAlSiguienteCiclo,
   avanzarFechaCobro,
   calcularDiasParaCobro,
+  calcularProximoCobroDesdePago,
   calcularTotalAnual,
   calcularTotalEsteMes,
   calcularTotalMensual,
@@ -320,6 +321,48 @@ describe('utils/membresias', () => {
       });
       assert.equal(res.valido, false);
       assert.equal(res.errores.costo, 'El costo puede tener hasta 2 decimales');
+    });
+  });
+
+  describe('calcularProximoCobroDesdePago (HU-84)', () => {
+    test('mensual: un mes después del pago', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2026-11-09', 'mensual', '2026-11-09'),
+        '2026-12-09',
+      );
+    });
+
+    test('anual: un año después del pago', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2026-11-09', 'anual', '2026-11-09'),
+        '2027-11-09',
+      );
+    });
+
+    test('31 ene → 28 feb en año no bisiesto', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2026-01-31', 'mensual', '2026-01-31'),
+        '2026-02-28',
+      );
+    });
+
+    test('31 ene → 29 feb en año bisiesto', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2028-01-31', 'mensual', '2028-01-31'),
+        '2028-02-29',
+      );
+    });
+
+    test('pago mensual del 1 sep con hoy 14 nov → 1 dic', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2026-09-01', 'mensual', '2026-11-14'),
+        '2026-12-01',
+      );
+    });
+
+    test('tolera entradas inválidas devolviendo la entrada original', () => {
+      assert.equal(calcularProximoCobroDesdePago(null), null);
+      assert.equal(calcularProximoCobroDesdePago('9 nov'), '9 nov');
     });
   });
 

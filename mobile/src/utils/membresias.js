@@ -2,6 +2,7 @@
 // Sin dependencias de React Native para compatibilidad directa con Metro y node --test.
 
 import { coloresServicio } from '../theme/servicios.js';
+import { fechaLocalISO, parsearFechaLocal } from './fechas.js';
 
 const MESES_CORTOS = [
   'ene',
@@ -428,6 +429,20 @@ export function obtenerFechaHoyLocal() {
 // Devuelve el número de días en un mes dado (mes 1-12) de un año
 export function diasEnMes(anio, mes) {
   return new Date(anio, mes, 0).getDate();
+}
+
+// Próximo cobro a partir del último pago (HU-84): un ciclo después de `fechaPagoStr`, con el día
+// ajustado en meses cortos (31 ene → 28 o 29 feb); si ese ciclo ya pasó, los que hagan falta hasta
+// `fechaHoyStr` (hoy por defecto) o después. avanzarFechaCobro avanza mientras la fecha sea anterior
+// a la de referencia: con el día siguiente al pago da el primer ciclo.
+export function calcularProximoCobroDesdePago(fechaPagoStr, frecuencia = 'mensual', fechaHoyStr) {
+  if (typeof fechaPagoStr !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(fechaPagoStr)) {
+    return fechaPagoStr;
+  }
+  const diaSiguiente = parsearFechaLocal(fechaPagoStr);
+  diaSiguiente.setDate(diaSiguiente.getDate() + 1);
+  const unCiclo = avanzarFechaCobro(fechaPagoStr, frecuencia, fechaLocalISO(diaSiguiente));
+  return avanzarFechaCobro(unCiclo, frecuencia, fechaHoyStr);
 }
 
 /**
