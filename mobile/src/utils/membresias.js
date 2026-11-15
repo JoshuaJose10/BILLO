@@ -474,16 +474,20 @@ export function cobrosSuscripcionesEnMes(membresias, mes, fechaHoyStr) {
 
 // Próximo cobro a partir del último pago (HU-84): un ciclo después de `fechaPagoStr`, con el día
 // ajustado en meses cortos (31 ene → 28 o 29 feb); si ese ciclo ya pasó, los que hagan falta hasta
-// `fechaHoyStr` (hoy por defecto) o después. avanzarFechaCobro avanza mientras la fecha sea anterior
-// a la de referencia: con el día siguiente al pago da el primer ciclo.
+// `fechaHoyStr` (hoy por defecto) o después. Se avanza desde el pago original para conservar su
+// día al pasar por febrero; la referencia es al menos el día siguiente al pago para dar otro ciclo.
 export function calcularProximoCobroDesdePago(fechaPagoStr, frecuencia = 'mensual', fechaHoyStr) {
   if (typeof fechaPagoStr !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(fechaPagoStr)) {
     return fechaPagoStr;
   }
   const diaSiguiente = parsearFechaLocal(fechaPagoStr);
   diaSiguiente.setDate(diaSiguiente.getDate() + 1);
-  const unCiclo = avanzarFechaCobro(fechaPagoStr, frecuencia, fechaLocalISO(diaSiguiente));
-  return avanzarFechaCobro(unCiclo, frecuencia, fechaHoyStr);
+  const minimo = fechaLocalISO(diaSiguiente);
+  const hoy =
+    typeof fechaHoyStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fechaHoyStr)
+      ? fechaHoyStr
+      : obtenerFechaHoyLocal();
+  return avanzarFechaCobro(fechaPagoStr, frecuencia, hoy > minimo ? hoy : minimo);
 }
 
 /**

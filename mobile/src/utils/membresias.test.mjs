@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import test, { describe, it } from 'node:test';
+import test, { describe } from 'node:test';
 
 import { coloresServicio } from '../theme/servicios.js';
 
@@ -416,6 +416,27 @@ describe('utils/membresias', () => {
       assert.equal(
         calcularProximoCobroDesdePago('2026-09-01', 'mensual', '2026-11-14'),
         '2026-12-01',
+      );
+    });
+
+    test('pago antiguo del 31 conserva el día original después de febrero', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2026-01-31', 'mensual', '2026-03-01'),
+        '2026-03-31',
+      );
+    });
+
+    test('pago antiguo del 31 se ajusta al último día de noviembre', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2026-01-31', 'mensual', '2026-11-15'),
+        '2026-11-30',
+      );
+    });
+
+    test('pago anual del 29 de febrero recupera ese día en el siguiente año bisiesto', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2024-02-29', 'anual', '2028-02-10'),
+        '2028-02-29',
       );
     });
 
