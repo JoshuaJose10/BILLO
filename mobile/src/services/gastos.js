@@ -40,6 +40,19 @@ const normalizarGuardado = ({ gasto, alerta }) => ({
   alerta: normalizarAlerta(alerta),
 });
 
+// Quien necesita saber que los gastos cambiaron (la caché de categorías más usadas, HU-92) se
+// suscribe aquí: se avisa tras crear, editar o borrar un gasto con éxito, desde cualquier pantalla.
+//   const dejar = alCambiarGastos(() => ...); // dejar() quita la suscripción
+const oyentes = new Set();
+export function alCambiarGastos(fn) {
+  oyentes.add(fn);
+  return () => oyentes.delete(fn);
+}
+const avisarCambio = (resultado) => {
+  oyentes.forEach((fn) => fn());
+  return resultado;
+};
+
 // Servicio de gastos con el token de la sesión (un 401 cierra la sesión vía useApi):
 //   const { listarCategorias, crearGasto, listarGastos, actualizarGasto, eliminarGasto } =
 //     useGastosService();
@@ -57,7 +70,7 @@ export function useGastosService() {
       //   NOTA_INVALIDA, CATEGORIA_INEXISTENTE.
       // Devuelve { gasto, alerta }; alerta = { categoria_id, porcentaje, estado } o null.
       crearGasto: async (datos) =>
-        normalizarGuardado(await api('/gastos', { method: 'POST', body: datos })),
+        avisarCambio(normalizarGuardado(await api('/gastos', { method: 'POST', body: datos }))),
 
       // GET /gastos?mes=YYYY-MM&categoria_id=N → [gasto], ordenados por fecha descendente.
       listarGastos: async ({ mes, categoria_id } = {}) => {
@@ -72,12 +85,15 @@ export function useGastosService() {
       // → 200 { gasto, alerta? }. 400: los mismos que crearGasto. 404: GASTO_NO_ENCONTRADO.
       // Devuelve { gasto, alerta } como crearGasto.
       actualizarGasto: async (id, datos) =>
-        normalizarGuardado(
-          await api(`/gastos/${encodeURIComponent(id)}`, { method: 'PUT', body: datos }),
+        avisarCambio(
+          normalizarGuardado(
+            await api(`/gastos/${encodeURIComponent(id)}`, { method: 'PUT', body: datos }),
+          ),
         ),
 
       // DELETE /gastos/:id → 200 { eliminado: true }. 404: GASTO_NO_ENCONTRADO.
-      eliminarGasto: (id) => api(`/gastos/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+      eliminarGasto: async (id) =>
+        avisarCambio(await api(`/gastos/${encodeURIComponent(id)}`, { method: 'DELETE' })),
     }),
     [api],
   );

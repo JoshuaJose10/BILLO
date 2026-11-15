@@ -12,17 +12,20 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import { MODO_VISITANTE } from '../services/api';
 import { useCategoriasService } from '../services/categorias';
-import { useGastosService } from '../services/gastos';
+import { alCambiarGastos, useGastosService } from '../services/gastos';
 import { limpiarColoresCategorias, registrarColoresCategorias } from '../theme/categorias';
+import { categoriasFrecuentes } from '../utils/abanico';
 import { nombreCategoriaPorId } from '../utils/avisos';
 import { combinarCategoriasConPredefinidas } from '../utils/categorias';
 import { debeReintentar } from '../utils/estadoCarga';
+import { mesActual, sumarMeses } from '../utils/fechas';
 import { categoriasDeGasto } from '../utils/presupuestos';
 import { useAuth } from './AuthContext';
 
 const CategoriasContext = createContext(null);
 
 const SIN_DATOS = { sesion: null, lista: [], todas: [], estado: 'cargando' };
+const SIN_RECIENTES = { sesion: null, gastos: [] };
 
 // Caché de GET /categorias para la sesión (HU-39): se piden una vez al iniciar sesión (o al abrir
 // la app con sesión guardada) y las comparten Inicio, Movimientos, Nuevo gasto y Presupuesto.
@@ -30,17 +33,22 @@ const SIN_DATOS = { sesion: null, lista: [], todas: [], estado: 'cargando' };
 // modo exploración, donde salen de los datos de ejemplo sin llamar a la API): al cerrar sesión, salir
 // del modo exploración o cambiar de usuario dejan de exponerse en ese mismo render y la siguiente
 // sesión vuelve a pedirlas.
-//   const { categorias, categoriasGasto, estado, recargar, nombrePorId } = useCategorias();
+//   const { categorias, categoriasGasto, frecuentes, estado, recargar, nombrePorId } =
+//     useCategorias();
 // - estado: 'cargando' | 'listo' | 'error' ('inactivo' sin sesión). Si falla, cada pantalla
 //   ofrece Reintentar, que llama a recargar(). Además se reintenta solo (HU-80) al volver la app a
 //   primer plano y al enfocar una pantalla que use useReintentarCategoriasAlEnfocar(): así una
 //   primera carga fallida (backend apagado, sin red justo después del login) no queda en error.
 // - categoriasGasto: solo las de tipo gasto (las que no traen tipo se aceptan; ver
 //   categoriasDeGasto).
+// - frecuentes (HU-92): hasta 5 categorías de gasto, las más usadas del mes actual y el anterior,
+//   para el abanico del +. Los gastos de esos dos meses se piden en segundo plano al iniciar la
+//   sesión y otra vez cada que se crea, edita o borra un gasto (alCambiarGastos), así el abanico
+//   sale al instante con lo que haya. Mientras no llegan (o si fallan) son las primeras categorías.
 export function CategoriasProvider({ children }) {
   const { token, visitante } = useAuth();
   const sesion = token ?? (visitante ? MODO_VISITANTE : null);
-  const { listarCategorias } = useGastosService();
+  const { listarCategorias, listarGastos } = useGastosService();
   const { listarPredefinidas } = useCategoriasService();
   const [datos, setDatos] = useState(SIN_DATOS);
   // Cada petición recibe un número; si al responder ya hay una más nueva, se descarta.
@@ -75,6 +83,31 @@ export function CategoriasProvider({ children }) {
     }
   }, [sesion, pedir]);
 
+  // Gastos recientes para `frecuentes`. Un fallo deja los últimos que se tenían: no es una lista que
+  // el usuario vea, así que no hay estado de error ni Reintentar.
+  const [recientes, setRecientes] = useState(SIN_RECIENTES);
+  const ultimaRecientes = useRef(0);
+  const pedirRecientes = useCallback(() => {
+    const peticion = ++ultimaRecientes.current;
+    const mes = mesActual();
+    Promise.all([listarGastos({ mes }), listarGastos({ mes: sumarMeses(mes, -1) })])
+      .then(([actual, anterior]) => {
+        if (peticion === ultimaRecientes.current) {
+          setRecientes({ sesion, gastos: [...actual, ...anterior] });
+        }
+      })
+      .catch(() => {});
+  }, [listarGastos, sesion]);
+
+  useEffect(() => {
+    if (!sesion) return undefined;
+    pedirRecientes();
+    const dejar = alCambiarGastos(pedirRecientes);
+    return () => {
+      dejar();
+    };
+  }, [sesion, pedirRecientes]);
+
   const recargar = useCallback(() => {
     if (!sesion) return;
     setDatos((d) => ({ ...d, estado: 'cargando' }));
@@ -85,6 +118,12 @@ export function CategoriasProvider({ children }) {
   const categorias = vigentes ? datos.lista : SIN_DATOS.lista;
   const todasCategorias = vigentes ? datos.todas : SIN_DATOS.todas;
   const estado = !sesion ? 'inactivo' : vigentes ? datos.estado : 'cargando';
+  const categoriasGasto = useMemo(() => categoriasDeGasto(categorias), [categorias]);
+  const gastosRecientes = sesion != null && recientes.sesion === sesion ? recientes.gastos : null;
+  const frecuentes = useMemo(
+    () => categoriasFrecuentes(gastosRecientes, categoriasGasto),
+    [gastosRecientes, categoriasGasto],
+  );
 
   // El estado actual en una ref: los reintentos automáticos lo leen sin volver a suscribirse en
   // cada cambio (si dependieran de `estado`, un error persistente se reintentaría en bucle).
@@ -108,21 +147,22 @@ export function CategoriasProvider({ children }) {
   const valor = useMemo(
     () => ({
       categorias,
+      categoriasGasto,
+      frecuentes,
       todasCategorias,
-      categoriasGasto: categoriasDeGasto(categorias),
       estado,
       recargar,
       // Nombre de la categoría con ese id (número o texto); incluye predefinidas apagadas (HU-90).
       nombrePorId: (id) => nombreCategoriaPorId(todasCategorias, id),
       reintentarSiFallo,
     }),
-    [categorias, todasCategorias, estado, recargar, reintentarSiFallo],
+    [categorias, categoriasGasto, frecuentes, todasCategorias, estado, recargar, reintentarSiFallo],
   );
 
   return <CategoriasContext.Provider value={valor}>{children}</CategoriasContext.Provider>;
 }
 
-// { categorias, categoriasGasto, estado, recargar, nombrePorId }
+// { categorias, categoriasGasto, frecuentes, estado, recargar, nombrePorId }
 export function useCategorias() {
   const ctx = useContext(CategoriasContext);
   if (!ctx) {

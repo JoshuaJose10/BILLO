@@ -54,6 +54,8 @@ import { avisoDictado, interpretarGasto, mensajeFalloVoz } from '../utils/voz';
 // Ingresos (HU-82): el selector «Gasto | Ingreso» cambia la hoja de modo; `{ tipo: 'ingreso' }`
 // la abre directo en Ingreso y `{ ingreso }` edita ese ingreso. En Ingreso las categorías se
 // cambian por fuentes y se ocultan moneda (los ingresos son en MXN), método de pago y micrófono.
+// Desde el abanico del + (HU-92), en Gasto: `{ categoriaId }` abre con esa categoría elegida (el
+// teclado del monto ya está a la vista) y `{ iniciarVoz: true }` abre dictando.
 export default function NuevoGastoScreen({ navigation, route }) {
   const gastoEditado = route.params?.gasto;
   const ingresoEditado = route.params?.ingreso;
@@ -123,7 +125,9 @@ export default function NuevoGastoScreen({ navigation, route }) {
         : gastoEditado.monto;
     return textoDesdeMonto(valor);
   });
-  const [categoriaId, setCategoriaId] = useState(gastoEditado?.categoria_id ?? null);
+  const [categoriaId, setCategoriaId] = useState(
+    gastoEditado?.categoria_id ?? route.params?.categoriaId ?? null,
+  );
   const [metodo, setMetodo] = useState(gastoEditado?.metodo_pago || METODO_PAGO_DEFECTO);
   const [fuente, setFuente] = useState(ingresoEditado?.fuente ?? null);
   const [fecha, setFecha] = useState(() =>
@@ -220,6 +224,15 @@ export default function NuevoGastoScreen({ navigation, route }) {
     frases: categorias.map((c) => c.nombre),
   });
   const dictando = dictado.estado !== 'inactivo';
+
+  // Una sola vez al abrir; sin el módulo de voz (Expo Go) empezar() no hace nada.
+  const vozAlAbrir = useRef(!editando && route.params?.iniciarVoz === true);
+  const { empezar: empezarDictado } = dictado;
+  useEffect(() => {
+    if (!vozAlAbrir.current) return;
+    vozAlAbrir.current = false;
+    empezarDictado();
+  }, [empezarDictado]);
 
   // El monto, la fecha y la nota se conservan al cambiar de modo.
   const cambiarTipo = (nuevo) => {
