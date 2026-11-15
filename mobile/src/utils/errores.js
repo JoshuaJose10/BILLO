@@ -23,6 +23,12 @@ const MENSAJES = {
 
   // Categorías y gastos
   TIPO_INVALIDO: 'El tipo de categoría no es válido.',
+  SELECCION_VACIA: 'Debes tener al menos una categoría',
+  CATEGORIA_INVALIDA: 'Una o más categorías seleccionadas no son válidas.',
+  CATEGORIA_DUPLICADA: 'Ya existe una categoría con ese nombre.',
+  LIMITE_CATEGORIAS_ALCANZADO: 'Alcanzaste el límite de categorías personalizadas.',
+  CATEGORIA_NO_ENCONTRADA: 'Esa categoría ya no existe.',
+  CATEGORIA_EN_USO: 'Esta categoría tiene gastos o presupuestos; no se puede borrar',
   MONTO_INVALIDO: 'Ingresa un monto mayor a $0 con hasta 2 decimales.',
   CATEGORIA_INEXISTENTE: 'La categoría elegida ya no existe. Elige otra.',
   FECHA_INVALIDA: 'La fecha no es válida.',
