@@ -2,12 +2,14 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
+import { DESCRIPCION_MAX, FUENTES } from './ingresos.js';
 import {
   avisoDictado,
   interpretarGasto,
   interpretarIngreso,
   mensajeFalloVoz,
   normalizar,
+  notaDictada,
   pareceIngreso,
 } from './voz.js';
 
@@ -313,15 +315,16 @@ describe('mensajes de la hoja', () => {
 
 describe('interpretarIngreso (HU-94)', () => {
   it('monto y fuente por sinónimos', () => {
-    assert.deepEqual(interpretarIngreso('me pagaron cinco mil de sueldo'), {
+    const montoYFuente = (texto) => {
+      const { monto, fuente } = interpretarIngreso(texto);
+      return { monto, fuente };
+    };
+    assert.deepEqual(montoYFuente('me pagaron cinco mil de sueldo'), {
       monto: 5000,
       fuente: 'Sueldo',
     });
-    assert.deepEqual(interpretarIngreso('recibí la beca de dos mil'), {
-      monto: 2000,
-      fuente: 'Beca',
-    });
-    assert.deepEqual(interpretarIngreso('me depositó el cliente 1500'), {
+    assert.deepEqual(montoYFuente('recibí la beca de dos mil'), { monto: 2000, fuente: 'Beca' });
+    assert.deepEqual(montoYFuente('me depositó el cliente 1500'), {
       monto: 1500,
       fuente: 'Freelance',
     });
@@ -329,8 +332,16 @@ describe('interpretarIngreso (HU-94)', () => {
   });
 
   it('lo que no entiende queda en null', () => {
-    assert.deepEqual(interpretarIngreso('me pagaron'), { monto: null, fuente: null });
-    assert.deepEqual(interpretarIngreso('me cayó 300'), { monto: 300, fuente: null });
+    assert.deepEqual(interpretarIngreso('me pagaron'), {
+      monto: null,
+      fuente: null,
+      descripcion: null,
+    });
+    assert.deepEqual(interpretarIngreso('me cayó 300'), {
+      monto: 300,
+      fuente: null,
+      descripcion: null,
+    });
   });
 
   it('avisoDictado en Ingreso pide la fuente', () => {
@@ -338,6 +349,61 @@ describe('interpretarIngreso (HU-94)', () => {
       avisoDictado('me cayó 300', { monto: 300, categoria: null }, 'la fuente'),
       'No entendí la fuente, elígela.',
     );
+  });
+});
+
+describe('descripción y fuentes de ingreso (HU-94)', () => {
+  const ingreso = (texto) => interpretarIngreso(texto);
+
+  it('descripción sin monto, fuente ni frases de ingreso', () => {
+    assert.deepEqual(ingreso('me pagaron cinco mil de sueldo de la chamba de diseño'), {
+      monto: 5000,
+      fuente: 'Sueldo',
+      descripcion: 'Chamba de diseño',
+    });
+    assert.deepEqual(ingreso('recibí 1500 por el diseño de un logo'), {
+      monto: 1500,
+      fuente: null,
+      descripcion: 'Diseño de un logo',
+    });
+  });
+
+  it('sin nada más que decir no hay descripción; respeta el máximo', () => {
+    assert.equal(ingreso('recibí la beca de dos mil').descripcion, null);
+    assert.equal(ingreso('me depositó el cliente 1500').descripcion, null);
+    assert.ok(ingreso(`me pagaron 500 ${'x '.repeat(300)}`).descripcion.length <= DESCRIPCION_MAX);
+  });
+
+  it('una frase por cada fuente', () => {
+    const casos = [
+      ['me pagaron el aguinaldo de ocho mil', 8000, 'Aguinaldo/Bono'],
+      ['cobré el bono de 3000', 3000, 'Aguinaldo/Bono'],
+      ['vendí mi bici en 800', 800, 'Ventas'],
+      ['me cayeron intereses de 120', 120, 'Inversiones'],
+      ['cobré la renta 5000', 5000, 'Renta'],
+      ['me regalaron mil pesos', 1000, 'Regalo'],
+      ['me devolvieron 300 del reembolso', 300, 'Reembolso'],
+    ];
+    for (const [texto, monto, fuente] of casos) {
+      const r = ingreso(texto);
+      assert.deepEqual([r.monto, r.fuente], [monto, fuente], texto);
+      assert.equal(
+        FUENTES.some((f) => f.nombre === r.fuente),
+        true,
+        texto,
+      );
+    }
+  });
+
+  it('con varias fuentes mencionadas gana la primera de FUENTES; «me dieron» no pisa al sueldo', () => {
+    assert.equal(ingreso('me dieron mi sueldo 900').fuente, 'Sueldo');
+  });
+
+  it('notaDictada: no sobrescribe lo que el usuario ya escribió', () => {
+    assert.equal(notaDictada('', 'Chamba'), 'Chamba');
+    assert.equal(notaDictada('  ', 'Chamba'), 'Chamba');
+    assert.equal(notaDictada('Mi nota', 'Chamba'), null);
+    assert.equal(notaDictada(undefined, null), null);
   });
 });
 
@@ -350,13 +416,20 @@ describe('pareceIngreso (HU-94)', () => {
       'recibí la beca',
       'me cayó 300',
       'cobré el proyecto',
+      'cobré la renta 5000',
     ]) {
       assert.equal(pareceIngreso(texto), true, texto);
     }
   });
 
   it('false con gastos', () => {
-    for (const texto of ['ochenta pesos en comida', 'pagué la luz', 'me cobraron 50', '']) {
+    for (const texto of [
+      'ochenta pesos en comida',
+      'pagué la luz',
+      'me cobraron 50',
+      'pagué la renta 5000',
+      '',
+    ]) {
       assert.equal(pareceIngreso(texto), false, texto);
     }
   });

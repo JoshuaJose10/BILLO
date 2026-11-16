@@ -332,8 +332,9 @@ export const SINONIMOS = {
 // `nombres` son las categorías del usuario (GET /categorias): se reconocen por su nombre, también
 // las personalizadas; las del seed además por sus sinónimos. Devuelve el nombre tal como viene en
 // `nombres` (o el del seed si no se pasan).
-// `sinonimos`: los del seed de categorías, o SINONIMOS_FUENTES para los ingresos.
-function detectarCategoria(tokens, nombres, sinonimos = SINONIMOS) {
+// `sinonimos`: los del seed de categorías, o SINONIMOS_FUENTES para los ingresos. Con `primera`,
+// si coinciden varias gana la primera de `nombres` (en ingresos «sueldo de la chamba» es Sueldo).
+function detectarCategoria(tokens, nombres, sinonimos = SINONIMOS, primera = false) {
   const lista = nombres.length ? nombres : Object.keys(sinonimos);
   const encontradas = new Set();
   const palabras = new Set(tokens);
@@ -349,7 +350,7 @@ function detectarCategoria(tokens, nombres, sinonimos = SINONIMOS) {
     );
     if (aparece) encontradas.add(nombre);
   }
-  return encontradas.size === 1 ? [...encontradas][0] : null;
+  return primera || encontradas.size === 1 ? ([...encontradas][0] ?? null) : null;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -407,7 +408,8 @@ const CONECTORES = new Set([
 
 // Lo que queda del dictado sin el monto, la categoría y las muletillas («gasté 85 en tacos con
 // amigos» → "Tacos con amigos"), con las palabras tal como se dijeron. null si no queda nada.
-function sugerirNota({ originales, tokens }, monto, categoria) {
+// `ignorar`: más palabras normalizadas que tampoco dicen nada (en ingresos, «me pagaron»…).
+function sugerirNota({ originales, tokens }, monto, categoria, ignorar = new Set()) {
   const nombreCategoria = categoria ? normalizar(categoria) : null;
   const palabras = originales.filter((_, i) => {
     const n = tokens[i];
@@ -415,6 +417,7 @@ function sugerirNota({ originales, tokens }, monto, categoria) {
     return (
       n !== nombreCategoria &&
       !MULETILLAS.has(n) &&
+      !ignorar.has(n) &&
       !MARCAS_PESOS.includes(n) &&
       n !== '$' &&
       numeroDesdeDigitos(n) == null
@@ -450,27 +453,21 @@ export function interpretarGasto(texto, nombres = []) {
 // Ingresos (HU-94)
 
 // Palabras que delatan cada fuente de FUENTES (utils/ingresos.js). Sin coincidencia la fuente
-// queda en null («Otro» no se adivina).
+// queda en null («Otro» no se adivina). Si coinciden varias gana la primera de FUENTES.
 export const SINONIMOS_FUENTES = {
   Sueldo: ['sueldo', 'nomina', 'quincena', 'salario'],
+  'Aguinaldo/Bono': ['aguinaldo', 'bono', 'utilidades', 'ptu'],
   Beca: ['beca'],
   Freelance: ['freelance', 'proyecto', 'cliente', 'chamba'],
+  Ventas: ['vendi', 'venta', 'negocio', 'tienda'],
+  Inversiones: ['inversion', 'rendimiento', 'rendimientos', 'intereses', 'dividendos', 'cetes'],
+  Renta: ['renta', 'alquiler', 'inquilino'],
+  Regalo: ['regalo', 'me regalaron', 'me dieron'],
+  Reembolso: ['reembolso', 'devolucion', 'me devolvieron'],
 };
 
-// { monto: número | null, fuente: nombre de FUENTES | null } a partir del dictado.
-export function interpretarIngreso(texto) {
-  const { tokens } = tokenizar(texto);
-  const monto = leerMonto(tokens);
-  return {
-    monto: monto ? monto.valor : null,
-    fuente: detectarCategoria(
-      tokens,
-      FUENTES.map((f) => f.nombre),
-      SINONIMOS_FUENTES,
-    ),
-  };
-}
-
+// «Renta» también es un gasto: solo suena a ingreso con estas frases («cobré la renta»), nunca
+// con «pagué la renta».
 const FRASES_INGRESO = [
   'me pagaron',
   'me pago',
@@ -481,12 +478,39 @@ const FRASES_INGRESO = [
   'me cayeron',
   'cobre',
 ];
+const PALABRAS_INGRESO = new Set(FRASES_INGRESO.flatMap((f) => f.split(' ')));
+
+// { monto: número | null, fuente: nombre de FUENTES | null, descripcion: texto | null } a partir
+// del dictado. La descripción sale de la misma sugerirNota que la nota de un gasto, sin el monto,
+// la fuente ni las frases de ingreso.
+export function interpretarIngreso(texto) {
+  const palabras = tokenizar(texto);
+  const monto = leerMonto(palabras.tokens);
+  const fuente = detectarCategoria(
+    palabras.tokens,
+    FUENTES.map((f) => f.nombre),
+    SINONIMOS_FUENTES,
+    true,
+  );
+  const ignorar = new Set([
+    ...PALABRAS_INGRESO,
+    ...(SINONIMOS_FUENTES[fuente] ?? []).flatMap((t) => t.split(' ')),
+  ]);
+  return {
+    monto: monto ? monto.valor : null,
+    fuente,
+    descripcion: sugerirNota(palabras, monto, fuente, ignorar),
+  };
+}
 
 // true si el dictado suena a un ingreso («me pagaron», «recibí», «cobré»…).
 export function pareceIngreso(texto) {
   const frase = ` ${tokenizar(texto).tokens.join(' ')} `;
   return FRASES_INGRESO.some((f) => frase.includes(` ${f} `));
 }
+
+// Lo que el dictado pone en la nota (o descripción) de la hoja: nada si el usuario ya escribió una.
+export const notaDictada = (escrita, sugerida) => (String(escrita ?? '').trim() ? null : sugerida);
 
 // ---------------------------------------------------------------------------------------------
 // Mensajes de la hoja

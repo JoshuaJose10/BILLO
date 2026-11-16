@@ -51,6 +51,7 @@ import {
   interpretarGasto,
   interpretarIngreso,
   mensajeFalloVoz,
+  notaDictada,
   pareceIngreso,
 } from '../utils/voz';
 
@@ -190,8 +191,9 @@ export default function NuevoGastoScreen({ navigation, route }) {
   };
 
   // Dictado (HU-57, RF12; ingresos HU-94): llena lo que entendió según el modo y el usuario revisa
-  // y toca Confirmar; nunca guarda solo. Lo que no entendió se queda como estaba.
-  const aplicarDictado = (transcripcion, modo) => {
+  // y toca Confirmar; nunca guarda solo. Lo que no entendió se queda como estaba y una nota o
+  // descripción ya escrita no se sobrescribe (`conNota` false: tampoco se propone ninguna).
+  const aplicarDictado = (transcripcion, modo, conNota = true) => {
     const ingreso = modo === 'ingreso';
     const resultado = ingreso
       ? interpretarIngreso(transcripcion)
@@ -209,7 +211,8 @@ export default function NuevoGastoScreen({ navigation, route }) {
     }
     if (ingreso && resultado.fuente) elegirFuente(resultado.fuente);
     if (categoria) elegirCategoria(categoria.id);
-    if (resultado.nota && !nota.trim()) setNota(resultado.nota);
+    const sugerida = conNota ? notaDictada(nota, resultado.descripcion ?? resultado.nota) : null;
+    if (sugerida) setNota(sugerida);
     setErrorApi('');
 
     const elegido = ingreso ? resultado.fuente : categoria?.nombre;
@@ -255,7 +258,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
       // «Por voz» del abanico pasa directo a Ingreso; el micrófono de la hoja solo lo ofrece.
       pasarAIngreso(transcripcion);
     } else {
-      aplicarDictado(transcripcion, 'gasto');
+      aplicarDictado(transcripcion, 'gasto', false);
       setDictadoIngreso(transcripcion);
     }
   };
