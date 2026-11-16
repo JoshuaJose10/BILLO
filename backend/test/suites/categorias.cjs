@@ -92,14 +92,24 @@ module.exports = (getContext) =>
       assert.equal(cfg[0].categorias_configuradas, false);
     });
 
-    it('migración 021 es idempotente: inactivas para usuarios existentes y activas en cuentas nuevas', async () => {
-      // Usuario previo a la 021: sin las nuevas en su selección.
+    it('migración 021 es idempotente y deja las nuevas activas para usuarios existentes y cuentas nuevas', async () => {
+      const seleccion = async (usuarioId) =>
+        (
+          await ctx.pool.query(
+            `SELECT c.nombre FROM usuario_categorias uc JOIN categorias c ON c.id = uc.categoria_id
+             WHERE uc.usuario_id = $1`,
+            [usuarioId]
+          )
+        ).rows.map((r) => r.nombre);
+
+      // Usuario previo a la 021: sin las nuevas y además quitó Salud por su cuenta.
       await ctx.pool.query(
         `DELETE FROM usuario_categorias
          WHERE usuario_id = $1
            AND categoria_id IN (SELECT id FROM categorias WHERE nombre = ANY($2::text[]))`,
-        [ctx.a.usuario.id, NUEVAS_021]
+        [ctx.a.usuario.id, [...NUEVAS_021, 'Salud']]
       );
+      const antes = await seleccion(ctx.a.usuario.id);
 
       await ctx.pool.query(MIGRACION_021);
       await ctx.pool.query(MIGRACION_021);
@@ -111,21 +121,17 @@ module.exports = (getContext) =>
       assert.equal(filas.length, NUEVAS_021.length);
       assert.ok(filas.every((f) => f.tipo === 'gasto' && f.es_predefinida && f.usuario_id === null));
 
-      // Existente: no las ve activas, pero sí en el catálogo para elegirlas.
+      // Existente: recibe las 8 nuevas una sola vez, conserva lo suyo y Salud sigue quitada.
+      const despues = await seleccion(ctx.a.usuario.id);
+      assert.deepEqual([...despues].sort(), [...antes, ...NUEVAS_021].sort());
       const { body: activas } = await ctx.api
         .get('/categorias')
         .set('Authorization', `Bearer ${ctx.a.token}`)
         .expect(200);
-      assert.equal(activas.some((c) => NUEVAS_021.includes(c.nombre)), false);
-      const { body: catalogo } = await ctx.api
-        .get('/categorias/predefinidas')
-        .set('Authorization', `Bearer ${ctx.a.token}`)
-        .expect(200);
-      const delCatalogo = catalogo.categorias.filter((c) => NUEVAS_021.includes(c.nombre));
-      assert.equal(delCatalogo.length, NUEVAS_021.length);
-      assert.ok(delCatalogo.every((c) => c.seleccionada === false));
+      for (const nombre of NUEVAS_021) assert.ok(activas.some((c) => c.nombre === nombre), nombre);
+      assert.equal(activas.some((c) => c.nombre === 'Salud'), false);
 
-      // Cuenta nueva: las recibe activas.
+      // Cuenta nueva: también activas.
       const { body: reg } = await ctx.api
         .post('/auth/register')
         .send({ nombre: 'Nueva', email: 'nueva.021@example.com', password: ctx.password })

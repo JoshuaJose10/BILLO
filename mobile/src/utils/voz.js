@@ -404,6 +404,7 @@ const MULETILLAS = new Set([
   'es',
   'me',
   'costo',
+  'cobraron',
   'registra',
   'anota',
   'agrega',
@@ -528,14 +529,37 @@ export function interpretarIngreso(texto) {
   };
 }
 
-// true si el dictado suena a un ingreso («me pagaron», «recibí», «cobré»…).
-export function pareceIngreso(texto) {
+// Frases que delatan un gasto dictado en modo Ingreso.
+const FRASES_GASTO = ['gaste', 'pague', 'compre', 'me cobraron'];
+
+const contieneFrase = (texto, frases) => {
   const frase = ` ${tokenizar(texto).tokens.join(' ')} `;
-  return FRASES_INGRESO.some((f) => frase.includes(` ${f} `));
+  return frases.some((f) => frase.includes(` ${f} `));
+};
+
+// true si el dictado suena a un ingreso («me pagaron», «recibí», «cobré»…).
+export const pareceIngreso = (texto) => contieneFrase(texto, FRASES_INGRESO);
+
+// true si suena a un gasto («gasté», «pagué», «compré», «me cobraron»).
+export const pareceGasto = (texto) => contieneFrase(texto, FRASES_GASTO);
+
+// Lo dictado en la pestaña `modo` ('gasto' | 'ingreso'): si suena a la otra (y `cambiar`), se
+// interpreta allá. { modo, cambio, monto, ... } con categoria/nota (gasto) o fuente/descripcion
+// (ingreso). Nunca guarda: la hoja llena los campos y el usuario confirma.
+export function interpretarDictado(texto, modo, nombres = [], cambiar = true) {
+  const parece = modo === 'gasto' ? pareceIngreso : pareceGasto;
+  const cambio = cambiar && parece(texto);
+  const final = cambio ? (modo === 'gasto' ? 'ingreso' : 'gasto') : modo;
+  const resultado =
+    final === 'ingreso' ? interpretarIngreso(texto) : interpretarGasto(texto, nombres);
+  return { modo: final, cambio, ...resultado };
 }
 
-// Lo que el dictado pone en la nota (o descripción) de la hoja: nada si el usuario ya escribió una.
-export const notaDictada = (escrita, sugerida) => (String(escrita ?? '').trim() ? null : sugerida);
+// Texto que el dictado pone en la nota (o descripción): null si hay que dejarla como está porque
+// el usuario la escribió a mano. Lo que vino de un dictado anterior (`delDictado`) se reemplaza,
+// también por '' si el dictado nuevo no trae nota.
+export const notaDictada = (actual, sugerida, delDictado = false) =>
+  String(actual ?? '').trim() && !delDictado ? null : (sugerida ?? '');
 
 // ---------------------------------------------------------------------------------------------
 // Mensajes de la hoja
