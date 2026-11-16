@@ -20,6 +20,7 @@ import BotonMicrofono from '../components/BotonMicrofono';
 import ChipCategoria from '../components/ChipCategoria';
 import ChipSelector from '../components/ChipSelector';
 import EstadoPantalla from '../components/EstadoPantalla';
+import EnlaceAuth from '../components/EnlaceAuth';
 import EscuchaVoz from '../components/EscuchaVoz';
 import HojaInferior from '../components/HojaInferior';
 import MontoGrande from '../components/MontoGrande';
@@ -45,7 +46,13 @@ import { fechaRelativa, formatearMonto, LOCALE, resumirTexto } from '../utils/fo
 import { DESCRIPCION_MAX, FUENTES } from '../utils/ingresos';
 import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
 import { resolverMonedaInicialGasto } from '../utils/preferencias';
-import { avisoDictado, interpretarGasto, mensajeFalloVoz } from '../utils/voz';
+import {
+  avisoDictado,
+  interpretarGasto,
+  interpretarIngreso,
+  mensajeFalloVoz,
+  pareceIngreso,
+} from '../utils/voz';
 
 // Hoja inferior sobre Inicio y las tabs (ruta NuevoGasto con presentation: 'transparentModal').
 // El alto lo da el contenido (~65% de la pantalla en un iPhone de 6.1").
@@ -53,9 +60,10 @@ import { avisoDictado, interpretarGasto, mensajeFalloVoz } from '../utils/voz';
 // existe GET /gastos/:id. Sin él registra uno nuevo.
 // Ingresos (HU-82): el selector «Gasto | Ingreso» cambia la hoja de modo; `{ tipo: 'ingreso' }`
 // la abre directo en Ingreso y `{ ingreso }` edita ese ingreso. En Ingreso las categorías se
-// cambian por fuentes y se ocultan moneda (los ingresos son en MXN), método de pago y micrófono.
+// cambian por fuentes y se ocultan moneda (los ingresos son en MXN) y método de pago.
 // Desde el abanico del + (HU-92), en Gasto: `{ categoriaId }` abre con esa categoría elegida (el
-// teclado del monto ya está a la vista) y `{ iniciarVoz: true }` abre dictando.
+// teclado del monto ya está a la vista) y `{ iniciarVoz: true }` abre dictando; si lo dictado
+// suena a ingreso (HU-94) pasa a Ingreso. Dictando a mano en Gasto, solo lo ofrece.
 export default function NuevoGastoScreen({ navigation, route }) {
   const gastoEditado = route.params?.gasto;
   const ingresoEditado = route.params?.ingreso;
@@ -138,6 +146,8 @@ export default function NuevoGastoScreen({ navigation, route }) {
   const [panel, setPanel] = useState(null); // 'metodo' | 'fecha' | 'nota' | 'moneda'
   // Aviso del dictado por voz (permiso negado, monto no entendido…); la captura manual sigue.
   const [avisoVoz, setAvisoVoz] = useState(null);
+  // Dictado en Gasto que suena a ingreso: el aviso ofrece «Cambiar a Ingreso» con este texto.
+  const [dictadoIngreso, setDictadoIngreso] = useState(null);
   const [errores, setErrores] = useState({});
   const [errorApi, setErrorApi] = useState('');
   const [guardando, setGuardando] = useState(false);
@@ -163,6 +173,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
     if (errores.monto) setErrores((e) => ({ ...e, monto: undefined }));
     if (errorApi) setErrorApi('');
     if (avisoVoz) setAvisoVoz(null);
+    if (dictadoIngreso) setDictadoIngreso(null);
   };
 
   const elegirCategoria = (id) => {
@@ -178,36 +189,75 @@ export default function NuevoGastoScreen({ navigation, route }) {
     if (errorApi) setErrorApi('');
   };
 
-  // Dictado (HU-57, RF12): llena lo que entendió y el usuario revisa y toca Confirmar; nunca
-  // guarda solo. Lo que no entendió se queda como estaba.
-  const alTerminarDictado = (transcripcion) => {
-    const resultado = interpretarGasto(
-      transcripcion,
-      categorias.map((c) => c.nombre),
-    );
-    const categoria = resultado.categoria
-      ? (categorias.find((c) => c.nombre === resultado.categoria) ?? null)
-      : null;
+  // Dictado (HU-57, RF12; ingresos HU-94): llena lo que entendió según el modo y el usuario revisa
+  // y toca Confirmar; nunca guarda solo. Lo que no entendió se queda como estaba.
+  const aplicarDictado = (transcripcion, modo) => {
+    const ingreso = modo === 'ingreso';
+    const resultado = ingreso
+      ? interpretarIngreso(transcripcion)
+      : interpretarGasto(
+          transcripcion,
+          categorias.map((c) => c.nombre),
+        );
+    const categoria =
+      !ingreso && resultado.categoria
+        ? (categorias.find((c) => c.nombre === resultado.categoria) ?? null)
+        : null;
     if (resultado.monto != null) {
       setTexto(textoDesdeMonto(resultado.monto));
       if (errores.monto) setErrores((e) => ({ ...e, monto: undefined }));
     }
+    if (ingreso && resultado.fuente) elegirFuente(resultado.fuente);
     if (categoria) elegirCategoria(categoria.id);
     if (resultado.nota && !nota.trim()) setNota(resultado.nota);
     setErrorApi('');
 
-    const aviso = avisoDictado(transcripcion, { monto: resultado.monto, categoria });
+    const elegido = ingreso ? resultado.fuente : categoria?.nombre;
+    const campo = ingreso ? 'la fuente' : 'la categoría';
+    const aviso = avisoDictado(
+      transcripcion,
+      { monto: resultado.monto, categoria: elegido },
+      campo,
+    );
     setAvisoVoz(aviso);
     Haptics.notificationAsync(
       aviso ? Haptics.NotificationFeedbackType.Warning : Haptics.NotificationFeedbackType.Success,
     ).catch(() => {});
     const entendido = [
       resultado.monto != null ? `Monto ${formatearMonto(resultado.monto)}` : null,
-      categoria ? `categoría ${categoria.nombre}` : null,
+      elegido ? `${ingreso ? 'fuente' : 'categoría'} ${elegido}` : null,
     ].filter(Boolean);
     AccessibilityInfo.announceForAccessibility(
-      [entendido.join(', '), aviso ?? 'Revisa y confirma el gasto.'].filter(Boolean).join('. '),
+      [entendido.join(', '), aviso ?? `Revisa y confirma el ${modo}.`].filter(Boolean).join('. '),
     );
+  };
+
+  // El monto, la fecha y la nota se conservan al cambiar de modo.
+  const ponerTipo = (nuevo) => {
+    setTipo(nuevo);
+    setErrores({});
+    setErrorApi('');
+    setAvisoVoz(null);
+    setDictadoIngreso(null);
+    setPanel(null);
+  };
+
+  // Vuelve a interpretar como ingreso lo que se dictó en Gasto.
+  const pasarAIngreso = (transcripcion) => {
+    ponerTipo('ingreso');
+    aplicarDictado(transcripcion, 'ingreso');
+  };
+
+  const alTerminarDictado = (transcripcion) => {
+    if (esIngreso || !pareceIngreso(transcripcion)) {
+      aplicarDictado(transcripcion, tipo);
+    } else if (vozDelAbanico.current) {
+      // «Por voz» del abanico pasa directo a Ingreso; el micrófono de la hoja solo lo ofrece.
+      pasarAIngreso(transcripcion);
+    } else {
+      aplicarDictado(transcripcion, 'gasto');
+      setDictadoIngreso(transcripcion);
+    }
   };
 
   const alFallarDictado = (codigo) => {
@@ -221,12 +271,15 @@ export default function NuevoGastoScreen({ navigation, route }) {
   const dictado = useDictado({
     onTerminado: alTerminarDictado,
     onFallo: alFallarDictado,
-    frases: categorias.map((c) => c.nombre),
+    frases: esIngreso ? FUENTES.map((f) => f.nombre) : categorias.map((c) => c.nombre),
   });
   const dictando = dictado.estado !== 'inactivo';
 
   // Una sola vez al abrir; sin el módulo de voz (Expo Go) empezar() no hace nada.
-  const vozAlAbrir = useRef(!editando && route.params?.iniciarVoz === true);
+  const abreDictando = !editando && route.params?.iniciarVoz === true;
+  const vozAlAbrir = useRef(abreDictando);
+  // Hasta que se dicte con el micrófono de la hoja.
+  const vozDelAbanico = useRef(abreDictando);
   const { empezar: empezarDictado } = dictado;
   useEffect(() => {
     if (!vozAlAbrir.current) return;
@@ -234,18 +287,15 @@ export default function NuevoGastoScreen({ navigation, route }) {
     empezarDictado();
   }, [empezarDictado]);
 
-  // El monto, la fecha y la nota se conservan al cambiar de modo.
   const cambiarTipo = (nuevo) => {
     if (enviando.current || dictando) return;
-    setTipo(nuevo);
-    setErrores({});
-    setErrorApi('');
-    setAvisoVoz(null);
-    setPanel(null);
+    ponerTipo(nuevo);
   };
 
   const dictar = () => {
+    vozDelAbanico.current = false;
     setAvisoVoz(null);
+    setDictadoIngreso(null);
     setPanel(null);
     dictado.empezar();
   };
@@ -540,16 +590,25 @@ export default function NuevoGastoScreen({ navigation, route }) {
         )}
       </View>
 
-      {avisoVoz ? (
+      {avisoVoz || dictadoIngreso ? (
         <View style={styles.avisoVoz} accessibilityRole="alert">
           <MaterialCommunityIcons name="microphone-off" size={16} color={colors.textSecondary} />
-          <Text style={styles.avisoVozTexto}>{avisoVoz}</Text>
+          {dictadoIngreso ? (
+            <EnlaceAuth
+              pregunta="¿Es un ingreso?"
+              accion="Cambiar a Ingreso"
+              onPress={() => pasarAIngreso(dictadoIngreso)}
+              style={styles.avisoVozTexto}
+            />
+          ) : (
+            <Text style={styles.avisoVozTexto}>{avisoVoz}</Text>
+          )}
         </View>
       ) : null}
       {errorApi ? <Text style={styles.errorApi}>{errorApi}</Text> : null}
       <View style={styles.filaConfirmar}>
         {/* Sin el módulo nativo (Expo Go) no hay micrófono: solo la captura manual. */}
-        {dictado.disponible && !dictando && !esIngreso ? (
+        {dictado.disponible && !dictando ? (
           <BotonMicrofono onPress={dictar} disabled={ocupado} />
         ) : null}
         <View style={styles.confirmar}>
@@ -744,8 +803,11 @@ const crearEstilos = (colors) =>
       marginBottom: 10,
       paddingHorizontal: 4,
     },
+    // También para el enlace «¿Es un ingreso?» (EnlaceAuth centra y separa por defecto).
     avisoVozTexto: {
       flex: 1,
+      textAlign: 'left',
+      marginTop: 0,
       fontFamily: fonts.sans,
       fontSize: 13,
       lineHeight: 18,

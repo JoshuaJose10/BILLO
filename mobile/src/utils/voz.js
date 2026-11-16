@@ -2,7 +2,8 @@
 // comida» → { monto: 80, categoria: 'Comida', nota: null }. Solo propone datos: la hoja los
 // muestra y el usuario los revisa antes de Confirmar. Si algo no se entiende o es ambiguo, ese
 // campo queda en null; nunca se adivina.
-// Sin imports para poder probarlo con node --test.
+// Solo importa utils sin React Native para poder probarlo con node --test.
+import { FUENTES } from './ingresos.js';
 
 // Mismo tope que el teclado (utils/monto.js, MAX_ENTEROS = 9).
 const MONTO_MAXIMO = 999999999.99;
@@ -331,8 +332,9 @@ export const SINONIMOS = {
 // `nombres` son las categorías del usuario (GET /categorias): se reconocen por su nombre, también
 // las personalizadas; las del seed además por sus sinónimos. Devuelve el nombre tal como viene en
 // `nombres` (o el del seed si no se pasan).
-function detectarCategoria(tokens, nombres) {
-  const lista = nombres.length ? nombres : Object.keys(SINONIMOS);
+// `sinonimos`: los del seed de categorías, o SINONIMOS_FUENTES para los ingresos.
+function detectarCategoria(tokens, nombres, sinonimos = SINONIMOS) {
+  const lista = nombres.length ? nombres : Object.keys(sinonimos);
   const encontradas = new Set();
   const palabras = new Set(tokens);
   const texto = ` ${tokens.join(' ')} `;
@@ -340,8 +342,8 @@ function detectarCategoria(tokens, nombres) {
   for (const nombre of lista) {
     const clave = normalizar(nombre).trim();
     if (!clave) continue;
-    const base = Object.keys(SINONIMOS).find((k) => normalizar(k) === clave);
-    const terminos = [clave, ...(base ? SINONIMOS[base] : [])];
+    const base = Object.keys(sinonimos).find((k) => normalizar(k) === clave);
+    const terminos = [clave, ...(base ? sinonimos[base] : [])];
     const aparece = terminos.some((t) =>
       t.includes(' ') ? texto.includes(` ${t} `) : palabras.has(t),
     );
@@ -428,17 +430,62 @@ function sugerirNota({ originales, tokens }, monto, categoria) {
 
 // ---------------------------------------------------------------------------------------------
 
+// Lectura del monto que comparten gastos e ingresos: { valor, inicio, fin } o null.
+const leerMonto = (tokens) => elegirMonto(candidatosMonto(tokens));
+
 // { monto: número | null, categoria: nombre | null, nota: texto | null } a partir del dictado.
 // `nombres`: los nombres de las categorías del usuario (opcional).
 export function interpretarGasto(texto, nombres = []) {
   const palabras = tokenizar(texto);
-  const monto = elegirMonto(candidatosMonto(palabras.tokens));
+  const monto = leerMonto(palabras.tokens);
   const categoria = detectarCategoria(palabras.tokens, nombres);
   return {
     monto: monto ? monto.valor : null,
     categoria,
     nota: sugerirNota(palabras, monto, categoria),
   };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Ingresos (HU-94)
+
+// Palabras que delatan cada fuente de FUENTES (utils/ingresos.js). Sin coincidencia la fuente
+// queda en null («Otro» no se adivina).
+export const SINONIMOS_FUENTES = {
+  Sueldo: ['sueldo', 'nomina', 'quincena', 'salario'],
+  Beca: ['beca'],
+  Freelance: ['freelance', 'proyecto', 'cliente', 'chamba'],
+};
+
+// { monto: número | null, fuente: nombre de FUENTES | null } a partir del dictado.
+export function interpretarIngreso(texto) {
+  const { tokens } = tokenizar(texto);
+  const monto = leerMonto(tokens);
+  return {
+    monto: monto ? monto.valor : null,
+    fuente: detectarCategoria(
+      tokens,
+      FUENTES.map((f) => f.nombre),
+      SINONIMOS_FUENTES,
+    ),
+  };
+}
+
+const FRASES_INGRESO = [
+  'me pagaron',
+  'me pago',
+  'me depositaron',
+  'me deposito',
+  'recibi',
+  'me cayo',
+  'me cayeron',
+  'cobre',
+];
+
+// true si el dictado suena a un ingreso («me pagaron», «recibí», «cobré»…).
+export function pareceIngreso(texto) {
+  const frase = ` ${tokenizar(texto).tokens.join(' ')} `;
+  return FRASES_INGRESO.some((f) => frase.includes(` ${f} `));
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -477,10 +524,10 @@ export function mensajeFalloVoz(codigo) {
 }
 
 // Aviso al terminar de dictar, con lo que entendió interpretarGasto (lo que sí entendió ya se
-// llenó en la hoja). null si entendió monto y categoría.
-export function avisoDictado(transcripcion, { monto, categoria }) {
+// llenó en la hoja). null si entendió monto y categoría. En Ingreso, `campo` es 'la fuente'.
+export function avisoDictado(transcripcion, { monto, categoria }, campo = 'la categoría') {
   if (!String(transcripcion ?? '').trim()) return NO_ESCUCHE;
   if (monto == null) return 'No entendí el monto, escríbelo.';
-  if (categoria == null) return 'No entendí la categoría, elígela.';
+  if (categoria == null) return `No entendí ${campo}, elígela.`;
   return null;
 }

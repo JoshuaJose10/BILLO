@@ -2,7 +2,14 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { avisoDictado, interpretarGasto, mensajeFalloVoz, normalizar } from './voz.js';
+import {
+  avisoDictado,
+  interpretarGasto,
+  interpretarIngreso,
+  mensajeFalloVoz,
+  normalizar,
+  pareceIngreso,
+} from './voz.js';
 
 const CATEGORIAS = ['Comida', 'Transporte', 'Entretenimiento', 'Servicios', 'Salud', 'Otros'];
 
@@ -301,5 +308,56 @@ describe('mensajes de la hoja', () => {
       'No entendí la categoría, elígela.',
     );
     assert.equal(avisoDictado('ochenta en comida', { monto: 80, categoria: 'Comida' }), null);
+  });
+});
+
+describe('interpretarIngreso (HU-94)', () => {
+  it('monto y fuente por sinónimos', () => {
+    assert.deepEqual(interpretarIngreso('me pagaron cinco mil de sueldo'), {
+      monto: 5000,
+      fuente: 'Sueldo',
+    });
+    assert.deepEqual(interpretarIngreso('recibí la beca de dos mil'), {
+      monto: 2000,
+      fuente: 'Beca',
+    });
+    assert.deepEqual(interpretarIngreso('me depositó el cliente 1500'), {
+      monto: 1500,
+      fuente: 'Freelance',
+    });
+    assert.equal(interpretarIngreso('me cayó la quincena, 4 mil').fuente, 'Sueldo');
+  });
+
+  it('lo que no entiende queda en null', () => {
+    assert.deepEqual(interpretarIngreso('me pagaron'), { monto: null, fuente: null });
+    assert.deepEqual(interpretarIngreso('me cayó 300'), { monto: 300, fuente: null });
+  });
+
+  it('avisoDictado en Ingreso pide la fuente', () => {
+    assert.equal(
+      avisoDictado('me cayó 300', { monto: 300, categoria: null }, 'la fuente'),
+      'No entendí la fuente, elígela.',
+    );
+  });
+});
+
+describe('pareceIngreso (HU-94)', () => {
+  it('true con frases de ingreso', () => {
+    for (const texto of [
+      'me pagaron cinco mil',
+      'Me depositaron 2000',
+      'me depositó el cliente 1500',
+      'recibí la beca',
+      'me cayó 300',
+      'cobré el proyecto',
+    ]) {
+      assert.equal(pareceIngreso(texto), true, texto);
+    }
+  });
+
+  it('false con gastos', () => {
+    for (const texto of ['ochenta pesos en comida', 'pagué la luz', 'me cobraron 50', '']) {
+      assert.equal(pareceIngreso(texto), false, texto);
+    }
   });
 });
