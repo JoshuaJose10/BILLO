@@ -14,6 +14,10 @@ import { fonts } from '../theme/fonts';
 // `destructivo`: sin relleno, con borde en `alerta` y texto en `alertaTexto` (acciones como
 // "Eliminar gasto"); al presionar toma `alertaSuave`.
 // `ajustado`: del ancho de su texto, centrado (Reintentar de EstadoPantalla).
+// `brillo`: el halo suave de `compacto` en el tamaño normal (botón principal de Entrada).
+// `chico`: píldora secundaria baja, del ancho de su texto y centrada, con texto secundario
+// («Explorar sin cuenta» de Entrada).
+// `accessibilityLabel`: cuando el título solo no basta (p. ej. "Continuar al paso 2 de 3").
 export default function Boton({
   titulo,
   onPress,
@@ -25,31 +29,39 @@ export default function Boton({
   secundario = false,
   destructivo = false,
   ajustado = false,
+  accessibilityLabel,
+  brillo = false,
+  chico = false,
 }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
   const inactivo = cargando || disabled;
   const colorContenido = destructivo
     ? colors.alertaTexto
-    : secundario
-      ? colors.text
-      : grande
-        ? colors.onPrimaryMuted
-        : colors.onPrimary;
+    : chico
+      ? colors.textSecondary
+      : secundario
+        ? colors.text
+        : grande
+          ? colors.onPrimaryMuted
+          : colors.onPrimary;
 
   return (
     <Pressable
       onPress={onPress}
       disabled={inactivo}
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled: inactivo, busy: cargando }}
       style={({ pressed }) => [
         styles.boton,
+        compacto || brillo ? styles.brillo : null,
         compacto ? styles.botonCompacto : null,
         grande ? styles.botonGrande : null,
-        secundario ? styles.botonSecundario : null,
+        secundario || chico ? styles.botonSecundario : null,
         destructivo ? styles.botonDestructivo : null,
-        ajustado ? styles.botonAjustado : null,
+        ajustado || chico ? styles.botonAjustado : null,
+        chico ? styles.botonChico : null,
         pressed && !inactivo ? (grande ? styles.presionadoGrande : styles.presionado) : null,
         pressed && !inactivo && destructivo ? styles.presionadoDestructivo : null,
         inactivo ? styles.inactivo : null,
@@ -66,6 +78,7 @@ export default function Boton({
               grande ? styles.textoGrande : null,
               secundario ? styles.textoSecundario : null,
               destructivo ? styles.textoDestructivo : null,
+              chico ? styles.textoChico : null,
             ]}
           >
             {titulo}
@@ -95,6 +108,8 @@ const crearEstilos = (colors) =>
     botonCompacto: {
       height: 48,
       gap: 6,
+    },
+    brillo: {
       shadowColor: colors.brillo,
       shadowOffset: { width: 0, height: 0 },
       shadowRadius: 15,
@@ -126,6 +141,10 @@ const crearEstilos = (colors) =>
       width: 'auto',
       alignSelf: 'center',
       paddingHorizontal: espacios.lg,
+    },
+    botonChico: {
+      height: 36,
+      paddingHorizontal: espacios.md,
     },
     presionadoDestructivo: {
       backgroundColor: colors.alertaSuave,
@@ -160,6 +179,11 @@ const crearEstilos = (colors) =>
     },
     textoSecundario: {
       color: colors.text,
+    },
+    textoChico: {
+      fontFamily: fonts.sansSemiBold,
+      fontSize: 14,
+      color: colors.textSecondary,
     },
     textoDestructivo: {
       fontFamily: fonts.sansSemiBold,

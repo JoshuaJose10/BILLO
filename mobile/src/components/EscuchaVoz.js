@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedStyle,
   useReducedMotion,
@@ -15,6 +16,7 @@ import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import Boton from './Boton';
+import TextoAnimado from './TextoAnimado';
 
 // Mismo alto que TecladoNumerico (4 filas de 44 + 3 huecos de 6): la hoja no cambia de tamaño al
 // pasar del teclado a la escucha.
@@ -22,15 +24,18 @@ const ALTO = 194;
 const ORBE = 64;
 const PULSO = { duration: 1600, easing: Easing.out(Easing.quad) };
 
-// Anillo que crece y se desvanece en bucle. Con "Reducir movimiento" queda quieto.
-function Anillo({ retraso, reducirMovimiento }) {
+// Anillo que crece y se desvanece en bucle. Con "Reducir movimiento" (o `quieto`) no se mueve.
+function Anillo({ retraso, reducirMovimiento, quieto }) {
   const styles = useEstilos(crearEstilos);
   const avance = useSharedValue(0);
 
   useEffect(() => {
-    if (reducirMovimiento) return;
+    cancelAnimation(avance);
+    avance.set(0);
+    if (reducirMovimiento || quieto) return undefined;
     avance.set(withDelay(retraso, withRepeat(withTiming(1, PULSO), -1, false)));
-  }, [avance, retraso, reducirMovimiento]);
+    return () => cancelAnimation(avance);
+  }, [avance, retraso, reducirMovimiento, quieto]);
 
   const estilo = useAnimatedStyle(() =>
     reducirMovimiento
@@ -44,51 +49,103 @@ function Anillo({ retraso, reducirMovimiento }) {
 // Vista de Nuevo gasto mientras se dicta (Stitch nuevo_gasto_modo_voz): estado, micrófono con
 // halo y anillos de pulso coral, transcripción en vivo y Detener. Ocupa el lugar del teclado.
 // - `estado`: 'preparando' (pidiendo permiso) | 'escuchando'.
-// - `onDetener()`: termina de escuchar; el texto se interpreta al llegar el resultado final.
-export default function EscuchaVoz({ estado, transcripcion, onDetener }) {
+// - `onDetener()`: termina de escuchar; el texto se interpreta al llegar el resultado final. Sin él
+//   no hay botón Detener (maqueta del onboarding).
+// Maqueta del onboarding (HU-93): `compacto` pone el micrófono a la izquierda del estado y la
+// transcripción debajo; `letras` (shared value) muestra solo esas primeras letras de
+// `transcripcion`, en el hilo de UI; `quieto` detiene los anillos (paso no visible).
+export default function EscuchaVoz({
+  estado,
+  transcripcion,
+  onDetener,
+  compacto = false,
+  letras,
+  quieto = false,
+}) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
   const reducirMovimiento = useReducedMotion();
   const escuchando = estado === 'escuchando';
 
-  return (
-    <View style={styles.contenedor}>
-      <View style={styles.estado}>
-        <View style={[styles.puntoEstado, escuchando ? styles.puntoActivo : null]} />
-        <Text style={styles.estadoTexto}>{escuchando ? 'Escuchando…' : 'Preparando…'}</Text>
-      </View>
+  const vistaEstado = (
+    <View style={styles.estado}>
+      <View style={[styles.puntoEstado, escuchando ? styles.puntoActivo : null]} />
+      <Text style={styles.estadoTexto}>{escuchando ? 'Escuchando…' : 'Preparando…'}</Text>
+    </View>
+  );
+  const vistaOrbe = (
+    <View style={styles.zonaOrbe}>
+      {escuchando ? (
+        <>
+          <Anillo retraso={0} reducirMovimiento={reducirMovimiento} quieto={quieto} />
+          <Anillo
+            retraso={PULSO.duration / 2}
+            reducirMovimiento={reducirMovimiento}
+            quieto={quieto}
+          />
+        </>
+      ) : null}
+      <View style={styles.halo} />
+      <Pressable
+        onPress={onDetener}
+        disabled={!escuchando}
+        accessibilityRole="button"
+        accessibilityLabel="Detener dictado"
+        style={({ pressed }) => [styles.orbe, pressed ? styles.orbePresionado : null]}
+      >
+        <MaterialCommunityIcons name="microphone" size={30} color={colors.onPrimary} />
+      </Pressable>
+    </View>
+  );
+  // «texto» con las primeras `v` letras (worklet).
+  const dictado = (v) => {
+    'worklet';
+    return `«${transcripcion.slice(0, Math.floor(v))}»`;
+  };
 
-      <View style={styles.zonaOrbe}>
-        {escuchando ? (
-          <>
-            <Anillo retraso={0} reducirMovimiento={reducirMovimiento} />
-            <Anillo retraso={PULSO.duration / 2} reducirMovimiento={reducirMovimiento} />
-          </>
-        ) : null}
-        <View style={styles.halo} />
-        <Pressable
-          onPress={onDetener}
-          disabled={!escuchando}
-          accessibilityRole="button"
-          accessibilityLabel="Detener dictado"
-          style={({ pressed }) => [styles.orbe, pressed ? styles.orbePresionado : null]}
-        >
-          <MaterialCommunityIcons name="microphone" size={30} color={colors.onPrimary} />
-        </Pressable>
-      </View>
+  return (
+    <View
+      style={[
+        styles.contenedor,
+        compacto ? styles.contenedorCompacto : onDetener ? styles.altoTeclado : null,
+      ]}
+    >
+      {compacto ? (
+        <View style={styles.filaCompacta}>
+          {vistaOrbe}
+          {vistaEstado}
+        </View>
+      ) : (
+        <>
+          {vistaEstado}
+          {vistaOrbe}
+        </>
+      )}
 
       <View style={styles.burbuja}>
         <MaterialCommunityIcons name="format-quote-open" size={18} color={colors.textSecondary} />
-        <Text
-          style={[styles.transcripcion, transcripcion ? null : styles.sugerencia]}
-          numberOfLines={2}
-          accessibilityLiveRegion="polite"
-        >
-          {transcripcion ? `«${transcripcion}»` : 'Di algo como «ochenta pesos en comida»'}
-        </Text>
+        {letras ? (
+          <TextoAnimado valor={letras} formatear={dictado} style={styles.transcripcion} />
+        ) : (
+          <Text
+            style={[styles.transcripcion, transcripcion ? null : styles.sugerencia]}
+            numberOfLines={2}
+            accessibilityLiveRegion="polite"
+          >
+            {transcripcion ? `«${transcripcion}»` : 'Di algo como «ochenta pesos en comida»'}
+          </Text>
+        )}
       </View>
 
-      <Boton titulo="Detener" icono="stop" onPress={onDetener} disabled={!escuchando} secundario />
+      {onDetener ? (
+        <Boton
+          titulo="Detener"
+          icono="stop"
+          onPress={onDetener}
+          disabled={!escuchando}
+          secundario
+        />
+      ) : null}
     </View>
   );
 }
@@ -96,10 +153,21 @@ export default function EscuchaVoz({ estado, transcripcion, onDetener }) {
 const crearEstilos = (colors) =>
   StyleSheet.create({
     contenedor: {
-      minHeight: ALTO,
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: 8,
+    },
+    contenedorCompacto: {
+      alignItems: 'stretch',
+    },
+    filaCompacta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    // Con Detener ocupa lo mismo que el teclado; sin él (maqueta) solo lo que necesita.
+    altoTeclado: {
+      minHeight: ALTO,
     },
     // px-3 py-1 rounded-full bg-white/5 border-white/10
     estado: {

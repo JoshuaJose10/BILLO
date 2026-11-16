@@ -7,10 +7,12 @@ import AdminCatalogoScreen from '../screens/AdminCatalogoScreen';
 import MembresiaScreen from '../screens/MembresiaScreen';
 import MisCategoriasScreen from '../screens/MisCategoriasScreen';
 import NuevoGastoScreen from '../screens/NuevoGastoScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
 import PerfilScreen from '../screens/PerfilScreen';
 import PresupuestoScreen from '../screens/PresupuestoScreen';
 import LaboratorioScreen from '../spike/LaboratorioScreen';
 import { useTema } from '../theme/TemaContext';
+import { navegadorRaiz } from '../utils/flujoInicio';
 import AuthStack from './AuthStack';
 import MainTabs from './MainTabs';
 
@@ -39,11 +41,13 @@ const HOJAS_VISITANTE = [
 ];
 
 // Con token se muestran Main y las hojas (NuevoGasto, Perfil, Presupuesto, Membresia); en el modo
-// exploración, Main con datos de ejemplo y la invitación en lugar de las hojas; si no, Auth. Al
+// exploración, Main con datos de ejemplo y la invitación en lugar de las hojas; si no, Onboarding
+// la primera vez (HU-93) y después Auth, que abre en Entrada (utils/flujoInicio). Al
 // cambiar el token o el modo React Navigation cambia de navegador solo, sin navigation.reset.
 export default function RootNavigator() {
-  const { token, visitante, cargando } = useAuth();
+  const { token, visitante, cargando, onboardingVisto } = useAuth();
   const { colors } = useTema();
+  const raiz = navegadorRaiz({ token, visitante, onboardingVisto });
 
   // HU-23 (spike): pantalla de pruebas de voz y widget, solo en desarrollo.
   const opcionesLaboratorio = {
@@ -59,7 +63,7 @@ export default function RootNavigator() {
 
   return (
     <Stack.Navigator>
-      {token ? (
+      {raiz === 'Sesion' ? (
         <>
           <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
           <Stack.Screen name="NuevoGasto" component={NuevoGastoScreen} options={opcionesHoja} />
@@ -84,7 +88,7 @@ export default function RootNavigator() {
             />
           ) : null}
         </>
-      ) : visitante ? (
+      ) : raiz === 'Visitante' ? (
         <>
           <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
           {HOJAS_VISITANTE.map((nombre) => (
@@ -96,8 +100,14 @@ export default function RootNavigator() {
             />
           ))}
         </>
-      ) : (
+      ) : raiz === 'Auth' ? (
         <Stack.Screen name="Auth" component={AuthStack} options={{ headerShown: false }} />
+      ) : (
+        <Stack.Screen
+          name="Onboarding"
+          component={OnboardingScreen}
+          options={{ headerShown: false }}
+        />
       )}
     </Stack.Navigator>
   );

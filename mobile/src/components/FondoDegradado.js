@@ -12,19 +12,21 @@ const medida = (valor, width, height) => {
 
 // Brillo atmosférico de Luminal Glow: los radial-gradient del fondo de Inicio en Stitch
 // (07_inicio_oscuro_gradiente_fondo_1 y 07_inicio_claro_color_fondo_1), traducidos a elipses de
-// react-native-svg. Las capas salen de `colors.fondoCapas` y cambian con el tema. Va como primer
-// hijo de una vista con fondo `colors.background`; no recibe toques.
-export default function FondoDegradado() {
+// react-native-svg. Las capas salen de `colors.fondoCapas` (u otra lista del tema en `capas`, p. ej.
+// el resplandor de Entrada) y cambian con el tema. Va como primer hijo de una vista con fondo
+// `colors.background`; no recibe toques.
+export default function FondoDegradado({ capas: capasTema = 'fondoCapas' }) {
   const { width, height } = useWindowDimensions();
   const { colors } = useTema();
+  const capas = colors[capasTema];
 
   return (
     <Svg style={StyleSheet.absoluteFill} width={width} height={height} pointerEvents="none">
       <Defs>
-        {colors.fondoCapas.map((capa, i) => (
+        {capas.map((capa, i) => (
           <RadialGradient
             key={i}
-            id={`fondoCapa${i}`}
+            id={`${capasTema}${i}`}
             cx={capa.x * width}
             cy={capa.y * height}
             rx={medida(capa.rx, width, height)}
@@ -42,8 +44,8 @@ export default function FondoDegradado() {
           </RadialGradient>
         ))}
       </Defs>
-      {colors.fondoCapas.map((_capa, i) => (
-        <Rect key={i} x="0" y="0" width={width} height={height} fill={`url(#fondoCapa${i})`} />
+      {capas.map((_capa, i) => (
+        <Rect key={i} x="0" y="0" width={width} height={height} fill={`url(#${capasTema}${i})`} />
       ))}
     </Svg>
   );

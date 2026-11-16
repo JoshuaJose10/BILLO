@@ -14,7 +14,8 @@ import Etiqueta from './Etiqueta';
 // una invitación a registrar ingresos (no un $0.00); con un número, el monto grande en mono con los
 // centavos pequeños y "MXN" al lado; si es negativo, con "−" en el color normal y debajo el aviso
 // «Gastaste más de lo que entró este mes». Con `ingresos` > 0 (total del mes), «↗ +$X este mes».
-// Al final, la pastilla de acción «↓ Ingreso» llama a `onRegistrarIngreso`.
+// Al final, la pastilla de acción «↓ Ingreso» llama a `onRegistrarIngreso` (sin él no se dibuja:
+// la maqueta del onboarding).
 // El ojo oculta saldo, aviso e ingresos ("••••••" con el mismo estilo, para que el layout no
 // salte); la preferencia se recuerda (useSaldoOculto). Sin la pila de tarjetas (Próximamente).
 export default function TarjetaSaldo({ saldo, ingresos = 0, onRegistrarIngreso }) {
@@ -103,18 +104,20 @@ export default function TarjetaSaldo({ saldo, ingresos = 0, onRegistrarIngreso }
         ) : null}
       </View>
 
-      <Pressable
-        onPress={registrar}
-        hitSlop={{ top: 4, bottom: 4 }}
-        accessibilityRole="button"
-        accessibilityLabel="Registrar ingreso"
-        style={({ pressed }) => [styles.pastilla, pressed ? styles.pastillaPresionada : null]}
-      >
-        <View style={styles.pastillaIcono}>
-          <MaterialCommunityIcons name="arrow-down" size={16} color={colors.exito} />
-        </View>
-        <Text style={styles.pastillaTexto}>Ingreso</Text>
-      </Pressable>
+      {onRegistrarIngreso ? (
+        <Pressable
+          onPress={registrar}
+          hitSlop={{ top: 4, bottom: 4 }}
+          accessibilityRole="button"
+          accessibilityLabel="Registrar ingreso"
+          style={({ pressed }) => [styles.pastilla, pressed ? styles.pastillaPresionada : null]}
+        >
+          <View style={styles.pastillaIcono}>
+            <MaterialCommunityIcons name="arrow-down" size={16} color={colors.exito} />
+          </View>
+          <Text style={styles.pastillaTexto}>Ingreso</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }

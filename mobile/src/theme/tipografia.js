@@ -10,6 +10,13 @@ import { fonts } from './fonts.js';
 //   - financialMetricMd: JetBrains Mono 600, como los montos de las filas (el documento dice 500).
 // letterSpacing va en px: em × tamaño.
 export const tipografia = {
+  // 34/40, -0.02em: títulos de Entrada y del onboarding (HU-93)
+  display: {
+    fontFamily: fonts.sansBold,
+    fontSize: 34,
+    lineHeight: 40,
+    letterSpacing: -0.68,
+  },
   // 28/34, -0.02em: "Movimientos", "Cartera", "Reportes"
   headlineLg: {
     fontFamily: fonts.sansBold,
