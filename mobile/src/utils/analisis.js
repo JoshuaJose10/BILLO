@@ -1,3 +1,5 @@
+import { mesActual, sumarMeses } from './fechas.js';
+import { aNumero, formatearMonto, nombreMes } from './formato.js';
 import { repartirPorcentajes } from './reportes.js';
 
 // Cálculos de la pantalla de Reportes (HU-81): desglose por categoría, comparación con el mes
@@ -20,48 +22,14 @@ const MESES_CORTOS = [
   'Dic',
 ];
 
-// Igual que formatearMonto (utils/formato.js), que no se puede importar aquí: importa './fechas'
-// sin extensión y node --test no lo resuelve.
-const formatoMoneda = new Intl.NumberFormat('es-MX', {
-  style: 'currency',
-  currency: 'MXN',
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
 const redondear2 = (n) => Math.round(n * 100) / 100;
-const numero = (valor) => {
-  const n = typeof valor === 'number' ? valor : Number(valor);
-  return Number.isFinite(n) ? n : 0;
-};
-const dosDigitos = (n) => String(n).padStart(2, '0');
 const diaDe = (fecha) => Number(String(fecha).slice(8, 10));
-
-// "YYYY-MM" del mes anterior.
-function mesAnteriorDe(mes) {
-  const [anio, numeroMes] = mes.split('-').map(Number);
-  const fecha = new Date(anio, numeroMes - 2, 1);
-  return `${fecha.getFullYear()}-${dosDigitos(fecha.getMonth() + 1)}`;
-}
-
-const mesDe = (fecha) => `${fecha.getFullYear()}-${dosDigitos(fecha.getMonth() + 1)}`;
 
 // Gastos con fecha hasta el día `hastaDia` del mes (todos si es null).
 const hastaElDia = (gastos, hastaDia) =>
   (gastos || []).filter((g) => hastaDia == null || diaDe(g.fecha) <= hastaDia);
 
-const sumar = (gastos) => redondear2((gastos || []).reduce((s, g) => s + numero(g.monto), 0));
-
-// Periodo de comparación: en el mes en curso, del día 1 a hoy en ambos meses ("a esta misma
-// fecha"); en un mes pasado, meses completos.
-export function periodoComparacion(mes, hoy = new Date()) {
-  const enCurso = mes === mesDe(hoy);
-  return {
-    mesAnterior: mesAnteriorDe(mes),
-    hastaDia: enCurso ? hoy.getDate() : null,
-    mismaFecha: enCurso,
-  };
-}
+const sumar = (gastos) => redondear2((gastos || []).reduce((s, g) => s + aNumero(g.monto), 0));
 
 // Desglose del mes: [{ categoria_id, categoria, total, cantidad, porcentaje }] de mayor a menor
 // total (empate: por nombre). `porcentaje` entero, sumando exactamente 100 por mayor residuo
@@ -71,7 +39,7 @@ export function desglosePorCategoria(gastos, nombrePorId = () => undefined) {
   (gastos || []).forEach((g) => {
     const clave = String(g.categoria_id);
     const fila = porId.get(clave) || { categoria_id: g.categoria_id, total: 0, cantidad: 0 };
-    fila.total += numero(g.monto);
+    fila.total += aNumero(g.monto);
     fila.cantidad += 1;
     porId.set(clave, fila);
   });
@@ -93,18 +61,18 @@ export function desglosePorCategoria(gastos, nombrePorId = () => undefined) {
   return filas.map((f, i) => ({ ...f, porcentaje: porcentajes[i] }));
 }
 
-// Comparación del gasto del mes con el anterior (tarjeta "Rendimiento mensual").
-// `gastosAnterior` null (no se pudo pedir) o sin gastos en el periodo → { disponible: false }.
+// Comparación del gasto del mes con el mes anterior COMPLETO (tarjeta "Rendimiento mensual"),
+// también en el mes en curso: así cuentan los gastos de fin del mes anterior.
+// `gastosAnterior` null (no se pudo pedir) o sin gastos → { disponible: false }.
 // Si no: { disponible, actual, anterior, diferencia, porcentaje (entero, con signo), direccion
-// ('bajo' | 'subio' | 'igual'), mismaFecha, mesAnterior }.
+// ('bajo' | 'subio' | 'igual'), enCurso, mesAnterior }.
 export function compararConMesAnterior({ mes, gastosMes, gastosAnterior, hoy = new Date() }) {
-  const { mesAnterior, hastaDia, mismaFecha } = periodoComparacion(mes, hoy);
-  if (!Array.isArray(gastosAnterior)) return { disponible: false, mesAnterior, mismaFecha };
+  const mesAnterior = sumarMeses(mes, -1);
+  const enCurso = mes === mesActual(hoy);
+  const anterior = sumar(gastosAnterior);
+  if (anterior <= 0) return { disponible: false, mesAnterior, enCurso };
 
-  const actual = sumar(hastaElDia(gastosMes, hastaDia));
-  const anterior = sumar(hastaElDia(gastosAnterior, hastaDia));
-  if (anterior <= 0) return { disponible: false, mesAnterior, mismaFecha };
-
+  const actual = sumar(gastosMes);
   const diferencia = redondear2(actual - anterior);
   const porcentaje = Math.round((diferencia * 100) / anterior);
   return {
@@ -114,7 +82,7 @@ export function compararConMesAnterior({ mes, gastosMes, gastosAnterior, hoy = n
     diferencia,
     porcentaje,
     direccion: diferencia < 0 ? 'bajo' : diferencia > 0 ? 'subio' : 'igual',
-    mismaFecha,
+    enCurso,
     mesAnterior,
   };
 }
@@ -127,23 +95,31 @@ export function etiquetaComparacion(comparacion) {
   return `vs ${mesCorto} ${signo}${Math.abs(porcentaje)}%`;
 }
 
-// Frase de la tarjeta: "Has gastado $168.80 menos que el mes pasado a esta misma fecha."
-// En un mes pasado se quita "a esta misma fecha".
+// Frase de la tarjeta. Mes pasado: "Has gastado $168.80 menos que el mes pasado."
+// Mes en curso: "Llevas $240.00 este mes; octubre cerró en $800.00. $560.00 menos que octubre
+// completo."
 export function textoComparacion(comparacion) {
   if (!comparacion?.disponible) return 'Sin datos del mes anterior para comparar';
-  const cuando = comparacion.mismaFecha ? ' a esta misma fecha' : '';
-  if (comparacion.direccion === 'igual') {
-    return `Has gastado lo mismo que el mes pasado${cuando}.`;
+  const { direccion, diferencia, enCurso } = comparacion;
+  const monto = formatearMonto(Math.abs(diferencia));
+  const sentido = direccion === 'bajo' ? 'menos' : 'más';
+  if (!enCurso) {
+    return direccion === 'igual'
+      ? 'Has gastado lo mismo que el mes pasado.'
+      : `Has gastado ${monto} ${sentido} que el mes pasado.`;
   }
-  const monto = formatoMoneda.format(Math.abs(comparacion.diferencia));
-  const sentido = comparacion.direccion === 'bajo' ? 'menos' : 'más';
-  return `Has gastado ${monto} ${sentido} que el mes pasado${cuando}.`;
+  const mesAnterior = nombreMes(comparacion.mesAnterior).toLowerCase();
+  const llevas = `Llevas ${formatearMonto(comparacion.actual)} este mes; ${mesAnterior} cerró en ${formatearMonto(comparacion.anterior)}.`;
+  return direccion === 'igual'
+    ? `${llevas} Lo mismo que ${mesAnterior} completo.`
+    : `${llevas} ${monto} ${sentido} que ${mesAnterior} completo.`;
 }
 
 // "Consejo Billo": una frase calculada con reglas fijas, o null si no hay datos suficientes.
 // 1. Si alguna categoría se pasó de su presupuesto, la que más se pasó (es la que empuja el gasto).
-// 2. Si no, la categoría con mayor cambio % frente al mes anterior en el mismo periodo que la
-//    comparación (solo las que tuvieron gasto el mes anterior; empate: más gasto, luego nombre).
+// 2. Si no, la categoría con mayor cambio % frente al mes anterior (en el mes en curso, del día 1
+//    a hoy en ambos meses; solo las que tuvieron gasto el mes anterior; empate: más gasto, luego
+//    nombre).
 // 3. Sin presupuestos excedidos ni cambios → null (la tarjeta no aparece).
 export function consejoDelMes({
   mes,
@@ -154,16 +130,16 @@ export function consejoDelMes({
   hoy = new Date(),
 }) {
   const excedidos = (presupuestos || [])
-    .map((p) => ({ ...p, exceso: redondear2(numero(p.gastado) - numero(p.monto_limite)) }))
-    .filter((p) => numero(p.monto_limite) > 0 && p.exceso > 0)
+    .map((p) => ({ ...p, exceso: redondear2(aNumero(p.gastado) - aNumero(p.monto_limite)) }))
+    .filter((p) => aNumero(p.monto_limite) > 0 && p.exceso > 0)
     .sort((a, b) => b.exceso - a.exceso || String(a.categoria).localeCompare(b.categoria, 'es'));
   if (excedidos.length > 0) {
     const { categoria, exceso } = excedidos[0];
-    return `${categoria} te sacó del presupuesto: va ${formatoMoneda.format(exceso)} arriba de su límite.`;
+    return `${categoria} te sacó del presupuesto: va ${formatearMonto(exceso)} arriba de su límite.`;
   }
 
   if (!Array.isArray(gastosAnterior)) return null;
-  const { hastaDia } = periodoComparacion(mes, hoy);
+  const hastaDia = mes === mesActual(hoy) ? hoy.getDate() : null;
   const actual = desglosePorCategoria(hastaElDia(gastosMes, hastaDia), nombrePorId);
   const anterior = desglosePorCategoria(hastaElDia(gastosAnterior, hastaDia), nombrePorId);
   const actualPorId = new Map(actual.map((c) => [String(c.categoria_id), c.total]));

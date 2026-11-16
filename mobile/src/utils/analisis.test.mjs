@@ -7,7 +7,6 @@ import {
   consejoDelMes,
   desglosePorCategoria,
   etiquetaComparacion,
-  periodoComparacion,
   textoComparacion,
 } from './analisis.js';
 
@@ -18,24 +17,6 @@ const nombrePorId = (id) => NOMBRES[id];
 const gasto = (id, monto, categoria_id, fecha) => ({ id, monto, categoria_id, fecha });
 // 15 de noviembre de 2026, hora local
 const HOY = new Date(2026, 10, 15);
-
-describe('periodoComparacion', () => {
-  test('en el mes en curso compara hasta hoy', () => {
-    assert.deepEqual(periodoComparacion('2026-11', HOY), {
-      mesAnterior: '2026-10',
-      hastaDia: 15,
-      mismaFecha: true,
-    });
-  });
-
-  test('en un mes pasado compara meses completos (y cruza el año)', () => {
-    assert.deepEqual(periodoComparacion('2026-01', HOY), {
-      mesAnterior: '2025-12',
-      hastaDia: null,
-      mismaFecha: false,
-    });
-  });
-});
 
 describe('desglosePorCategoria', () => {
   test('total, cantidad y porcentaje por categoría, de mayor a menor', () => {
@@ -100,10 +81,10 @@ describe('compararConMesAnterior', () => {
   const anterior = [
     gasto(10, 200, 1, '2026-10-05'),
     gasto(11, 100, 2, '2026-10-14'),
-    gasto(12, 500, 1, '2026-10-28'), // después del día 15: no cuenta en el mes en curso
+    gasto(12, 500, 1, '2026-10-28'), // después del día de hoy: también cuenta
   ];
 
-  test('mes en curso: compara hasta el mismo día del mes anterior', () => {
+  test('mes en curso: compara contra el mes anterior completo', () => {
     const c = compararConMesAnterior({
       mes: '2026-11',
       gastosMes: [gasto(1, 150, 1, '2026-11-03'), gasto(2, 90, 2, '2026-11-10')],
@@ -111,33 +92,63 @@ describe('compararConMesAnterior', () => {
       hoy: HOY,
     });
     assert.equal(c.disponible, true);
-    assert.equal(c.anterior, 300);
+    assert.equal(c.anterior, 800);
     assert.equal(c.actual, 240);
-    assert.equal(c.diferencia, -60);
-    assert.equal(c.porcentaje, -20);
+    assert.equal(c.diferencia, -560);
+    assert.equal(c.porcentaje, -70);
     assert.equal(c.direccion, 'bajo');
-    assert.equal(etiquetaComparacion(c), 'vs Oct -20%');
+    assert.equal(etiquetaComparacion(c), 'vs Oct -70%');
     assert.equal(
       textoComparacion(c),
-      'Has gastado $60.00 menos que el mes pasado a esta misma fecha.',
+      'Llevas $240.00 este mes; octubre cerró en $800.00. $560.00 menos que octubre completo.',
     );
   });
 
-  test('mes pasado: meses completos y sin "a esta misma fecha"', () => {
+  test('mes en curso con gastos del anterior solo después de hoy: sí compara', () => {
     const c = compararConMesAnterior({
       mes: '2026-11',
-      gastosMes: [gasto(1, 880, 1, '2026-11-03')],
-      gastosAnterior: anterior,
-      hoy: new Date(2026, 11, 2), // ya es diciembre
+      gastosMes: [gasto(1, 900, 1, '2026-11-03')],
+      gastosAnterior: [gasto(10, 600, 1, '2026-10-20')],
+      hoy: new Date(2026, 10, 9),
+    });
+    assert.equal(c.disponible, true);
+    assert.equal(etiquetaComparacion(c), 'vs Oct +50%');
+    assert.equal(
+      textoComparacion(c),
+      'Llevas $900.00 este mes; octubre cerró en $600.00. $300.00 más que octubre completo.',
+    );
+  });
+
+  test('mes pasado: meses completos con la frase de siempre', () => {
+    const c = compararConMesAnterior({
+      mes: '2026-10',
+      gastosMes: [gasto(1, 880, 1, '2026-10-03')],
+      gastosAnterior: [gasto(10, 800, 1, '2026-09-28')],
+      hoy: HOY,
     });
     assert.equal(c.anterior, 800);
     assert.equal(c.direccion, 'subio');
-    assert.equal(etiquetaComparacion(c), 'vs Oct +10%');
+    assert.equal(etiquetaComparacion(c), 'vs Sep +10%');
     assert.equal(textoComparacion(c), 'Has gastado $80.00 más que el mes pasado.');
   });
 
+  test('enero se compara con diciembre del año anterior', () => {
+    const c = compararConMesAnterior({
+      mes: '2027-01',
+      gastosMes: [gasto(1, 100, 1, '2027-01-02')],
+      gastosAnterior: [gasto(10, 400, 1, '2026-12-30')],
+      hoy: new Date(2027, 0, 5),
+    });
+    assert.equal(c.mesAnterior, '2026-12');
+    assert.equal(etiquetaComparacion(c), 'vs Dic -75%');
+    assert.equal(
+      textoComparacion(c),
+      'Llevas $100.00 este mes; diciembre cerró en $400.00. $300.00 menos que diciembre completo.',
+    );
+  });
+
   test('mes anterior sin gastos (o que no se pudo pedir) no se compara', () => {
-    for (const gastosAnterior of [[], null, [gasto(1, 50, 1, '2026-10-30')]]) {
+    for (const gastosAnterior of [[], null]) {
       const c = compararConMesAnterior({
         mes: '2026-11',
         gastosMes: [gasto(2, 10, 1, '2026-11-01')],
@@ -152,16 +163,18 @@ describe('compararConMesAnterior', () => {
   test('mismo gasto: 0% y "lo mismo"', () => {
     const c = compararConMesAnterior({
       mes: '2026-11',
-      gastosMes: [gasto(1, 300, 1, '2026-11-01')],
+      gastosMes: [gasto(1, 800, 1, '2026-11-01')],
       gastosAnterior: anterior,
       hoy: HOY,
     });
     assert.equal(c.direccion, 'igual');
     assert.equal(etiquetaComparacion(c), 'vs Oct 0%');
-    assert.match(textoComparacion(c), /lo mismo/);
+    assert.equal(
+      textoComparacion(c),
+      'Llevas $800.00 este mes; octubre cerró en $800.00. Lo mismo que octubre completo.',
+    );
   });
 });
-
 describe('consejoDelMes', () => {
   const base = { mes: '2026-11', nombrePorId, hoy: HOY };
 
