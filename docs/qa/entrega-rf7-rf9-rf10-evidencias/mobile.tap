@@ -1,0 +1,2840 @@
+
+> mobile@1.0.0 test
+> node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test "src/**/*.test.mjs"
+
+TAP version 13
+# Subtest: datos de ejemplo con hoy = 2026-11-10
+    # Subtest: tiene unos 20 gastos del mes actual y el anterior en las 6 categorías
+    ok 1 - tiene unos 20 gastos del mes actual y el anterior en las 6 categorías
+      ---
+      duration_ms: 7.7408
+      type: 'test'
+      ...
+    # Subtest: filtra por mes y categoría y ordena por fecha descendente
+    ok 2 - filtra por mes y categoría y ordena por fecha descendente
+      ---
+      duration_ms: 1.6852
+      type: 'test'
+      ...
+    # Subtest: el resumen suma los gastos del mes y las suscripciones
+    ok 3 - el resumen suma los gastos del mes y las suscripciones
+      ---
+      duration_ms: 2.25
+      type: 'test'
+      ...
+    # Subtest: por categoría reparte el gasto variable y los porcentajes suman 100
+    ok 4 - por categoría reparte el gasto variable y los porcentajes suman 100
+      ---
+      duration_ms: 2.1275
+      type: 'test'
+      ...
+    # Subtest: tiene un presupuesto ok, uno en alerta y uno excedido con lo gastado real
+    ok 5 - tiene un presupuesto ok, uno en alerta y uno excedido con lo gastado real
+      ---
+      duration_ms: 1.6511
+      type: 'test'
+      ...
+    # Subtest: tiene 4 suscripciones con cobros próximos, de la más cercana a la más lejana
+    ok 6 - tiene 4 suscripciones con cobros próximos, de la más cercana a la más lejana
+      ---
+      duration_ms: 0.7111
+      type: 'test'
+      ...
+    1..6
+ok 1 - datos de ejemplo con hoy = 2026-11-10
+  ---
+  duration_ms: 18.8151
+  type: 'suite'
+  ...
+# Subtest: datos de ejemplo con hoy = 2026-11-1
+    # Subtest: tiene unos 20 gastos del mes actual y el anterior en las 6 categorías
+    ok 1 - tiene unos 20 gastos del mes actual y el anterior en las 6 categorías
+      ---
+      duration_ms: 2.2546
+      type: 'test'
+      ...
+    # Subtest: filtra por mes y categoría y ordena por fecha descendente
+    ok 2 - filtra por mes y categoría y ordena por fecha descendente
+      ---
+      duration_ms: 2.0316
+      type: 'test'
+      ...
+    # Subtest: el resumen suma los gastos del mes y las suscripciones
+    ok 3 - el resumen suma los gastos del mes y las suscripciones
+      ---
+      duration_ms: 1.7264
+      type: 'test'
+      ...
+    # Subtest: por categoría reparte el gasto variable y los porcentajes suman 100
+    ok 4 - por categoría reparte el gasto variable y los porcentajes suman 100
+      ---
+      duration_ms: 1.5625
+      type: 'test'
+      ...
+    # Subtest: tiene un presupuesto ok, uno en alerta y uno excedido con lo gastado real
+    ok 5 - tiene un presupuesto ok, uno en alerta y uno excedido con lo gastado real
+      ---
+      duration_ms: 0.6158
+      type: 'test'
+      ...
+    # Subtest: tiene 4 suscripciones con cobros próximos, de la más cercana a la más lejana
+    ok 6 - tiene 4 suscripciones con cobros próximos, de la más cercana a la más lejana
+      ---
+      duration_ms: 0.3667
+      type: 'test'
+      ...
+    1..6
+ok 2 - datos de ejemplo con hoy = 2026-11-1
+  ---
+  duration_ms: 9.6766
+  type: 'suite'
+  ...
+# Subtest: datos de ejemplo con hoy = 2027-01-31
+    # Subtest: tiene unos 20 gastos del mes actual y el anterior en las 6 categorías
+    ok 1 - tiene unos 20 gastos del mes actual y el anterior en las 6 categorías
+      ---
+      duration_ms: 0.8257
+      type: 'test'
+      ...
+    # Subtest: filtra por mes y categoría y ordena por fecha descendente
+    ok 2 - filtra por mes y categoría y ordena por fecha descendente
+      ---
+      duration_ms: 0.7014
+      type: 'test'
+      ...
+    # Subtest: el resumen suma los gastos del mes y las suscripciones
+    ok 3 - el resumen suma los gastos del mes y las suscripciones
+      ---
+      duration_ms: 1.0764
+      type: 'test'
+      ...
+    # Subtest: por categoría reparte el gasto variable y los porcentajes suman 100
+    ok 4 - por categoría reparte el gasto variable y los porcentajes suman 100
+      ---
+      duration_ms: 0.6754
+      type: 'test'
+      ...
+    # Subtest: tiene un presupuesto ok, uno en alerta y uno excedido con lo gastado real
+    ok 5 - tiene un presupuesto ok, uno en alerta y uno excedido con lo gastado real
+      ---
+      duration_ms: 0.8754
+      type: 'test'
+      ...
+    # Subtest: tiene 4 suscripciones con cobros próximos, de la más cercana a la más lejana
+    ok 6 - tiene 4 suscripciones con cobros próximos, de la más cercana a la más lejana
+      ---
+      duration_ms: 0.5578
+      type: 'test'
+      ...
+    1..6
+ok 3 - datos de ejemplo con hoy = 2027-01-31
+  ---
+  duration_ms: 5.3532
+  type: 'suite'
+  ...
+# Subtest: responderEjemplo
+    # Subtest: rechaza toda escritura con MODO_VISITANTE y no cambia los datos
+    ok 1 - rechaza toda escritura con MODO_VISITANTE y no cambia los datos
+      ---
+      duration_ms: 4.833
+      type: 'test'
+      ...
+    # Subtest: devuelve copias: modificar una respuesta no altera las siguientes
+    ok 2 - devuelve copias: modificar una respuesta no altera las siguientes
+      ---
+      duration_ms: 2.1387
+      type: 'test'
+      ...
+    # Subtest: una ruta sin datos de ejemplo responde RUTA_NO_ENCONTRADA
+    ok 3 - una ruta sin datos de ejemplo responde RUTA_NO_ENCONTRADA
+      ---
+      duration_ms: 0.4936
+      type: 'test'
+      ...
+    1..3
+ok 4 - responderEjemplo
+  ---
+  duration_ms: 8.0701
+  type: 'suite'
+  ...
+# Subtest: apiFetch en modo exploración
+    # Subtest: lanza MODO_VISITANTE sin hacer ninguna petición
+    ok 1 - lanza MODO_VISITANTE sin hacer ninguna petición
+      ---
+      duration_ms: 4.2684
+      type: 'test'
+      ...
+    # Subtest: al salir del modo vuelve a llamar a la API
+    ok 2 - al salir del modo vuelve a llamar a la API
+      ---
+      duration_ms: 2.1505
+      type: 'test'
+      ...
+    1..2
+ok 5 - apiFetch en modo exploración
+  ---
+  duration_ms: 8.7131
+  type: 'suite'
+  ...
+# Subtest: recuperar contraseña
+    # Subtest: solicitarCodigo envía el correo normalizado
+    ok 1 - solicitarCodigo envía el correo normalizado
+      ---
+      duration_ms: 4.414
+      type: 'test'
+      ...
+    # Subtest: restablecerPassword envía el código como token
+    ok 2 - restablecerPassword envía el código como token
+      ---
+      duration_ms: 1.5174
+      type: 'test'
+      ...
+    # Subtest: propaga el código de error del contrato
+    ok 3 - propaga el código de error del contrato
+      ---
+      duration_ms: 2.1297
+      type: 'test'
+      ...
+    1..3
+ok 6 - recuperar contraseña
+  ---
+  duration_ms: 11.0319
+  type: 'suite'
+  ...
+# Subtest: periodoComparacion
+    # Subtest: en el mes en curso compara hasta hoy
+    ok 1 - en el mes en curso compara hasta hoy
+      ---
+      duration_ms: 3.2478
+      type: 'test'
+      ...
+    # Subtest: en un mes pasado compara meses completos (y cruza el año)
+    ok 2 - en un mes pasado compara meses completos (y cruza el año)
+      ---
+      duration_ms: 0.414
+      type: 'test'
+      ...
+    1..2
+ok 7 - periodoComparacion
+  ---
+  duration_ms: 5.7249
+  type: 'suite'
+  ...
+# Subtest: desglosePorCategoria
+    # Subtest: total, cantidad y porcentaje por categoría, de mayor a menor
+    ok 1 - total, cantidad y porcentaje por categoría, de mayor a menor
+      ---
+      duration_ms: 2.4093
+      type: 'test'
+      ...
+    # Subtest: porcentajes enteros que suman 100 por mayor residuo
+    ok 2 - porcentajes enteros que suman 100 por mayor residuo
+      ---
+      duration_ms: 2.8965
+      type: 'test'
+      ...
+    # Subtest: sin nombre en la caché usa "Sin categoría"; sin gastos, lista vacía
+    ok 3 - sin nombre en la caché usa "Sin categoría"; sin gastos, lista vacía
+      ---
+      duration_ms: 2.9577
+      type: 'test'
+      ...
+    1..3
+ok 8 - desglosePorCategoria
+  ---
+  duration_ms: 9.2878
+  type: 'suite'
+  ...
+# Subtest: compararConMesAnterior
+    # Subtest: mes en curso: compara hasta el mismo día del mes anterior
+    ok 1 - mes en curso: compara hasta el mismo día del mes anterior
+      ---
+      duration_ms: 2.5339
+      type: 'test'
+      ...
+    # Subtest: mes pasado: meses completos y sin "a esta misma fecha"
+    ok 2 - mes pasado: meses completos y sin "a esta misma fecha"
+      ---
+      duration_ms: 1.1028
+      type: 'test'
+      ...
+    # Subtest: mes anterior sin gastos (o que no se pudo pedir) no se compara
+    ok 3 - mes anterior sin gastos (o que no se pudo pedir) no se compara
+      ---
+      duration_ms: 0.8155
+      type: 'test'
+      ...
+    # Subtest: mismo gasto: 0% y "lo mismo"
+    ok 4 - mismo gasto: 0% y "lo mismo"
+      ---
+      duration_ms: 0.8941
+      type: 'test'
+      ...
+    1..4
+ok 9 - compararConMesAnterior
+  ---
+  duration_ms: 6.5273
+  type: 'suite'
+  ...
+# Subtest: consejoDelMes
+    # Subtest: si se pasó de un presupuesto, nombra la categoría que más se pasó
+    ok 1 - si se pasó de un presupuesto, nombra la categoría que más se pasó
+      ---
+      duration_ms: 1.2741
+      type: 'test'
+      ...
+    # Subtest: si no, la categoría con mayor cambio % vs el mes anterior
+    ok 2 - si no, la categoría con mayor cambio % vs el mes anterior
+      ---
+      duration_ms: 2.4497
+      type: 'test'
+      ...
+    # Subtest: una categoría que dejó de tener gastos cuenta como -100%
+    ok 3 - una categoría que dejó de tener gastos cuenta como -100%
+      ---
+      duration_ms: 0.704
+      type: 'test'
+      ...
+    # Subtest: sin datos suficientes no hay consejo
+    ok 4 - sin datos suficientes no hay consejo
+      ---
+      duration_ms: 0.6208
+      type: 'test'
+      ...
+    1..4
+ok 10 - consejoDelMes
+  ---
+  duration_ms: 5.4734
+  type: 'suite'
+  ...
+# Subtest: repartirPorcentajes
+    # Subtest: con 0 decimales: enteros, mínimo 1 y suma 100
+    ok 1 - con 0 decimales: enteros, mínimo 1 y suma 100
+      ---
+      duration_ms: 0.4547
+      type: 'test'
+      ...
+    # Subtest: por defecto conserva un decimal (dona)
+    ok 2 - por defecto conserva un decimal (dona)
+      ---
+      duration_ms: 0.5655
+      type: 'test'
+      ...
+    1..2
+ok 11 - repartirPorcentajes
+  ---
+  duration_ms: 1.3219
+  type: 'suite'
+  ...
+# Subtest: utils/auth - Rol desde JWT
+    # Subtest: decodificarPayloadJwt devuelve el payload parsed
+    ok 1 - decodificarPayloadJwt devuelve el payload parsed
+      ---
+      duration_ms: 4.2244
+      type: 'test'
+      ...
+    # Subtest: obtenerRolDesdeToken obtiene el rol o usuario por defecto
+    ok 2 - obtenerRolDesdeToken obtiene el rol o usuario por defecto
+      ---
+      duration_ms: 0.3722
+      type: 'test'
+      ...
+    # Subtest: esAdmin devuelve true solo para admin
+    ok 3 - esAdmin devuelve true solo para admin
+      ---
+      duration_ms: 0.6674
+      type: 'test'
+      ...
+    1..3
+ok 12 - utils/auth - Rol desde JWT
+  ---
+  duration_ms: 8.8336
+  type: 'suite'
+  ...
+# Subtest: normalizarAlerta
+    # Subtest: sin alerta da null
+    ok 1 - sin alerta da null
+      ---
+      duration_ms: 1.6769
+      type: 'test'
+      ...
+    # Subtest: convierte el porcentaje que llega como texto
+    ok 2 - convierte el porcentaje que llega como texto
+      ---
+      duration_ms: 1.7462
+      type: 'test'
+      ...
+    # Subtest: un estado sin aviso o un porcentaje inválido da null
+    ok 3 - un estado sin aviso o un porcentaje inválido da null
+      ---
+      duration_ms: 0.3092
+      type: 'test'
+      ...
+    1..3
+ok 13 - normalizarAlerta
+  ---
+  duration_ms: 6.6608
+  type: 'suite'
+  ...
+# Subtest: contenidoAviso
+    # Subtest: alerta: se acerca al presupuesto
+    ok 1 - alerta: se acerca al presupuesto
+      ---
+      duration_ms: 0.8639
+      type: 'test'
+      ...
+    # Subtest: excedido: se pasó del presupuesto
+    ok 2 - excedido: se pasó del presupuesto
+      ---
+      duration_ms: 0.357
+      type: 'test'
+      ...
+    # Subtest: redondea el porcentaje
+    ok 3 - redondea el porcentaje
+      ---
+      duration_ms: 0.4301
+      type: 'test'
+      ...
+    # Subtest: categoría desconocida o vacía: "Presupuesto al N%"
+    ok 4 - categoría desconocida o vacía: "Presupuesto al N%"
+      ---
+      duration_ms: 0.5999
+      type: 'test'
+      ...
+    # Subtest: quita espacios del nombre
+    ok 5 - quita espacios del nombre
+      ---
+      duration_ms: 0.9067
+      type: 'test'
+      ...
+    # Subtest: sin alerta válida da null
+    ok 6 - sin alerta válida da null
+      ---
+      duration_ms: 0.5558
+      type: 'test'
+      ...
+    1..6
+ok 14 - contenidoAviso
+  ---
+  duration_ms: 5.2974
+  type: 'suite'
+  ...
+# Subtest: nombreCategoriaPorId
+    # Subtest: busca por id aunque llegue como texto
+    ok 1 - busca por id aunque llegue como texto
+      ---
+      duration_ms: 0.593
+      type: 'test'
+      ...
+    # Subtest: id desconocido, null o lista vacía dan undefined
+    ok 2 - id desconocido, null o lista vacía dan undefined
+      ---
+      duration_ms: 0.2416
+      type: 'test'
+      ...
+    1..2
+ok 15 - nombreCategoriaPorId
+  ---
+  duration_ms: 1.1595
+  type: 'suite'
+  ...
+# Subtest: validarApiUrl
+    # Subtest: sin valor es API_URL_FALTANTE, no una URL vacía muda
+    ok 1 - sin valor es API_URL_FALTANTE, no una URL vacía muda
+      ---
+      duration_ms: 3.348
+      type: 'test'
+      ...
+    # Subtest: sin http(s):// es API_URL_INVALIDA
+    ok 2 - sin http(s):// es API_URL_INVALIDA
+      ---
+      duration_ms: 0.678
+      type: 'test'
+      ...
+    # Subtest: una URL válida queda sin espacios ni diagonal final
+    ok 3 - una URL válida queda sin espacios ni diagonal final
+      ---
+      duration_ms: 0.6494
+      type: 'test'
+      ...
+    1..3
+ok 16 - validarApiUrl
+  ---
+  duration_ms: 7.4808
+  type: 'suite'
+  ...
+# Subtest: vistaLista
+    # Subtest: distingue cargando, error, vacío y lista
+    ok 1 - distingue cargando, error, vacío y lista
+      ---
+      duration_ms: 0.4966
+      type: 'test'
+      ...
+    1..1
+ok 17 - vistaLista
+  ---
+  duration_ms: 1.0081
+  type: 'suite'
+  ...
+# Subtest: debeReintentar
+    # Subtest: solo reintenta lo que falló
+    ok 1 - solo reintenta lo que falló
+      ---
+      duration_ms: 0.4294
+      type: 'test'
+      ...
+    1..1
+ok 18 - debeReintentar
+  ---
+  duration_ms: 0.6811
+  type: 'suite'
+  ...
+# Subtest: respaldo de logo del catálogo
+    # Subtest: un servicio sin ícono propio usa su inicial
+    ok 1 - un servicio sin ícono propio usa su inicial
+      ---
+      duration_ms: 1.604
+      type: 'test'
+      ...
+    # Subtest: los servicios conocidos conservan su ícono
+    ok 2 - los servicios conocidos conservan su ícono
+      ---
+      duration_ms: 0.533
+      type: 'test'
+      ...
+    # Subtest: sin nombre la inicial es "?"
+    ok 3 - sin nombre la inicial es "?"
+      ---
+      duration_ms: 0.355
+      type: 'test'
+      ...
+    1..3
+ok 19 - respaldo de logo del catálogo
+  ---
+  duration_ms: 3.3892
+  type: 'suite'
+  ...
+# Subtest: diaDeCobro
+    # Subtest: hoy, mañana o el día de la semana
+    ok 1 - hoy, mañana o el día de la semana
+      ---
+      duration_ms: 1.7879
+      type: 'test'
+      ...
+    1..1
+ok 20 - diaDeCobro
+  ---
+  duration_ms: 7.556
+  type: 'suite'
+  ...
+# Subtest: cobrosDeLaSemana
+    # Subtest: con un cobro en 2 días aparece con nombre, monto y día
+    ok 1 - con un cobro en 2 días aparece con nombre, monto y día
+      ---
+      duration_ms: 2.6367
+      type: 'test'
+      ...
+    # Subtest: con un cobro a 8 días no aparece
+    ok 2 - con un cobro a 8 días no aparece
+      ---
+      duration_ms: 0.5102
+      type: 'test'
+      ...
+    # Subtest: con dos cobros en la semana suma ambos y los ordena por cercanía
+    ok 3 - con dos cobros en la semana suma ambos y los ordena por cercanía
+      ---
+      duration_ms: 0.6365
+      type: 'test'
+      ...
+    # Subtest: el día 7 entra y los vencidos o sin días se ignoran
+    ok 4 - el día 7 entra y los vencidos o sin días se ignoran
+      ---
+      duration_ms: 0.5429
+      type: 'test'
+      ...
+    # Subtest: acepta costos como texto y entradas inválidas
+    ok 5 - acepta costos como texto y entradas inválidas
+      ---
+      duration_ms: 0.5566
+      type: 'test'
+      ...
+    1..5
+ok 21 - cobrosDeLaSemana
+  ---
+  duration_ms: 5.8339
+  type: 'suite'
+  ...
+# Subtest: semanaSinProximoCobro (HU-72)
+    # Subtest: quita el próximo cobro y los del mismo día, recalcula el total y cambia el título
+    ok 1 - quita el próximo cobro y los del mismo día, recalcula el total y cambia el título
+      ---
+      duration_ms: 1.0319
+      type: 'test'
+      ...
+    # Subtest: si no queda ninguno, la lista queda vacía (la tarjeta no aparece)
+    ok 2 - si no queda ninguno, la lista queda vacía (la tarjeta no aparece)
+      ---
+      duration_ms: 0.5593
+      type: 'test'
+      ...
+    # Subtest: próximo cobro en más de 7 días o sin próximo cobro: nada cambia
+    ok 3 - próximo cobro en más de 7 días o sin próximo cobro: nada cambia
+      ---
+      duration_ms: 0.5594
+      type: 'test'
+      ...
+    1..3
+ok 22 - semanaSinProximoCobro (HU-72)
+  ---
+  duration_ms: 3.532
+  type: 'suite'
+  ...
+# Subtest: utils/divisas (RF11)
+    # Subtest: MONEDA_DEFECTO es MXN y está en las disponibles
+    ok 1 - MONEDA_DEFECTO es MXN y está en las disponibles
+      ---
+      duration_ms: 2.3809
+      type: 'test'
+      ...
+    # Subtest: esMonedaSoportada valida códigos conocidos
+    ok 2 - esMonedaSoportada valida códigos conocidos
+      ---
+      duration_ms: 0.4316
+      type: 'test'
+      ...
+    # Subtest: calcularEquivalenteMxn convierte y redondea a 2 decimales
+    ok 3 - calcularEquivalenteMxn convierte y redondea a 2 decimales
+      ---
+      duration_ms: 0.5093
+      type: 'test'
+      ...
+    # Subtest: formatearMontoOriginal devuelve la moneda y el monto solo si es distinta de MXN
+    ok 4 - formatearMontoOriginal devuelve la moneda y el monto solo si es distinta de MXN
+      ---
+      duration_ms: 0.6778
+      type: 'test'
+      ...
+    # Subtest: prepararDatosGasto arma la estructura correcta para MXN
+    ok 5 - prepararDatosGasto arma la estructura correcta para MXN
+      ---
+      duration_ms: 2.0457
+      type: 'test'
+      ...
+    # Subtest: prepararDatosGasto arma la estructura correcta para USD
+    ok 6 - prepararDatosGasto arma la estructura correcta para USD
+      ---
+      duration_ms: 0.5198
+      type: 'test'
+      ...
+    # Subtest: membresías con moneda propia (HU-77 / RF11)
+        # Subtest: formatearMontoDivisa formatea según el símbolo o prefijo de la moneda
+        ok 1 - formatearMontoDivisa formatea según el símbolo o prefijo de la moneda
+          ---
+          duration_ms: 1.3701
+          type: 'test'
+          ...
+        # Subtest: formatearCostoMembresia muestra «US$10 ≈ $xxx» si es extranjera o sólo «$xxx» si es MXN
+        ok 2 - formatearCostoMembresia muestra «US$10 ≈ $xxx» si es extranjera o sólo «$xxx» si es MXN
+          ---
+          duration_ms: 1.519
+          type: 'test'
+          ...
+        # Subtest: prepararDatosMembresia arma datos correctos para MXN
+        ok 3 - prepararDatosMembresia arma datos correctos para MXN
+          ---
+          duration_ms: 1.1072
+          type: 'test'
+          ...
+        # Subtest: prepararDatosMembresia calcula equivalente en MXN para moneda extranjera
+        ok 4 - prepararDatosMembresia calcula equivalente en MXN para moneda extranjera
+          ---
+          duration_ms: 2.3958
+          type: 'test'
+          ...
+        1..4
+    ok 7 - membresías con moneda propia (HU-77 / RF11)
+      ---
+      duration_ms: 7.3561
+      type: 'suite'
+      ...
+    1..7
+ok 23 - utils/divisas (RF11)
+  ---
+  duration_ms: 17.3227
+  type: 'suite'
+  ...
+# Subtest: arcosDona
+    # Subtest: los huecos suman 360° y son contiguos
+    ok 1 - los huecos suman 360° y son contiguos
+      ---
+      duration_ms: 4.7551
+      type: 'test'
+      ...
+    # Subtest: proporcional a los montos cuando nadie llega al mínimo
+    ok 2 - proporcional a los montos cuando nadie llega al mínimo
+      ---
+      duration_ms: 0.369
+      type: 'test'
+      ...
+    # Subtest: entre tramos queda la separación (las puntas redondeadas ya descontadas)
+    ok 3 - entre tramos queda la separación (las puntas redondeadas ya descontadas)
+      ---
+      duration_ms: 0.6165
+      type: 'test'
+      ...
+    # Subtest: un tramo muy pequeño es un punto que cabe en su hueco
+    ok 4 - un tramo muy pequeño es un punto que cabe en su hueco
+      ---
+      duration_ms: 0.5413
+      type: 'test'
+      ...
+    # Subtest: una sola categoría: anillo completo sin hueco
+    ok 5 - una sola categoría: anillo completo sin hueco
+      ---
+      duration_ms: 1.6735
+      type: 'test'
+      ...
+    # Subtest: ignora montos en cero y conserva el índice original
+    ok 6 - ignora montos en cero y conserva el índice original
+      ---
+      duration_ms: 0.553
+      type: 'test'
+      ...
+    # Subtest: si el mínimo no cabe para todos, reparte 360 / n
+    ok 7 - si el mínimo no cabe para todos, reparte 360 / n
+      ---
+      duration_ms: 0.6897
+      type: 'test'
+      ...
+    1..7
+ok 24 - arcosDona
+  ---
+  duration_ms: 12.2216
+  type: 'suite'
+  ...
+# Subtest: cargarDatosInicio
+    # Subtest: hace exactamente 4 peticiones del mes, todas antes de que responda alguna
+    ok 1 - hace exactamente 4 peticiones del mes, todas antes de que responda alguna
+      ---
+      duration_ms: 5.8098
+      type: 'test'
+      ...
+    # Subtest: si fallan las membresías sigue con null
+    ok 2 - si fallan las membresías sigue con null
+      ---
+      duration_ms: 0.6127
+      type: 'test'
+      ...
+    # Subtest: sin servicio de membresías devuelve null
+    ok 3 - sin servicio de membresías devuelve null
+      ---
+      duration_ms: 0.65
+      type: 'test'
+      ...
+    # Subtest: si fallan los presupuestos sigue con null
+    ok 4 - si fallan los presupuestos sigue con null
+      ---
+      duration_ms: 0.5506
+      type: 'test'
+      ...
+    # Subtest: si falla el resumen o los gastos lanza el error
+    ok 5 - si falla el resumen o los gastos lanza el error
+      ---
+      duration_ms: 2.6611
+      type: 'test'
+      ...
+    1..5
+ok 25 - cargarDatosInicio
+  ---
+  duration_ms: 14.067
+  type: 'suite'
+  ...
+# Subtest: utils/membresias
+    # Subtest: calcularTotalMensual
+        # Subtest: devuelve 0 con lista vacía o nula
+        ok 1 - devuelve 0 con lista vacía o nula
+          ---
+          duration_ms: 1.8247
+          type: 'test'
+          ...
+        # Subtest: suma membresías mensuales exactas
+        ok 2 - suma membresías mensuales exactas
+          ---
+          duration_ms: 0.4911
+          type: 'test'
+          ...
+        # Subtest: divide las anuales entre 12 y suma con las mensuales
+        ok 3 - divide las anuales entre 12 y suma con las mensuales
+          ---
+          duration_ms: 0.4249
+          type: 'test'
+          ...
+        # Subtest: redondea a 2 decimales
+        ok 4 - redondea a 2 decimales
+          ---
+          duration_ms: 0.3804
+          type: 'test'
+          ...
+        # Subtest: ignora las membresías pausadas (Aceptación HU-75)
+        ok 5 - ignora las membresías pausadas (Aceptación HU-75)
+          ---
+          duration_ms: 3.7033
+          type: 'test'
+          ...
+        # Subtest: reactivar devuelve el costo al total mensual (QA HU-75)
+        ok 6 - reactivar devuelve el costo al total mensual (QA HU-75)
+          ---
+          duration_ms: 0.3655
+          type: 'test'
+          ...
+        1..6
+    ok 1 - calcularTotalMensual
+      ---
+      duration_ms: 16.4614
+      type: 'suite'
+      ...
+    # Subtest: calcularTotalAnual (HU-71)
+        # Subtest: devuelve 0 con lista vacía o nula
+        ok 1 - devuelve 0 con lista vacía o nula
+          ---
+          duration_ms: 1.9859
+          type: 'test'
+          ...
+        # Subtest: calcula correctamente Netflix $199 mensual e iCloud $1,200 anual (criterio de aceptación: $3,588)
+        ok 2 - calcula correctamente Netflix $199 mensual e iCloud $1,200 anual (criterio de aceptación: $3,588)
+          ---
+          duration_ms: 0.7903
+          type: 'test'
+          ...
+        # Subtest: multiplica las mensuales por 12 cuando solo hay mensuales
+        ok 3 - multiplica las mensuales por 12 cuando solo hay mensuales
+          ---
+          duration_ms: 0.4813
+          type: 'test'
+          ...
+        # Subtest: suma el costo tal cual cuando solo hay anuales
+        ok 4 - suma el costo tal cual cuando solo hay anuales
+          ---
+          duration_ms: 0.6628
+          type: 'test'
+          ...
+        # Subtest: redondea a 2 decimales con centavos
+        ok 5 - redondea a 2 decimales con centavos
+          ---
+          duration_ms: 0.4558
+          type: 'test'
+          ...
+        1..5
+    ok 2 - calcularTotalAnual (HU-71)
+      ---
+      duration_ms: 6.9772
+      type: 'suite'
+      ...
+    # Subtest: calcularTotalEsteMes (HU-71)
+        # Subtest: devuelve 0 con lista vacía o nula
+        ok 1 - devuelve 0 con lista vacía o nula
+          ---
+          duration_ms: 0.8534
+          type: 'test'
+          ...
+        # Subtest: calcula correctamente Netflix $199 e iCloud $1,200 cobrando este mes (criterio de aceptación: $1,399)
+        ok 2 - calcula correctamente Netflix $199 e iCloud $1,200 cobrando este mes (criterio de aceptación: $1,399)
+          ---
+          duration_ms: 0.7528
+          type: 'test'
+          ...
+        # Subtest: al mover iCloud a otro mes, "este mes" baja a $199 (criterio de QA)
+        ok 3 - al mover iCloud a otro mes, "este mes" baja a $199 (criterio de QA)
+          ---
+          duration_ms: 0.3482
+          type: 'test'
+          ...
+        # Subtest: incluye el cobro anual de este mes aunque su día ya haya pasado
+        ok 4 - incluye el cobro anual de este mes aunque su día ya haya pasado
+          ---
+          duration_ms: 0.3314
+          type: 'test'
+          ...
+        # Subtest: conserva el cobro del mes después de normalizar al siguiente ciclo
+        ok 5 - conserva el cobro del mes después de normalizar al siguiente ciclo
+          ---
+          duration_ms: 3.9334
+          type: 'test'
+          ...
+        # Subtest: incluye una anual de años anteriores cuyo cobro de este mes ya pasó
+        ok 6 - incluye una anual de años anteriores cuyo cobro de este mes ya pasó
+          ---
+          duration_ms: 0.4213
+          type: 'test'
+          ...
+        # Subtest: no anticipa un cobro anual que comienza el mismo mes del año siguiente
+        ok 7 - no anticipa un cobro anual que comienza el mismo mes del año siguiente
+          ---
+          duration_ms: 0.3836
+          type: 'test'
+          ...
+        # Subtest: una referencia de mes completo incluye los mismos cobros que una fecha del mes
+        ok 8 - una referencia de mes completo incluye los mismos cobros que una fecha del mes
+          ---
+          duration_ms: 0.3188
+          type: 'test'
+          ...
+        # Subtest: anual con cobro del año anterior que al avanzar de ciclo cae en este mes se incluye
+        ok 9 - anual con cobro del año anterior que al avanzar de ciclo cae en este mes se incluye
+          ---
+          duration_ms: 0.2925
+          type: 'test'
+          ...
+        # Subtest: anual con cobro del mes pasado no se incluye este mes
+        ok 10 - anual con cobro del mes pasado no se incluye este mes
+          ---
+          duration_ms: 0.5686
+          type: 'test'
+          ...
+        1..10
+    ok 3 - calcularTotalEsteMes (HU-71)
+      ---
+      duration_ms: 9.2435
+      type: 'suite'
+      ...
+    # Subtest: esCobroProximo
+        # Subtest: es true para 0, 1, 2, 3 días
+        ok 1 - es true para 0, 1, 2, 3 días
+          ---
+          duration_ms: 0.4261
+          type: 'test'
+          ...
+        # Subtest: es false para 4 o más días y para negativos
+        ok 2 - es false para 4 o más días y para negativos
+          ---
+          duration_ms: 0.2922
+          type: 'test'
+          ...
+        1..2
+    ok 4 - esCobroProximo
+      ---
+      duration_ms: 1.6654
+      type: 'suite'
+      ...
+    # Subtest: textoCobro
+        # Subtest: muestra texto según los días
+        ok 1 - muestra texto según los días
+          ---
+          duration_ms: 0.6539
+          type: 'test'
+          ...
+        1..1
+    ok 5 - textoCobro
+      ---
+      duration_ms: 0.8823
+      type: 'suite'
+      ...
+    # Subtest: estiloServicio
+        # Subtest: asigna color e icono específico a servicios conocidos
+        ok 1 - asigna color e icono específico a servicios conocidos
+          ---
+          duration_ms: 1.6531
+          type: 'test'
+          ...
+        # Subtest: usa valores por defecto para nombres desconocidos
+        ok 2 - usa valores por defecto para nombres desconocidos
+          ---
+          duration_ms: 0.7616
+          type: 'test'
+          ...
+        1..2
+    ok 6 - estiloServicio
+      ---
+      duration_ms: 2.6567
+      type: 'suite'
+      ...
+    # Subtest: validarMembresia
+        # Subtest: valida correctamente datos válidos
+        ok 1 - valida correctamente datos válidos
+          ---
+          duration_ms: 2.6803
+          type: 'test'
+          ...
+        # Subtest: falla con nombre vacío (CP-RF5-03)
+        ok 2 - falla con nombre vacío (CP-RF5-03)
+          ---
+          duration_ms: 0.4552
+          type: 'test'
+          ...
+        # Subtest: falla con costo "abc" o no numérico (CP-RF5-04)
+        ok 3 - falla con costo "abc" o no numérico (CP-RF5-04)
+          ---
+          duration_ms: 0.4378
+          type: 'test'
+          ...
+        # Subtest: falla con costo 0 o negativo
+        ok 4 - falla con costo 0 o negativo
+          ---
+          duration_ms: 0.8566
+          type: 'test'
+          ...
+        # Subtest: falla con más de 2 decimales
+        ok 5 - falla con más de 2 decimales
+          ---
+          duration_ms: 0.8265
+          type: 'test'
+          ...
+        1..5
+    ok 7 - validarMembresia
+      ---
+      duration_ms: 5.9865
+      type: 'suite'
+      ...
+    # Subtest: avanzarFechaCobro (HU-51 / BUG-01)
+        # Subtest: mensual con cobro hace 30 días avanza al ciclo futuro
+        ok 1 - mensual con cobro hace 30 días avanza al ciclo futuro
+          ---
+          duration_ms: 0.6719
+          type: 'test'
+          ...
+        # Subtest: mensual con cobro en la fecha de hoy no avanza (cobra hoy)
+        ok 2 - mensual con cobro en la fecha de hoy no avanza (cobra hoy)
+          ---
+          duration_ms: 0.2699
+          type: 'test'
+          ...
+        # Subtest: mensual con fecha futura no se modifica
+        ok 3 - mensual con fecha futura no se modifica
+          ---
+          duration_ms: 0.4762
+          type: 'test'
+          ...
+        # Subtest: mensual con cobro de hace 3 meses avanza múltiples ciclos
+        ok 4 - mensual con cobro de hace 3 meses avanza múltiples ciclos
+          ---
+          duration_ms: 0.3641
+          type: 'test'
+          ...
+        # Subtest: mensual que ya pasó en el mes actual avanza al mes siguiente
+        ok 5 - mensual que ya pasó en el mes actual avanza al mes siguiente
+          ---
+          duration_ms: 0.2523
+          type: 'test'
+          ...
+        # Subtest: mensual en fin de mes (día 31) ajusta según días del mes
+        ok 6 - mensual en fin de mes (día 31) ajusta según días del mes
+          ---
+          duration_ms: 3.0569
+          type: 'test'
+          ...
+        # Subtest: anual con cobro hace 1 año avanza al ciclo futuro
+        ok 7 - anual con cobro hace 1 año avanza al ciclo futuro
+          ---
+          duration_ms: 0.4727
+          type: 'test'
+          ...
+        # Subtest: anual que cobra más tarde en el año en curso avanza al año actual
+        ok 8 - anual que cobra más tarde en el año en curso avanza al año actual
+          ---
+          duration_ms: 0.5163
+          type: 'test'
+          ...
+        # Subtest: anual con cobro futuro no se modifica
+        ok 9 - anual con cobro futuro no se modifica
+          ---
+          duration_ms: 0.4083
+          type: 'test'
+          ...
+        # Subtest: tolera entradas inválidas devolviendo la entrada original
+        ok 10 - tolera entradas inválidas devolviendo la entrada original
+          ---
+          duration_ms: 0.2813
+          type: 'test'
+          ...
+        1..10
+    ok 8 - avanzarFechaCobro (HU-51 / BUG-01)
+      ---
+      duration_ms: 7.7241
+      type: 'suite'
+      ...
+    # Subtest: calcularDiasParaCobro
+        # Subtest: devuelve 0 si la fecha es hoy
+        ok 1 - devuelve 0 si la fecha es hoy
+          ---
+          duration_ms: 0.5149
+          type: 'test'
+          ...
+        # Subtest: devuelve 1 si la fecha es mañana
+        ok 2 - devuelve 1 si la fecha es mañana
+          ---
+          duration_ms: 0.3024
+          type: 'test'
+          ...
+        # Subtest: devuelve 30 si la fecha es en 30 días
+        ok 3 - devuelve 30 si la fecha es en 30 días
+          ---
+          duration_ms: 0.2716
+          type: 'test'
+          ...
+        # Subtest: devuelve undefined con formato inválido
+        ok 4 - devuelve undefined con formato inválido
+          ---
+          duration_ms: 0.6481
+          type: 'test'
+          ...
+        1..4
+    ok 9 - calcularDiasParaCobro
+      ---
+      duration_ms: 2.8369
+      type: 'suite'
+      ...
+    # Subtest: ajustarAlSiguienteCiclo y calcularTotalMensual (Aceptación HU-51)
+        # Subtest: una membresía mensual con cobro hace 30 días muestra su próximo cobro futuro y dias_para_cobro >= 0
+        ok 1 - una membresía mensual con cobro hace 30 días muestra su próximo cobro futuro y dias_para_cobro >= 0
+          ---
+          duration_ms: 0.9188
+          type: 'test'
+          ...
+        # Subtest: el total mensual no cambia al avanzar de ciclo
+        ok 2 - el total mensual no cambia al avanzar de ciclo
+          ---
+          duration_ms: 0.6192
+          type: 'test'
+          ...
+        1..2
+    ok 10 - ajustarAlSiguienteCiclo y calcularTotalMensual (Aceptación HU-51)
+      ---
+      duration_ms: 2.0777
+      type: 'suite'
+      ...
+    # Subtest: detectarServicioRepetido (HU-74)
+        # Subtest: devuelve repetido: false con lista vacía, nula o sin datos
+        ok 1 - devuelve repetido: false con lista vacía, nula o sin datos
+          ---
+          duration_ms: 1.1801
+          type: 'test'
+          ...
+        # Subtest: detecta Spotify repetido con el mismo nombre exacto (Aceptación HU-74)
+        ok 2 - detecta Spotify repetido con el mismo nombre exacto (Aceptación HU-74)
+          ---
+          duration_ms: 0.8335
+          type: 'test'
+          ...
+        # Subtest: detecta Spotify repetido entre planes de la misma familia (Spotify Individual y Spotify Familiar)
+        ok 3 - detecta Spotify repetido entre planes de la misma familia (Spotify Individual y Spotify Familiar)
+          ---
+          duration_ms: 0.4855
+          type: 'test'
+          ...
+        # Subtest: detecta coincidencia por mismo servicio_id aunque el nombre varíe
+        ok 4 - detecta coincidencia por mismo servicio_id aunque el nombre varíe
+          ---
+          duration_ms: 0.7927
+          type: 'test'
+          ...
+        # Subtest: no aparece con servicios distintos (Netflix después de Spotify: QA HU-74)
+        ok 5 - no aparece con servicios distintos (Netflix después de Spotify: QA HU-74)
+          ---
+          duration_ms: 0.3601
+          type: 'test'
+          ...
+        # Subtest: editar una membresía existente sin cambiar el nombre no dispara el aviso (QA HU-74)
+        ok 6 - editar una membresía existente sin cambiar el nombre no dispara el aviso (QA HU-74)
+          ---
+          duration_ms: 0.3344
+          type: 'test'
+          ...
+        # Subtest: editar una membresía cambiándola al nombre de otra existente sí dispara el aviso
+        ok 7 - editar una membresía cambiándola al nombre de otra existente sí dispara el aviso
+          ---
+          duration_ms: 0.3353
+          type: 'test'
+          ...
+        # Subtest: detecta repetido en servicios personalizados no predefinidos por coincidencia de nombre
+        ok 8 - detecta repetido en servicios personalizados no predefinidos por coincidencia de nombre
+          ---
+          duration_ms: 0.3787
+          type: 'test'
+          ...
+        1..8
+    ok 11 - detectarServicioRepetido (HU-74)
+      ---
+      duration_ms: 5.4325
+      type: 'suite'
+      ...
+    # Subtest: obtenerMarcaServicio
+        # Subtest: obtiene la marca de servicios conocidos
+        ok 1 - obtiene la marca de servicios conocidos
+          ---
+          duration_ms: 0.4604
+          type: 'test'
+          ...
+        # Subtest: devuelve cadena vacía para nombres no reconocidos o vacíos
+        ok 2 - devuelve cadena vacía para nombres no reconocidos o vacíos
+          ---
+          duration_ms: 0.3203
+          type: 'test'
+          ...
+        1..2
+    ok 12 - obtenerMarcaServicio
+      ---
+      duration_ms: 1.0086
+      type: 'suite'
+      ...
+    # Subtest: alineación de fecha mostrada con el ciclo que se paga (HU-66 / interacción con HU-51)
+        # Subtest: fecha persistida del 15/octubre muestra 15/octubre antes del pago y avanza visiblemente a 15/noviembre tras el pago
+        ok 1 - fecha persistida del 15/octubre muestra 15/octubre antes del pago y avanza visiblemente a 15/noviembre tras el pago
+          ---
+          duration_ms: 0.8381
+          type: 'test'
+          ...
+        # Subtest: suscripción al corriente (fecha futura) muestra su ciclo vigente y avanza al siguiente ciclo tras el pago
+        ok 2 - suscripción al corriente (fecha futura) muestra su ciclo vigente y avanza al siguiente ciclo tras el pago
+          ---
+          duration_ms: 0.3439
+          type: 'test'
+          ...
+        # Subtest: tolera objetos nulos o indefinidos devolviendo valores seguros
+        ok 3 - tolera objetos nulos o indefinidos devolviendo valores seguros
+          ---
+          duration_ms: 0.2221
+          type: 'test'
+          ...
+        1..3
+    ok 13 - alineación de fecha mostrada con el ciclo que se paga (HU-66 / interacción con HU-51)
+      ---
+      duration_ms: 1.7403
+      type: 'suite'
+      ...
+    1..13
+ok 26 - utils/membresias
+  ---
+  duration_ms: 68.1307
+  type: 'suite'
+  ...
+# Subtest: textoDesdeMonto
+    # Subtest: convierte montos enteros y con decimales
+    ok 1 - convierte montos enteros y con decimales
+      ---
+      duration_ms: 3.5197
+      type: 'test'
+      ...
+    # Subtest: conserva el cero de los centavos
+    ok 2 - conserva el cero de los centavos
+      ---
+      duration_ms: 0.3228
+      type: 'test'
+      ...
+    # Subtest: acepta el monto como texto (por si la API lo manda así)
+    ok 3 - acepta el monto como texto (por si la API lo manda así)
+      ---
+      duration_ms: 0.5449
+      type: 'test'
+      ...
+    # Subtest: redondea a 2 decimales
+    ok 4 - redondea a 2 decimales
+      ---
+      duration_ms: 0.382
+      type: 'test'
+      ...
+    # Subtest: devuelve "" con montos no válidos
+    ok 5 - devuelve "" con montos no válidos
+      ---
+      duration_ms: 0.4192
+      type: 'test'
+      ...
+    # Subtest: es el inverso de montoDesdeTexto
+    ok 6 - es el inverso de montoDesdeTexto
+      ---
+      duration_ms: 0.447
+      type: 'test'
+      ...
+    # Subtest: deja un texto que el teclado puede seguir editando
+    ok 7 - deja un texto que el teclado puede seguir editando
+      ---
+      duration_ms: 0.7754
+      type: 'test'
+      ...
+    1..7
+ok 27 - textoDesdeMonto
+  ---
+  duration_ms: 9.4466
+  type: 'suite'
+  ...
+# Subtest: esTokenPushValido
+    # Subtest: acepta los dos prefijos de Expo
+    ok 1 - acepta los dos prefijos de Expo
+      ---
+      duration_ms: 2.8283
+      type: 'test'
+      ...
+    # Subtest: rechaza null, vacíos y formatos ajenos
+    ok 2 - rechaza null, vacíos y formatos ajenos
+      ---
+      duration_ms: 0.8506
+      type: 'test'
+      ...
+    1..2
+ok 28 - esTokenPushValido
+  ---
+  duration_ms: 7.025
+  type: 'suite'
+  ...
+# Subtest: crearVinculoPush: registro
+    # Subtest: con token válido lo manda con la sesión y lo devuelve
+    ok 1 - con token válido lo manda con la sesión y lo devuelve
+      ---
+      duration_ms: 3.2703
+      type: 'test'
+      ...
+    # Subtest: sin sesión no hace nada
+    ok 2 - sin sesión no hace nada
+      ---
+      duration_ms: 0.4178
+      type: 'test'
+      ...
+    # Subtest: una vez por sesión: repetir la misma sesión no vuelve a registrar
+    ok 3 - una vez por sesión: repetir la misma sesión no vuelve a registrar
+      ---
+      duration_ms: 2.0103
+      type: 'test'
+      ...
+    # Subtest: sin permiso, simulador o Expo Go (token null) no llama al backend
+    ok 4 - sin permiso, simulador o Expo Go (token null) no llama al backend
+      ---
+      duration_ms: 0.449
+      type: 'test'
+      ...
+    # Subtest: si obtener el token falla no lanza y avisa
+    ok 5 - si obtener el token falla no lanza y avisa
+      ---
+      duration_ms: 0.8264
+      type: 'test'
+      ...
+    # Subtest: un error del backend (TOKEN_PUSH_INVALIDO, sin conexión) no lanza
+    ok 6 - un error del backend (TOKEN_PUSH_INVALIDO, sin conexión) no lanza
+      ---
+      duration_ms: 3.6261
+      type: 'test'
+      ...
+    1..6
+ok 29 - crearVinculoPush: registro
+  ---
+  duration_ms: 11.7149
+  type: 'suite'
+  ...
+# Subtest: crearVinculoPush: cerrar sesión y cambio de cuenta
+    # Subtest: logout después de registrar llama DELETE con el token y la sesión vigente
+    ok 1 - logout después de registrar llama DELETE con el token y la sesión vigente
+      ---
+      duration_ms: 1.9952
+      type: 'test'
+      ...
+    # Subtest: logout sin token registrado (permiso negado) no llama DELETE
+    ok 2 - logout sin token registrado (permiso negado) no llama DELETE
+      ---
+      duration_ms: 0.9825
+      type: 'test'
+      ...
+    # Subtest: logout no espera: el vínculo queda libre al instante y la desvinculación sigue en segundo plano
+    ok 3 - logout no espera: el vínculo queda libre al instante y la desvinculación sigue en segundo plano
+      ---
+      duration_ms: 92.2583
+      type: 'test'
+      ...
+    # Subtest: login de B durante la desvinculación de A: B se registra y la tarea de A no lo toca
+    ok 4 - login de B durante la desvinculación de A: B se registra y la tarea de A no lo toca
+      ---
+      duration_ms: 23.969
+      type: 'test'
+      ...
+    # Subtest: POST tardío de A llega al servidor después del de B → DELETE de A → B reafirma y queda dueño
+    ok 5 - POST tardío de A llega al servidor después del de B → DELETE de A → B reafirma y queda dueño
+      ---
+      duration_ms: 27.6962
+      type: 'test'
+      ...
+    # Subtest: si la sesión activa todavía no registró, la tarea de A no envía nada por ella
+    ok 6 - si la sesión activa todavía no registró, la tarea de A no envía nada por ella
+      ---
+      duration_ms: 3.6765
+      type: 'test'
+      ...
+    # Subtest: la reafirmación falla en silencio y no se repite
+    ok 7 - la reafirmación falla en silencio y no se repite
+      ---
+      duration_ms: 19.3107
+      type: 'test'
+      ...
+    # Subtest: logout con POST que no responde: tras el tope lo aborta y desvincula igual
+    ok 8 - logout con POST que no responde: tras el tope lo aborta y desvincula igual
+      ---
+      duration_ms: 63.0698
+      type: 'test'
+      ...
+    # Subtest: logout mientras espera el permiso: el token que llega tarde no se registra
+    ok 9 - logout mientras espera el permiso: el token que llega tarde no se registra
+      ---
+      duration_ms: 33.7688
+      type: 'test'
+      ...
+    # Subtest: DELETE que falla o no responde: el logout termina igual, sin lanzar
+    ok 10 - DELETE que falla o no responde: el logout termina igual, sin lanzar
+      ---
+      duration_ms: 41.713
+      type: 'test'
+      ...
+    # Subtest: cambio A → B con logout: A no queda con el token y B sí
+    ok 11 - cambio A → B con logout: A no queda con el token y B sí
+      ---
+      duration_ms: 0.6667
+      type: 'test'
+      ...
+    # Subtest: cambio A → B sin logout: B transfiere el token y desvincular A ya no toca a B
+    ok 12 - cambio A → B sin logout: B transfiere el token y desvincular A ya no toca a B
+      ---
+      duration_ms: 0.5364
+      type: 'test'
+      ...
+    # Subtest: respuesta tardía de la sesión anterior: se aborta, se ignora y no pisa a B
+    ok 13 - respuesta tardía de la sesión anterior: se aborta, se ignora y no pisa a B
+      ---
+      duration_ms: 6.6427
+      type: 'test'
+      ...
+    # Subtest: descartar (sesión vencida) olvida el registro sin llamar al backend
+    ok 14 - descartar (sesión vencida) olvida el registro sin llamar al backend
+      ---
+      duration_ms: 1.0291
+      type: 'test'
+      ...
+    1..14
+ok 30 - crearVinculoPush: cerrar sesión y cambio de cuenta
+  ---
+  duration_ms: 319.1804
+  type: 'suite'
+  ...
+# Subtest: permisoPushConcedido
+    # Subtest: undetermined: pregunta una vez y en la siguiente sesión ya no
+    ok 1 - undetermined: pregunta una vez y en la siguiente sesión ya no
+      ---
+      duration_ms: 0.8321
+      type: 'test'
+      ...
+    # Subtest: undetermined y el usuario lo niega: no vuelve a preguntar en la siguiente sesión
+    ok 2 - undetermined y el usuario lo niega: no vuelve a preguntar en la siguiente sesión
+      ---
+      duration_ms: 0.2374
+      type: 'test'
+      ...
+    # Subtest: denied con canAskAgain true: no pregunta (dos sesiones seguidas)
+    ok 3 - denied con canAskAgain true: no pregunta (dos sesiones seguidas)
+      ---
+      duration_ms: 0.2596
+      type: 'test'
+      ...
+    # Subtest: denied con canAskAgain false: no pregunta
+    ok 4 - denied con canAskAgain false: no pregunta
+      ---
+      duration_ms: 0.1994
+      type: 'test'
+      ...
+    # Subtest: granted: sigue sin preguntar
+    ok 5 - granted: sigue sin preguntar
+      ---
+      duration_ms: 0.1958
+      type: 'test'
+      ...
+    1..5
+ok 31 - permisoPushConcedido
+  ---
+  duration_ms: 2.1287
+  type: 'suite'
+  ...
+# Subtest: describirFallo
+    # Subtest: error de la API: etapa, code y message
+    ok 1 - error de la API: etapa, code y message
+      ---
+      duration_ms: 0.3416
+      type: 'test'
+      ...
+    # Subtest: error de la API sin message: usa el estado HTTP
+    ok 2 - error de la API sin message: usa el estado HTTP
+      ---
+      duration_ms: 0.2064
+      type: 'test'
+      ...
+    # Subtest: error de Expo con code
+    ok 3 - error de Expo con code
+      ---
+      duration_ms: 0.2521
+      type: 'test'
+      ...
+    # Subtest: Error sin code usa su nombre; un valor suelto se imprime tal cual
+    ok 4 - Error sin code usa su nombre; un valor suelto se imprime tal cual
+      ---
+      duration_ms: 0.2597
+      type: 'test'
+      ...
+    1..4
+ok 32 - describirFallo
+  ---
+  duration_ms: 1.6672
+  type: 'suite'
+  ...
+# Subtest: destinoNotificacion
+    # Subtest: un aviso de cobro abre Suscripciones
+    ok 1 - un aviso de cobro abre Suscripciones
+      ---
+      duration_ms: 0.3947
+      type: 'test'
+      ...
+    # Subtest: sin datos también abre Suscripciones
+    ok 2 - sin datos también abre Suscripciones
+      ---
+      duration_ms: 0.2388
+      type: 'test'
+      ...
+    # Subtest: otro tipo no navega
+    ok 3 - otro tipo no navega
+      ---
+      duration_ms: 0.1516
+      type: 'test'
+      ...
+    1..3
+ok 33 - destinoNotificacion
+  ---
+  duration_ms: 1.031
+  type: 'suite'
+  ...
+# Subtest: normalizarPresupuesto
+    # Subtest: convierte los montos que llegan como texto
+    ok 1 - convierte los montos que llegan como texto
+      ---
+      duration_ms: 3.6301
+      type: 'test'
+      ...
+    # Subtest: un estado desconocido cuenta como ok
+    ok 2 - un estado desconocido cuenta como ok
+      ---
+      duration_ms: 0.3885
+      type: 'test'
+      ...
+    1..2
+ok 34 - normalizarPresupuesto
+  ---
+  duration_ms: 6.4493
+  type: 'suite'
+  ...
+# Subtest: categoriasDeGasto
+    # Subtest: quita las de membresía y acepta las que no traen tipo
+    ok 1 - quita las de membresía y acepta las que no traen tipo
+      ---
+      duration_ms: 0.6486
+      type: 'test'
+      ...
+    # Subtest: tolera null
+    ok 2 - tolera null
+      ---
+      duration_ms: 0.3484
+      type: 'test'
+      ...
+    1..2
+ok 35 - categoriasDeGasto
+  ---
+  duration_ms: 1.6725
+  type: 'suite'
+  ...
+# Subtest: avanceBarra
+    # Subtest: convierte el porcentaje en fracción con tope de 100%
+    ok 1 - convierte el porcentaje en fracción con tope de 100%
+      ---
+      duration_ms: 0.3998
+      type: 'test'
+      ...
+    1..1
+ok 36 - avanceBarra
+  ---
+  duration_ms: 0.6404
+  type: 'suite'
+  ...
+# Subtest: excedente
+    # Subtest: es lo que se pasó del límite, o 0
+    ok 1 - es lo que se pasó del límite, o 0
+      ---
+      duration_ms: 0.7239
+      type: 'test'
+      ...
+    # Subtest: no arrastra errores de coma flotante
+    ok 2 - no arrastra errores de coma flotante
+      ---
+      duration_ms: 0.4316
+      type: 'test'
+      ...
+    1..2
+ok 37 - excedente
+  ---
+  duration_ms: 1.9557
+  type: 'suite'
+  ...
+# Subtest: gastoPorCategoriaDePresupuestos
+    # Subtest: toma lo gastado de cada presupuesto, de mayor a menor
+    ok 1 - toma lo gastado de cada presupuesto, de mayor a menor
+      ---
+      duration_ms: 0.6959
+      type: 'test'
+      ...
+    # Subtest: tolera null
+    ok 2 - tolera null
+      ---
+      duration_ms: 0.3492
+      type: 'test'
+      ...
+    1..2
+ok 38 - gastoPorCategoriaDePresupuestos
+  ---
+  duration_ms: 1.6128
+  type: 'suite'
+  ...
+# Subtest: estadoMasGrave
+    # Subtest: excedido > alerta > ok
+    ok 1 - excedido > alerta > ok
+      ---
+      duration_ms: 0.4891
+      type: 'test'
+      ...
+    1..1
+ok 39 - estadoMasGrave
+  ---
+  duration_ms: 0.6812
+  type: 'suite'
+  ...
+# Subtest: resumenPresupuestos
+    # Subtest: suma límites y gastado y toma el estado más grave
+    ok 1 - suma límites y gastado y toma el estado más grave
+      ---
+      duration_ms: 1.8901
+      type: 'test'
+      ...
+    # Subtest: sin presupuestos da ceros
+    ok 2 - sin presupuestos da ceros
+      ---
+      duration_ms: 0.4339
+      type: 'test'
+      ...
+    1..2
+ok 40 - resumenPresupuestos
+  ---
+  duration_ms: 2.5287
+  type: 'suite'
+  ...
+# Subtest: presupuestosEnRiesgo
+    # Subtest: solo alerta y excedido: primero excedidos, luego por porcentaje
+    ok 1 - solo alerta y excedido: primero excedidos, luego por porcentaje
+      ---
+      duration_ms: 0.4863
+      type: 'test'
+      ...
+    # Subtest: sin riesgo o null da lista vacía
+    ok 2 - sin riesgo o null da lista vacía
+      ---
+      duration_ms: 0.2354
+      type: 'test'
+      ...
+    1..2
+ok 41 - presupuestosEnRiesgo
+  ---
+  duration_ms: 0.9497
+  type: 'suite'
+  ...
+# Subtest: proximoCobro
+    # Subtest: toma la de fecha más próxima
+    ok 1 - toma la de fecha más próxima
+      ---
+      duration_ms: 2.9801
+      type: 'test'
+      ...
+    # Subtest: varias el mismo día: la primera por nombre y cuántas más
+    ok 2 - varias el mismo día: la primera por nombre y cuántas más
+      ---
+      duration_ms: 2.9132
+      type: 'test'
+      ...
+    # Subtest: ignora las sin fecha o vencidas; sin ninguna: null
+    ok 3 - ignora las sin fecha o vencidas; sin ninguna: null
+      ---
+      duration_ms: 1.2032
+      type: 'test'
+      ...
+    1..3
+ok 42 - proximoCobro
+  ---
+  duration_ms: 10.3927
+  type: 'suite'
+  ...
+# Subtest: textoProximoCobro
+    # Subtest: Hoy, Mañana o en N días
+    ok 1 - Hoy, Mañana o en N días
+      ---
+      duration_ms: 0.4473
+      type: 'test'
+      ...
+    1..1
+ok 43 - textoProximoCobro
+  ---
+  duration_ms: 1.0709
+  type: 'suite'
+  ...
+# Subtest: partesMonto
+    # Subtest: separa los centavos del entero
+    ok 1 - separa los centavos del entero
+      ---
+      duration_ms: 3.1734
+      type: 'test'
+      ...
+    1..1
+ok 44 - partesMonto
+  ---
+  duration_ms: 3.6205
+  type: 'suite'
+  ...
+# Subtest: código de 6 dígitos
+    # Subtest: limpiarCodigo deja solo dígitos y corta a 6 (pegar desde el correo)
+    ok 1 - limpiarCodigo deja solo dígitos y corta a 6 (pegar desde el correo)
+      ---
+      duration_ms: 1.8393
+      type: 'test'
+      ...
+    # Subtest: esCodigoValido exige exactamente 6 dígitos
+    ok 2 - esCodigoValido exige exactamente 6 dígitos
+      ---
+      duration_ms: 0.5036
+      type: 'test'
+      ...
+    1..2
+ok 45 - código de 6 dígitos
+  ---
+  duration_ms: 5.3702
+  type: 'suite'
+  ...
+# Subtest: errorRestablecer
+    # Subtest: TOKEN_INVALIDO va al campo del código
+    ok 1 - TOKEN_INVALIDO va al campo del código
+      ---
+      duration_ms: 2.2101
+      type: 'test'
+      ...
+    # Subtest: PASSWORD_MUY_CORTA va al campo de contraseña
+    ok 2 - PASSWORD_MUY_CORTA va al campo de contraseña
+      ---
+      duration_ms: 0.6147
+      type: 'test'
+      ...
+    # Subtest: los demás códigos son errores generales
+    ok 3 - los demás códigos son errores generales
+      ---
+      duration_ms: 2.0247
+      type: 'test'
+      ...
+    1..3
+ok 46 - errorRestablecer
+  ---
+  duration_ms: 5.7998
+  type: 'suite'
+  ...
+# Subtest: cuenta regresiva de reenvío
+    # Subtest: espera 60 s
+    ok 1 - espera 60 s
+      ---
+      duration_ms: 1.6147
+      type: 'test'
+      ...
+    # Subtest: segundosRestantes redondea hacia arriba y no baja de 0
+    ok 2 - segundosRestantes redondea hacia arriba y no baja de 0
+      ---
+      duration_ms: 0.8973
+      type: 'test'
+      ...
+    # Subtest: formatoCuenta muestra m:ss
+    ok 3 - formatoCuenta muestra m:ss
+      ---
+      duration_ms: 0.859
+      type: 'test'
+      ...
+    1..3
+ok 47 - cuenta regresiva de reenvío
+  ---
+  duration_ms: 4.3904
+  type: 'suite'
+  ...
+# Subtest: normalizarResumen
+    # Subtest: convierte los montos que llegan como texto
+    ok 1 - convierte los montos que llegan como texto
+      ---
+      duration_ms: 2.8083
+      type: 'test'
+      ...
+    # Subtest: sin respuesta o con valores inválidos da ceros con el mes pedido
+    ok 2 - sin respuesta o con valores inválidos da ceros con el mes pedido
+      ---
+      duration_ms: 0.9841
+      type: 'test'
+      ...
+    1..2
+ok 48 - normalizarResumen
+  ---
+  duration_ms: 6.1576
+  type: 'suite'
+  ...
+# Subtest: normalizarPorCategoria
+    # Subtest: convierte total y porcentaje
+    ok 1 - convierte total y porcentaje
+      ---
+      duration_ms: 0.7585
+      type: 'test'
+      ...
+    # Subtest: tolera null
+    ok 2 - tolera null
+      ---
+      duration_ms: 0.6267
+      type: 'test'
+      ...
+    1..2
+ok 49 - normalizarPorCategoria
+  ---
+  duration_ms: 2.0257
+  type: 'suite'
+  ...
+# Subtest: armarDatosDona
+    # Subtest: arma valor, color, etiqueta y porcentaje en el orden de la API (CP-RF8-01)
+    ok 1 - arma valor, color, etiqueta y porcentaje en el orden de la API (CP-RF8-01)
+      ---
+      duration_ms: 2.9229
+      type: 'test'
+      ...
+    # Subtest: usa el color del tema activo
+    ok 2 - usa el color del tema activo
+      ---
+      duration_ms: 8.0645
+      type: 'test'
+      ...
+    # Subtest: da un color distinto a cada categoría del seed en ambos temas
+    ok 3 - da un color distinto a cada categoría del seed en ambos temas
+      ---
+      duration_ms: 1.2072
+      type: 'test'
+      ...
+    # Subtest: mes vacío: sin rebanadas
+    ok 4 - mes vacío: sin rebanadas
+      ---
+      duration_ms: 3.9466
+      type: 'test'
+      ...
+    # Subtest: una sola categoría es el 100%
+    ok 5 - una sola categoría es el 100%
+      ---
+      duration_ms: 0.8122
+      type: 'test'
+      ...
+    # Subtest: los porcentajes suman 100 aunque no sean exactos
+    ok 6 - los porcentajes suman 100 aunque no sean exactos
+      ---
+      duration_ms: 3.0831
+      type: 'test'
+      ...
+    # Subtest: conserva una categoría pequeña que la API redondearía a 0
+    ok 7 - conserva una categoría pequeña que la API redondearía a 0
+      ---
+      duration_ms: 0.6156
+      type: 'test'
+      ...
+    # Subtest: una categoría mínima no queda en 0 y la suma sigue en 100
+    ok 8 - una categoría mínima no queda en 0 y la suma sigue en 100
+      ---
+      duration_ms: 0.5103
+      type: 'test'
+      ...
+    # Subtest: categoría desconocida: usa el color de Otros
+    ok 9 - categoría desconocida: usa el color de Otros
+      ---
+      duration_ms: 0.7569
+      type: 'test'
+      ...
+    # Subtest: ignora categorías sin monto
+    ok 10 - ignora categorías sin monto
+      ---
+      duration_ms: 0.3931
+      type: 'test'
+      ...
+    1..10
+ok 50 - armarDatosDona
+  ---
+  duration_ms: 23.7414
+  type: 'suite'
+  ...
+# Subtest: esMesSinDatos
+    # Subtest: total en 0 y sin categorías
+    ok 1 - total en 0 y sin categorías
+      ---
+      duration_ms: 0.4126
+      type: 'test'
+      ...
+    # Subtest: con membresías y sin gastos no es un mes vacío
+    ok 2 - con membresías y sin gastos no es un mes vacío
+      ---
+      duration_ms: 0.2421
+      type: 'test'
+      ...
+    # Subtest: con gastos no es un mes vacío
+    ok 3 - con gastos no es un mes vacío
+      ---
+      duration_ms: 0.227
+      type: 'test'
+      ...
+    1..3
+ok 51 - esMesSinDatos
+  ---
+  duration_ms: 1.2264
+  type: 'suite'
+  ...
+# Subtest: formatearPorcentaje
+    # Subtest: muestra un decimal solo si hace falta
+    ok 1 - muestra un decimal solo si hace falta
+      ---
+      duration_ms: 0.3386
+      type: 'test'
+      ...
+    # Subtest: redondea a un decimal y tolera valores inválidos
+    ok 2 - redondea a un decimal y tolera valores inválidos
+      ---
+      duration_ms: 0.2586
+      type: 'test'
+      ...
+    1..2
+ok 52 - formatearPorcentaje
+  ---
+  duration_ms: 0.9577
+  type: 'suite'
+  ...
+# Subtest: descripcionDona
+    # Subtest: resume categoría y porcentaje en texto
+    ok 1 - resume categoría y porcentaje en texto
+      ---
+      duration_ms: 5.2655
+      type: 'test'
+      ...
+    1..1
+ok 53 - descripcionDona
+  ---
+  duration_ms: 7.4178
+  type: 'suite'
+  ...
+# Subtest: gastoPorCategoria
+    # Subtest: suma por categoría y ordena de mayor a menor
+    ok 1 - suma por categoría y ordena de mayor a menor
+      ---
+      duration_ms: 3.9626
+      type: 'test'
+      ...
+    # Subtest: sin gastos da una lista vacía
+    ok 2 - sin gastos da una lista vacía
+      ---
+      duration_ms: 0.2888
+      type: 'test'
+      ...
+    # Subtest: redondea los centavos
+    ok 3 - redondea los centavos
+      ---
+      duration_ms: 0.634
+      type: 'test'
+      ...
+    1..3
+ok 54 - gastoPorCategoria
+  ---
+  duration_ms: 8.1274
+  type: 'suite'
+  ...
+# Subtest: resumenGastoMes
+    # Subtest: tramos por categoría sobre el presupuesto
+    ok 1 - tramos por categoría sobre el presupuesto
+      ---
+      duration_ms: 1.392
+      type: 'test'
+      ...
+    # Subtest: excedido: la barra queda llena y hay excedente
+    ok 2 - excedido: la barra queda llena y hay excedente
+      ---
+      duration_ms: 0.8203
+      type: 'test'
+      ...
+    # Subtest: sin presupuesto: los tramos llenan el 100% en proporción al gasto
+    ok 3 - sin presupuesto: los tramos llenan el 100% en proporción al gasto
+      ---
+      duration_ms: 0.6957
+      type: 'test'
+      ...
+    # Subtest: sin gastos: sin tramos ni excedente
+    ok 4 - sin gastos: sin tramos ni excedente
+      ---
+      duration_ms: 0.9085
+      type: 'test'
+      ...
+    1..4
+ok 55 - resumenGastoMes
+  ---
+  duration_ms: 5.3551
+  type: 'suite'
+  ...
+# Subtest: nivelPorcentaje
+    # Subtest: normal < 80, aviso de 80 a 100, alerta > 100
+    ok 1 - normal < 80, aviso de 80 a 100, alerta > 100
+      ---
+      duration_ms: 1.2094
+      type: 'test'
+      ...
+    1..1
+ok 56 - nivelPorcentaje
+  ---
+  duration_ms: 1.8154
+  type: 'suite'
+  ...
+# Subtest: etiquetaBarraMes
+    # Subtest: con presupuesto
+    ok 1 - con presupuesto
+      ---
+      duration_ms: 1.573
+      type: 'test'
+      ...
+    # Subtest: sin presupuesto
+    ok 2 - sin presupuesto
+      ---
+      duration_ms: 1.3518
+      type: 'test'
+      ...
+    1..2
+ok 57 - etiquetaBarraMes
+  ---
+  duration_ms: 3.7784
+  type: 'suite'
+  ...
+# Subtest: cuadre de la barra con gasto_variable
+    # Subtest: la suma de los tramos y de los chips iguala gasto_variable
+    ok 1 - la suma de los tramos y de los chips iguala gasto_variable
+      ---
+      duration_ms: 2.309
+      type: 'test'
+      ...
+    # Subtest: mes sin gastos: todo en ceros
+    ok 2 - mes sin gastos: todo en ceros
+      ---
+      duration_ms: 0.4449
+      type: 'test'
+      ...
+    # Subtest: sin gastadoServidor se usa la suma de las categorías
+    ok 3 - sin gastadoServidor se usa la suma de las categorías
+      ---
+      duration_ms: 0.5975
+      type: 'test'
+      ...
+    1..3
+ok 58 - cuadre de la barra con gasto_variable
+  ---
+  duration_ms: 7.4326
+  type: 'suite'
+  ...
+# Subtest: tramosSuscripciones
+    # Subtest: un tramo por servicio, de mayor a menor costo mensual, con su color de marca
+    ok 1 - un tramo por servicio, de mayor a menor costo mensual, con su color de marca
+      ---
+      duration_ms: 5.2476
+      type: 'test'
+      ...
+    # Subtest: las fracciones suman 1
+    ok 2 - las fracciones suman 1
+      ---
+      duration_ms: 2.517
+      type: 'test'
+      ...
+    # Subtest: sin membresías o sin costo no hay tramos
+    ok 3 - sin membresías o sin costo no hay tramos
+      ---
+      duration_ms: 1.5699
+      type: 'test'
+      ...
+    1..3
+ok 59 - tramosSuscripciones
+  ---
+  duration_ms: 12.5287
+  type: 'suite'
+  ...
+# Subtest: nivelCobro
+    # Subtest: aviso con 3 días o menos (y vencidas), éxito con más
+    ok 1 - aviso con 3 días o menos (y vencidas), éxito con más
+      ---
+      duration_ms: 0.5395
+      type: 'test'
+      ...
+    # Subtest: sin días conocidos es neutro
+    ok 2 - sin días conocidos es neutro
+      ---
+      duration_ms: 1.0602
+      type: 'test'
+      ...
+    1..2
+ok 60 - nivelCobro
+  ---
+  duration_ms: 2.0271
+  type: 'suite'
+  ...
+# Subtest: normalizarBusqueda
+    # Subtest: quita acentos, mayúsculas y espacios sobrantes
+    ok 1 - quita acentos, mayúsculas y espacios sobrantes
+      ---
+      duration_ms: 1.6175
+      type: 'test'
+      ...
+    1..1
+ok 61 - normalizarBusqueda
+  ---
+  duration_ms: 3.7913
+  type: 'suite'
+  ...
+# Subtest: filtrarCatalogo
+    # Subtest: "spo" deja solo los de Spotify; "net" solo Netflix
+    ok 1 - "spo" deja solo los de Spotify; "net" solo Netflix
+      ---
+      duration_ms: 2.6554
+      type: 'test'
+      ...
+    # Subtest: ignora mayúsculas y acentos en ambos lados
+    ok 2 - ignora mayúsculas y acentos en ambos lados
+      ---
+      duration_ms: 0.3891
+      type: 'test'
+      ...
+    # Subtest: busca también por el plan, con las palabras en cualquier orden
+    ok 3 - busca también por el plan, con las palabras en cualquier orden
+      ---
+      duration_ms: 0.5227
+      type: 'test'
+      ...
+    # Subtest: sin coincidencias devuelve una lista vacía
+    ok 4 - sin coincidencias devuelve una lista vacía
+      ---
+      duration_ms: 0.3031
+      type: 'test'
+      ...
+    # Subtest: consulta vacía o de espacios: el catálogo completo
+    ok 5 - consulta vacía o de espacios: el catálogo completo
+      ---
+      duration_ms: 0.2875
+      type: 'test'
+      ...
+    1..5
+ok 62 - filtrarCatalogo
+  ---
+  duration_ms: 4.9431
+  type: 'suite'
+  ...
+# Subtest: ordenarMembresias
+    # Subtest: por fecha: la más próxima primero y las sin fecha al final
+    ok 1 - por fecha: la más próxima primero y las sin fecha al final
+      ---
+      duration_ms: 1.0392
+      type: 'test'
+      ...
+    # Subtest: fecha es el criterio por defecto
+    ok 2 - fecha es el criterio por defecto
+      ---
+      duration_ms: 0.7444
+      type: 'test'
+      ...
+    # Subtest: por costo: de mayor a menor costo mensual (anual ÷ 12)
+    ok 3 - por costo: de mayor a menor costo mensual (anual ÷ 12)
+      ---
+      duration_ms: 0.8464
+      type: 'test'
+      ...
+    # Subtest: empates: por fecha y luego por nombre
+    ok 4 - empates: por fecha y luego por nombre
+      ---
+      duration_ms: 32.0789
+      type: 'test'
+      ...
+    # Subtest: no muta la lista original
+    ok 5 - no muta la lista original
+      ---
+      duration_ms: 0.6809
+      type: 'test'
+      ...
+    # Subtest: ordenar no cambia el total mensual ni la barra
+    ok 6 - ordenar no cambia el total mensual ni la barra
+      ---
+      duration_ms: 3.0641
+      type: 'test'
+      ...
+    1..6
+ok 63 - ordenarMembresias
+  ---
+  duration_ms: 40.9259
+  type: 'suite'
+  ...
+# Subtest: agruparPorFrecuencia
+    # Subtest: secciones Mensuales y Anuales, cada una por fecha
+    ok 1 - secciones Mensuales y Anuales, cada una por fecha
+      ---
+      duration_ms: 0.4518
+      type: 'test'
+      ...
+    # Subtest: omite la sección vacía y trata la frecuencia ausente como mensual
+    ok 2 - omite la sección vacía y trata la frecuencia ausente como mensual
+      ---
+      duration_ms: 0.1631
+      type: 'test'
+      ...
+    1..2
+ok 64 - agruparPorFrecuencia
+  ---
+  duration_ms: 0.7874
+  type: 'suite'
+  ...
+# Subtest: validaciones de autenticación
+    # Subtest: errorEmail: vacío, inválido y válido
+    ok 1 - errorEmail: vacío, inválido y válido
+      ---
+      duration_ms: 2.0641
+      type: 'test'
+      ...
+    # Subtest: errorPasswordNueva: mínimo de 8 como el backend
+    ok 2 - errorPasswordNueva: mínimo de 8 como el backend
+      ---
+      duration_ms: 0.6992
+      type: 'test'
+      ...
+    # Subtest: errorConfirmacion: vacía, distinta e igual
+    ok 3 - errorConfirmacion: vacía, distinta e igual
+      ---
+      duration_ms: 0.4542
+      type: 'test'
+      ...
+    # Subtest: hayErrores ignora los campos sin mensaje
+    ok 4 - hayErrores ignora los campos sin mensaje
+      ---
+      duration_ms: 0.676
+      type: 'test'
+      ...
+    1..4
+ok 65 - validaciones de autenticación
+  ---
+  duration_ms: 8.1713
+  type: 'suite'
+  ...
+# Subtest: interpretarGasto: casos de aceptación
+    # Subtest: «ochenta pesos en comida» → 80 y Comida, sin nota
+    ok 1 - «ochenta pesos en comida» → 80 y Comida, sin nota
+      ---
+      duration_ms: 6.0983
+      type: 'test'
+      ...
+    # Subtest: «ciento cincuenta en transporte» → 150 y Transporte
+    ok 2 - «ciento cincuenta en transporte» → 150 y Transporte
+      ---
+      duration_ms: 0.8099
+      type: 'test'
+      ...
+    # Subtest: sin monto: conserva la categoría y el monto queda en null
+    ok 3 - sin monto: conserva la categoría y el monto queda en null
+      ---
+      duration_ms: 0.773
+      type: 'test'
+      ...
+    # Subtest: sin categoría: conserva el monto y la categoría queda en null
+    ok 4 - sin categoría: conserva el monto y la categoría queda en null
+      ---
+      duration_ms: 0.444
+      type: 'test'
+      ...
+    # Subtest: solo ruido: todo en null
+    ok 5 - solo ruido: todo en null
+      ---
+      duration_ms: 1.8215
+      type: 'test'
+      ...
+    # Subtest: mayúsculas y acentos no cambian el resultado
+    ok 6 - mayúsculas y acentos no cambian el resultado
+      ---
+      duration_ms: 1.4722
+      type: 'test'
+      ...
+    1..6
+ok 66 - interpretarGasto: casos de aceptación
+  ---
+  duration_ms: 14.2385
+  type: 'suite'
+  ...
+# Subtest: montos en dígitos
+    # Subtest: enteros, decimales, signo de pesos y miles con coma
+    ok 1 - enteros, decimales, signo de pesos y miles con coma
+      ---
+      duration_ms: 1.9824
+      type: 'test'
+      ...
+    # Subtest: con puntuación del dictado alrededor
+    ok 2 - con puntuación del dictado alrededor
+      ---
+      duration_ms: 0.9336
+      type: 'test'
+      ...
+    # Subtest: dígitos y centavos dichos
+    ok 3 - dígitos y centavos dichos
+      ---
+      duration_ms: 1.8987
+      type: 'test'
+      ...
+    1..3
+ok 67 - montos en dígitos
+  ---
+  duration_ms: 5.6707
+  type: 'suite'
+  ...
+# Subtest: montos en palabras
+    # Subtest: «cero» → null
+    ok 1 - «cero» → null
+      ---
+      duration_ms: 0.7373
+      type: 'test'
+      ...
+    # Subtest: «uno» → 1
+    ok 2 - «uno» → 1
+      ---
+      duration_ms: 0.1424
+      type: 'test'
+      ...
+    # Subtest: «cinco» → 5
+    ok 3 - «cinco» → 5
+      ---
+      duration_ms: 0.1114
+      type: 'test'
+      ...
+    # Subtest: «diez» → 10
+    ok 4 - «diez» → 10
+      ---
+      duration_ms: 0.1093
+      type: 'test'
+      ...
+    # Subtest: «quince» → 15
+    ok 5 - «quince» → 15
+      ---
+      duration_ms: 0.1165
+      type: 'test'
+      ...
+    # Subtest: «veinte» → 20
+    ok 6 - «veinte» → 20
+      ---
+      duration_ms: 0.1013
+      type: 'test'
+      ...
+    # Subtest: «veintiuno» → 21
+    ok 7 - «veintiuno» → 21
+      ---
+      duration_ms: 0.0998
+      type: 'test'
+      ...
+    # Subtest: «veintiún pesos» → 21
+    ok 8 - «veintiún pesos» → 21
+      ---
+      duration_ms: 0.1286
+      type: 'test'
+      ...
+    # Subtest: «veinticinco» → 25
+    ok 9 - «veinticinco» → 25
+      ---
+      duration_ms: 0.1286
+      type: 'test'
+      ...
+    # Subtest: «treinta» → 30
+    ok 10 - «treinta» → 30
+      ---
+      duration_ms: 0.4685
+      type: 'test'
+      ...
+    # Subtest: «treinta y cinco» → 35
+    ok 11 - «treinta y cinco» → 35
+      ---
+      duration_ms: 0.138
+      type: 'test'
+      ...
+    # Subtest: «ochenta» → 80
+    ok 12 - «ochenta» → 80
+      ---
+      duration_ms: 0.1494
+      type: 'test'
+      ...
+    # Subtest: «ochenta y cinco» → 85
+    ok 13 - «ochenta y cinco» → 85
+      ---
+      duration_ms: 0.2055
+      type: 'test'
+      ...
+    # Subtest: «noventa y nueve» → 99
+    ok 14 - «noventa y nueve» → 99
+      ---
+      duration_ms: 0.2122
+      type: 'test'
+      ...
+    # Subtest: «cien» → 100
+    ok 15 - «cien» → 100
+      ---
+      duration_ms: 0.1897
+      type: 'test'
+      ...
+    # Subtest: «ciento uno» → 101
+    ok 16 - «ciento uno» → 101
+      ---
+      duration_ms: 0.2061
+      type: 'test'
+      ...
+    # Subtest: «ciento cincuenta» → 150
+    ok 17 - «ciento cincuenta» → 150
+      ---
+      duration_ms: 0.222
+      type: 'test'
+      ...
+    # Subtest: «ciento noventa y nueve» → 199
+    ok 18 - «ciento noventa y nueve» → 199
+      ---
+      duration_ms: 0.2034
+      type: 'test'
+      ...
+    # Subtest: «doscientos» → 200
+    ok 19 - «doscientos» → 200
+      ---
+      duration_ms: 0.1753
+      type: 'test'
+      ...
+    # Subtest: «doscientos treinta y cinco» → 235
+    ok 20 - «doscientos treinta y cinco» → 235
+      ---
+      duration_ms: 0.2256
+      type: 'test'
+      ...
+    # Subtest: «quinientos» → 500
+    ok 21 - «quinientos» → 500
+      ---
+      duration_ms: 0.2427
+      type: 'test'
+      ...
+    # Subtest: «setecientos» → 700
+    ok 22 - «setecientos» → 700
+      ---
+      duration_ms: 0.144
+      type: 'test'
+      ...
+    # Subtest: «novecientos» → 900
+    ok 23 - «novecientos» → 900
+      ---
+      duration_ms: 0.1169
+      type: 'test'
+      ...
+    # Subtest: «mil» → 1000
+    ok 24 - «mil» → 1000
+      ---
+      duration_ms: 0.1099
+      type: 'test'
+      ...
+    # Subtest: «un mil» → 1000
+    ok 25 - «un mil» → 1000
+      ---
+      duration_ms: 0.1989
+      type: 'test'
+      ...
+    # Subtest: «mil quinientos» → 1500
+    ok 26 - «mil quinientos» → 1500
+      ---
+      duration_ms: 0.1786
+      type: 'test'
+      ...
+    # Subtest: «mil doscientos cincuenta» → 1250
+    ok 27 - «mil doscientos cincuenta» → 1250
+      ---
+      duration_ms: 0.2149
+      type: 'test'
+      ...
+    # Subtest: «dos mil» → 2000
+    ok 28 - «dos mil» → 2000
+      ---
+      duration_ms: 0.2216
+      type: 'test'
+      ...
+    # Subtest: «dos mil trescientos cuarenta y cinco» → 2345
+    ok 29 - «dos mil trescientos cuarenta y cinco» → 2345
+      ---
+      duration_ms: 0.1947
+      type: 'test'
+      ...
+    # Subtest: «quince mil» → 15000
+    ok 30 - «quince mil» → 15000
+      ---
+      duration_ms: 0.1402
+      type: 'test'
+      ...
+    # Subtest: «ciento veinte mil» → 120000
+    ok 31 - «ciento veinte mil» → 120000
+      ---
+      duration_ms: 0.1069
+      type: 'test'
+      ...
+    # Subtest: «un millón» → 1000000
+    ok 32 - «un millón» → 1000000
+      ---
+      duration_ms: 0.2233
+      type: 'test'
+      ...
+    # Subtest: «dos millones quinientos mil» → 2500000
+    ok 33 - «dos millones quinientos mil» → 2500000
+      ---
+      duration_ms: 0.2231
+      type: 'test'
+      ...
+    # Subtest: centavos con "con", "punto" y "centavos"
+    ok 34 - centavos con "con", "punto" y "centavos"
+      ---
+      duration_ms: 0.8409
+      type: 'test'
+      ...
+    # Subtest: "con" seguido de otra cosa no son centavos
+    ok 35 - "con" seguido de otra cosa no son centavos
+      ---
+      duration_ms: 0.3726
+      type: 'test'
+      ...
+    # Subtest: "y" solo une decena y unidad
+    ok 36 - "y" solo une decena y unidad
+      ---
+      duration_ms: 0.4973
+      type: 'test'
+      ...
+    1..36
+ok 68 - montos en palabras
+  ---
+  duration_ms: 9.5851
+  type: 'suite'
+  ...
+# Subtest: montos ambiguos o inexistentes: null, nunca se inventa
+    # Subtest: "un"/"una" sueltos no son un monto
+    ok 1 - "un"/"una" sueltos no son un monto
+      ---
+      duration_ms: 0.5765
+      type: 'test'
+      ...
+    # Subtest: varias cifras sin forma de elegir
+    ok 2 - varias cifras sin forma de elegir
+      ---
+      duration_ms: 0.7531
+      type: 'test'
+      ...
+    # Subtest: con varias cifras gana la única que lleva "pesos" o "$"
+    ok 3 - con varias cifras gana la única que lleva "pesos" o "$"
+      ---
+      duration_ms: 0.8333
+      type: 'test'
+      ...
+    # Subtest: cero, negativos y fuera del tope del teclado
+    ok 4 - cero, negativos y fuera del tope del teclado
+      ---
+      duration_ms: 0.4515
+      type: 'test'
+      ...
+    # Subtest: palabras que contienen números no cuentan
+    ok 5 - palabras que contienen números no cuentan
+      ---
+      duration_ms: 0.4117
+      type: 'test'
+      ...
+    1..5
+ok 69 - montos ambiguos o inexistentes: null, nunca se inventa
+  ---
+  duration_ms: 3.5584
+  type: 'suite'
+  ...
+# Subtest: categorías
+    # Subtest: «tacos al pastor» → Comida
+    ok 1 - «tacos al pastor» → Comida
+      ---
+      duration_ms: 0.4665
+      type: 'test'
+      ...
+    # Subtest: «comí con mi familia» → Comida
+    ok 2 - «comí con mi familia» → Comida
+      ---
+      duration_ms: 0.1384
+      type: 'test'
+      ...
+    # Subtest: «el súper» → Comida
+    ok 3 - «el súper» → Comida
+      ---
+      duration_ms: 0.1835
+      type: 'test'
+      ...
+    # Subtest: «despensa del mes» → Comida
+    ok 4 - «despensa del mes» → Comida
+      ---
+      duration_ms: 0.2463
+      type: 'test'
+      ...
+    # Subtest: «un uber» → Transporte
+    ok 5 - «un uber» → Transporte
+      ---
+      duration_ms: 0.2347
+      type: 'test'
+      ...
+    # Subtest: «gasolina» → Transporte
+    ok 6 - «gasolina» → Transporte
+      ---
+      duration_ms: 0.2321
+      type: 'test'
+      ...
+    # Subtest: «el camión» → Transporte
+    ok 7 - «el camión» → Transporte
+      ---
+      duration_ms: 0.3683
+      type: 'test'
+      ...
+    # Subtest: «el cine» → Entretenimiento
+    ok 8 - «el cine» → Entretenimiento
+      ---
+      duration_ms: 0.245
+      type: 'test'
+      ...
+    # Subtest: «netflix» → Entretenimiento
+    ok 9 - «netflix» → Entretenimiento
+      ---
+      duration_ms: 0.2719
+      type: 'test'
+      ...
+    # Subtest: «la luz» → Servicios
+    ok 10 - «la luz» → Servicios
+      ---
+      duration_ms: 0.1759
+      type: 'test'
+      ...
+    # Subtest: «el recibo del agua» → Servicios
+    ok 11 - «el recibo del agua» → Servicios
+      ---
+      duration_ms: 0.2533
+      type: 'test'
+      ...
+    # Subtest: «internet» → Servicios
+    ok 12 - «internet» → Servicios
+      ---
+      duration_ms: 0.373
+      type: 'test'
+      ...
+    # Subtest: «farmacia» → Salud
+    ok 13 - «farmacia» → Salud
+      ---
+      duration_ms: 0.2056
+      type: 'test'
+      ...
+    # Subtest: «el doctor» → Salud
+    ok 14 - «el doctor» → Salud
+      ---
+      duration_ms: 0.2113
+      type: 'test'
+      ...
+    # Subtest: «otros» → Otros
+    ok 15 - «otros» → Otros
+      ---
+      duration_ms: 0.2232
+      type: 'test'
+      ...
+    # Subtest: palabras completas: "gasolina" no es "gas", "cinema" no es "cine"
+    ok 16 - palabras completas: "gasolina" no es "gas", "cinema" no es "cine"
+      ---
+      duration_ms: 0.4042
+      type: 'test'
+      ...
+    # Subtest: dos categorías distintas: null
+    ok 17 - dos categorías distintas: null
+      ---
+      duration_ms: 0.3897
+      type: 'test'
+      ...
+    # Subtest: varias palabras de la misma categoría: esa categoría
+    ok 18 - varias palabras de la misma categoría: esa categoría
+      ---
+      duration_ms: 0.3196
+      type: 'test'
+      ...
+    # Subtest: devuelve el nombre como lo trae el usuario y reconoce las personalizadas
+    ok 19 - devuelve el nombre como lo trae el usuario y reconoce las personalizadas
+      ---
+      duration_ms: 0.3969
+      type: 'test'
+      ...
+    # Subtest: una categoría del seed que el usuario no tiene no se propone
+    ok 20 - una categoría del seed que el usuario no tiene no se propone
+      ---
+      duration_ms: 0.2397
+      type: 'test'
+      ...
+    # Subtest: sin lista usa las del seed
+    ok 21 - sin lista usa las del seed
+      ---
+      duration_ms: 0.3245
+      type: 'test'
+      ...
+    1..21
+ok 70 - categorías
+  ---
+  duration_ms: 7.0863
+  type: 'suite'
+  ...
+# Subtest: nota sugerida
+    # Subtest: lo que queda sin monto, categoría ni muletillas, como se dijo
+    ok 1 - lo que queda sin monto, categoría ni muletillas, como se dijo
+      ---
+      duration_ms: 0.8469
+      type: 'test'
+      ...
+    # Subtest: el "con" de la nota se conserva aunque el monto lleve centavos
+    ok 2 - el "con" de la nota se conserva aunque el monto lleve centavos
+      ---
+      duration_ms: 0.205
+      type: 'test'
+      ...
+    # Subtest: sin nada que anotar: null
+    ok 3 - sin nada que anotar: null
+      ---
+      duration_ms: 0.4791
+      type: 'test'
+      ...
+    # Subtest: no pasa del límite de 200 caracteres de la API
+    ok 4 - no pasa del límite de 200 caracteres de la API
+      ---
+      duration_ms: 0.7782
+      type: 'test'
+      ...
+    1..4
+ok 71 - nota sugerida
+  ---
+  duration_ms: 2.6321
+  type: 'suite'
+  ...
+# Subtest: normalizar
+    # Subtest: quita acentos y mayúsculas pero conserva la ñ
+    ok 1 - quita acentos y mayúsculas pero conserva la ñ
+      ---
+      duration_ms: 0.3289
+      type: 'test'
+      ...
+    1..1
+ok 72 - normalizar
+  ---
+  duration_ms: 0.5611
+  type: 'suite'
+  ...
+# Subtest: mensajes de la hoja
+    # Subtest: permiso negado o no disponible: aviso claro y sigue la captura manual
+    ok 1 - permiso negado o no disponible: aviso claro y sigue la captura manual
+      ---
+      duration_ms: 0.8654
+      type: 'test'
+      ...
+    # Subtest: sin voz, sin red, micrófono ocupado y desconocidos tienen su aviso
+    ok 2 - sin voz, sin red, micrófono ocupado y desconocidos tienen su aviso
+      ---
+      duration_ms: 0.5387
+      type: 'test'
+      ...
+    # Subtest: cancelar (aborted) no avisa
+    ok 3 - cancelar (aborted) no avisa
+      ---
+      duration_ms: 0.291
+      type: 'test'
+      ...
+    # Subtest: avisoDictado: sin texto, sin monto, sin categoría o nada
+    ok 4 - avisoDictado: sin texto, sin monto, sin categoría o nada
+      ---
+      duration_ms: 0.4943
+      type: 'test'
+      ...
+    1..4
+ok 73 - mensajes de la hoja
+  ---
+  duration_ms: 2.7547
+  type: 'suite'
+  ...
+# Subtest: crearDatoWidget
+    # Subtest: toma mes y total del resumen
+    ok 1 - toma mes y total del resumen
+      ---
+      duration_ms: 3.7164
+      type: 'test'
+      ...
+    # Subtest: acepta el mes de respaldo y el total como texto
+    ok 2 - acepta el mes de respaldo y el total como texto
+      ---
+      duration_ms: 0.7217
+      type: 'test'
+      ...
+    # Subtest: sin total o sin mes válido no hay dato
+    ok 3 - sin total o sin mes válido no hay dato
+      ---
+      duration_ms: 0.5527
+      type: 'test'
+      ...
+    1..3
+ok 74 - crearDatoWidget
+  ---
+  duration_ms: 7.4789
+  type: 'suite'
+  ...
+# Subtest: leerDatoGuardado
+    # Subtest: lee el JSON guardado
+    ok 1 - lee el JSON guardado
+      ---
+      duration_ms: 0.683
+      type: 'test'
+      ...
+    # Subtest: con texto vacío o dañado devuelve null
+    ok 2 - con texto vacío o dañado devuelve null
+      ---
+      duration_ms: 0.3903
+      type: 'test'
+      ...
+    1..2
+ok 75 - leerDatoGuardado
+  ---
+  duration_ms: 1.7031
+  type: 'suite'
+  ...
+# Subtest: textoWidget
+    # Subtest: muestra el total del mes actual con formato
+    ok 1 - muestra el total del mes actual con formato
+      ---
+      duration_ms: 1.3198
+      type: 'test'
+      ...
+    # Subtest: sin dato (sesión cerrada, reinicio sin datos) muestra «Abre Billo»
+    ok 2 - sin dato (sesión cerrada, reinicio sin datos) muestra «Abre Billo»
+      ---
+      duration_ms: 0.7015
+      type: 'test'
+      ...
+    # Subtest: un dato de otro mes no se muestra
+    ok 3 - un dato de otro mes no se muestra
+      ---
+      duration_ms: 0.5779
+      type: 'test'
+      ...
+    1..3
+ok 76 - textoWidget
+  ---
+  duration_ms: 3.1386
+  type: 'suite'
+  ...
+1..76
+# tests 366
+# suites 90
+# pass 366
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1447.886

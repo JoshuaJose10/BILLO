@@ -1,0 +1,7 @@
+Fecha local: 2026-11-12
+Zona: America/Mexico_City
+Comando: C:/Users/DELL/.android/SDK/adb.exe devices -l
+List of devices attached
+
+
+El usuario confirma que no dispone de Android. APK HU-53 no descargado ni instalado.
