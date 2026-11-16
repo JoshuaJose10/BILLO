@@ -54,6 +54,18 @@ Requiere dependencias instaladas y PostgreSQL configurado según
 no ejecuta estos casos contra la base compartida de Render. En RF7 sustituye
 Expo por un servidor HTTP local o un mock: no envía push reales.
 
+## Pendientes para cerrar HU-55
+
+Requieren revisar la grabación o repetir en el Android físico; no se pueden
+resolver desde el repositorio:
+
+- [ ] Ver el [video de pruebas](https://youtube.com/shorts/e79WO_K3lpY?feature=share) y registrar **Pasa o Falla** por cada uno de los 15 casos (tabla de resultados), con el minuto del video o una captura como evidencia.
+- [ ] Repetir CP-RF9-01 tras la corrección del bug y adjuntar la evidencia de la reprueba; no basta con indicar que se corrigió en otra tarea.
+- [ ] Registrar el resultado de la regresión RF1–RF6 y RF8 (24 casos) por caso.
+- [ ] Sustituir el dictamen «aprobado por indicación del usuario» por una decisión por RF basada en esos resultados.
+- [ ] Completar la ficha: modelo, versión de Android, build y SHA-256 del APK, y quién ejecutó el video.
+- [ ] Revisión del PO.
+
 ## Resultados de RF7, RF9 y RF10
 
 Los pasos y precondiciones están en el [plan de pruebas](../plan-de-pruebas.md).
