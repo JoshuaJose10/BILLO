@@ -10,8 +10,8 @@ Este archivo no actualiza ClickUp ni acredita avisos o aprobaciones del equipo.
 Rama de entrega: `test/qa-rf11-rf12-rf13`, creada desde
 `HU-79-QA-mejoras-suscripciones` para identificar el alcance de moneda, voz y
 widget. Conserva la base original `HU-55-QA-de-RF7,-RF9-y-RF10`, solicitada por
-el usuario al iniciar el trabajo. Los nombres `hu79-reporte.md` y
-`hu79-evidencias/` se conservan para mantener las referencias existentes;
+el usuario al iniciar el trabajo. Los nombres `hu61-reporte.md` y
+`hu61-evidencias/` se conservan para mantener las referencias existentes;
 esta entrega corresponde al QA de RF11–RF13 de prioridad alta.
 Commit de partida y código probado automáticamente:
 `3455d4ad33bc80c73628b3f104d912a4e1bd4b05`.
@@ -21,7 +21,7 @@ Commit de partida y código probado automáticamente:
 Se incorporaron **12 casos** al [plan de pruebas, sección 5.1](../plan-de-pruebas.md#51-hu-79-moneda-voz-y-widget-en-apk-hu-53):
 6 de moneda, 2 de voz y 4 de widget. Los pasos completos y precondiciones están
 en ese plan; esta matriz registra su ejecución y decisión. La
-[guía de Android](hu79-evidencias/GUIA-ANDROID.md) permite ejecutarlos a mano.
+[guía de Android](hu61-evidencias/GUIA-ANDROID.md) permite ejecutarlos a mano.
 
 El usuario confirmó Android y ejecución manual el 2026-11-14. El 2026-11-15
 informó que todas las pruebas pasan y solicitó registrar RF11 como aprobado
@@ -126,8 +126,8 @@ npm **10.9.2**. Se guardaron las salidas nuevas sin reemplazar evidencias de HU-
 
 | Comando | Resultado observado | Evidencia | Qué verifica |
 |---|---|---|---|
-| `cd mobile; npm.cmd test` | **Pasa: 387/387**, 0 fallas, 0 omitidos, salida 0 | [mobile.tap](hu79-evidencias/mobile.tap) | Parser de voz, conversión, preparación de datos, resumen del widget y regresión de lógica |
-| `cd backend; npm.cmd test` | **Pasa: 418/418**, 0 fallas, 0 omitidos, salida 0 | [backend.tap](hu79-evidencias/backend.tap) | API con PostgreSQL temporal, moneda de gastos/membresías, fuente/caché/502 y regresión HTTP |
+| `cd mobile; npm.cmd test` | **Pasa: 387/387**, 0 fallas, 0 omitidos, salida 0 | [mobile.tap](hu61-evidencias/mobile.tap) | Parser de voz, conversión, preparación de datos, resumen del widget y regresión de lógica |
+| `cd backend; npm.cmd test` | **Pasa: 418/418**, 0 fallas, 0 omitidos, salida 0 | [backend.tap](hu61-evidencias/backend.tap) | API con PostgreSQL temporal, moneda de gastos/membresías, fuente/caché/502 y regresión HTTP |
 
 La suite backend crea y elimina su propia base temporal; no migra ni trunca la
 base de desarrollo. Las pruebas de divisas usan fuente controlada y no acreditan
@@ -135,6 +135,18 @@ disponibilidad real del proveedor. Estas dos corridas no acreditan la voz nativa
 el launcher, el reinicio, el APK ni la aprobación de ningún RF.
 No se repitieron lint, doctor ni bundles: esta entrega modifica documentación
 y guarda evidencia; no cambia código, dependencias ni configuración nativa.
+
+## Pendientes para cerrar HU-61
+
+Estos puntos no se pueden resolver desde el repositorio; requieren ejecutar en el
+Android físico y aportar capturas (PNG/JPG):
+
+- [ ] RF11 (CP-RF11-01 a 06): capturas de cada caso, con tasa y valores reales. Hasta entonces el resultado sigue siendo «Pasa (reportado)», sin evidencia.
+- [ ] CP-RF13-03: repetir el reinicio con captura posterior **sin red** (modo avión / Wi-Fi apagado) para acreditar la continuidad sin red.
+- [ ] CP-RF13-02: repetir la variante con cobro exigible del periodo.
+- [ ] Permiso de micrófono negado (CP-RF12): decidir con el PO si se reincorpora o se documenta la exclusión.
+- [ ] Ficha de ejecución: modelo, versión de Android, APK, SHA-256, commit y API usada.
+- [ ] Revisión del PO.
 
 ## Decisión por requisito
 
@@ -220,105 +232,105 @@ permanece abierto por las condiciones de cierre pendientes.
 
 Se copiaron **19 imágenes JPEG** originales a carpetas por caso. Solo se
 normalizaron los nombres y la extensión de `.jfif` a `.jpg`; el contenido
-se conserva sin cambios. El [índice de capturas](hu79-evidencias/indice-capturas.json)
+se conserva sin cambios. El [índice de capturas](hu61-evidencias/indice-capturas.json)
 relaciona cada nombre original con su archivo y descripción.
 
 ### Capturas CP-RF12-01
 
 Escucha con transcripción «$80», categoría Comida e importe 0 mientras el dictado sigue activo. Confirmar está desactivado en ese estado. El gasto final de 80 en Comida aparece en la última SS de CP-RF12-02, que también se usa como soporte de este caso.
 
-1. **dictado 80 comida**. [Abrir SS](hu79-evidencias/CP-RF12-01/01-dictado-80-comida.jpg).
+1. **dictado 80 comida**. [Abrir SS](hu61-evidencias/CP-RF12-01/01-dictado-80-comida.jpg).
 
-<img src="hu79-evidencias/CP-RF12-01/01-dictado-80-comida.jpg" alt="CP-RF12-01 01 dictado 80 comida" width="280">
+<img src="hu61-evidencias/CP-RF12-01/01-dictado-80-comida.jpg" alt="CP-RF12-01 01 dictado 80 comida" width="280">
 
 ### Capturas CP-RF12-02
 
 La frase no interpretable, el ruido y el silencio conservan los campos y muestran el aviso. El guardado manual posterior deja un gasto de 85 en Otros y el gasto anterior de 80 en Comida; total 165. La categoría manual difiere de la propuesta por el plan y se registra tal como aparece.
 
-1. **frase no interpretable**. [Abrir SS](hu79-evidencias/CP-RF12-02/01-frase-no-interpretable.jpg).
+1. **frase no interpretable**. [Abrir SS](hu61-evidencias/CP-RF12-02/01-frase-no-interpretable.jpg).
 
-<img src="hu79-evidencias/CP-RF12-02/01-frase-no-interpretable.jpg" alt="CP-RF12-02 01 frase no interpretable" width="280">
+<img src="hu61-evidencias/CP-RF12-02/01-frase-no-interpretable.jpg" alt="CP-RF12-02 01 frase no interpretable" width="280">
 
-2. **ruido**. [Abrir SS](hu79-evidencias/CP-RF12-02/02-ruido.jpg).
+2. **ruido**. [Abrir SS](hu61-evidencias/CP-RF12-02/02-ruido.jpg).
 
-<img src="hu79-evidencias/CP-RF12-02/02-ruido.jpg" alt="CP-RF12-02 02 ruido" width="280">
+<img src="hu61-evidencias/CP-RF12-02/02-ruido.jpg" alt="CP-RF12-02 02 ruido" width="280">
 
-3. **silencio**. [Abrir SS](hu79-evidencias/CP-RF12-02/03-silencio.jpg).
+3. **silencio**. [Abrir SS](hu61-evidencias/CP-RF12-02/03-silencio.jpg).
 
-<img src="hu79-evidencias/CP-RF12-02/03-silencio.jpg" alt="CP-RF12-02 03 silencio" width="280">
+<img src="hu61-evidencias/CP-RF12-02/03-silencio.jpg" alt="CP-RF12-02 03 silencio" width="280">
 
-4. **guardado manual**. [Abrir SS](hu79-evidencias/CP-RF12-02/04-guardado-manual.jpg).
+4. **guardado manual**. [Abrir SS](hu61-evidencias/CP-RF12-02/04-guardado-manual.jpg).
 
-<img src="hu79-evidencias/CP-RF12-02/04-guardado-manual.jpg" alt="CP-RF12-02 04 guardado manual" width="280">
+<img src="hu61-evidencias/CP-RF12-02/04-guardado-manual.jpg" alt="CP-RF12-02 04 guardado manual" width="280">
 
 ### Capturas CP-RF13-01
 
 Widget visible con BILLO · NOVIEMBRE y total 69.00, a las 12:18. La imagen acredita su presencia en el launcher; el selector y el gesto de apertura no se ven en esta SS.
 
-1. **widget visible**. [Abrir SS](hu79-evidencias/CP-RF13-01/01-widget-visible.jpg).
+1. **widget visible**. [Abrir SS](hu61-evidencias/CP-RF13-01/01-widget-visible.jpg).
 
-<img src="hu79-evidencias/CP-RF13-01/01-widget-visible.jpg" alt="CP-RF13-01 01 widget visible" width="280">
+<img src="hu61-evidencias/CP-RF13-01/01-widget-visible.jpg" alt="CP-RF13-01 01 widget visible" width="280">
 
 ### Capturas CP-RF13-02
 
 Secuencia visible: 80.00 al crear gasto, 95.00 al editar, 0.00 al borrar gasto, 0.00 al agregar la suscripción de 100 y 0.00 al borrarla. La edición usó 95.00 en lugar de los 95.50 propuestos. El usuario aclaró que la fecha de cobro era posterior y aún no generaba deuda: el total 0 es correcto para esa variante y el caso queda Pasa (reportado).
 
-1. **gasto 80**. [Abrir SS](hu79-evidencias/CP-RF13-02/01-gasto-80.jpg).
+1. **gasto 80**. [Abrir SS](hu61-evidencias/CP-RF13-02/01-gasto-80.jpg).
 
-<img src="hu79-evidencias/CP-RF13-02/01-gasto-80.jpg" alt="CP-RF13-02 01 gasto 80" width="280">
+<img src="hu61-evidencias/CP-RF13-02/01-gasto-80.jpg" alt="CP-RF13-02 01 gasto 80" width="280">
 
-2. **edicion 95**. [Abrir SS](hu79-evidencias/CP-RF13-02/02-edicion-95.jpg).
+2. **edicion 95**. [Abrir SS](hu61-evidencias/CP-RF13-02/02-edicion-95.jpg).
 
-<img src="hu79-evidencias/CP-RF13-02/02-edicion-95.jpg" alt="CP-RF13-02 02 edicion 95" width="280">
+<img src="hu61-evidencias/CP-RF13-02/02-edicion-95.jpg" alt="CP-RF13-02 02 edicion 95" width="280">
 
-3. **borrado gasto**. [Abrir SS](hu79-evidencias/CP-RF13-02/03-borrado-gasto.jpg).
+3. **borrado gasto**. [Abrir SS](hu61-evidencias/CP-RF13-02/03-borrado-gasto.jpg).
 
-<img src="hu79-evidencias/CP-RF13-02/03-borrado-gasto.jpg" alt="CP-RF13-02 03 borrado gasto" width="280">
+<img src="hu61-evidencias/CP-RF13-02/03-borrado-gasto.jpg" alt="CP-RF13-02 03 borrado gasto" width="280">
 
-4. **alta suscripcion 100**. [Abrir SS](hu79-evidencias/CP-RF13-02/04-alta-suscripcion-100.jpg).
+4. **alta suscripcion 100**. [Abrir SS](hu61-evidencias/CP-RF13-02/04-alta-suscripcion-100.jpg).
 
-<img src="hu79-evidencias/CP-RF13-02/04-alta-suscripcion-100.jpg" alt="CP-RF13-02 04 alta suscripcion 100" width="280">
+<img src="hu61-evidencias/CP-RF13-02/04-alta-suscripcion-100.jpg" alt="CP-RF13-02 04 alta suscripcion 100" width="280">
 
-5. **borrado suscripcion**. [Abrir SS](hu79-evidencias/CP-RF13-02/05-borrado-suscripcion.jpg).
+5. **borrado suscripcion**. [Abrir SS](hu61-evidencias/CP-RF13-02/05-borrado-suscripcion.jpg).
 
-<img src="hu79-evidencias/CP-RF13-02/05-borrado-suscripcion.jpg" alt="CP-RF13-02 05 borrado suscripcion" width="280">
+<img src="hu61-evidencias/CP-RF13-02/05-borrado-suscripcion.jpg" alt="CP-RF13-02 05 borrado suscripcion" width="280">
 
 ### Capturas CP-RF13-03
 
 Antes, 12:38: NOVIEMBRE y 200.00. Sin red: modo avión activo y Wi-Fi apagado, mismo total. Después, 12:39: imagen rotulada por el ejecutor como posterior al reinicio antes de abrir Billo, mismo mes/total. Apertura, 12:40: Inicio también muestra 200.00. Los indicadores de red vuelven a aparecer después del reinicio; no se afirma continuidad sin red. No se aportó SS de tiempo de actividad ni identificación del build.
 
-1. **antes reinicio**. [Abrir SS](hu79-evidencias/CP-RF13-03/01-antes-reinicio.jpg).
+1. **antes reinicio**. [Abrir SS](hu61-evidencias/CP-RF13-03/01-antes-reinicio.jpg).
 
-<img src="hu79-evidencias/CP-RF13-03/01-antes-reinicio.jpg" alt="CP-RF13-03 01 antes reinicio" width="280">
+<img src="hu61-evidencias/CP-RF13-03/01-antes-reinicio.jpg" alt="CP-RF13-03 01 antes reinicio" width="280">
 
-2. **sin red**. [Abrir SS](hu79-evidencias/CP-RF13-03/02-sin-red.jpg).
+2. **sin red**. [Abrir SS](hu61-evidencias/CP-RF13-03/02-sin-red.jpg).
 
-<img src="hu79-evidencias/CP-RF13-03/02-sin-red.jpg" alt="CP-RF13-03 02 sin red" width="280">
+<img src="hu61-evidencias/CP-RF13-03/02-sin-red.jpg" alt="CP-RF13-03 02 sin red" width="280">
 
-3. **despues reinicio**. [Abrir SS](hu79-evidencias/CP-RF13-03/03-despues-reinicio.jpg).
+3. **despues reinicio**. [Abrir SS](hu61-evidencias/CP-RF13-03/03-despues-reinicio.jpg).
 
-<img src="hu79-evidencias/CP-RF13-03/03-despues-reinicio.jpg" alt="CP-RF13-03 03 despues reinicio" width="280">
+<img src="hu61-evidencias/CP-RF13-03/03-despues-reinicio.jpg" alt="CP-RF13-03 03 despues reinicio" width="280">
 
-4. **apertura app**. [Abrir SS](hu79-evidencias/CP-RF13-03/04-apertura-app.jpg).
+4. **apertura app**. [Abrir SS](hu61-evidencias/CP-RF13-03/04-apertura-app.jpg).
 
-<img src="hu79-evidencias/CP-RF13-03/04-apertura-app.jpg" alt="CP-RF13-03 04 apertura app" width="280">
+<img src="hu61-evidencias/CP-RF13-03/04-apertura-app.jpg" alt="CP-RF13-03 04 apertura app" width="280">
 
 ### Capturas CP-RF13-04
 
 A muestra 200 y el diálogo de cierre de sesión. En la SS rotulada tras reinicio, el widget muestra «Abre Billo». B (QA) muestra 0 tanto en Inicio como en el widget. El archivo de logout llegó con nombre CP-RF14-04, pero la anotación dentro de la imagen dice CP-RF13-04; se agrupó por ese contenido sin modificar la imagen.
 
-1. **confirmacion logout**. [Abrir SS](hu79-evidencias/CP-RF13-04/01-confirmacion-logout.jpg).
+1. **confirmacion logout**. [Abrir SS](hu61-evidencias/CP-RF13-04/01-confirmacion-logout.jpg).
 
-<img src="hu79-evidencias/CP-RF13-04/01-confirmacion-logout.jpg" alt="CP-RF13-04 01 confirmacion logout" width="280">
+<img src="hu61-evidencias/CP-RF13-04/01-confirmacion-logout.jpg" alt="CP-RF13-04 01 confirmacion logout" width="280">
 
-2. **sin sesion tras reinicio**. [Abrir SS](hu79-evidencias/CP-RF13-04/02-sin-sesion-tras-reinicio.jpg).
+2. **sin sesion tras reinicio**. [Abrir SS](hu61-evidencias/CP-RF13-04/02-sin-sesion-tras-reinicio.jpg).
 
-<img src="hu79-evidencias/CP-RF13-04/02-sin-sesion-tras-reinicio.jpg" alt="CP-RF13-04 02 sin sesion tras reinicio" width="280">
+<img src="hu61-evidencias/CP-RF13-04/02-sin-sesion-tras-reinicio.jpg" alt="CP-RF13-04 02 sin sesion tras reinicio" width="280">
 
-3. **inicio cuenta b**. [Abrir SS](hu79-evidencias/CP-RF13-04/03-inicio-cuenta-b.jpg).
+3. **inicio cuenta b**. [Abrir SS](hu61-evidencias/CP-RF13-04/03-inicio-cuenta-b.jpg).
 
-<img src="hu79-evidencias/CP-RF13-04/03-inicio-cuenta-b.jpg" alt="CP-RF13-04 03 inicio cuenta b" width="280">
+<img src="hu61-evidencias/CP-RF13-04/03-inicio-cuenta-b.jpg" alt="CP-RF13-04 03 inicio cuenta b" width="280">
 
-4. **widget cuenta b**. [Abrir SS](hu79-evidencias/CP-RF13-04/04-widget-cuenta-b.jpg).
+4. **widget cuenta b**. [Abrir SS](hu61-evidencias/CP-RF13-04/04-widget-cuenta-b.jpg).
 
-<img src="hu79-evidencias/CP-RF13-04/04-widget-cuenta-b.jpg" alt="CP-RF13-04 04 widget cuenta b" width="280">
+<img src="hu61-evidencias/CP-RF13-04/04-widget-cuenta-b.jpg" alt="CP-RF13-04 04 widget cuenta b" width="280">

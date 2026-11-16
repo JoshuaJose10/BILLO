@@ -5,7 +5,7 @@ Actualización: 2026-11-15, America/Mexico_City. La columna histórica procede d
 El dictamen actual y sus evidencias están en el
 [reporte de entrega](qa/entrega-rf7-rf9-rf10-reporte.md).
 La ampliación RF11–RF13 se revisa por separado en el
-[reporte HU-79](qa/hu79-reporte.md), con ejecución manual reportada y 19 SS incorporadas.
+[reporte HU-79](qa/hu61-reporte.md), con ejecución manual reportada y 19 SS incorporadas.
 
 RF1–RF10 quedan aprobados por indicación del usuario el 2026-11-14, quien informó
 que los bugs nuevos de la revisión se corrigieron en otra tarea. Posteriormente

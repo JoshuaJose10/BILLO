@@ -3,13 +3,13 @@
 Usa el APK de **HU-53 en un Android físico**. No necesitas conectarlo por USB.
 Los pasos y resultados esperados de los 12 casos están en el
 [plan, sección 5.1](../../plan-de-pruebas.md#51-hu-79-moneda-voz-y-widget-en-apk-hu-53).
-Anota lo observado en el [reporte](../hu79-reporte.md), aunque falle.
+Anota lo observado en el [reporte](../hu61-reporte.md), aunque falle.
 Por indicación del usuario el **2026-11-15**, toda evidencia manual se entrega
 como **capturas de pantalla (SS) en PNG o JPG**, ordenadas por caso y paso.
 
 Las 19 SS aportadas el 2026-11-15 ya están organizadas en carpetas
 `CP-RF12-01/`, `CP-RF12-02/` y `CP-RF13-01/` a `CP-RF13-04/`.
-El [anexo del reporte](../hu79-reporte.md#anexo--capturas-incorporadas)
+El [anexo del reporte](../hu61-reporte.md#anexo--capturas-incorporadas)
 las muestra con descripción; el [índice](indice-capturas.json) conserva los
 nombres originales. RF11 tiene aprobación declarada sin SS. En CP-RF13-02 el
 usuario aclaró que la fecha de cobro era posterior y aún no generaba deuda;

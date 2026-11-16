@@ -84,7 +84,7 @@ Las pruebas unitarias y HTTP no aprueban por sí solas la navegación ni los mó
 
 Usar un Android físico y un APK de release identificado según la sección 9.
 Registrar el resultado real, Pasa/Falla, evidencia y bug en el
-[reporte HU-79](qa/hu79-reporte.md). **Pendiente** significa sin ejecutar;
+[reporte HU-79](qa/hu61-reporte.md). **Pendiente** significa sin ejecutar;
 **Bloqueado** significa que una precondición impide ejecutar. Ninguno cuenta
 como Pasa/Falla. Registrar cada variante en el reporte; el caso pasa solo
 cuando todas sus variantes pasan.
@@ -219,14 +219,14 @@ configuración de API está incluida en el APK de release: editar `.env` local n
 redirige el APK instalado. Sin entorno compatible o captura HTTP sanitizada,
 registrar Bloqueado; modo avión no prueba por sí solo caída del proveedor.
 
-La [guía manual](qa/hu79-evidencias/GUIA-ANDROID.md) explica qué SS capturar
+La [guía manual](qa/hu61-evidencias/GUIA-ANDROID.md) explica qué SS capturar
 por caso; el reinicio se documenta con capturas antes/después y bitácora.
 El 2026-11-15 se incorporaron 19 SS de RF12/RF13 al anexo del reporte; RF11
 se aprobó por indicación del usuario sin SS. En CP-RF13-02 el usuario aclaró
 que ejecutó la variante con fecha de cobro posterior y sin deuda: total 0 correcto para esa
 variante. El reporte registra Pasa (reportado), conserva las SS y distingue
 esta ejecución de la variante del plan con cobro del periodo.
-El [reporte](qa/hu79-reporte.md) conserva esperado, real, resultado, evidencia,
+El [reporte](qa/hu61-reporte.md) conserva esperado, real, resultado, evidencia,
 bugs, decisiones y avance diario. Cada Falla debe enlazar un bug registrado con
 la [plantilla](plantilla-reporte-bug.md), con responsable acordado y constancia
 del aviso del mismo día (destinatario, fecha/hora y enlace). No confundir un
