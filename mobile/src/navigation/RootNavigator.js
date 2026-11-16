@@ -4,6 +4,7 @@ import EstadoPantalla from '../components/EstadoPantalla';
 import { useAuth } from '../context/AuthContext';
 import InvitacionCuentaScreen from '../screens/InvitacionCuentaScreen';
 import AdminCatalogoScreen from '../screens/AdminCatalogoScreen';
+import ElegirCategoriasScreen from '../screens/ElegirCategoriasScreen';
 import MembresiaScreen from '../screens/MembresiaScreen';
 import MisCategoriasScreen from '../screens/MisCategoriasScreen';
 import NuevoGastoScreen from '../screens/NuevoGastoScreen';
@@ -38,11 +39,14 @@ const HOJAS_VISITANTE = [
   'InvitacionCuenta',
 ];
 
+// Cuenta recién creada (HU-89): el backend la marca con categorias_configuradas = false y, hasta
+// que elige sus categorías, solo existe ElegirCategorias. Se compara con false porque las sesiones
+// guardadas antes de HU-89 no traen el campo. El modo exploración nunca la muestra.
 // Con token se muestran Main y las hojas (NuevoGasto, Perfil, Presupuesto, Membresia); en el modo
 // exploración, Main con datos de ejemplo y la invitación en lugar de las hojas; si no, Auth. Al
 // cambiar el token o el modo React Navigation cambia de navegador solo, sin navigation.reset.
 export default function RootNavigator() {
-  const { token, visitante, cargando } = useAuth();
+  const { token, usuario, visitante, cargando } = useAuth();
   const { colors } = useTema();
 
   // HU-23 (spike): pantalla de pruebas de voz y widget, solo en desarrollo.
@@ -59,7 +63,13 @@ export default function RootNavigator() {
 
   return (
     <Stack.Navigator>
-      {token ? (
+      {token && usuario?.categorias_configuradas === false ? (
+        <Stack.Screen
+          name="ElegirCategorias"
+          component={ElegirCategoriasScreen}
+          options={{ headerShown: false }}
+        />
+      ) : token ? (
         <>
           <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
           <Stack.Screen name="NuevoGasto" component={NuevoGastoScreen} options={opcionesHoja} />

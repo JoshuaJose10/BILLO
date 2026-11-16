@@ -15,6 +15,7 @@ import {
   combinarCategoriasConPredefinidas,
   extraerCategoriasPropias,
   iconoCategoria,
+  idsSeleccionados,
   LONGITUD_MAX_CATEGORIA,
   MENSAJE_AVISO_PREDEFINIDA_GASTOS,
   MENSAJE_CATEGORIA_EN_USO,
@@ -174,5 +175,21 @@ describe('colores e ícono de categorías propias (HU-89 / HU-90)', () => {
       mensajeError('CATEGORIA_EN_USO'),
       'Esta categoría tiene gastos o presupuestos; no se puede borrar',
     );
+  });
+});
+
+describe('idsSeleccionados (HU-89)', () => {
+  test('devuelve los ids encendidos en orden: el body de «Omitir» con las predefinidas por defecto', () => {
+    const lista = [
+      { id: 1, nombre: 'Comida', seleccionada: true },
+      { id: 2, nombre: 'Transporte', seleccionada: false },
+      { id: 3, nombre: 'Salud', seleccionada: true },
+    ];
+    assert.deepEqual(idsSeleccionados(lista), [1, 3]);
+  });
+
+  test('tolera lista vacía, null y elementos nulos', () => {
+    assert.deepEqual(idsSeleccionados(null), []);
+    assert.deepEqual(idsSeleccionados([null, { id: 4 }]), []);
   });
 });
