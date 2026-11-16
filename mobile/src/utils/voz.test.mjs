@@ -434,3 +434,67 @@ describe('pareceIngreso (HU-94)', () => {
     }
   });
 });
+
+describe('categorías base ampliadas (HU-94)', () => {
+  const NUEVAS = [
+    'Comida rápida',
+    'Súper',
+    'Café',
+    'Hogar',
+    'Ropa',
+    'Educación',
+    'Mascotas',
+    'Cuidado personal',
+  ];
+  const TODAS = [...CATEGORIAS, ...NUEVAS];
+
+  it('con todas activas, cada sinónimo cae en su categoría', () => {
+    const esperado = {
+      'tacos al pastor': 'Comida rápida',
+      'una pizza grande': 'Comida rápida',
+      'un hot dog': 'Comida rápida',
+      'despensa del mes': 'Súper',
+      'compras en walmart': 'Súper',
+      'un café en starbucks': 'Café',
+      'la renta del depa': 'Hogar',
+      'zapatos nuevos': 'Ropa',
+      'la colegiatura': 'Educación',
+      'croquetas del perro': 'Mascotas',
+      'la peluquería': 'Cuidado personal',
+      'comí en un restaurante': 'Comida',
+      'pagué la luz': 'Servicios',
+      'el dentista': 'Salud',
+    };
+    for (const [texto, cat] of Object.entries(esperado)) {
+      assert.equal(categoria(texto, TODAS), cat, texto);
+    }
+  });
+
+  it('sin la lista del usuario se reconocen todas', () => {
+    assert.equal(interpretarGasto('tacos 80').categoria, 'Comida rápida');
+  });
+
+  it('si la nueva no está activa cae en la más cercana: Comida, Servicios, Salud u Otros', () => {
+    const esperado = {
+      tacos: 'Comida',
+      'despensa del mes': 'Comida',
+      'un café': 'Comida',
+      'la renta': 'Servicios',
+      'corte de pelo': 'Salud',
+      'zapatos nuevos': 'Otros',
+      'la colegiatura': 'Otros',
+      'croquetas del perro': 'Otros',
+    };
+    for (const [texto, cat] of Object.entries(esperado)) {
+      assert.equal(categoria(texto, CATEGORIAS), cat, texto);
+    }
+  });
+
+  it('el fallback solo aplica a las no activas y exige que la cercana esté activa', () => {
+    assert.equal(categoria('tacos', ['Comida', 'Café']), 'Comida');
+    assert.equal(categoria('un café', ['Comida', 'Café']), 'Café');
+    assert.equal(categoria('un café', ['Servicios']), null);
+    assert.equal(categoria('tacos en el super', TODAS), null);
+    assert.equal(categoria('tacos en el super', CATEGORIAS), 'Comida');
+  });
+});

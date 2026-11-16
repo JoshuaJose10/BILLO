@@ -12,10 +12,19 @@ import { gastoPorCategoria } from '../utils/resumenMes.js';
 
 const redondear2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
 
-const CATEGORIAS = ['Comida', 'Transporte', 'Entretenimiento', 'Servicios', 'Salud', 'Otros'].map(
-  (nombre, i) => ({ id: i + 1, nombre, tipo: 'gasto', es_predefinida: true }),
+const CATEGORIAS = [
+  'Comida',
+  'Transporte',
+  'Entretenimiento',
+  'Servicios',
+  'Salud',
+  'Otros',
+  'Súper',
+  'Café',
+].map((nombre, i) => ({ id: i + 1, nombre, tipo: 'gasto', es_predefinida: true }));
+const [COMIDA, TRANSPORTE, ENTRETENIMIENTO, SERVICIOS, SALUD, OTROS, SUPER, CAFE] = CATEGORIAS.map(
+  (c) => c.id,
 );
-const [COMIDA, TRANSPORTE, ENTRETENIMIENTO, SERVICIOS, SALUD, OTROS] = CATEGORIAS.map((c) => c.id);
 
 // [categoria_id, monto, día del mes, metodo_pago, nota]. En el mes actual el día se recorta a hoy
 // para que ningún gasto quede en el futuro.
@@ -31,7 +40,7 @@ const GASTOS_MES_ANTERIOR = [
 ];
 
 const GASTOS_MES_ACTUAL = [
-  [COMIDA, 320, 1, 'tarjeta', 'Despensa'],
+  [SUPER, 320, 1, 'tarjeta', 'Despensa'],
   [SERVICIOS, 499, 2, 'transferencia', 'Internet'],
   [TRANSPORTE, 250, 3, 'efectivo', 'Gasolina'],
   [ENTRETENIMIENTO, 420, 4, 'tarjeta', 'Boletos de cine'],
@@ -41,7 +50,7 @@ const GASTOS_MES_ACTUAL = [
   [OTROS, 145, 8, 'efectivo', 'Regalo'],
   [TRANSPORTE, 120, 9, 'tarjeta', 'Uber'],
   [ENTRETENIMIENTO, 180, 10, 'tarjeta', 'Videojuego'],
-  [COMIDA, 96, 11, 'efectivo', 'Café'],
+  [CAFE, 96, 11, 'efectivo', 'Café'],
   [COMIDA, 248, 12, 'tarjeta', 'Cena'],
 ];
 

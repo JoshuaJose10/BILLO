@@ -9,6 +9,21 @@ const MIGRACION_020 = fs.readFileSync(
   'utf8'
 );
 
+const MIGRACION_021 = fs.readFileSync(
+  path.resolve(__dirname, '../../migrations/021_categorias_base_ampliadas.sql'),
+  'utf8'
+);
+const NUEVAS_021 = [
+  'Comida rápida',
+  'Súper',
+  'Café',
+  'Hogar',
+  'Ropa',
+  'Educación',
+  'Mascotas',
+  'Cuidado personal',
+];
+
 module.exports = (getContext) =>
   describe('Categorías por usuario (feature/categorias-usuario)', () => {
     let ctx;
@@ -75,6 +90,51 @@ module.exports = (getContext) =>
         [regBody.usuario.id]
       );
       assert.equal(cfg[0].categorias_configuradas, false);
+    });
+
+    it('migración 021 es idempotente: inactivas para usuarios existentes y activas en cuentas nuevas', async () => {
+      // Usuario previo a la 021: sin las nuevas en su selección.
+      await ctx.pool.query(
+        `DELETE FROM usuario_categorias
+         WHERE usuario_id = $1
+           AND categoria_id IN (SELECT id FROM categorias WHERE nombre = ANY($2::text[]))`,
+        [ctx.a.usuario.id, NUEVAS_021]
+      );
+
+      await ctx.pool.query(MIGRACION_021);
+      await ctx.pool.query(MIGRACION_021);
+
+      const { rows: filas } = await ctx.pool.query(
+        `SELECT nombre, tipo, es_predefinida, usuario_id FROM categorias WHERE nombre = ANY($1::text[])`,
+        [NUEVAS_021]
+      );
+      assert.equal(filas.length, NUEVAS_021.length);
+      assert.ok(filas.every((f) => f.tipo === 'gasto' && f.es_predefinida && f.usuario_id === null));
+
+      // Existente: no las ve activas, pero sí en el catálogo para elegirlas.
+      const { body: activas } = await ctx.api
+        .get('/categorias')
+        .set('Authorization', `Bearer ${ctx.a.token}`)
+        .expect(200);
+      assert.equal(activas.some((c) => NUEVAS_021.includes(c.nombre)), false);
+      const { body: catalogo } = await ctx.api
+        .get('/categorias/predefinidas')
+        .set('Authorization', `Bearer ${ctx.a.token}`)
+        .expect(200);
+      const delCatalogo = catalogo.categorias.filter((c) => NUEVAS_021.includes(c.nombre));
+      assert.equal(delCatalogo.length, NUEVAS_021.length);
+      assert.ok(delCatalogo.every((c) => c.seleccionada === false));
+
+      // Cuenta nueva: las recibe activas.
+      const { body: reg } = await ctx.api
+        .post('/auth/register')
+        .send({ nombre: 'Nueva', email: 'nueva.021@example.com', password: ctx.password })
+        .expect(201);
+      const { body: nuevas } = await ctx.api
+        .get('/categorias')
+        .set('Authorization', `Bearer ${reg.token}`)
+        .expect(200);
+      for (const nombre of NUEVAS_021) assert.ok(nuevas.some((c) => c.nombre === nombre), nombre);
     });
 
     it('usuario existente conserva predefinidas disponibles y recibe error 401 sin token', async () => {

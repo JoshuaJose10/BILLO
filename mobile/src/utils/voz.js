@@ -258,23 +258,25 @@ export const SINONIMOS = {
     'comimos',
     'restaurante',
     'restaurant',
-    'taco',
-    'tacos',
-    'super',
-    'supermercado',
-    'mercado',
-    'despensa',
-    'cafe',
     'desayuno',
     'almuerzo',
     'cena',
     'cenamos',
-    'pizza',
-    'hamburguesa',
-    'tortas',
-    'torta',
     'sushi',
   ],
+  'Comida rápida': [
+    'taco',
+    'tacos',
+    'torta',
+    'tortas',
+    'hamburguesa',
+    'pizza',
+    'hot dog',
+    'antojitos',
+    'garnachas',
+  ],
+  Súper: ['super', 'supermercado', 'despensa', 'mercado', 'walmart', 'oxxo', 'soriana', 'bodega'],
+  Café: ['cafe', 'starbucks', 'frappe'],
   Transporte: [
     'transporte',
     'uber',
@@ -325,12 +327,30 @@ export const SINONIMOS = {
     'dentista',
     'hospital',
   ],
+  Hogar: ['renta', 'mueble', 'muebles', 'limpieza', 'ferreteria'],
+  Ropa: ['ropa', 'zapatos', 'tenis', 'playera', 'pantalon'],
+  Educación: ['colegiatura', 'libros', 'libro', 'curso', 'inscripcion', 'utiles'],
+  Mascotas: ['veterinario', 'croquetas', 'mascota'],
+  'Cuidado personal': ['corte', 'peluqueria', 'barberia', 'shampoo', 'crema'],
   Otros: ['otros', 'otro', 'otra'],
+};
+
+// Si el usuario no tiene activa una de las nuevas (GET /categorias), sus palabras caen en la más
+// cercana que sí tiene; las demás, en Otros.
+const FALLBACK_CATEGORIA = {
+  'Comida rápida': 'Comida',
+  Súper: 'Comida',
+  Café: 'Comida',
+  Hogar: 'Servicios',
+  'Cuidado personal': 'Salud',
+  Ropa: 'Otros',
+  Educación: 'Otros',
+  Mascotas: 'Otros',
 };
 
 // La categoría mencionada, o null si no se menciona ninguna o se mencionan varias distintas.
 // `nombres` son las categorías del usuario (GET /categorias): se reconocen por su nombre, también
-// las personalizadas; las del seed además por sus sinónimos. Devuelve el nombre tal como viene en
+// las personalizadas; las del seed además por sus sinónimos (y los de las nuevas que no tenga). Devuelve el nombre tal como viene en
 // `nombres` (o el del seed si no se pasan).
 // `sinonimos`: los del seed de categorías, o SINONIMOS_FUENTES para los ingresos. Con `primera`,
 // si coinciden varias gana la primera de `nombres` (en ingresos «sueldo de la chamba» es Sueldo).
@@ -339,12 +359,17 @@ function detectarCategoria(tokens, nombres, sinonimos = SINONIMOS, primera = fal
   const encontradas = new Set();
   const palabras = new Set(tokens);
   const texto = ` ${tokens.join(' ')} `;
+  const activas = new Set(lista.map((n) => normalizar(n).trim()));
 
   for (const nombre of lista) {
     const clave = normalizar(nombre).trim();
     if (!clave) continue;
     const base = Object.keys(sinonimos).find((k) => normalizar(k) === clave);
-    const terminos = [clave, ...(base ? sinonimos[base] : [])];
+    // Las palabras de las predefinidas nuevas que no están activas caen en `base`.
+    const heredadas = Object.keys(sinonimos)
+      .filter((k) => FALLBACK_CATEGORIA[k] === base && !activas.has(normalizar(k)))
+      .flatMap((k) => [normalizar(k), ...sinonimos[k]]);
+    const terminos = [clave, ...(base ? sinonimos[base] : []), ...(base ? heredadas : [])];
     const aparece = terminos.some((t) =>
       t.includes(' ') ? texto.includes(` ${t} `) : palabras.has(t),
     );
