@@ -1,0 +1,141 @@
+{
+  "received_date": "2026-11-15",
+  "timezone": "America/Mexico_City",
+  "source_folder": "CP-RF12-13 (Escritorio de OneDrive)",
+  "format": "JPEG original copiado como .jpg, sin modificar contenido",
+  "files": [
+    {
+      "original": "CP-RF12-01-al-decir-80-pesos-de-comida.jfif",
+      "case": "CP-RF12-01",
+      "file": "docs/qa/hu61-evidencias/CP-RF12-01/01-dictado-80-comida.jpg",
+      "description": "Dictado de 80 pesos en comida; escucha activa y transcripcion parcial.",
+      "sha256": "2adee51fc54025729de5490dd266bb4f1486118059f56ffbc793529d2f05e186"
+    },
+    {
+      "original": "CP-RF12-02-decir-eh-este-pues.jfif",
+      "case": "CP-RF12-02",
+      "file": "docs/qa/hu61-evidencias/CP-RF12-02/01-frase-no-interpretable.jpg",
+      "description": "Frase eh este pues; conserva 80/Comida y muestra aviso.",
+      "sha256": "6a45cb8f3fab2ee48c621a709eb2bd740d4b383b2b61dcd17becde39370fb1dc"
+    },
+    {
+      "original": "CP-RF12-02-hacer-mucho-ruido-sin-decir-nada.jfif",
+      "case": "CP-RF12-02",
+      "file": "docs/qa/hu61-evidencias/CP-RF12-02/02-ruido.jpg",
+      "description": "Ruido sin frase; conserva campos y muestra aviso.",
+      "sha256": "68d071afaa6d3638fcb8228400e25879c8c054fa711b24ed1b39f0c9bd19d590"
+    },
+    {
+      "original": "CP-RF12-02-silenció.jfif",
+      "case": "CP-RF12-02",
+      "file": "docs/qa/hu61-evidencias/CP-RF12-02/03-silencio.jpg",
+      "description": "Silencio; campos conservados y aviso.",
+      "sha256": "27062abe8ee11828a30c8544890e3dc067ec088d8306dc3d02b3ff53c7a0b22d"
+    },
+    {
+      "original": "CP-RF12-02-agregar-gasto-unico-despues-de-confirmar.jfif",
+      "case": "CP-RF12-02",
+      "file": "docs/qa/hu61-evidencias/CP-RF12-02/04-guardado-manual.jpg",
+      "description": "Lista con gasto manual de 85 y gasto previo de 80.",
+      "sha256": "de1eb6cd2e3f2458708905787fe7970bd5909051c8a781a6c7f9aa748e4203e7"
+    },
+    {
+      "original": "CP-RF13-01.jfif",
+      "case": "CP-RF13-01",
+      "file": "docs/qa/hu61-evidencias/CP-RF13-01/01-widget-visible.jpg",
+      "description": "Widget Billo visible con NOVIEMBRE y 69.00.",
+      "sha256": "118244ab1c49f278062b4109b5632ae9cb32751804af348b59f60db3b885c534"
+    },
+    {
+      "original": "CP-RF13-02-Gasto+80.jfif",
+      "case": "CP-RF13-02",
+      "file": "docs/qa/hu61-evidencias/CP-RF13-02/01-gasto-80.jpg",
+      "description": "Widget tras agregar gasto: 80.00.",
+      "sha256": "7e1c2ca372889192c1760d064a597eb301943fa564b14bb0e66aba77d2b67245"
+    },
+    {
+      "original": "CP-RF13-02-Edicion-a-95.jfif",
+      "case": "CP-RF13-02",
+      "file": "docs/qa/hu61-evidencias/CP-RF13-02/02-edicion-95.jpg",
+      "description": "Widget tras editar gasto: 95.00; variante respecto a 95.50 del plan.",
+      "sha256": "48d1b8fda080ee0a61651b978a3bac0af480ad9f00a2403f0920fb1b851226ce"
+    },
+    {
+      "original": "CP-RF13-02-Borrar-gasto.jfif",
+      "case": "CP-RF13-02",
+      "file": "docs/qa/hu61-evidencias/CP-RF13-02/03-borrado-gasto.jpg",
+      "description": "Widget tras borrar gasto: 0.00.",
+      "sha256": "1a14190ae000a8cd8d1a5072bb32a3ce238205f92565355b97cad8228b3063ac"
+    },
+    {
+      "original": "CP-RF13-02-agregar-suscripcion-de-$100-sin-cobrar-aun.jfif",
+      "case": "CP-RF13-02",
+      "file": "docs/qa/hu61-evidencias/CP-RF13-02/04-alta-suscripcion-100.jpg",
+      "description": "Widget tras alta de suscripción de 100 con fecha de cobro posterior y sin deuda: 0.00, correcto para la variante según aclaración del usuario.",
+      "sha256": "cc3984ec5e4aef06223b0e8cb397f2af04b2de7fd30ba22cdc29f96782bbcd09"
+    },
+    {
+      "original": "CP-RF13-02-Borrar-suscripcion-sin-cobrar-de-$100.jfif",
+      "case": "CP-RF13-02",
+      "file": "docs/qa/hu61-evidencias/CP-RF13-02/05-borrado-suscripcion.jpg",
+      "description": "Widget tras borrar suscripcion: 0.00.",
+      "sha256": "c8d8127e08c98d3484ffd78364b3397a54c0cc0e12985c0f9b6985a8188bdd27"
+    },
+    {
+      "original": "CP-RF13-03-captura-del-widget-con-mestotal-antes-del-reinicio.jfif",
+      "case": "CP-RF13-03",
+      "file": "docs/qa/hu61-evidencias/CP-RF13-03/01-antes-reinicio.jpg",
+      "description": "Antes del reinicio: NOVIEMBRE y 200.00, 12:38.",
+      "sha256": "e3b8c54b6052d66c5f20fed4d29266708a0600699b72f33c10f97ef477f1d199"
+    },
+    {
+      "original": "CP-RF13-03-WIFI-y-datos-apagados.jfif",
+      "case": "CP-RF13-03",
+      "file": "docs/qa/hu61-evidencias/CP-RF13-03/02-sin-red.jpg",
+      "description": "Modo avion con Wi-Fi apagado: 200.00, 12:38.",
+      "sha256": "9b7c725f0969db7b5028070d345f01e442455d57262972359da452844623c7e9"
+    },
+    {
+      "original": "CP-RF13-03-Widget-despues-del-reinicio-antes-de-abrir-billo.jfif",
+      "case": "CP-RF13-03",
+      "file": "docs/qa/hu61-evidencias/CP-RF13-03/03-despues-reinicio.jpg",
+      "description": "Despues del reinicio segun anotacion: NOVIEMBRE y 200.00, 12:39; indicadores de red activos.",
+      "sha256": "f12a2e64e0d52215b17bf8fb1feb75af15e45c9e1b615573a744d54e0528d408"
+    },
+    {
+      "original": "CP-RF13-03-APP-abierta-al-tocar-el-widget.jfif",
+      "case": "CP-RF13-03",
+      "file": "docs/qa/hu61-evidencias/CP-RF13-03/04-apertura-app.jpg",
+      "description": "App abierta al tocar widget; Inicio total 200.00, 12:40.",
+      "sha256": "801ec8d3210daf791571db6891e9a6a49f6567d40658ea37d1bc3a1670137573"
+    },
+    {
+      "original": "CP-RF14-04-Logout.jfif",
+      "case": "CP-RF13-04",
+      "file": "docs/qa/hu61-evidencias/CP-RF13-04/01-confirmacion-logout.jpg",
+      "description": "Dialogo de cierre de sesion; anotacion CP-RF13-04 aunque el nombre original dice CP-RF14-04.",
+      "sha256": "ee8ef8e1d9247240fa3f550fbb2d12b771590965d8ec2adb2c5ef94a05c9fde5"
+    },
+    {
+      "original": "CP-RF13-04-reinicio-y-persistencia-de-este-estado.jfif",
+      "case": "CP-RF13-04",
+      "file": "docs/qa/hu61-evidencias/CP-RF13-04/02-sin-sesion-tras-reinicio.jpg",
+      "description": "Widget Abre Billo tras reinicio segun anotacion, 13:00.",
+      "sha256": "e1b017d01c7101290f637091f44a1404e5decf7ab7df5bcb1de7cab77c61a9e5"
+    },
+    {
+      "original": "CP-RF13-04-acceso-de-B-e-inicio-con-total-distinto.jfif",
+      "case": "CP-RF13-04",
+      "file": "docs/qa/hu61-evidencias/CP-RF13-04/03-inicio-cuenta-b.jpg",
+      "description": "Cuenta QA usada como B: Inicio 0.00, 13:02.",
+      "sha256": "ad46a752a2c5840889928504c3c71e17949176fcebca7a8a504e0d0d4fcc14e4"
+    },
+    {
+      "original": "CP-RF13-04-Widget-de-usuario-B.jfif",
+      "case": "CP-RF13-04",
+      "file": "docs/qa/hu61-evidencias/CP-RF13-04/04-widget-cuenta-b.jpg",
+      "description": "Widget de cuenta B: NOVIEMBRE y 0.00, 13:02.",
+      "sha256": "46242b7d1db4b6a12b3b1464a4e02b62c3aae335333ecbb363826a9114888202"
+    }
+  ]
+}

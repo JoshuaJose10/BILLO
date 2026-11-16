@@ -1,5 +1,12 @@
 # QA de entrega — RF7, RF9 y RF10 (APK HU-53)
 
+Formato de evidencia manual actualizado el **2026-11-15** por indicación del
+usuario: **solo SS PNG/JPG** por caso, variante y paso. Incorporar las nuevas
+capturas en las filas correspondientes y describir las acciones y resultados
+reales. Los enlaces al video del 14/nov que figuran abajo se conservan como
+antecedente histórico; no son una instrucción para generar nuevas grabaciones.
+No se han aportado SS nuevas ni cambiado resultados por este ajuste de formato.
+
 ## Dictamen al 2026-11-14
 
 **RF1–RF10: APROBADOS por indicación del usuario.**
@@ -183,6 +190,6 @@ La [lista de requisitos](../lista-requisitos.md) refleja estas decisiones.
 La aprobación registrada procede de la solicitud del usuario. La ejecución
 se reportó realizada y el video está asociado a los 39 casos. Para completar
 el reporte, revisar el contenido, registrar los resultados reales y los datos
-del APK, dispositivo, fecha y ejecutor. Añadir minutos por caso cuando estén
-identificados, sin exigir capturas individuales del mismo flujo.
+del APK, dispositivo, fecha y ejecutor. Incorporar SS PNG/JPG por caso y paso
+según la guía actualizada; anotar las acciones entre capturas en el resultado real.
 Nombre, fecha y firma de quien ejecute QA/PO: **pendientes**.

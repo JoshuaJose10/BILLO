@@ -1,0 +1,2677 @@
+﻿
+> backend@1.0.0 test
+> node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test test/integration.test.cjs
+
+TAP version 13
+# ◇ injected env (0) from .env
+# OK 001_usuarios.sql
+# OK 002_categorias.sql
+# OK 003_gastos.sql
+# OK 004_presupuestos.sql
+# OK 005_catalogo_servicios.sql
+# OK 006_membresias.sql
+# OK 007_seed_categorias.sql
+# OK 008_usuarios_email_minusculas.sql
+# OK 009_indices_y_restricciones.sql
+# OK 010_seed_catalogo_servicios.sql
+# OK 011_sprint3_notificaciones_y_moneda.sql
+# OK 012_catalogo_planes_mexico.sql
+# OK 013_token_push_unico.sql
+# OK 014_recuperar_contrasena.sql
+# OK 015_ingresos.sql
+# OK 016_recuperacion_zona_horaria.sql
+# OK 017_membresias_estado.sql
+# OK 018_membresias_moneda.sql
+# OK 019_pagos_membresia.sql
+# OK 020_categorias_usuario.sql
+# Migraciones completadas: 20 archivo(s) aplicado(s).
+# Subtest: API real + PostgreSQL temporal
+    # Subtest: Autenticación (Postman 01 / RF1)
+        # Subtest: AUTH-QA-01 / CP-RF1-01: registro devuelve usuario y JWT utilizable
+        ok 1 - AUTH-QA-01 / CP-RF1-01: registro devuelve usuario y JWT utilizable
+          ---
+          duration_ms: 352.2592
+          type: 'test'
+          ...
+        # Subtest: registro deja la cuenta nueva con las categorías predefinidas de gasto seleccionadas
+        ok 2 - registro deja la cuenta nueva con las categorías predefinidas de gasto seleccionadas
+          ---
+          duration_ms: 155.0048
+          type: 'test'
+          ...
+        # Subtest: registro normaliza correo y permite login con mayúsculas y espacios
+        ok 3 - registro normaliza correo y permite login con mayúsculas y espacios
+          ---
+          duration_ms: 230.5162
+          type: 'test'
+          ...
+        # Subtest: CP-RF1-03: correo duplicado ignora mayúsculas
+        ok 4 - CP-RF1-03: correo duplicado ignora mayúsculas
+          ---
+          duration_ms: 80.6164
+          type: 'test'
+          ...
+        # Subtest: AUTH-QA-02: registro rechaza nombre vacío sin insertar usuario
+        ok 5 - AUTH-QA-02: registro rechaza nombre vacío sin insertar usuario
+          ---
+          duration_ms: 72.802
+          type: 'test'
+          ...
+        # Subtest: AUTH-QA-02: registro rechaza nombre con espacios sin insertar usuario
+        ok 6 - AUTH-QA-02: registro rechaza nombre con espacios sin insertar usuario
+          ---
+          duration_ms: 70.927
+          type: 'test'
+          ...
+        # Subtest: AUTH-QA-02: registro rechaza nombre no textual sin insertar usuario
+        ok 7 - AUTH-QA-02: registro rechaza nombre no textual sin insertar usuario
+          ---
+          duration_ms: 122.3568
+          type: 'test'
+          ...
+        # Subtest: AUTH-QA-02: registro rechaza correo inválido sin insertar usuario
+        ok 8 - AUTH-QA-02: registro rechaza correo inválido sin insertar usuario
+          ---
+          duration_ms: 107.5573
+          type: 'test'
+          ...
+        # Subtest: AUTH-QA-02: registro rechaza correo ausente sin insertar usuario
+        ok 9 - AUTH-QA-02: registro rechaza correo ausente sin insertar usuario
+          ---
+          duration_ms: 104.7253
+          type: 'test'
+          ...
+        # Subtest: AUTH-QA-02: registro rechaza contraseña corta sin insertar usuario
+        ok 10 - AUTH-QA-02: registro rechaza contraseña corta sin insertar usuario
+          ---
+          duration_ms: 98.0421
+          type: 'test'
+          ...
+        # Subtest: AUTH-QA-02: registro rechaza contraseña no textual sin insertar usuario
+        ok 11 - AUTH-QA-02: registro rechaza contraseña no textual sin insertar usuario
+          ---
+          duration_ms: 95.1758
+          type: 'test'
+          ...
+        # Subtest: registro sin cuerpo responde 400 estructurado
+        ok 12 - registro sin cuerpo responde 400 estructurado
+          ---
+          duration_ms: 89.8591
+          type: 'test'
+          ...
+        # Subtest: contraseña de exactamente ocho caracteres es válida
+        ok 13 - contraseña de exactamente ocho caracteres es válida
+          ---
+          duration_ms: 166.3998
+          type: 'test'
+          ...
+        # Subtest: CP-RF1-02: login devuelve solo datos públicos y token válido
+        ok 14 - CP-RF1-02: login devuelve solo datos públicos y token válido
+          ---
+          duration_ms: 145.2705
+          type: 'test'
+          ...
+        # Subtest: CP-RF1-04: correo inexistente y contraseña incorrecta dan el mismo error
+        ok 15 - CP-RF1-04: correo inexistente y contraseña incorrecta dan el mismo error
+          ---
+          duration_ms: 145.8985
+          type: 'test'
+          ...
+        # Subtest: login sin cuerpo responde 400
+        ok 16 - login sin cuerpo responde 400
+          ---
+          duration_ms: 69.5631
+          type: 'test'
+          ...
+        # Subtest: login sin email responde 400
+        ok 17 - login sin email responde 400
+          ---
+          duration_ms: 77.5581
+          type: 'test'
+          ...
+        # Subtest: login sin contraseña responde 400
+        ok 18 - login sin contraseña responde 400
+          ---
+          duration_ms: 81.984
+          type: 'test'
+          ...
+        # Subtest: login campos de tipo incorrecto responde 400
+        ok 19 - login campos de tipo incorrecto responde 400
+          ---
+          duration_ms: 79.5235
+          type: 'test'
+          ...
+        # Subtest: AUTH-QA-03: /auth/perfil identifica únicamente al usuario A
+        ok 20 - AUTH-QA-03: /auth/perfil identifica únicamente al usuario A
+          ---
+          duration_ms: 83.8786
+          type: 'test'
+          ...
+        # Subtest: AUTH-QA-03: /auth/perfil identifica únicamente al usuario B
+        ok 21 - AUTH-QA-03: /auth/perfil identifica únicamente al usuario B
+          ---
+          duration_ms: 70.9324
+          type: 'test'
+          ...
+        # Subtest: /auth/profile conserva el alias temporal
+        ok 22 - /auth/profile conserva el alias temporal
+          ---
+          duration_ms: 72.4425
+          type: 'test'
+          ...
+        # Subtest: perfil con token ausente devuelve NO_AUTORIZADO
+        ok 23 - perfil con token ausente devuelve NO_AUTORIZADO
+          ---
+          duration_ms: 71.7374
+          type: 'test'
+          ...
+        # Subtest: perfil con token inválido devuelve NO_AUTORIZADO
+        ok 24 - perfil con token inválido devuelve NO_AUTORIZADO
+          ---
+          duration_ms: 66.9478
+          type: 'test'
+          ...
+        # Subtest: perfil con token vencido devuelve NO_AUTORIZADO
+        ok 25 - perfil con token vencido devuelve NO_AUTORIZADO
+          ---
+          duration_ms: 71.0007
+          type: 'test'
+          ...
+        # Subtest: perfil con token firma ajena devuelve NO_AUTORIZADO
+        ok 26 - perfil con token firma ajena devuelve NO_AUTORIZADO
+          ---
+          duration_ms: 68.5156
+          type: 'test'
+          ...
+        # Subtest: perfil con token sin Bearer devuelve NO_AUTORIZADO
+        ok 27 - perfil con token sin Bearer devuelve NO_AUTORIZADO
+          ---
+          duration_ms: 70.3358
+          type: 'test'
+          ...
+        # Subtest: perfil de usuario eliminado devuelve 404
+        ok 28 - perfil de usuario eliminado devuelve 404
+          ---
+          duration_ms: 79.189
+          type: 'test'
+          ...
+        # Subtest: seedAdmin crea un administrador cuyo login emite un token con rol: admin y no duplica al ejecutarse dos veces
+        ok 29 - seedAdmin crea un administrador cuyo login emite un token con rol: admin y no duplica al ejecutarse dos veces
+          ---
+          duration_ms: 311.5507
+          type: 'test'
+          ...
+        # Subtest: seedAdmin promueve una cuenta existente de usuario a admin sin duplicarla
+        ok 30 - seedAdmin promueve una cuenta existente de usuario a admin sin duplicarla
+          ---
+          duration_ms: 300.3006
+          type: 'test'
+          ...
+        # Subtest: seedAdmin falla con mensaje claro (sin variables de entorno) sin alterar usuarios
+        ok 31 - seedAdmin falla con mensaje claro (sin variables de entorno) sin alterar usuarios
+          ---
+          duration_ms: 79.3202
+          type: 'test'
+          ...
+        # Subtest: seedAdmin falla con mensaje claro (sin ADMIN_PASSWORD) sin alterar usuarios
+        ok 32 - seedAdmin falla con mensaje claro (sin ADMIN_PASSWORD) sin alterar usuarios
+          ---
+          duration_ms: 87.9328
+          type: 'test'
+          ...
+        # Subtest: seedAdmin falla con mensaje claro (correo inválido) sin alterar usuarios
+        ok 33 - seedAdmin falla con mensaje claro (correo inválido) sin alterar usuarios
+          ---
+          duration_ms: 80.3324
+          type: 'test'
+          ...
+        # Subtest: seedAdmin falla con mensaje claro (contraseña menor a 8 caracteres) sin alterar usuarios
+        ok 34 - seedAdmin falla con mensaje claro (contraseña menor a 8 caracteres) sin alterar usuarios
+          ---
+          duration_ms: 112.1088
+          type: 'test'
+          ...
+        # Subtest: ejecutar src/db/seed-admin.js por CLI sin variables falla con código 1 y mensaje claro
+        ok 35 - ejecutar src/db/seed-admin.js por CLI sin variables falla con código 1 y mensaje claro
+          ---
+          duration_ms: 149.276
+          type: 'test'
+          ...
+        # Subtest: Migración 014: agrega reset_token_hash y reset_token_expira en usuarios
+        ok 36 - Migración 014: agrega reset_token_hash y reset_token_expira en usuarios
+          ---
+          duration_ms: 85.6862
+          type: 'test'
+          ...
+        # Subtest: Migración 016: invalida códigos ambiguos de una base existente y conserva códigos nuevos al reaplicarse
+        ok 37 - Migración 016: invalida códigos ambiguos de una base existente y conserva códigos nuevos al reaplicarse
+          ---
+          duration_ms: 149.7744
+          type: 'test'
+          ...
+        # Subtest: Recuperación: respeta vencimiento y vigencia con PostgreSQL en UTC
+        ok 38 - Recuperación: respeta vencimiento y vigencia con PostgreSQL en UTC
+          ---
+          duration_ms: 1205.9109
+          type: 'test'
+          ...
+        # Subtest: Recuperación: respeta vencimiento y vigencia con PostgreSQL en America/Mexico_City
+        ok 39 - Recuperación: respeta vencimiento y vigencia con PostgreSQL en America/Mexico_City
+          ---
+          duration_ms: 674.8172
+          type: 'test'
+          ...
+        # Subtest: Flujo completo: pedir código → verificar hash y caducidad 30 min → restablecer → iniciar sesión
+        ok 40 - Flujo completo: pedir código → verificar hash y caducidad 30 min → restablecer → iniciar sesión
+          ---
+          duration_ms: 661.7422
+          type: 'test'
+          ...
+        # Subtest: Token reutilizado o inexistente devuelve 400 TOKEN_INVALIDO
+        ok 41 - Token reutilizado o inexistente devuelve 400 TOKEN_INVALIDO
+          ---
+          duration_ms: 547.6137
+          type: 'test'
+          ...
+        # Subtest: Token vencido devuelve 400 TOKEN_INVALIDO y no cambia la contraseña
+        ok 42 - Token vencido devuelve 400 TOKEN_INVALIDO y no cambia la contraseña
+          ---
+          duration_ms: 455.1959
+          type: 'test'
+          ...
+        # Subtest: Correo inexistente en POST /auth/olvide-contrasena responde 200 idéntico sin revelar si existe
+        ok 43 - Correo inexistente en POST /auth/olvide-contrasena responde 200 idéntico sin revelar si existe
+          ---
+          duration_ms: 345.7747
+          type: 'test'
+          ...
+        # Subtest: Límite de solicitudes por correo bloquea el exceso con 429 DEMASIADAS_SOLICITUDES sin afectar otros correos
+        ok 44 - Límite de solicitudes por correo bloquea el exceso con 429 DEMASIADAS_SOLICITUDES sin afectar otros correos
+          ---
+          duration_ms: 1094.9659
+          type: 'test'
+          ...
+        # Subtest: POST /auth/restablecer-contrasena rechaza token vacío con 400 TOKEN_INVALIDO
+        ok 45 - POST /auth/restablecer-contrasena rechaza token vacío con 400 TOKEN_INVALIDO
+          ---
+          duration_ms: 78.7565
+          type: 'test'
+          ...
+        # Subtest: POST /auth/restablecer-contrasena rechaza token incorrecto con 400 TOKEN_INVALIDO
+        ok 46 - POST /auth/restablecer-contrasena rechaza token incorrecto con 400 TOKEN_INVALIDO
+          ---
+          duration_ms: 81.6214
+          type: 'test'
+          ...
+        # Subtest: POST /auth/restablecer-contrasena rechaza contraseña corta con 400 PASSWORD_MUY_CORTA
+        ok 47 - POST /auth/restablecer-contrasena rechaza contraseña corta con 400 PASSWORD_MUY_CORTA
+          ---
+          duration_ms: 75.5555
+          type: 'test'
+          ...
+        # Subtest: POST /auth/olvide-contrasena rechaza sin cuerpo con 400 EMAIL_INVALIDO
+        ok 48 - POST /auth/olvide-contrasena rechaza sin cuerpo con 400 EMAIL_INVALIDO
+          ---
+          duration_ms: 77.516
+          type: 'test'
+          ...
+        # Subtest: POST /auth/olvide-contrasena rechaza correo vacío con 400 EMAIL_INVALIDO
+        ok 49 - POST /auth/olvide-contrasena rechaza correo vacío con 400 EMAIL_INVALIDO
+          ---
+          duration_ms: 79.4047
+          type: 'test'
+          ...
+        # Subtest: POST /auth/olvide-contrasena rechaza formato inválido con 400 EMAIL_INVALIDO
+        ok 50 - POST /auth/olvide-contrasena rechaza formato inválido con 400 EMAIL_INVALIDO
+          ---
+          duration_ms: 80.3174
+          type: 'test'
+          ...
+        # Subtest: enviarCorreoRecuperacion llama a la API HTTP de Brevo con header api-key y remitente MAIL_FROM
+        ok 51 - enviarCorreoRecuperacion llama a la API HTTP de Brevo con header api-key y remitente MAIL_FROM
+          ---
+          duration_ms: 74.7074
+          type: 'test'
+          ...
+        # Subtest: HU-68: Eliminar cuenta y todos los datos (DELETE /auth/cuenta)
+            # Subtest: elimina cuenta, gastos, presupuestos y membresias con contraseña correcta
+            ok 1 - elimina cuenta, gastos, presupuestos y membresias con contraseña correcta
+              ---
+              duration_ms: 377.4274
+              type: 'test'
+              ...
+            # Subtest: contraseña incorrecta responde 401 PASSWORD_INCORRECTA y no borra nada
+            ok 2 - contraseña incorrecta responde 401 PASSWORD_INCORRECTA y no borra nada
+              ---
+              duration_ms: 293.4308
+              type: 'test'
+              ...
+            # Subtest: sin contraseña o cuerpo vacío responde 401 PASSWORD_INCORRECTA y no borra nada
+            ok 3 - sin contraseña o cuerpo vacío responde 401 PASSWORD_INCORRECTA y no borra nada
+              ---
+              duration_ms: 74.6337
+              type: 'test'
+              ...
+            # Subtest: requiere autenticación con token válido
+            ok 4 - requiere autenticación con token válido
+              ---
+              duration_ms: 96.9897
+              type: 'test'
+              ...
+            1..4
+        ok 52 - HU-68: Eliminar cuenta y todos los datos (DELETE /auth/cuenta)
+          ---
+          duration_ms: 842.9251
+          type: 'suite'
+          ...
+        1..52
+    ok 1 - Autenticación (Postman 01 / RF1)
+      ---
+      duration_ms: 10738.6105
+      type: 'suite'
+      ...
+    # Subtest: Categorías por usuario (feature/categorias-usuario)
+        # Subtest: migración 020 es idempotente y asigna predefinidas a usuarios existentes sin tocar los recién registrados
+        ok 1 - migración 020 es idempotente y asigna predefinidas a usuarios existentes sin tocar los recién registrados
+          ---
+          duration_ms: 206.2297
+          type: 'test'
+          ...
+        # Subtest: usuario existente conserva predefinidas disponibles y recibe error 401 sin token
+        ok 2 - usuario existente conserva predefinidas disponibles y recibe error 401 sin token
+          ---
+          duration_ms: 88.544
+          type: 'test'
+          ...
+        # Subtest: usuario nuevo registra categorias_configuradas=false, consulta catálogo y configura su selección
+        ok 3 - usuario nuevo registra categorias_configuradas=false, consulta catálogo y configura su selección
+          ---
+          duration_ms: 313.925
+          type: 'test'
+          ...
+        # Subtest: PUT /categorias/seleccion valida selección vacía, ids inválidos y no acepta categorías propias
+        ok 4 - PUT /categorias/seleccion valida selección vacía, ids inválidos y no acepta categorías propias
+          ---
+          duration_ms: 100.3148
+          type: 'test'
+          ...
+        # Subtest: CRUD de categorías propias: color rotativo, validaciones, unicidad por usuario y aislamiento
+        ok 5 - CRUD de categorías propias: color rotativo, validaciones, unicidad por usuario y aislamiento
+          ---
+          duration_ms: 258.5616
+          type: 'test'
+          ...
+        # Subtest: respeta el límite máximo de 30 categorías propias por usuario
+        ok 6 - respeta el límite máximo de 30 categorías propias por usuario
+          ---
+          duration_ms: 306.1845
+          type: 'test'
+          ...
+        # Subtest: bloquea borrar categoría propia en uso por gastos o presupuestos (409 CATEGORIA_EN_USO)
+        ok 7 - bloquea borrar categoría propia en uso por gastos o presupuestos (409 CATEGORIA_EN_USO)
+          ---
+          duration_ms: 122.9687
+          type: 'test'
+          ...
+        # Subtest: ocultar una predefinida conserva sus gastos en listados/reportes pero impide usarla en nuevos gastos/presupuestos
+        ok 8 - ocultar una predefinida conserva sus gastos en listados/reportes pero impide usarla en nuevos gastos/presupuestos
+          ---
+          duration_ms: 188.3829
+          type: 'test'
+          ...
+        1..8
+    ok 2 - Categorías por usuario (feature/categorias-usuario)
+      ---
+      duration_ms: 1585.7306
+      type: 'suite'
+      ...
+    # Subtest: Gastos (Postman 03 / RF2)
+        # Subtest: crea un gasto con la forma y los tipos del contrato
+        ok 1 - crea un gasto con la forma y los tipos del contrato
+          ---
+          duration_ms: 93.6788
+          type: 'test'
+          ...
+        # Subtest: sin gastos devuelve un arreglo vacío
+        ok 2 - sin gastos devuelve un arreglo vacío
+          ---
+          duration_ms: 84.7637
+          type: 'test'
+          ...
+        # Subtest: nota omitida se persiste como null
+        ok 3 - nota omitida se persiste como null
+          ---
+          duration_ms: 94.8217
+          type: 'test'
+          ...
+        # Subtest: acepta nota de 200 caracteres y el monto mínimo 0.01
+        ok 4 - acepta nota de 200 caracteres y el monto mínimo 0.01
+          ---
+          duration_ms: 89.2191
+          type: 'test'
+          ...
+        # Subtest: acepta método de pago tarjeta
+        ok 5 - acepta método de pago tarjeta
+          ---
+          duration_ms: 83.8936
+          type: 'test'
+          ...
+        # Subtest: acepta método de pago transferencia
+        ok 6 - acepta método de pago transferencia
+          ---
+          duration_ms: 89.637
+          type: 'test'
+          ...
+        # Subtest: acepta método de pago otro
+        ok 7 - acepta método de pago otro
+          ---
+          duration_ms: 81.6641
+          type: 'test'
+          ...
+        # Subtest: POST rechaza monto de texto (BUG-RF2-04: error estructurado)
+        ok 8 - POST rechaza monto de texto (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 86.38
+          type: 'test'
+          ...
+        # Subtest: POST rechaza monto cero (BUG-RF2-04: error estructurado)
+        ok 9 - POST rechaza monto cero (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 158.8577
+          type: 'test'
+          ...
+        # Subtest: POST rechaza monto negativo (BUG-RF2-04: error estructurado)
+        ok 10 - POST rechaza monto negativo (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 86.8954
+          type: 'test'
+          ...
+        # Subtest: POST rechaza BUG-RF2-01: más de dos decimales (BUG-RF2-04: error estructurado)
+        ok 11 - POST rechaza BUG-RF2-01: más de dos decimales (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 89.2876
+          type: 'test'
+          ...
+        # Subtest: POST rechaza BUG-RF2-01: subcentavo (BUG-RF2-04: error estructurado)
+        ok 12 - POST rechaza BUG-RF2-01: subcentavo (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 88.2615
+          type: 'test'
+          ...
+        # Subtest: POST rechaza BUG-RF2-02: monto como cadena numérica (BUG-RF2-04: error estructurado)
+        ok 13 - POST rechaza BUG-RF2-02: monto como cadena numérica (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 84.6751
+          type: 'test'
+          ...
+        # Subtest: POST rechaza categoría inexistente (BUG-RF2-04: error estructurado)
+        ok 14 - POST rechaza categoría inexistente (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 84.2539
+          type: 'test'
+          ...
+        # Subtest: POST rechaza BUG-RF2-03: categoría booleana (BUG-RF2-04: error estructurado)
+        ok 15 - POST rechaza BUG-RF2-03: categoría booleana (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 80.1101
+          type: 'test'
+          ...
+        # Subtest: POST rechaza categoría vacía (BUG-RF2-04: error estructurado)
+        ok 16 - POST rechaza categoría vacía (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 81.9163
+          type: 'test'
+          ...
+        # Subtest: POST rechaza categoría fraccionaria (BUG-RF2-04: error estructurado)
+        ok 17 - POST rechaza categoría fraccionaria (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 82.2754
+          type: 'test'
+          ...
+        # Subtest: POST rechaza categoría como cadena (BUG-RF2-04: error estructurado)
+        ok 18 - POST rechaza categoría como cadena (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 86.7376
+          type: 'test'
+          ...
+        # Subtest: POST rechaza fecha imposible (BUG-RF2-04: error estructurado)
+        ok 19 - POST rechaza fecha imposible (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 92.2899
+          type: 'test'
+          ...
+        # Subtest: POST rechaza fecha con formato incorrecto (BUG-RF2-04: error estructurado)
+        ok 20 - POST rechaza fecha con formato incorrecto (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 89.1954
+          type: 'test'
+          ...
+        # Subtest: POST rechaza método inválido (BUG-RF2-04: error estructurado)
+        ok 21 - POST rechaza método inválido (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 85.0431
+          type: 'test'
+          ...
+        # Subtest: POST rechaza nota de más de 200 caracteres (BUG-RF2-04: error estructurado)
+        ok 22 - POST rechaza nota de más de 200 caracteres (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 94.1605
+          type: 'test'
+          ...
+        # Subtest: POST rechaza nota no textual (BUG-RF2-04: error estructurado)
+        ok 23 - POST rechaza nota no textual (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 82.6569
+          type: 'test'
+          ...
+        # Subtest: POST rechaza BUG-RF2-06: sin cuerpo (BUG-RF2-04: error estructurado)
+        ok 24 - POST rechaza BUG-RF2-06: sin cuerpo (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 87.0496
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza monto de texto (BUG-RF2-04: error estructurado)
+        ok 25 - PUT rechaza monto de texto (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 93.6322
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza monto cero (BUG-RF2-04: error estructurado)
+        ok 26 - PUT rechaza monto cero (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 93.7319
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza monto negativo (BUG-RF2-04: error estructurado)
+        ok 27 - PUT rechaza monto negativo (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 95.7402
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza BUG-RF2-01: más de dos decimales (BUG-RF2-04: error estructurado)
+        ok 28 - PUT rechaza BUG-RF2-01: más de dos decimales (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 102.5421
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza BUG-RF2-01: subcentavo (BUG-RF2-04: error estructurado)
+        ok 29 - PUT rechaza BUG-RF2-01: subcentavo (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 92.2267
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza BUG-RF2-02: monto como cadena numérica (BUG-RF2-04: error estructurado)
+        ok 30 - PUT rechaza BUG-RF2-02: monto como cadena numérica (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 92.519
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza categoría inexistente (BUG-RF2-04: error estructurado)
+        ok 31 - PUT rechaza categoría inexistente (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 97.1676
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza BUG-RF2-03: categoría booleana (BUG-RF2-04: error estructurado)
+        ok 32 - PUT rechaza BUG-RF2-03: categoría booleana (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 91.516
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza categoría vacía (BUG-RF2-04: error estructurado)
+        ok 33 - PUT rechaza categoría vacía (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 86.9825
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza categoría fraccionaria (BUG-RF2-04: error estructurado)
+        ok 34 - PUT rechaza categoría fraccionaria (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 90.2508
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza categoría como cadena (BUG-RF2-04: error estructurado)
+        ok 35 - PUT rechaza categoría como cadena (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 95.9905
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza fecha imposible (BUG-RF2-04: error estructurado)
+        ok 36 - PUT rechaza fecha imposible (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 98.6403
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza fecha con formato incorrecto (BUG-RF2-04: error estructurado)
+        ok 37 - PUT rechaza fecha con formato incorrecto (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 98.2129
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza método inválido (BUG-RF2-04: error estructurado)
+        ok 38 - PUT rechaza método inválido (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 108.7193
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza nota de más de 200 caracteres (BUG-RF2-04: error estructurado)
+        ok 39 - PUT rechaza nota de más de 200 caracteres (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 118.2066
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza nota no textual (BUG-RF2-04: error estructurado)
+        ok 40 - PUT rechaza nota no textual (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 94.5793
+          type: 'test'
+          ...
+        # Subtest: PUT rechaza BUG-RF2-06: sin cuerpo (BUG-RF2-04: error estructurado)
+        ok 41 - PUT rechaza BUG-RF2-06: sin cuerpo (BUG-RF2-04: error estructurado)
+          ---
+          duration_ms: 96.1534
+          type: 'test'
+          ...
+        # Subtest: PUT actualiza todos los campos y persiste los cambios
+        ok 42 - PUT actualiza todos los campos y persiste los cambios
+          ---
+          duration_ms: 134.0296
+          type: 'test'
+          ...
+        # Subtest: DELETE elimina, persiste la ausencia y un segundo borrado da 404
+        ok 43 - DELETE elimina, persiste la ausencia y un segundo borrado da 404
+          ---
+          duration_ms: 127.7632
+          type: 'test'
+          ...
+        # Subtest: listados de A y B contienen únicamente sus gastos
+        ok 44 - listados de A y B contienen únicamente sus gastos
+          ---
+          duration_ms: 99.2391
+          type: 'test'
+          ...
+        # Subtest: A no puede PUT un gasto de B
+        ok 45 - A no puede PUT un gasto de B
+          ---
+          duration_ms: 96.5437
+          type: 'test'
+          ...
+        # Subtest: A no puede DELETE un gasto de B
+        ok 46 - A no puede DELETE un gasto de B
+          ---
+          duration_ms: 90.4459
+          type: 'test'
+          ...
+        # Subtest: B no puede PUT un gasto de A
+        ok 47 - B no puede PUT un gasto de A
+          ---
+          duration_ms: 94.7162
+          type: 'test'
+          ...
+        # Subtest: B no puede DELETE un gasto de A
+        ok 48 - B no puede DELETE un gasto de A
+          ---
+          duration_ms: 93.5299
+          type: 'test'
+          ...
+        # Subtest: filtra mes, categoría y su combinación sin filtrar datos ajenos
+        ok 49 - filtra mes, categoría y su combinación sin filtrar datos ajenos
+          ---
+          duration_ms: 120.517
+          type: 'test'
+          ...
+        # Subtest: ordena por fecha descendente y desempata por id descendente
+        ok 50 - ordena por fecha descendente y desempata por id descendente
+          ---
+          duration_ms: 98.1521
+          type: 'test'
+          ...
+        # Subtest: rechaza filtro de mes "2026-13"
+        ok 51 - rechaza filtro de mes "2026-13"
+          ---
+          duration_ms: 75.9421
+          type: 'test'
+          ...
+        # Subtest: rechaza filtro de mes "2026-1"
+        ok 52 - rechaza filtro de mes "2026-1"
+          ---
+          duration_ms: 92.6511
+          type: 'test'
+          ...
+        # Subtest: rechaza filtro de mes "incorrecto"
+        ok 53 - rechaza filtro de mes "incorrecto"
+          ---
+          duration_ms: 76.1777
+          type: 'test'
+          ...
+        # Subtest: rechaza filtro de mes ""
+        ok 54 - rechaza filtro de mes ""
+          ---
+          duration_ms: 71.4616
+          type: 'test'
+          ...
+        # Subtest: rechaza filtro de categoría abc
+        ok 55 - rechaza filtro de categoría abc
+          ---
+          duration_ms: 75.1365
+          type: 'test'
+          ...
+        # Subtest: rechaza filtro de categoría 0
+        ok 56 - rechaza filtro de categoría 0
+          ---
+          duration_ms: 73.0432
+          type: 'test'
+          ...
+        # Subtest: rechaza filtro de categoría -1
+        ok 57 - rechaza filtro de categoría -1
+          ---
+          duration_ms: 70.7668
+          type: 'test'
+          ...
+        # Subtest: rechaza filtro de categoría 1.5
+        ok 58 - rechaza filtro de categoría 1.5
+          ---
+          duration_ms: 72.2645
+          type: 'test'
+          ...
+        # Subtest: PUT de id inválido o inexistente abc da 404
+        ok 59 - PUT de id inválido o inexistente abc da 404
+          ---
+          duration_ms: 72.6436
+          type: 'test'
+          ...
+        # Subtest: PUT de id inválido o inexistente 0 da 404
+        ok 60 - PUT de id inválido o inexistente 0 da 404
+          ---
+          duration_ms: 71.2043
+          type: 'test'
+          ...
+        # Subtest: PUT de id inválido o inexistente -1 da 404
+        ok 61 - PUT de id inválido o inexistente -1 da 404
+          ---
+          duration_ms: 73.0367
+          type: 'test'
+          ...
+        # Subtest: PUT de id inválido o inexistente 1.5 da 404
+        ok 62 - PUT de id inválido o inexistente 1.5 da 404
+          ---
+          duration_ms: 74.3564
+          type: 'test'
+          ...
+        # Subtest: PUT de id inválido o inexistente 2147483647 da 404
+        ok 63 - PUT de id inválido o inexistente 2147483647 da 404
+          ---
+          duration_ms: 76.0318
+          type: 'test'
+          ...
+        # Subtest: DELETE de id inválido o inexistente abc da 404
+        ok 64 - DELETE de id inválido o inexistente abc da 404
+          ---
+          duration_ms: 72.2701
+          type: 'test'
+          ...
+        # Subtest: DELETE de id inválido o inexistente 0 da 404
+        ok 65 - DELETE de id inválido o inexistente 0 da 404
+          ---
+          duration_ms: 71.8081
+          type: 'test'
+          ...
+        # Subtest: DELETE de id inválido o inexistente -1 da 404
+        ok 66 - DELETE de id inválido o inexistente -1 da 404
+          ---
+          duration_ms: 73.6156
+          type: 'test'
+          ...
+        # Subtest: DELETE de id inválido o inexistente 1.5 da 404
+        ok 67 - DELETE de id inválido o inexistente 1.5 da 404
+          ---
+          duration_ms: 72.3067
+          type: 'test'
+          ...
+        # Subtest: DELETE de id inválido o inexistente 2147483647 da 404
+        ok 68 - DELETE de id inválido o inexistente 2147483647 da 404
+          ---
+          duration_ms: 75.4521
+          type: 'test'
+          ...
+        # Subtest: BUG-RF2-05: GET con token ausente da NO_AUTORIZADO
+        ok 69 - BUG-RF2-05: GET con token ausente da NO_AUTORIZADO
+          ---
+          duration_ms: 88.4954
+          type: 'test'
+          ...
+        # Subtest: BUG-RF2-05: GET con token inválido da NO_AUTORIZADO
+        ok 70 - BUG-RF2-05: GET con token inválido da NO_AUTORIZADO
+          ---
+          duration_ms: 108.6922
+          type: 'test'
+          ...
+        # Subtest: BUG-RF2-05: POST con token ausente da NO_AUTORIZADO
+        ok 71 - BUG-RF2-05: POST con token ausente da NO_AUTORIZADO
+          ---
+          duration_ms: 87.713
+          type: 'test'
+          ...
+        # Subtest: BUG-RF2-05: POST con token inválido da NO_AUTORIZADO
+        ok 72 - BUG-RF2-05: POST con token inválido da NO_AUTORIZADO
+          ---
+          duration_ms: 86.8147
+          type: 'test'
+          ...
+        # Subtest: BUG-RF2-05: PUT con token ausente da NO_AUTORIZADO
+        ok 73 - BUG-RF2-05: PUT con token ausente da NO_AUTORIZADO
+          ---
+          duration_ms: 86.1612
+          type: 'test'
+          ...
+        # Subtest: BUG-RF2-05: PUT con token inválido da NO_AUTORIZADO
+        ok 74 - BUG-RF2-05: PUT con token inválido da NO_AUTORIZADO
+          ---
+          duration_ms: 88.0976
+          type: 'test'
+          ...
+        # Subtest: BUG-RF2-05: DELETE con token ausente da NO_AUTORIZADO
+        ok 75 - BUG-RF2-05: DELETE con token ausente da NO_AUTORIZADO
+          ---
+          duration_ms: 86.5869
+          type: 'test'
+          ...
+        # Subtest: BUG-RF2-05: DELETE con token inválido da NO_AUTORIZADO
+        ok 76 - BUG-RF2-05: DELETE con token inválido da NO_AUTORIZADO
+          ---
+          duration_ms: 89.3903
+          type: 'test'
+          ...
+        1..76
+    ok 3 - Gastos (Postman 03 / RF2)
+      ---
+      duration_ms: 6826.3515
+      type: 'suite'
+      ...
+    # Subtest: Presupuestos y alertas (RF3/RF4)
+        # Subtest: CP-RF3-01: crea y consulta presupuesto de 2000 sin gastos
+        ok 1 - CP-RF3-01: crea y consulta presupuesto de 2000 sin gastos
+          ---
+          duration_ms: 87.1487
+          type: 'test'
+          ...
+        # Subtest: CP-RF3-02: creación inválida no persiste datos
+        ok 2 - CP-RF3-02: creación inválida no persiste datos
+          ---
+          duration_ms: 80.843
+          type: 'test'
+          ...
+        # Subtest: RF3-CERO: creación inválida no persiste datos
+        ok 3 - RF3-CERO: creación inválida no persiste datos
+          ---
+          duration_ms: 82.68
+          type: 'test'
+          ...
+        # Subtest: RF3-TEXTO: creación inválida no persiste datos
+        ok 4 - RF3-TEXTO: creación inválida no persiste datos
+          ---
+          duration_ms: 79.1266
+          type: 'test'
+          ...
+        # Subtest: RF3-DECIMALES: creación inválida no persiste datos
+        ok 5 - RF3-DECIMALES: creación inválida no persiste datos
+          ---
+          duration_ms: 86.7487
+          type: 'test'
+          ...
+        # Subtest: RF3-PRECISION: creación inválida no persiste datos
+        ok 6 - RF3-PRECISION: creación inválida no persiste datos
+          ---
+          duration_ms: 88.8087
+          type: 'test'
+          ...
+        # Subtest: RF3-MAXIMO: creación inválida no persiste datos
+        ok 7 - RF3-MAXIMO: creación inválida no persiste datos
+          ---
+          duration_ms: 87.3833
+          type: 'test'
+          ...
+        # Subtest: RF3-MES: creación inválida no persiste datos
+        ok 8 - RF3-MES: creación inválida no persiste datos
+          ---
+          duration_ms: 86.1015
+          type: 'test'
+          ...
+        # Subtest: RF3-CATEGORIA: creación inválida no persiste datos
+        ok 9 - RF3-CATEGORIA: creación inválida no persiste datos
+          ---
+          duration_ms: 84.7344
+          type: 'test'
+          ...
+        # Subtest: RF3-DUPLICADO: 409 sin modificar el presupuesto original
+        ok 10 - RF3-DUPLICADO: 409 sin modificar el presupuesto original
+          ---
+          duration_ms: 105.102
+          type: 'test'
+          ...
+        # Subtest: RF3-CRUD: modifica límite, recalcula estado y elimina sin borrar gastos
+        ok 11 - RF3-CRUD: modifica límite, recalcula estado y elimina sin borrar gastos
+          ---
+          duration_ms: 118.7085
+          type: 'test'
+          ...
+        # Subtest: RF3-PUT-INVALIDO: rechaza -500 sin alterar límite ni estado
+        ok 12 - RF3-PUT-INVALIDO: rechaza -500 sin alterar límite ni estado
+          ---
+          duration_ms: 96.2419
+          type: 'test'
+          ...
+        # Subtest: RF3-GET-MES: rechaza mes undefined
+        ok 13 - RF3-GET-MES: rechaza mes undefined
+          ---
+          duration_ms: 78.2374
+          type: 'test'
+          ...
+        # Subtest: RF3-GET-MES: rechaza mes ""
+        ok 14 - RF3-GET-MES: rechaza mes ""
+          ---
+          duration_ms: 74.3603
+          type: 'test'
+          ...
+        # Subtest: RF3-GET-MES: rechaza mes "2026-1"
+        ok 15 - RF3-GET-MES: rechaza mes "2026-1"
+          ---
+          duration_ms: 72.9523
+          type: 'test'
+          ...
+        # Subtest: RF3-GET-MES: rechaza mes "2026-00"
+        ok 16 - RF3-GET-MES: rechaza mes "2026-00"
+          ---
+          duration_ms: 82.9122
+          type: 'test'
+          ...
+        # Subtest: RF3-GET-MES: rechaza mes "2026-13"
+        ok 17 - RF3-GET-MES: rechaza mes "2026-13"
+          ---
+          duration_ms: 82.9622
+          type: 'test'
+          ...
+        # Subtest: RF3-GET-MES: rechaza mes "2026-10-01"
+        ok 18 - RF3-GET-MES: rechaza mes "2026-10-01"
+          ---
+          duration_ms: 80.7999
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-01-POST: total 800, alerta, porcentaje 80
+        ok 19 - CP-RF4-01-POST: total 800, alerta, porcentaje 80
+          ---
+          duration_ms: 97.5217
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-01-PUT: total 800, alerta, porcentaje 80
+        ok 20 - CP-RF4-01-PUT: total 800, alerta, porcentaje 80
+          ---
+          duration_ms: 112.6674
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-02-POST: total 1050, excedido, porcentaje 105
+        ok 21 - CP-RF4-02-POST: total 1050, excedido, porcentaje 105
+          ---
+          duration_ms: 119.4581
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-02-PUT: total 1050, excedido, porcentaje 105
+        ok 22 - CP-RF4-02-PUT: total 1050, excedido, porcentaje 105
+          ---
+          duration_ms: 129.0449
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-03-POST: total 150, ok, porcentaje 15
+        ok 23 - CP-RF4-03-POST: total 150, ok, porcentaje 15
+          ---
+          duration_ms: 175.2344
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-03-PUT: total 150, ok, porcentaje 15
+        ok 24 - CP-RF4-03-PUT: total 150, ok, porcentaje 15
+          ---
+          duration_ms: 123.8928
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-04-L7999-POST: total 799.9, ok, porcentaje 80
+        ok 25 - CP-RF4-04-L7999-POST: total 799.9, ok, porcentaje 80
+          ---
+          duration_ms: 111.1417
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-04-L7999-PUT: total 799.9, ok, porcentaje 80
+        ok 26 - CP-RF4-04-L7999-PUT: total 799.9, ok, porcentaje 80
+          ---
+          duration_ms: 117.197
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-05-L8000-POST: total 800, alerta, porcentaje 80
+        ok 27 - CP-RF4-05-L8000-POST: total 800, alerta, porcentaje 80
+          ---
+          duration_ms: 113.7641
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-05-L8000-PUT: total 800, alerta, porcentaje 80
+        ok 28 - CP-RF4-05-L8000-PUT: total 800, alerta, porcentaje 80
+          ---
+          duration_ms: 134.0182
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-06-L10000-POST: total 1000, alerta, porcentaje 100
+        ok 29 - CP-RF4-06-L10000-POST: total 1000, alerta, porcentaje 100
+          ---
+          duration_ms: 121.6771
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-06-L10000-PUT: total 1000, alerta, porcentaje 100
+        ok 30 - CP-RF4-06-L10000-PUT: total 1000, alerta, porcentaje 100
+          ---
+          duration_ms: 109.3004
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-07-L10001-POST: total 1000.1, excedido, porcentaje 100
+        ok 31 - CP-RF4-07-L10001-POST: total 1000.1, excedido, porcentaje 100
+          ---
+          duration_ms: 108.6318
+          type: 'test'
+          ...
+        # Subtest: CP-RF4-07-L10001-PUT: total 1000.1, excedido, porcentaje 100
+        ok 32 - CP-RF4-07-L10001-PUT: total 1000.1, excedido, porcentaje 100
+          ---
+          duration_ms: 107.4266
+          type: 'test'
+          ...
+        # Subtest: RF4-CENTAVO: límite 100 y gasto 100.01 ya es excedido
+        ok 33 - RF4-CENTAVO: límite 100 y gasto 100.01 ya es excedido
+          ---
+          duration_ms: 97.3747
+          type: 'test'
+          ...
+        # Subtest: RF4-SIN-PRESUPUESTO: crear y editar gasto no incluyen alerta
+        ok 34 - RF4-SIN-PRESUPUESTO: crear y editar gasto no incluyen alerta
+          ---
+          duration_ms: 90.1061
+          type: 'test'
+          ...
+        # Subtest: RF4-RECALCULO: editar y borrar gastos retira alertas y recalcula el total
+        ok 35 - RF4-RECALCULO: editar y borrar gastos retira alertas y recalcula el total
+          ---
+          duration_ms: 121.4574
+          type: 'test'
+          ...
+        # Subtest: RF3/RF4-USUARIOS: misma categoría y mes con límites, gastos y alertas propios
+        ok 36 - RF3/RF4-USUARIOS: misma categoría y mes con límites, gastos y alertas propios
+          ---
+          duration_ms: 114.6416
+          type: 'test'
+          ...
+        # Subtest: RF3-PRIVACIDAD-PUT: B no modifica ni elimina presupuesto A
+        ok 37 - RF3-PRIVACIDAD-PUT: B no modifica ni elimina presupuesto A
+          ---
+          duration_ms: 103.1171
+          type: 'test'
+          ...
+        # Subtest: RF3-PRIVACIDAD-DELETE: B no modifica ni elimina presupuesto A
+        ok 38 - RF3-PRIVACIDAD-DELETE: B no modifica ni elimina presupuesto A
+          ---
+          duration_ms: 100.0712
+          type: 'test'
+          ...
+        # Subtest: RF3/RF4-MESES: septiembre/octubre/noviembre y cambio de año quedan aislados
+        ok 39 - RF3/RF4-MESES: septiembre/octubre/noviembre y cambio de año quedan aislados
+          ---
+          duration_ms: 172.7856
+          type: 'test'
+          ...
+        # Subtest: RF3/RF4-CATEGORIAS: otra categoría no contamina total ni alerta
+        ok 40 - RF3/RF4-CATEGORIAS: otra categoría no contamina total ni alerta
+          ---
+          duration_ms: 185.0918
+          type: 'test'
+          ...
+        # Subtest: RF4-TRASLADO: cambiar categoría y mes recalcula origen y destino
+        ok 41 - RF4-TRASLADO: cambiar categoría y mes recalcula origen y destino
+          ---
+          duration_ms: 108.1699
+          type: 'test'
+          ...
+        # Subtest: RF3-COPIAR: copia presupuestos al mes nuevo y copiar dos veces no duplica ni sobrescribe existentes
+        ok 42 - RF3-COPIAR: copia presupuestos al mes nuevo y copiar dos veces no duplica ni sobrescribe existentes
+          ---
+          duration_ms: 115.4095
+          type: 'test'
+          ...
+        # Subtest: RF3-COPIAR-VACIO: mes origen vacío devuelve 404 SIN_PRESUPUESTOS_ORIGEN con mensaje claro y aísla usuarios
+        ok 43 - RF3-COPIAR-VACIO: mes origen vacío devuelve 404 SIN_PRESUPUESTOS_ORIGEN con mensaje claro y aísla usuarios
+          ---
+          duration_ms: 94.9264
+          type: 'test'
+          ...
+        # Subtest: RF3-COPIAR-MES-INVALIDO: rechaza {}
+        ok 44 - RF3-COPIAR-MES-INVALIDO: rechaza {}
+          ---
+          duration_ms: 81.1842
+          type: 'test'
+          ...
+        # Subtest: RF3-COPIAR-MES-INVALIDO: rechaza {"desde":"2026-10"}
+        ok 45 - RF3-COPIAR-MES-INVALIDO: rechaza {"desde":"2026-10"}
+          ---
+          duration_ms: 78.2077
+          type: 'test'
+          ...
+        # Subtest: RF3-COPIAR-MES-INVALIDO: rechaza {"hasta":"2026-11"}
+        ok 46 - RF3-COPIAR-MES-INVALIDO: rechaza {"hasta":"2026-11"}
+          ---
+          duration_ms: 74.0657
+          type: 'test'
+          ...
+        # Subtest: RF3-COPIAR-MES-INVALIDO: rechaza {"desde":"2026-13","hasta":"2026-11"}
+        ok 47 - RF3-COPIAR-MES-INVALIDO: rechaza {"desde":"2026-13","hasta":"2026-11"}
+          ---
+          duration_ms: 83.9587
+          type: 'test'
+          ...
+        # Subtest: RF3-COPIAR-MES-INVALIDO: rechaza {"desde":"2026-10","hasta":"2026-00"}
+        ok 48 - RF3-COPIAR-MES-INVALIDO: rechaza {"desde":"2026-10","hasta":"2026-00"}
+          ---
+          duration_ms: 83.0433
+          type: 'test'
+          ...
+        # Subtest: RF3-COPIAR-MES-INVALIDO: rechaza {"desde":"2026-10","hasta":"2026-10"}
+        ok 49 - RF3-COPIAR-MES-INVALIDO: rechaza {"desde":"2026-10","hasta":"2026-10"}
+          ---
+          duration_ms: 84.4039
+          type: 'test'
+          ...
+        # Subtest: RF3-AUTH-GET: sin token
+        ok 50 - RF3-AUTH-GET: sin token
+          ---
+          duration_ms: 84.8444
+          type: 'test'
+          ...
+        # Subtest: RF3-AUTH-GET: token inválido
+        ok 51 - RF3-AUTH-GET: token inválido
+          ---
+          duration_ms: 82.667
+          type: 'test'
+          ...
+        # Subtest: RF3-AUTH-POST: sin token
+        ok 52 - RF3-AUTH-POST: sin token
+          ---
+          duration_ms: 78.4769
+          type: 'test'
+          ...
+        # Subtest: RF3-AUTH-POST: token inválido
+        ok 53 - RF3-AUTH-POST: token inválido
+          ---
+          duration_ms: 79.9598
+          type: 'test'
+          ...
+        # Subtest: RF3-AUTH-POST: sin token
+        ok 54 - RF3-AUTH-POST: sin token
+          ---
+          duration_ms: 78.7617
+          type: 'test'
+          ...
+        # Subtest: RF3-AUTH-POST: token inválido
+        ok 55 - RF3-AUTH-POST: token inválido
+          ---
+          duration_ms: 80.5971
+          type: 'test'
+          ...
+        # Subtest: RF3-AUTH-PUT: sin token
+        ok 56 - RF3-AUTH-PUT: sin token
+          ---
+          duration_ms: 81.2854
+          type: 'test'
+          ...
+        # Subtest: RF3-AUTH-PUT: token inválido
+        ok 57 - RF3-AUTH-PUT: token inválido
+          ---
+          duration_ms: 79.5564
+          type: 'test'
+          ...
+        # Subtest: RF3-AUTH-DELETE: sin token
+        ok 58 - RF3-AUTH-DELETE: sin token
+          ---
+          duration_ms: 77.6332
+          type: 'test'
+          ...
+        # Subtest: RF3-AUTH-DELETE: token inválido
+        ok 59 - RF3-AUTH-DELETE: token inválido
+          ---
+          duration_ms: 77.1791
+          type: 'test'
+          ...
+        1..59
+    ok 4 - Presupuestos y alertas (RF3/RF4)
+      ---
+      duration_ms: 5829.3633
+      type: 'suite'
+      ...
+    # Subtest: Reportes - Resumen mensual (RF6)
+        # Subtest: CP-RF6-02: usuario nuevo sin gastos ni membresías devuelve ceros
+        ok 1 - CP-RF6-02: usuario nuevo sin gastos ni membresías devuelve ceros
+          ---
+          duration_ms: 126.8438
+          type: 'test'
+          ...
+        # Subtest: CP-RF6-01: con gastos por 500 y membresías por 300 al mes devuelve 500, 300 y 800
+        ok 2 - CP-RF6-01: con gastos por 500 y membresías por 300 al mes devuelve 500, 300 y 800
+          ---
+          duration_ms: 112.2023
+          type: 'test'
+          ...
+        # Subtest: membresía anual de 1,200 aporta 100 al gasto fijo
+        ok 3 - membresía anual de 1,200 aporta 100 al gasto fijo
+          ---
+          duration_ms: 83.7122
+          type: 'test'
+          ...
+        # Subtest: suma mixta de membresías mensuales y anuales con redondeo a 2 decimales
+        ok 4 - suma mixta de membresías mensuales y anuales con redondeo a 2 decimales
+          ---
+          duration_ms: 90.6448
+          type: 'test'
+          ...
+        # Subtest: los gastos de otros meses no se suman al gasto_variable
+        ok 5 - los gastos de otros meses no se suman al gasto_variable
+          ---
+          duration_ms: 95.1909
+          type: 'test'
+          ...
+        # Subtest: aislamiento: el usuario A no suma datos del usuario B
+        ok 6 - aislamiento: el usuario A no suma datos del usuario B
+          ---
+          duration_ms: 98.8597
+          type: 'test'
+          ...
+        # Subtest: mes obligatorio: responde 400 MES_INVALIDO cuando no se envía mes
+        ok 7 - mes obligatorio: responde 400 MES_INVALIDO cuando no se envía mes
+          ---
+          duration_ms: 169.5818
+          type: 'test'
+          ...
+        # Subtest: mes mal escrito ("") responde 400 MES_INVALIDO
+        ok 8 - mes mal escrito ("") responde 400 MES_INVALIDO
+          ---
+          duration_ms: 86.242
+          type: 'test'
+          ...
+        # Subtest: mes mal escrito ("2026") responde 400 MES_INVALIDO
+        ok 9 - mes mal escrito ("2026") responde 400 MES_INVALIDO
+          ---
+          duration_ms: 72.3644
+          type: 'test'
+          ...
+        # Subtest: mes mal escrito ("2026-1") responde 400 MES_INVALIDO
+        ok 10 - mes mal escrito ("2026-1") responde 400 MES_INVALIDO
+          ---
+          duration_ms: 72.346
+          type: 'test'
+          ...
+        # Subtest: mes mal escrito ("2026-13") responde 400 MES_INVALIDO
+        ok 11 - mes mal escrito ("2026-13") responde 400 MES_INVALIDO
+          ---
+          duration_ms: 76.0594
+          type: 'test'
+          ...
+        # Subtest: mes mal escrito ("2026-00") responde 400 MES_INVALIDO
+        ok 12 - mes mal escrito ("2026-00") responde 400 MES_INVALIDO
+          ---
+          duration_ms: 88.0004
+          type: 'test'
+          ...
+        # Subtest: mes mal escrito ("2026/10") responde 400 MES_INVALIDO
+        ok 13 - mes mal escrito ("2026/10") responde 400 MES_INVALIDO
+          ---
+          duration_ms: 94.4401
+          type: 'test'
+          ...
+        # Subtest: mes mal escrito ("incorrecto") responde 400 MES_INVALIDO
+        ok 14 - mes mal escrito ("incorrecto") responde 400 MES_INVALIDO
+          ---
+          duration_ms: 78.0108
+          type: 'test'
+          ...
+        # Subtest: mes mal escrito ("2026-10-01") responde 400 MES_INVALIDO
+        ok 15 - mes mal escrito ("2026-10-01") responde 400 MES_INVALIDO
+          ---
+          duration_ms: 76.9042
+          type: 'test'
+          ...
+        # Subtest: requiere autenticación: responde 401 NO_AUTORIZADO sin token
+        ok 16 - requiere autenticación: responde 401 NO_AUTORIZADO sin token
+          ---
+          duration_ms: 75.2502
+          type: 'test'
+          ...
+        # Subtest: requiere autenticación: responde 401 NO_AUTORIZADO con token inválido
+        ok 17 - requiere autenticación: responde 401 NO_AUTORIZADO con token inválido
+          ---
+          duration_ms: 76.4159
+          type: 'test'
+          ...
+        1..17
+    ok 5 - Reportes - Resumen mensual (RF6)
+      ---
+      duration_ms: 1574.0717
+      type: 'suite'
+      ...
+    # Subtest: QA membresías y reportes (RF5/RF6/RF8)
+        # Subtest: CP-RF5-01: crea y lista nombre, costo, frecuencia y fecha
+        ok 1 - CP-RF5-01: crea y lista nombre, costo, frecuencia y fecha
+          ---
+          duration_ms: 96.1947
+          type: 'test'
+          ...
+        # Subtest: CP-RF5-02: edita a 219, elimina y recalcula el resumen
+        ok 2 - CP-RF5-02: edita a 219, elimina y recalcula el resumen
+          ---
+          duration_ms: 141.5752
+          type: 'test'
+          ...
+        # Subtest: CP-RF5-03: rechaza datos inválidos sin persistir
+        ok 3 - CP-RF5-03: rechaza datos inválidos sin persistir
+          ---
+          duration_ms: 98.4884
+          type: 'test'
+          ...
+        # Subtest: CP-RF5-04: rechaza datos inválidos sin persistir
+        ok 4 - CP-RF5-04: rechaza datos inválidos sin persistir
+          ---
+          duration_ms: 97.8871
+          type: 'test'
+          ...
+        # Subtest: RF5-COSTO-CERO: rechaza datos inválidos sin persistir
+        ok 5 - RF5-COSTO-CERO: rechaza datos inválidos sin persistir
+          ---
+          duration_ms: 96.841
+          type: 'test'
+          ...
+        # Subtest: RF5-FRECUENCIA: rechaza datos inválidos sin persistir
+        ok 6 - RF5-FRECUENCIA: rechaza datos inválidos sin persistir
+          ---
+          duration_ms: 99.6417
+          type: 'test'
+          ...
+        # Subtest: RF5-FECHA: rechaza datos inválidos sin persistir
+        ok 7 - RF5-FECHA: rechaza datos inválidos sin persistir
+          ---
+          duration_ms: 99.4212
+          type: 'test'
+          ...
+        # Subtest: RF5-SERVICIO: rechaza datos inválidos sin persistir
+        ok 8 - RF5-SERVICIO: rechaza datos inválidos sin persistir
+          ---
+          duration_ms: 102.8317
+          type: 'test'
+          ...
+        # Subtest: RF5-CATALOGO: hereda nombre y costo; permite costo personalizado sin cambiar catálogo
+        ok 9 - RF5-CATALOGO: hereda nombre y costo; permite costo personalizado sin cambiar catálogo
+          ---
+          duration_ms: 129.8376
+          type: 'test'
+          ...
+        # Subtest: HU-63: catálogo ampliado con planes y precios de México (RF5/RF9)
+        ok 10 - HU-63: catálogo ampliado con planes y precios de México (RF5/RF9)
+          ---
+          duration_ms: 82.2783
+          type: 'test'
+          ...
+        # Subtest: HU-66: marcar membresía como pagada (POST /membresias/:id/pagada)
+            # Subtest: mensual del 15 pasa al 15 del mes siguiente
+            ok 1 - mensual del 15 pasa al 15 del mes siguiente
+              ---
+              duration_ms: 96.4488
+              type: 'test'
+              ...
+            # Subtest: anual avanza un año exacto
+            ok 2 - anual avanza un año exacto
+              ---
+              duration_ms: 90.791
+              type: 'test'
+              ...
+            # Subtest: fin de mes: 31 de enero pasa a 28 de febrero sin romperse
+            ok 3 - fin de mes: 31 de enero pasa a 28 de febrero sin romperse
+              ---
+              duration_ms: 94.4342
+              type: 'test'
+              ...
+            # Subtest: fin de mes: 31 de marzo pasa a 30 de abril
+            ok 4 - fin de mes: 31 de marzo pasa a 30 de abril
+              ---
+              duration_ms: 90.2888
+              type: 'test'
+              ...
+            # Subtest: NO crea ningún gasto en la tabla gastos y el total mensual en reportes no se duplica
+            ok 5 - NO crea ningún gasto en la tabla gastos y el total mensual en reportes no se duplica
+              ---
+              duration_ms: 111.7495
+              type: 'test'
+              ...
+            # Subtest: aislamiento A/B: otro usuario no puede marcar una membresía ajena (404)
+            ok 6 - aislamiento A/B: otro usuario no puede marcar una membresía ajena (404)
+              ---
+              duration_ms: 100.3275
+              type: 'test'
+              ...
+            # Subtest: responde 404 para ID inexistente o inválido
+            ok 7 - responde 404 para ID inexistente o inválido
+              ---
+              duration_ms: 91.4512
+              type: 'test'
+              ...
+            1..7
+        ok 11 - HU-66: marcar membresía como pagada (POST /membresias/:id/pagada)
+          ---
+          duration_ms: 675.9764
+          type: 'suite'
+          ...
+        # Subtest: CP-RF6-01: variable 500 + fijo 300 = total 800
+        ok 12 - CP-RF6-01: variable 500 + fijo 300 = total 800
+          ---
+          duration_ms: 121.9086
+          type: 'test'
+          ...
+        # Subtest: CP-RF6-02 / CP-RF8-02: sin datos devuelve ceros y arreglos vacíos
+        ok 13 - CP-RF6-02 / CP-RF8-02: sin datos devuelve ceros y arreglos vacíos
+          ---
+          duration_ms: 92.9509
+          type: 'test'
+          ...
+        # Subtest: CP-RF8-01: categorías 600/300/100 con proporciones 60/30/10
+        ok 14 - CP-RF8-01: categorías 600/300/100 con proporciones 60/30/10
+          ---
+          duration_ms: 133.1263
+          type: 'test'
+          ...
+        # Subtest: CONSISTENCIA-ANUAL: tres endpoints concilian 1000 + (200 + 1200/12) = 1300
+        ok 15 - CONSISTENCIA-ANUAL: tres endpoints concilian 1000 + (200 + 1200/12) = 1300
+          ---
+          duration_ms: 153.2736
+          type: 'test'
+          ...
+        # Subtest: CONSISTENCIA-DECIMALES: 0.10 + 0.20 y dos anuales de 100 redondeados al final
+        ok 16 - CONSISTENCIA-DECIMALES: 0.10 + 0.20 y dos anuales de 100 redondeados al final
+          ---
+          duration_ms: 121.7553
+          type: 'test'
+          ...
+        # Subtest: RF8-REDONDEO: tres categorías iguales suman 100 % con orden estable
+        ok 17 - RF8-REDONDEO: tres categorías iguales suman 100 % con orden estable
+          ---
+          duration_ms: 125.9011
+          type: 'test'
+          ...
+        # Subtest: CONSISTENCIA-CAMBIOS: editar y borrar gastos/membresías actualiza ambos reportes
+        ok 18 - CONSISTENCIA-CAMBIOS: editar y borrar gastos/membresías actualiza ambos reportes
+          ---
+          duration_ms: 164.4248
+          type: 'test'
+          ...
+        # Subtest: AISLAMIENTO-AB: listas y reportes propios; catálogo compartido sin datos personales
+        ok 19 - AISLAMIENTO-AB: listas y reportes propios; catálogo compartido sin datos personales
+          ---
+          duration_ms: 218.4254
+          type: 'test'
+          ...
+        # Subtest: AISLAMIENTO-PUT: no modifica membresía ajena ni totales
+        ok 20 - AISLAMIENTO-PUT: no modifica membresía ajena ni totales
+          ---
+          duration_ms: 135.4255
+          type: 'test'
+          ...
+        # Subtest: AISLAMIENTO-DELETE: no modifica membresía ajena ni totales
+        ok 21 - AISLAMIENTO-DELETE: no modifica membresía ajena ni totales
+          ---
+          duration_ms: 121.6286
+          type: 'test'
+          ...
+        # Subtest: AUTH-GET /catalogo: sin token
+        ok 22 - AUTH-GET /catalogo: sin token
+          ---
+          duration_ms: 114.5342
+          type: 'test'
+          ...
+        # Subtest: AUTH-GET /catalogo: token inválido
+        ok 23 - AUTH-GET /catalogo: token inválido
+          ---
+          duration_ms: 109.7371
+          type: 'test'
+          ...
+        # Subtest: AUTH-GET /membresias: sin token
+        ok 24 - AUTH-GET /membresias: sin token
+          ---
+          duration_ms: 106.9357
+          type: 'test'
+          ...
+        # Subtest: AUTH-GET /membresias: token inválido
+        ok 25 - AUTH-GET /membresias: token inválido
+          ---
+          duration_ms: 105.6491
+          type: 'test'
+          ...
+        # Subtest: AUTH-POST /membresias: sin token
+        ok 26 - AUTH-POST /membresias: sin token
+          ---
+          duration_ms: 104.5186
+          type: 'test'
+          ...
+        # Subtest: AUTH-POST /membresias: token inválido
+        ok 27 - AUTH-POST /membresias: token inválido
+          ---
+          duration_ms: 103.3561
+          type: 'test'
+          ...
+        # Subtest: AUTH-PUT /membresias/1: sin token
+        ok 28 - AUTH-PUT /membresias/1: sin token
+          ---
+          duration_ms: 104.5792
+          type: 'test'
+          ...
+        # Subtest: AUTH-PUT /membresias/1: token inválido
+        ok 29 - AUTH-PUT /membresias/1: token inválido
+          ---
+          duration_ms: 105.0107
+          type: 'test'
+          ...
+        # Subtest: AUTH-DELETE /membresias/1: sin token
+        ok 30 - AUTH-DELETE /membresias/1: sin token
+          ---
+          duration_ms: 105.7081
+          type: 'test'
+          ...
+        # Subtest: AUTH-DELETE /membresias/1: token inválido
+        ok 31 - AUTH-DELETE /membresias/1: token inválido
+          ---
+          duration_ms: 104.5495
+          type: 'test'
+          ...
+        # Subtest: AUTH-GET /reportes/resumen?mes=2026-10: sin token
+        ok 32 - AUTH-GET /reportes/resumen?mes=2026-10: sin token
+          ---
+          duration_ms: 118.0597
+          type: 'test'
+          ...
+        # Subtest: AUTH-GET /reportes/resumen?mes=2026-10: token inválido
+        ok 33 - AUTH-GET /reportes/resumen?mes=2026-10: token inválido
+          ---
+          duration_ms: 102.8167
+          type: 'test'
+          ...
+        # Subtest: AUTH-GET /reportes/por-categoria?mes=2026-10: sin token
+        ok 34 - AUTH-GET /reportes/por-categoria?mes=2026-10: sin token
+          ---
+          duration_ms: 103.5632
+          type: 'test'
+          ...
+        # Subtest: AUTH-GET /reportes/por-categoria?mes=2026-10: token inválido
+        ok 35 - AUTH-GET /reportes/por-categoria?mes=2026-10: token inválido
+          ---
+          duration_ms: 108.3055
+          type: 'test'
+          ...
+        # Subtest: MES-INVALIDO /reportes/resumen: null
+        ok 36 - MES-INVALIDO /reportes/resumen: null
+          ---
+          duration_ms: 86.0393
+          type: 'test'
+          ...
+        # Subtest: MES-INVALIDO /reportes/resumen: ""
+        ok 37 - MES-INVALIDO /reportes/resumen: ""
+          ---
+          duration_ms: 86.3811
+          type: 'test'
+          ...
+        # Subtest: MES-INVALIDO /reportes/resumen: "2026-13"
+        ok 38 - MES-INVALIDO /reportes/resumen: "2026-13"
+          ---
+          duration_ms: 76.6978
+          type: 'test'
+          ...
+        # Subtest: MES-INVALIDO /reportes/resumen: "2026-1"
+        ok 39 - MES-INVALIDO /reportes/resumen: "2026-1"
+          ---
+          duration_ms: 78.2978
+          type: 'test'
+          ...
+        # Subtest: MES-INVALIDO /reportes/resumen: "2026-10-01"
+        ok 40 - MES-INVALIDO /reportes/resumen: "2026-10-01"
+          ---
+          duration_ms: 80.016
+          type: 'test'
+          ...
+        # Subtest: MES-INVALIDO /reportes/por-categoria: null
+        ok 41 - MES-INVALIDO /reportes/por-categoria: null
+          ---
+          duration_ms: 78.027
+          type: 'test'
+          ...
+        # Subtest: MES-INVALIDO /reportes/por-categoria: ""
+        ok 42 - MES-INVALIDO /reportes/por-categoria: ""
+          ---
+          duration_ms: 81.1149
+          type: 'test'
+          ...
+        # Subtest: MES-INVALIDO /reportes/por-categoria: "2026-13"
+        ok 43 - MES-INVALIDO /reportes/por-categoria: "2026-13"
+          ---
+          duration_ms: 80.1514
+          type: 'test'
+          ...
+        # Subtest: MES-INVALIDO /reportes/por-categoria: "2026-1"
+        ok 44 - MES-INVALIDO /reportes/por-categoria: "2026-1"
+          ---
+          duration_ms: 79.2777
+          type: 'test'
+          ...
+        # Subtest: MES-INVALIDO /reportes/por-categoria: "2026-10-01"
+        ok 45 - MES-INVALIDO /reportes/por-categoria: "2026-10-01"
+          ---
+          duration_ms: 83.3446
+          type: 'test'
+          ...
+        # Subtest: Administración del catálogo (RF9)
+            # Subtest: AUTH-ADMIN POST /catalogo: sin token responde 401 NO_AUTORIZADO
+            ok 1 - AUTH-ADMIN POST /catalogo: sin token responde 401 NO_AUTORIZADO
+              ---
+              duration_ms: 79.7184
+              type: 'test'
+              ...
+            # Subtest: AUTH-ADMIN POST /catalogo: token inválido responde 401 NO_AUTORIZADO
+            ok 2 - AUTH-ADMIN POST /catalogo: token inválido responde 401 NO_AUTORIZADO
+              ---
+              duration_ms: 77.8908
+              type: 'test'
+              ...
+            # Subtest: AUTH-ADMIN PUT /catalogo/1: sin token responde 401 NO_AUTORIZADO
+            ok 3 - AUTH-ADMIN PUT /catalogo/1: sin token responde 401 NO_AUTORIZADO
+              ---
+              duration_ms: 87.8097
+              type: 'test'
+              ...
+            # Subtest: AUTH-ADMIN PUT /catalogo/1: token inválido responde 401 NO_AUTORIZADO
+            ok 4 - AUTH-ADMIN PUT /catalogo/1: token inválido responde 401 NO_AUTORIZADO
+              ---
+              duration_ms: 82.1951
+              type: 'test'
+              ...
+            # Subtest: AUTH-ADMIN DELETE /catalogo/1: sin token responde 401 NO_AUTORIZADO
+            ok 5 - AUTH-ADMIN DELETE /catalogo/1: sin token responde 401 NO_AUTORIZADO
+              ---
+              duration_ms: 80.2844
+              type: 'test'
+              ...
+            # Subtest: AUTH-ADMIN DELETE /catalogo/1: token inválido responde 401 NO_AUTORIZADO
+            ok 6 - AUTH-ADMIN DELETE /catalogo/1: token inválido responde 401 NO_AUTORIZADO
+              ---
+              duration_ms: 76.3304
+              type: 'test'
+              ...
+            # Subtest: usuario normal recibe 403 PROHIBIDO en POST, PUT y DELETE /catalogo y GET /catalogo sigue abierto
+            ok 7 - usuario normal recibe 403 PROHIBIDO en POST, PUT y DELETE /catalogo y GET /catalogo sigue abierto
+              ---
+              duration_ms: 99.1446
+              type: 'test'
+              ...
+            # Subtest: admin agrega un nuevo servicio al catálogo (201) con y sin logo_url
+            ok 8 - admin agrega un nuevo servicio al catálogo (201) con y sin logo_url
+              ---
+              duration_ms: 94.8046
+              type: 'test'
+              ...
+            # Subtest: admin valida nombre, costo sugerido y logo en POST y PUT /catalogo (400)
+            ok 9 - admin valida nombre, costo sugerido y logo en POST y PUT /catalogo (400)
+              ---
+              duration_ms: 204.5755
+              type: 'test'
+              ...
+            # Subtest: admin edita un servicio existente (200) y responde 404 si no existe
+            ok 10 - admin edita un servicio existente (200) y responde 404 si no existe
+              ---
+              duration_ms: 109.1002
+              type: 'test'
+              ...
+            # Subtest: eliminar un servicio en uso por membresías responde 409 SERVICIO_EN_USO y no lo borra
+            ok 11 - eliminar un servicio en uso por membresías responde 409 SERVICIO_EN_USO y no lo borra
+              ---
+              duration_ms: 95.2497
+              type: 'test'
+              ...
+            # Subtest: admin elimina un servicio que no está en uso (200) y responde 404 si ya no existe
+            ok 12 - admin elimina un servicio que no está en uso (200) y responde 404 si ya no existe
+              ---
+              duration_ms: 100.1673
+              type: 'test'
+              ...
+            1..12
+        ok 46 - Administración del catálogo (RF9)
+          ---
+          duration_ms: 1188.079
+          type: 'suite'
+          ...
+        # Subtest: Moneda propia por suscripción (RF11 / HU-77)
+            # Subtest: crea una suscripción de 10 USD con tipo de cambio y suma su equivalente en MXN a Reportes (Aceptación HU-77)
+            ok 1 - crea una suscripción de 10 USD con tipo de cambio y suma su equivalente en MXN a Reportes (Aceptación HU-77)
+              ---
+              duration_ms: 90.0376
+              type: 'test'
+              ...
+            # Subtest: cambiar una suscripción extranjera a MXN limpia monto_original y tipo_cambio (QA HU-77)
+            ok 2 - cambiar una suscripción extranjera a MXN limpia monto_original y tipo_cambio (QA HU-77)
+              ---
+              duration_ms: 98.5129
+              type: 'test'
+              ...
+            # Subtest: rechaza moneda inválida y conversión que no coincide con costo
+            ok 3 - rechaza moneda inválida y conversión que no coincide con costo
+              ---
+              duration_ms: 90.162
+              type: 'test'
+              ...
+            1..3
+        ok 47 - Moneda propia por suscripción (RF11 / HU-77)
+          ---
+          duration_ms: 279.0206
+          type: 'suite'
+          ...
+        # Subtest: Pausar y reactivar suscripción (HU-75)
+            # Subtest: pausar Netflix ($199) baja Reportes en $199 y reactivar lo devuelve (QA HU-75)
+            ok 1 - pausar Netflix ($199) baja Reportes en $199 y reactivar lo devuelve (QA HU-75)
+              ---
+              duration_ms: 141.6981
+              type: 'test'
+              ...
+            # Subtest: PUT /membresias/:id permite actualizar el estado y rechaza estado inválido
+            ok 2 - PUT /membresias/:id permite actualizar el estado y rechaza estado inválido
+              ---
+              duration_ms: 101.5801
+              type: 'test'
+              ...
+            # Subtest: POST /membresias/:id/pausar y reactivar devuelven 404 para membresía inexistente o ajena
+            ok 3 - POST /membresias/:id/pausar y reactivar devuelven 404 para membresía inexistente o ajena
+              ---
+              duration_ms: 94.8206
+              type: 'test'
+              ...
+            1..3
+        ok 48 - Pausar y reactivar suscripción (HU-75)
+          ---
+          duration_ms: 338.5549
+          type: 'suite'
+          ...
+        # Subtest: Historial de pagos de una suscripción (pagos_membresia / Migración 019)
+            # Subtest: Migración 019: crea la tabla pagos_membresia con ON DELETE CASCADE y es idempotente en base existente
+            ok 1 - Migración 019: crea la tabla pagos_membresia con ON DELETE CASCADE y es idempotente en base existente
+              ---
+              duration_ms: 131.4845
+              type: 'test'
+              ...
+            # Subtest: tres pagos se ven en orden con fecha y monto y NO crean ningún gasto
+            ok 2 - tres pagos se ven en orden con fecha y monto y NO crean ningún gasto
+              ---
+              duration_ms: 140.5704
+              type: 'test'
+              ...
+            # Subtest: eliminar la membresía borra su historial en cascada sin afectar otras membresías
+            ok 3 - eliminar la membresía borra su historial en cascada sin afectar otras membresías
+              ---
+              duration_ms: 109.7738
+              type: 'test'
+              ...
+            # Subtest: eliminar la cuenta (DELETE /auth/cuenta HU-68) borra el historial de pagos sin tocar el de otro usuario
+            ok 4 - eliminar la cuenta (DELETE /auth/cuenta HU-68) borra el historial de pagos sin tocar el de otro usuario
+              ---
+              duration_ms: 217.9115
+              type: 'test'
+              ...
+            # Subtest: aislamiento A/B, IDs inválidos y autenticación en GET /membresias/:id/pagos
+            ok 5 - aislamiento A/B, IDs inválidos y autenticación en GET /membresias/:id/pagos
+              ---
+              duration_ms: 107.5874
+              type: 'test'
+              ...
+            1..5
+        ok 49 - Historial de pagos de una suscripción (pagos_membresia / Migración 019)
+          ---
+          duration_ms: 707.772
+          type: 'suite'
+          ...
+        1..49
+    ok 6 - QA membresías y reportes (RF5/RF6/RF8)
+      ---
+      duration_ms: 7932.7082
+      type: 'suite'
+      ...
+    # Subtest: Notificaciones push (RF7 / Migración 011)
+        # Subtest: Migración 011: aplica las columnas C-01, C-02 y X-01 en el esquema
+        ok 1 - Migración 011: aplica las columnas C-01, C-02 y X-01 en el esquema
+          ---
+          duration_ms: 76.6672
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token guarda el token del usuario autenticado y aísla a otros usuarios
+        ok 2 - POST /notificaciones/token guarda el token del usuario autenticado y aísla a otros usuarios
+          ---
+          duration_ms: 76.1601
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token acepta prefijo ExpoPushToken y permite actualizar el token
+        ok 3 - POST /notificaciones/token acepta prefijo ExpoPushToken y permite actualizar el token
+          ---
+          duration_ms: 81.7865
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token rechaza token inválido (sin cuerpo) con 400 TOKEN_PUSH_INVALIDO
+        ok 4 - POST /notificaciones/token rechaza token inválido (sin cuerpo) con 400 TOKEN_PUSH_INVALIDO
+          ---
+          duration_ms: 81.1039
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token rechaza token inválido (objeto vacío) con 400 TOKEN_PUSH_INVALIDO
+        ok 5 - POST /notificaciones/token rechaza token inválido (objeto vacío) con 400 TOKEN_PUSH_INVALIDO
+          ---
+          duration_ms: 81.4548
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token rechaza token inválido (nulo) con 400 TOKEN_PUSH_INVALIDO
+        ok 6 - POST /notificaciones/token rechaza token inválido (nulo) con 400 TOKEN_PUSH_INVALIDO
+          ---
+          duration_ms: 91.646
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token rechaza token inválido (numérico) con 400 TOKEN_PUSH_INVALIDO
+        ok 7 - POST /notificaciones/token rechaza token inválido (numérico) con 400 TOKEN_PUSH_INVALIDO
+          ---
+          duration_ms: 77.8546
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token rechaza token inválido (vacío) con 400 TOKEN_PUSH_INVALIDO
+        ok 8 - POST /notificaciones/token rechaza token inválido (vacío) con 400 TOKEN_PUSH_INVALIDO
+          ---
+          duration_ms: 78.026
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token rechaza token inválido (solo espacios) con 400 TOKEN_PUSH_INVALIDO
+        ok 9 - POST /notificaciones/token rechaza token inválido (solo espacios) con 400 TOKEN_PUSH_INVALIDO
+          ---
+          duration_ms: 82.0167
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token rechaza token inválido (formato ajeno a Expo) con 400 TOKEN_PUSH_INVALIDO
+        ok 10 - POST /notificaciones/token rechaza token inválido (formato ajeno a Expo) con 400 TOKEN_PUSH_INVALIDO
+          ---
+          duration_ms: 81.9979
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token rechaza token inválido (corchetes vacíos) con 400 TOKEN_PUSH_INVALIDO
+        ok 11 - POST /notificaciones/token rechaza token inválido (corchetes vacíos) con 400 TOKEN_PUSH_INVALIDO
+          ---
+          duration_ms: 78.6891
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token rechaza token inválido (con espacios internos) con 400 TOKEN_PUSH_INVALIDO
+        ok 12 - POST /notificaciones/token rechaza token inválido (con espacios internos) con 400 TOKEN_PUSH_INVALIDO
+          ---
+          duration_ms: 84.3775
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token rechaza token inválido (excede 255 caracteres) con 400 TOKEN_PUSH_INVALIDO
+        ok 13 - POST /notificaciones/token rechaza token inválido (excede 255 caracteres) con 400 TOKEN_PUSH_INVALIDO
+          ---
+          duration_ms: 82.0721
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token con token JWT ausente devuelve 401 NO_AUTORIZADO
+        ok 14 - POST /notificaciones/token con token JWT ausente devuelve 401 NO_AUTORIZADO
+          ---
+          duration_ms: 81.9975
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token con token JWT inválido devuelve 401 NO_AUTORIZADO
+        ok 15 - POST /notificaciones/token con token JWT inválido devuelve 401 NO_AUTORIZADO
+          ---
+          duration_ms: 132.556
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token con token JWT vencido devuelve 401 NO_AUTORIZADO
+        ok 16 - POST /notificaciones/token con token JWT vencido devuelve 401 NO_AUTORIZADO
+          ---
+          duration_ms: 134.3274
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token con token JWT firma ajena devuelve 401 NO_AUTORIZADO
+        ok 17 - POST /notificaciones/token con token JWT firma ajena devuelve 401 NO_AUTORIZADO
+          ---
+          duration_ms: 110.3948
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token con token JWT sin Bearer devuelve 401 NO_AUTORIZADO
+        ok 18 - POST /notificaciones/token con token JWT sin Bearer devuelve 401 NO_AUTORIZADO
+          ---
+          duration_ms: 91.2615
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token de usuario eliminado devuelve 404 USUARIO_NO_ENCONTRADO
+        ok 19 - POST /notificaciones/token de usuario eliminado devuelve 404 USUARIO_NO_ENCONTRADO
+          ---
+          duration_ms: 97.5699
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token transfiere el token: A registra T, B registra T → A queda NULL y B con T
+        ok 20 - POST /notificaciones/token transfiere el token: A registra T, B registra T → A queda NULL y B con T
+          ---
+          duration_ms: 115.8459
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token concurrente de A y B con el mismo token deja un solo dueño
+        ok 21 - POST /notificaciones/token concurrente de A y B con el mismo token deja un solo dueño
+          ---
+          duration_ms: 156.3826
+          type: 'test'
+          ...
+        # Subtest: POST /notificaciones/token de usuario eliminado no le quita el token a otra cuenta
+        ok 22 - POST /notificaciones/token de usuario eliminado no le quita el token a otra cuenta
+          ---
+          duration_ms: 104.0287
+          type: 'test'
+          ...
+        # Subtest: DELETE /notificaciones/token borra el token del usuario autenticado
+        ok 23 - DELETE /notificaciones/token borra el token del usuario autenticado
+          ---
+          duration_ms: 95.1605
+          type: 'test'
+          ...
+        # Subtest: DELETE /notificaciones/token de A no toca el token de B (ya transferido)
+        ok 24 - DELETE /notificaciones/token de A no toca el token de B (ya transferido)
+          ---
+          duration_ms: 100.9804
+          type: 'test'
+          ...
+        # Subtest: DELETE /notificaciones/token con un token distinto al guardado responde 200 sin cambios
+        ok 25 - DELETE /notificaciones/token con un token distinto al guardado responde 200 sin cambios
+          ---
+          duration_ms: 110.1333
+          type: 'test'
+          ...
+        # Subtest: DELETE /notificaciones/token repetido es idempotente
+        ok 26 - DELETE /notificaciones/token repetido es idempotente
+          ---
+          duration_ms: 80.9102
+          type: 'test'
+          ...
+        # Subtest: DELETE /notificaciones/token rechaza token inválido (sin cuerpo) con 400 TOKEN_PUSH_INVALIDO
+        ok 27 - DELETE /notificaciones/token rechaza token inválido (sin cuerpo) con 400 TOKEN_PUSH_INVALIDO
+          ---
+          duration_ms: 75.4099
+          type: 'test'
+          ...
+        # Subtest: DELETE /notificaciones/token rechaza token inválido (formato ajeno a Expo) con 400 TOKEN_PUSH_INVALIDO
+        ok 28 - DELETE /notificaciones/token rechaza token inválido (formato ajeno a Expo) con 400 TOKEN_PUSH_INVALIDO
+          ---
+          duration_ms: 76.0134
+          type: 'test'
+          ...
+        # Subtest: DELETE /notificaciones/token rechaza token inválido (nulo) con 400 TOKEN_PUSH_INVALIDO
+        ok 29 - DELETE /notificaciones/token rechaza token inválido (nulo) con 400 TOKEN_PUSH_INVALIDO
+          ---
+          duration_ms: 77.1321
+          type: 'test'
+          ...
+        # Subtest: DELETE /notificaciones/token sin JWT devuelve 401 NO_AUTORIZADO
+        ok 30 - DELETE /notificaciones/token sin JWT devuelve 401 NO_AUTORIZADO
+          ---
+          duration_ms: 79.6965
+          type: 'test'
+          ...
+        # Subtest: Migración 013: el índice único impide que dos cuentas guarden el mismo token
+        ok 31 - Migración 013: el índice único impide que dos cuentas guarden el mismo token
+          ---
+          duration_ms: 73.767
+          type: 'test'
+          ...
+        # Subtest: Migración 013: limpia duplicados existentes (NULL) y conserva tokens únicos
+        ok 32 - Migración 013: limpia duplicados existentes (NULL) y conserva tokens únicos
+          ---
+          duration_ms: 80.0596
+          type: 'test'
+          ...
+        # Subtest: Cálculo de fechas y siguiente ciclo (RF7 / HU-51)
+            # Subtest: diasEnMes calcula correctamente meses de 28, 29, 30 y 31 días
+            ok 1 - diasEnMes calcula correctamente meses de 28, 29, 30 y 31 días
+              ---
+              duration_ms: 68.8928
+              type: 'test'
+              ...
+            # Subtest: avanzarFechaCobro conserva fechas futuras o iguales a hoy sin modificarlas
+            ok 2 - avanzarFechaCobro conserva fechas futuras o iguales a hoy sin modificarlas
+              ---
+              duration_ms: 67.3604
+              type: 'test'
+              ...
+            # Subtest: avanzarFechaCobro avanza membresías mensuales vencidas cuidando el fin de mes (31 → 28, 29 o 30)
+            ok 3 - avanzarFechaCobro avanza membresías mensuales vencidas cuidando el fin de mes (31 → 28, 29 o 30)
+              ---
+              duration_ms: 68.3576
+              type: 'test'
+              ...
+            # Subtest: avanzarFechaCobro avanza membresías anuales vencidas 1 o más años (incluyendo 29 feb → 28 feb)
+            ok 4 - avanzarFechaCobro avanza membresías anuales vencidas 1 o más años (incluyendo 29 feb → 28 feb)
+              ---
+              duration_ms: 71.5607
+              type: 'test'
+              ...
+            # Subtest: calcularDiasParaCobro y calcularProximoCobro determinan ventana de 0 a 3 días
+            ok 5 - calcularDiasParaCobro y calcularProximoCobro determinan ventana de 0 a 3 días
+              ---
+              duration_ms: 67.9011
+              type: 'test'
+              ...
+            # Subtest: construirMensajeCobro formatea nombre, días y monto según el contrato («Netflix se cobra en 2 días: $199»)
+            ok 6 - construirMensajeCobro formatea nombre, días y monto según el contrato («Netflix se cobra en 2 días: $199»)
+              ---
+              duration_ms: 69.4216
+              type: 'test'
+              ...
+            1..6
+        ok 33 - Cálculo de fechas y siguiente ciclo (RF7 / HU-51)
+          ---
+          duration_ms: 413.9027
+          type: 'suite'
+          ...
+        # Subtest: Proceso diario procesarAvisosCobro (RF7)
+            # Subtest: una membresía a 2 días genera un solo aviso al día y guarda ultima_notificacion
+            ok 1 - una membresía a 2 días genera un solo aviso al día y guarda ultima_notificacion
+              ---
+              duration_ms: 87.1563
+              type: 'test'
+              ...
+            # Subtest: una membresía a 10 días no genera aviso
+            ok 2 - una membresía a 10 días no genera aviso
+              ---
+              duration_ms: 78.4562
+              type: 'test'
+              ...
+            # Subtest: una membresía pausada a 2 días del cobro no genera aviso (QA HU-75)
+            ok 3 - una membresía pausada a 2 días del cobro no genera aviso (QA HU-75)
+              ---
+              duration_ms: 80.1928
+              type: 'test'
+              ...
+            # Subtest: si un usuario no tiene token o Expo falla, registra el error y sigue con los demás sin tumbar el proceso
+            ok 4 - si un usuario no tiene token o Expo falla, registra el error y sigue con los demás sin tumbar el proceso
+              ---
+              duration_ms: 95.8434
+              type: 'test'
+              ...
+            # Subtest: avanza en la BD membresías cuya fecha_cobro ya pasó (mensual en fin de mes y anual) y notifica si faltan <= 3 días
+            ok 5 - avanza en la BD membresías cuya fecha_cobro ya pasó (mensual en fin de mes y anual) y notifica si faltan <= 3 días
+              ---
+              duration_ms: 93.9855
+              type: 'test'
+              ...
+            # Subtest: iniciarCronAvisoCobros permite programar y detener el proceso periódico
+            ok 6 - iniciarCronAvisoCobros permite programar y detener el proceso periódico
+              ---
+              duration_ms: 71.1422
+              type: 'test'
+              ...
+            1..6
+        ok 34 - Proceso diario procesarAvisosCobro (RF7)
+          ---
+          duration_ms: 507.158
+          type: 'suite'
+          ...
+        1..34
+    ok 7 - Notificaciones push (RF7 / Migración 011)
+      ---
+      duration_ms: 3850.5098
+      type: 'suite'
+      ...
+    # Subtest: Cambio de moneda y divisas (RF11)
+        # Subtest: la ruta experimental antigua GET /tipo-cambio ya no existe y devuelve 404 RUTA_NO_ENCONTRADA
+        ok 1 - la ruta experimental antigua GET /tipo-cambio ya no existe y devuelve 404 RUTA_NO_ENCONTRADA
+          ---
+          duration_ms: 72.3451
+          type: 'test'
+          ...
+        # Subtest: GET /divisas/tipo-cambio devuelve tasa válida y usa caché en consultas subsecuentes
+        ok 2 - GET /divisas/tipo-cambio devuelve tasa válida y usa caché en consultas subsecuentes
+          ---
+          duration_ms: 80.277
+          type: 'test'
+          ...
+        # Subtest: GET /divisas/tipo-cambio rechaza sin parámetro moneda con 400 MONEDA_INVALIDA
+        ok 3 - GET /divisas/tipo-cambio rechaza sin parámetro moneda con 400 MONEDA_INVALIDA
+          ---
+          duration_ms: 74.2543
+          type: 'test'
+          ...
+        # Subtest: GET /divisas/tipo-cambio rechaza moneda vacía con 400 MONEDA_INVALIDA
+        ok 4 - GET /divisas/tipo-cambio rechaza moneda vacía con 400 MONEDA_INVALIDA
+          ---
+          duration_ms: 74.2725
+          type: 'test'
+          ...
+        # Subtest: GET /divisas/tipo-cambio rechaza moneda MXN (igual a base) con 400 MONEDA_INVALIDA
+        ok 5 - GET /divisas/tipo-cambio rechaza moneda MXN (igual a base) con 400 MONEDA_INVALIDA
+          ---
+          duration_ms: 73.6782
+          type: 'test'
+          ...
+        # Subtest: GET /divisas/tipo-cambio rechaza código de 2 letras con 400 MONEDA_INVALIDA
+        ok 6 - GET /divisas/tipo-cambio rechaza código de 2 letras con 400 MONEDA_INVALIDA
+          ---
+          duration_ms: 74.0771
+          type: 'test'
+          ...
+        # Subtest: GET /divisas/tipo-cambio rechaza código de 4 letras con 400 MONEDA_INVALIDA
+        ok 7 - GET /divisas/tipo-cambio rechaza código de 4 letras con 400 MONEDA_INVALIDA
+          ---
+          duration_ms: 70.8473
+          type: 'test'
+          ...
+        # Subtest: GET /divisas/tipo-cambio rechaza código de 3 letras desconocido con 400 MONEDA_INVALIDA
+        ok 8 - GET /divisas/tipo-cambio rechaza código de 3 letras desconocido con 400 MONEDA_INVALIDA
+          ---
+          duration_ms: 70.5566
+          type: 'test'
+          ...
+        # Subtest: GET /divisas/tipo-cambio rechaza código en minúsculas con 400 MONEDA_INVALIDA
+        ok 9 - GET /divisas/tipo-cambio rechaza código en minúsculas con 400 MONEDA_INVALIDA
+          ---
+          duration_ms: 70.2436
+          type: 'test'
+          ...
+        # Subtest: GET /divisas/tipo-cambio rechaza código numérico con 400 MONEDA_INVALIDA
+        ok 10 - GET /divisas/tipo-cambio rechaza código numérico con 400 MONEDA_INVALIDA
+          ---
+          duration_ms: 81.7789
+          type: 'test'
+          ...
+        # Subtest: GET /divisas/tipo-cambio responde 502 FUENTE_NO_DISPONIBLE ante HTTP 500 de la fuente
+        ok 11 - GET /divisas/tipo-cambio responde 502 FUENTE_NO_DISPONIBLE ante HTTP 500 de la fuente
+          ---
+          duration_ms: 81.618
+          type: 'test'
+          ...
+        # Subtest: GET /divisas/tipo-cambio responde 502 FUENTE_NO_DISPONIBLE ante JSON inválido de la fuente
+        ok 12 - GET /divisas/tipo-cambio responde 502 FUENTE_NO_DISPONIBLE ante JSON inválido de la fuente
+          ---
+          duration_ms: 75.7116
+          type: 'test'
+          ...
+        # Subtest: GET /divisas/tipo-cambio responde 502 FUENTE_NO_DISPONIBLE ante respuesta sin tasa numérica
+        ok 13 - GET /divisas/tipo-cambio responde 502 FUENTE_NO_DISPONIBLE ante respuesta sin tasa numérica
+          ---
+          duration_ms: 78.129
+          type: 'test'
+          ...
+        # Subtest: GET /divisas/tipo-cambio responde 502 FUENTE_NO_DISPONIBLE ante corte de conexión de red
+        ok 14 - GET /divisas/tipo-cambio responde 502 FUENTE_NO_DISPONIBLE ante corte de conexión de red
+          ---
+          duration_ms: 72.9999
+          type: 'test'
+          ...
+        # Subtest: GET /divisas/tipo-cambio con token ausente devuelve 401 NO_AUTORIZADO
+        ok 15 - GET /divisas/tipo-cambio con token ausente devuelve 401 NO_AUTORIZADO
+          ---
+          duration_ms: 70.5582
+          type: 'test'
+          ...
+        # Subtest: GET /divisas/tipo-cambio con token inválido devuelve 401 NO_AUTORIZADO
+        ok 16 - GET /divisas/tipo-cambio con token inválido devuelve 401 NO_AUTORIZADO
+          ---
+          duration_ms: 72.893
+          type: 'test'
+          ...
+        # Subtest: GET /divisas/tipo-cambio con token vencido devuelve 401 NO_AUTORIZADO
+        ok 17 - GET /divisas/tipo-cambio con token vencido devuelve 401 NO_AUTORIZADO
+          ---
+          duration_ms: 79.7441
+          type: 'test'
+          ...
+        # Subtest: GET /divisas/tipo-cambio con token firma ajena devuelve 401 NO_AUTORIZADO
+        ok 18 - GET /divisas/tipo-cambio con token firma ajena devuelve 401 NO_AUTORIZADO
+          ---
+          duration_ms: 74.4495
+          type: 'test'
+          ...
+        # Subtest: GET /divisas/tipo-cambio con token sin Bearer devuelve 401 NO_AUTORIZADO
+        ok 19 - GET /divisas/tipo-cambio con token sin Bearer devuelve 401 NO_AUTORIZADO
+          ---
+          duration_ms: 80.221
+          type: 'test'
+          ...
+        # Subtest: POST/GET/PUT /gastos guardan y actualizan moneda, monto_original y tipo_cambio
+        ok 20 - POST/GET/PUT /gastos guardan y actualizan moneda, monto_original y tipo_cambio
+          ---
+          duration_ms: 98.3631
+          type: 'test'
+          ...
+        # Subtest: POST /gastos rechaza moneda desconocida de 3 letras con 400 MONEDA_INVALIDA
+        ok 21 - POST /gastos rechaza moneda desconocida de 3 letras con 400 MONEDA_INVALIDA
+          ---
+          duration_ms: 87.5498
+          type: 'test'
+          ...
+        # Subtest: POST /gastos rechaza moneda de 2 letras con 400 MONEDA_INVALIDA
+        ok 22 - POST /gastos rechaza moneda de 2 letras con 400 MONEDA_INVALIDA
+          ---
+          duration_ms: 80.7967
+          type: 'test'
+          ...
+        # Subtest: POST /gastos rechaza moneda en minúsculas con 400 MONEDA_INVALIDA
+        ok 23 - POST /gastos rechaza moneda en minúsculas con 400 MONEDA_INVALIDA
+          ---
+          duration_ms: 90.8626
+          type: 'test'
+          ...
+        # Subtest: POST /gastos rechaza moneda no textual con 400 MONEDA_INVALIDA
+        ok 24 - POST /gastos rechaza moneda no textual con 400 MONEDA_INVALIDA
+          ---
+          duration_ms: 83.815
+          type: 'test'
+          ...
+        # Subtest: POST /gastos rechaza moneda extranjera sin monto_original ni tipo_cambio con 400 MONTO_INVALIDO
+        ok 25 - POST /gastos rechaza moneda extranjera sin monto_original ni tipo_cambio con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 86.9794
+          type: 'test'
+          ...
+        # Subtest: POST /gastos rechaza moneda extranjera sin tipo_cambio con 400 MONTO_INVALIDO
+        ok 26 - POST /gastos rechaza moneda extranjera sin tipo_cambio con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 100.4908
+          type: 'test'
+          ...
+        # Subtest: POST /gastos rechaza moneda extranjera sin monto_original con 400 MONTO_INVALIDO
+        ok 27 - POST /gastos rechaza moneda extranjera sin monto_original con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 83.7287
+          type: 'test'
+          ...
+        # Subtest: POST /gastos rechaza monto_original × tipo_cambio no coincide con monto con 400 MONTO_INVALIDO
+        ok 28 - POST /gastos rechaza monto_original × tipo_cambio no coincide con monto con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 88.825
+          type: 'test'
+          ...
+        # Subtest: POST /gastos rechaza desfase de un centavo en la conversión con 400 MONTO_INVALIDO
+        ok 29 - POST /gastos rechaza desfase de un centavo en la conversión con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 84.5254
+          type: 'test'
+          ...
+        # Subtest: POST /gastos rechaza monto_original negativo con 400 MONTO_INVALIDO
+        ok 30 - POST /gastos rechaza monto_original negativo con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 86.0888
+          type: 'test'
+          ...
+        # Subtest: POST /gastos rechaza monto_original con más de 2 decimales con 400 MONTO_INVALIDO
+        ok 31 - POST /gastos rechaza monto_original con más de 2 decimales con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 86.0401
+          type: 'test'
+          ...
+        # Subtest: POST /gastos rechaza tipo_cambio cero con 400 MONTO_INVALIDO
+        ok 32 - POST /gastos rechaza tipo_cambio cero con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 81.819
+          type: 'test'
+          ...
+        # Subtest: POST /gastos rechaza tipo_cambio con más de 6 decimales con 400 MONTO_INVALIDO
+        ok 33 - POST /gastos rechaza tipo_cambio con más de 6 decimales con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 81.7658
+          type: 'test'
+          ...
+        # Subtest: PUT /gastos rechaza moneda desconocida de 3 letras con 400 MONEDA_INVALIDA
+        ok 34 - PUT /gastos rechaza moneda desconocida de 3 letras con 400 MONEDA_INVALIDA
+          ---
+          duration_ms: 89.2477
+          type: 'test'
+          ...
+        # Subtest: PUT /gastos rechaza moneda de 2 letras con 400 MONEDA_INVALIDA
+        ok 35 - PUT /gastos rechaza moneda de 2 letras con 400 MONEDA_INVALIDA
+          ---
+          duration_ms: 94.8938
+          type: 'test'
+          ...
+        # Subtest: PUT /gastos rechaza moneda en minúsculas con 400 MONEDA_INVALIDA
+        ok 36 - PUT /gastos rechaza moneda en minúsculas con 400 MONEDA_INVALIDA
+          ---
+          duration_ms: 102.5442
+          type: 'test'
+          ...
+        # Subtest: PUT /gastos rechaza moneda no textual con 400 MONEDA_INVALIDA
+        ok 37 - PUT /gastos rechaza moneda no textual con 400 MONEDA_INVALIDA
+          ---
+          duration_ms: 96.6712
+          type: 'test'
+          ...
+        # Subtest: PUT /gastos rechaza moneda extranjera sin monto_original ni tipo_cambio con 400 MONTO_INVALIDO
+        ok 38 - PUT /gastos rechaza moneda extranjera sin monto_original ni tipo_cambio con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 96.358
+          type: 'test'
+          ...
+        # Subtest: PUT /gastos rechaza moneda extranjera sin tipo_cambio con 400 MONTO_INVALIDO
+        ok 39 - PUT /gastos rechaza moneda extranjera sin tipo_cambio con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 97.7526
+          type: 'test'
+          ...
+        # Subtest: PUT /gastos rechaza moneda extranjera sin monto_original con 400 MONTO_INVALIDO
+        ok 40 - PUT /gastos rechaza moneda extranjera sin monto_original con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 103.3563
+          type: 'test'
+          ...
+        # Subtest: PUT /gastos rechaza monto_original × tipo_cambio no coincide con monto con 400 MONTO_INVALIDO
+        ok 41 - PUT /gastos rechaza monto_original × tipo_cambio no coincide con monto con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 106.3454
+          type: 'test'
+          ...
+        # Subtest: PUT /gastos rechaza desfase de un centavo en la conversión con 400 MONTO_INVALIDO
+        ok 42 - PUT /gastos rechaza desfase de un centavo en la conversión con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 95.5853
+          type: 'test'
+          ...
+        # Subtest: PUT /gastos rechaza monto_original negativo con 400 MONTO_INVALIDO
+        ok 43 - PUT /gastos rechaza monto_original negativo con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 119.3673
+          type: 'test'
+          ...
+        # Subtest: PUT /gastos rechaza monto_original con más de 2 decimales con 400 MONTO_INVALIDO
+        ok 44 - PUT /gastos rechaza monto_original con más de 2 decimales con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 92.8691
+          type: 'test'
+          ...
+        # Subtest: PUT /gastos rechaza tipo_cambio cero con 400 MONTO_INVALIDO
+        ok 45 - PUT /gastos rechaza tipo_cambio cero con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 91.7061
+          type: 'test'
+          ...
+        # Subtest: PUT /gastos rechaza tipo_cambio con más de 6 decimales con 400 MONTO_INVALIDO
+        ok 46 - PUT /gastos rechaza tipo_cambio con más de 6 decimales con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 95.341
+          type: 'test'
+          ...
+        # Subtest: reportes y presupuestos suman monto en MXN sin mezclar monto_original
+        ok 47 - reportes y presupuestos suman monto en MXN sin mezclar monto_original
+          ---
+          duration_ms: 203.5754
+          type: 'test'
+          ...
+        1..47
+    ok 8 - Cambio de moneda y divisas (RF11)
+      ---
+      duration_ms: 4140.3408
+      type: 'suite'
+      ...
+    # Subtest: Ingresos (HU-82 / Migración 015)
+        # Subtest: Migración 015: crea la tabla ingresos con ON DELETE CASCADE y es idempotente en base existente
+        ok 1 - Migración 015: crea la tabla ingresos con ON DELETE CASCADE y es idempotente en base existente
+          ---
+          duration_ms: 126.9468
+          type: 'test'
+          ...
+        # Subtest: CRUD completo: crea, lista por mes en orden descendente, edita y elimina ingresos
+        ok 2 - CRUD completo: crea, lista por mes en orden descendente, edita y elimina ingresos
+          ---
+          duration_ms: 112.903
+          type: 'test'
+          ...
+        # Subtest: Validación en POST y PUT /ingresos: rechaza monto 0 con 400 MONTO_INVALIDO
+        ok 3 - Validación en POST y PUT /ingresos: rechaza monto 0 con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 100.8409
+          type: 'test'
+          ...
+        # Subtest: Validación en POST y PUT /ingresos: rechaza monto negativo con 400 MONTO_INVALIDO
+        ok 4 - Validación en POST y PUT /ingresos: rechaza monto negativo con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 92.6481
+          type: 'test'
+          ...
+        # Subtest: Validación en POST y PUT /ingresos: rechaza monto texto con 400 MONTO_INVALIDO
+        ok 5 - Validación en POST y PUT /ingresos: rechaza monto texto con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 102.9398
+          type: 'test'
+          ...
+        # Subtest: Validación en POST y PUT /ingresos: rechaza monto con 3 decimales con 400 MONTO_INVALIDO
+        ok 6 - Validación en POST y PUT /ingresos: rechaza monto con 3 decimales con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 102.8666
+          type: 'test'
+          ...
+        # Subtest: Validación en POST y PUT /ingresos: rechaza monto excesivo con 400 MONTO_INVALIDO
+        ok 7 - Validación en POST y PUT /ingresos: rechaza monto excesivo con 400 MONTO_INVALIDO
+          ---
+          duration_ms: 99.4681
+          type: 'test'
+          ...
+        # Subtest: Validación en POST y PUT /ingresos: rechaza fecha vacía con 400 FECHA_INVALIDA
+        ok 8 - Validación en POST y PUT /ingresos: rechaza fecha vacía con 400 FECHA_INVALIDA
+          ---
+          duration_ms: 97.5076
+          type: 'test'
+          ...
+        # Subtest: Validación en POST y PUT /ingresos: rechaza fecha inexistente 2026-02-30 con 400 FECHA_INVALIDA
+        ok 9 - Validación en POST y PUT /ingresos: rechaza fecha inexistente 2026-02-30 con 400 FECHA_INVALIDA
+          ---
+          duration_ms: 95.5454
+          type: 'test'
+          ...
+        # Subtest: Validación en POST y PUT /ingresos: rechaza fecha mes 13 con 400 FECHA_INVALIDA
+        ok 10 - Validación en POST y PUT /ingresos: rechaza fecha mes 13 con 400 FECHA_INVALIDA
+          ---
+          duration_ms: 90.8647
+          type: 'test'
+          ...
+        # Subtest: Validación en POST y PUT /ingresos: rechaza fecha formato DD-MM-YYYY con 400 FECHA_INVALIDA
+        ok 11 - Validación en POST y PUT /ingresos: rechaza fecha formato DD-MM-YYYY con 400 FECHA_INVALIDA
+          ---
+          duration_ms: 90.8909
+          type: 'test'
+          ...
+        # Subtest: Validación en POST y PUT /ingresos: rechaza descripción no textual con 400 DESCRIPCION_INVALIDA
+        ok 12 - Validación en POST y PUT /ingresos: rechaza descripción no textual con 400 DESCRIPCION_INVALIDA
+          ---
+          duration_ms: 90.6516
+          type: 'test'
+          ...
+        # Subtest: Validación en POST y PUT /ingresos: rechaza descripción mayor a 200 caracteres con 400 DESCRIPCION_INVALIDA
+        ok 13 - Validación en POST y PUT /ingresos: rechaza descripción mayor a 200 caracteres con 400 DESCRIPCION_INVALIDA
+          ---
+          duration_ms: 90.1313
+          type: 'test'
+          ...
+        # Subtest: Validación en POST y PUT /ingresos: rechaza fuente no textual con 400 FUENTE_INVALIDA
+        ok 14 - Validación en POST y PUT /ingresos: rechaza fuente no textual con 400 FUENTE_INVALIDA
+          ---
+          duration_ms: 93.5604
+          type: 'test'
+          ...
+        # Subtest: Validación en POST y PUT /ingresos: rechaza fuente solo espacios con 400 FUENTE_INVALIDA
+        ok 15 - Validación en POST y PUT /ingresos: rechaza fuente solo espacios con 400 FUENTE_INVALIDA
+          ---
+          duration_ms: 91.5994
+          type: 'test'
+          ...
+        # Subtest: Validación en POST y PUT /ingresos: rechaza fuente mayor a 100 caracteres con 400 FUENTE_INVALIDA
+        ok 16 - Validación en POST y PUT /ingresos: rechaza fuente mayor a 100 caracteres con 400 FUENTE_INVALIDA
+          ---
+          duration_ms: 90.5228
+          type: 'test'
+          ...
+        # Subtest: GET /ingresos rechaza mes inválido "" con 400 MES_INVALIDO
+        ok 17 - GET /ingresos rechaza mes inválido "" con 400 MES_INVALIDO
+          ---
+          duration_ms: 70.1833
+          type: 'test'
+          ...
+        # Subtest: GET /ingresos rechaza mes inválido "2026-1" con 400 MES_INVALIDO
+        ok 18 - GET /ingresos rechaza mes inválido "2026-1" con 400 MES_INVALIDO
+          ---
+          duration_ms: 71.9155
+          type: 'test'
+          ...
+        # Subtest: GET /ingresos rechaza mes inválido "2026-00" con 400 MES_INVALIDO
+        ok 19 - GET /ingresos rechaza mes inválido "2026-00" con 400 MES_INVALIDO
+          ---
+          duration_ms: 71.0002
+          type: 'test'
+          ...
+        # Subtest: GET /ingresos rechaza mes inválido "2026-13" con 400 MES_INVALIDO
+        ok 20 - GET /ingresos rechaza mes inválido "2026-13" con 400 MES_INVALIDO
+          ---
+          duration_ms: 72.8514
+          type: 'test'
+          ...
+        # Subtest: GET /ingresos rechaza mes inválido "2026-11-01" con 400 MES_INVALIDO
+        ok 21 - GET /ingresos rechaza mes inválido "2026-11-01" con 400 MES_INVALIDO
+          ---
+          duration_ms: 72.1863
+          type: 'test'
+          ...
+        # Subtest: Privacidad: otro usuario no ve ingresos ajenos y recibe 404 INGRESO_NO_ENCONTRADO en PUT y DELETE
+        ok 22 - Privacidad: otro usuario no ve ingresos ajenos y recibe 404 INGRESO_NO_ENCONTRADO en PUT y DELETE
+          ---
+          duration_ms: 138.1175
+          type: 'test'
+          ...
+        # Subtest: DELETE /auth/cuenta (HU-68) y borrado de usuario eliminan también los ingresos del usuario sin tocar los de otros
+        ok 23 - DELETE /auth/cuenta (HU-68) y borrado de usuario eliminan también los ingresos del usuario sin tocar los de otros
+          ---
+          duration_ms: 200.3838
+          type: 'test'
+          ...
+        # Subtest: Reportes y presupuestos no cambian: siguen sumando únicamente gastos
+        ok 24 - Reportes y presupuestos no cambian: siguen sumando únicamente gastos
+          ---
+          duration_ms: 122.4016
+          type: 'test'
+          ...
+        # Subtest: Autenticación GET /ingresos: sin token responde 401
+        ok 25 - Autenticación GET /ingresos: sin token responde 401
+          ---
+          duration_ms: 113.8935
+          type: 'test'
+          ...
+        # Subtest: Autenticación GET /ingresos: token inválido responde 401
+        ok 26 - Autenticación GET /ingresos: token inválido responde 401
+          ---
+          duration_ms: 159.9233
+          type: 'test'
+          ...
+        # Subtest: Autenticación POST /ingresos: sin token responde 401
+        ok 27 - Autenticación POST /ingresos: sin token responde 401
+          ---
+          duration_ms: 75.7144
+          type: 'test'
+          ...
+        # Subtest: Autenticación POST /ingresos: token inválido responde 401
+        ok 28 - Autenticación POST /ingresos: token inválido responde 401
+          ---
+          duration_ms: 75.2555
+          type: 'test'
+          ...
+        # Subtest: Autenticación PUT /ingresos: sin token responde 401
+        ok 29 - Autenticación PUT /ingresos: sin token responde 401
+          ---
+          duration_ms: 72.4878
+          type: 'test'
+          ...
+        # Subtest: Autenticación PUT /ingresos: token inválido responde 401
+        ok 30 - Autenticación PUT /ingresos: token inválido responde 401
+          ---
+          duration_ms: 71.9914
+          type: 'test'
+          ...
+        # Subtest: Autenticación DELETE /ingresos: sin token responde 401
+        ok 31 - Autenticación DELETE /ingresos: sin token responde 401
+          ---
+          duration_ms: 74.7831
+          type: 'test'
+          ...
+        # Subtest: Autenticación DELETE /ingresos: token inválido responde 401
+        ok 32 - Autenticación DELETE /ingresos: token inválido responde 401
+          ---
+          duration_ms: 73.806
+          type: 'test'
+          ...
+        1..32
+    ok 9 - Ingresos (HU-82 / Migración 015)
+      ---
+      duration_ms: 3108.6337
+      type: 'suite'
+      ...
+    # Subtest: Cliente mobile + API real
+        # Subtest: registra e inicia sesión con el cliente móvil y consulta el perfil con su JWT
+        ok 1 - registra e inicia sesión con el cliente móvil y consulta el perfil con su JWT
+          ---
+          duration_ms: 297.69
+          type: 'test'
+          ...
+        # Subtest: crea, consulta, modifica y elimina un gasto mediante fetch y actualiza el resumen
+        ok 2 - crea, consulta, modifica y elimina un gasto mediante fetch y actualiza el resumen
+          ---
+          duration_ms: 107.1475
+          type: 'test'
+          ...
+        # Subtest: conserva el aislamiento A/B al enviar el token desde mobile
+        ok 3 - conserva el aislamiento A/B al enviar el token desde mobile
+          ---
+          duration_ms: 92.3153
+          type: 'test'
+          ...
+        # Subtest: propaga un error 400 estructurado sin guardar datos ni cerrar la sesión
+        ok 4 - propaga un error 400 estructurado sin guardar datos ni cerrar la sesión
+          ---
+          duration_ms: 78.5656
+          type: 'test'
+          ...
+        # Subtest: notifica un 401 autenticado con el token rechazado para cerrar la sesión correcta
+        ok 5 - notifica un 401 autenticado con el token rechazado para cerrar la sesión correcta
+          ---
+          duration_ms: 74.6201
+          type: 'test'
+          ...
+        # Subtest: un login incorrecto propaga el 401 sin cerrar otra sesión existente
+        ok 6 - un login incorrecto propaga el 401 sin cerrar otra sesión existente
+          ---
+          duration_ms: 179.324
+          type: 'test'
+          ...
+        1..6
+    ok 10 - Cliente mobile + API real
+      ---
+      duration_ms: 846.7787
+      type: 'suite'
+      ...
+    1..10
+ok 1 - API real + PostgreSQL temporal
+  ---
+  duration_ms: 52302.0955
+  type: 'suite'
+  ...
+1..1
+# tests 418
+# suites 19
+# pass 418
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 55664.4089

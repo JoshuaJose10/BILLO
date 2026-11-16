@@ -40,7 +40,7 @@ Comportamiento observado, HTTP y respuesta sanitizada cuando aplique.
 
 ## Evidencia
 
-Enlace a captura, video o resultado de ejecución. Omitir tokens, contraseñas y credenciales reales.
+Enlaces a capturas de pantalla (SS, PNG/JPG) por paso y variante. Desde el 2026-11-15 este es el formato de toda evidencia manual por indicación del usuario. Describir las acciones entre capturas en Resultado obtenido; enlazar también la salida de ejecución automática cuando aplique. Omitir tokens, contraseñas y credenciales reales.
 
 ## Reprueba
 
