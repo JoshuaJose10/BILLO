@@ -62,6 +62,10 @@ export function useAlturaNavbar() {
   return ALTO + MARGEN + insets.bottom + banner;
 }
 
+// Alto (desde arriba) del centro del + en una capa de `alto` px sin safe area: la maqueta del
+// onboarding lo usa para poner ahí el dedo.
+export const centroBotonCentral = (alto) => alto - MARGEN - ALTO / 2;
+
 // Rebote al presionar: escala a 0.95 y vuelve a 1. Sin animación si "Reducir movimiento".
 function useRebote(reducirMovimiento) {
   const escala = useSharedValue(1);
@@ -81,6 +85,7 @@ function useRebote(reducirMovimiento) {
 // accessibilityLabel }) dibuja un botón en medio de las pestañas; es una acción, no una pestaña.
 // Con `accionCentral.acciones` y `onElegir`, mantenerlo presionado abre el abanico de esas
 // acciones (AbanicoAcciones, HU-92) por encima del contenido; el toque corto sigue igual.
+// `accionCentral.controlado` (maqueta del onboarding) abre y mueve el abanico desde fuera.
 //
 // Animación: un solo indicador blanco (absoluto, detrás de las pestañas) se desliza hasta la
 // pestaña activa midiendo cada una con onLayout; las pestañas reacomodan su posición con una
@@ -102,6 +107,7 @@ export default function NavbarFlotante({ state, descriptors, navigation, accionC
     tamanoBoton: TAMANO_CENTRAL,
     altoInferior,
     reducirMovimiento,
+    controlado: accionCentral?.controlado,
   });
 
   // Posición y tamaño del indicador, relativos al interior (padding box) de la barra.

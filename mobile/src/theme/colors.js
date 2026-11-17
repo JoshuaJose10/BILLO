@@ -101,6 +101,30 @@ export const temas = {
     // y del alto; radios rx/ry en px o como { ancho } / { alto } (fracción); stops con offset,
     // color y opacity opcional. "transparent" de CSS = el mismo color con opacity 0, para que no
     // pase por gris.
+    // Resplandor de Entrada (HU-93): arco grande y difuminado arriba en los colores de marca.
+    resplandorEntrada: [
+      {
+        x: 0.5,
+        y: 0.16,
+        rx: { ancho: 1.05 },
+        ry: { alto: 0.3 },
+        stops: [
+          { offset: 0, color: 'rgba(76, 53, 222, 0.6)' },
+          { offset: 0.55, color: 'rgba(45, 95, 255, 0.4)' },
+          { offset: 1, color: 'rgba(45, 95, 255, 0.4)', opacity: 0 },
+        ],
+      },
+      {
+        x: 0.62,
+        y: 0.1,
+        rx: { ancho: 0.6 },
+        ry: { alto: 0.16 },
+        stops: [
+          { offset: 0, color: 'rgba(196, 170, 255, 0.35)' },
+          { offset: 1, color: 'rgba(196, 170, 255, 0.35)', opacity: 0 },
+        ],
+      },
+    ],
     fondoCapas: [
       {
         x: 0.15,
@@ -261,6 +285,30 @@ export const temas = {
     // Brillo del fondo de 07_inicio_claro_color_fondo_1 (mismo formato que en oscuro). La capa
     // de arriba termina en el color de fondo opaco, como en Stitch, así que tapa la de abajo
     // fuera de su elipse.
+    // Resplandor de Entrada (HU-93): arco grande y difuminado arriba en los colores de marca.
+    resplandorEntrada: [
+      {
+        x: 0.5,
+        y: 0.16,
+        rx: { ancho: 1.05 },
+        ry: { alto: 0.3 },
+        stops: [
+          { offset: 0, color: 'rgba(76, 53, 222, 0.28)' },
+          { offset: 0.55, color: 'rgba(45, 95, 255, 0.18)' },
+          { offset: 1, color: 'rgba(45, 95, 255, 0.18)', opacity: 0 },
+        ],
+      },
+      {
+        x: 0.62,
+        y: 0.1,
+        rx: { ancho: 0.6 },
+        ry: { alto: 0.16 },
+        stops: [
+          { offset: 0, color: 'rgba(196, 170, 255, 0.22)' },
+          { offset: 1, color: 'rgba(196, 170, 255, 0.22)', opacity: 0 },
+        ],
+      },
+    ],
     fondoCapas: [
       {
         x: 0.9,
