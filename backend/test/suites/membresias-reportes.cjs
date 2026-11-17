@@ -44,6 +44,7 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
     assert.deepEqual(m, {
       id: m.id,
       servicio_id: null,
+      tarjeta_id: null,
       ...datos(),
       moneda: 'MXN',
       monto_original: null,
@@ -89,6 +90,7 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
       id: m.id,
       ...datos(),
       servicio_id: netflix.id,
+      tarjeta_id: null,
       moneda: 'MXN',
       monto_original: null,
       tipo_cambio: null,
@@ -649,6 +651,7 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
       assert.deepEqual(res.body.membresia, {
         id: res.body.membresia.id,
         servicio_id: null,
+        tarjeta_id: null,
         nombre: 'ChatGPT Plus',
         costo: 186.31,
         moneda: 'USD',

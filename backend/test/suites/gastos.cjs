@@ -13,6 +13,7 @@ module.exports = getContext => describe('Gastos (Postman 03 / RF2)', () => {
       moneda: 'MXN',
       monto_original: null,
       tipo_cambio: null,
+      tarjeta_id: null,
       ...ctx.gasto(),
     });
     assert.equal(typeof gasto.id, 'number');
@@ -83,6 +84,7 @@ module.exports = getContext => describe('Gastos (Postman 03 / RF2)', () => {
       moneda: 'MXN',
       monto_original: null,
       tipo_cambio: null,
+      tarjeta_id: null,
       ...changes,
     });
     assert.deepEqual(await ctx.listar(), [body.gasto]);

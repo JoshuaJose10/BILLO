@@ -472,6 +472,9 @@ const eliminarCuenta = async (req, res) => {
       await client.query('DELETE FROM membresias WHERE usuario_id = $1', [
         usuarioId,
       ]);
+      await client.query('DELETE FROM tarjetas WHERE usuario_id = $1', [
+        usuarioId,
+      ]);
       await client.query('DELETE FROM usuarios WHERE id = $1', [usuarioId]);
       await client.query('COMMIT');
     } catch (txError) {
