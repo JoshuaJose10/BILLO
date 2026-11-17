@@ -3,8 +3,14 @@
 // Fuentes que ofrece la hoja en modo Ingreso (el backend acepta cualquier texto de hasta 100).
 export const FUENTES = [
   { nombre: 'Sueldo', icono: 'briefcase-outline' },
+  { nombre: 'Aguinaldo/Bono', icono: 'star-circle-outline' },
   { nombre: 'Beca', icono: 'school-outline' },
   { nombre: 'Freelance', icono: 'laptop' },
+  { nombre: 'Ventas', icono: 'storefront-outline' },
+  { nombre: 'Inversiones', icono: 'trending-up' },
+  { nombre: 'Renta', icono: 'home-city-outline' },
+  { nombre: 'Regalo', icono: 'gift-outline' },
+  { nombre: 'Reembolso', icono: 'cash-refund' },
   { nombre: 'Otro', icono: 'dots-horizontal-circle-outline' },
 ];
 

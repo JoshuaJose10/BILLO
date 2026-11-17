@@ -145,9 +145,9 @@ describe('armarDatosDona', () => {
   });
 
   it('categoría desconocida: usa el color de Otros', () => {
-    const [dato] = armarDatosDona([categoria(9, 'Mascotas', 50)], true);
+    const [dato] = armarDatosDona([categoria(9, 'Gimnasio', 50)], true);
     assert.equal(dato.color, colorCategoria('Otros', true));
-    assert.equal(dato.etiqueta, 'Mascotas');
+    assert.equal(dato.etiqueta, 'Gimnasio');
   });
 
   it('ignora categorías sin monto', () => {

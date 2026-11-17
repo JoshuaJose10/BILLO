@@ -453,7 +453,7 @@ export default function MisCategoriasScreen({ navigation }) {
 
             <Input
               label="Nombre de la categoría"
-              placeholder="Ej. Mascotas"
+              placeholder="Ej. Gimnasio"
               value={nombreTexto}
               onChangeText={(v) => {
                 setNombreTexto(v);
