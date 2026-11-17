@@ -1,5 +1,5 @@
 // Colores de cada categoría predefinida (Luminal Glow, docs/diseno/paleta.md). La clave es el
-// nombre del seed (backend/migrations/007_seed_categorias.sql); si se renombra una categoría
+// nombre del seed (backend/migrations/007_seed_categorias.sql y 021_categorias_base_ampliadas.sql); si se renombra una categoría
 // ahí, hay que renombrarla aquí también. Se busca sin espacios a los lados y sin distinguir
 // mayúsculas. Las desconocidas (personalizadas, renombradas, null) usan los valores de Otros.
 //   base:       color vivo en tema oscuro (micro-punto, halo del chip, sombra del ícono).
@@ -46,6 +46,65 @@ const categorias = {
     fondoChip: '#E0117E',
     degradado: ['#F472B6', '#F25EAC', '#B75689'],
     degradadoClaro: ['#F691C6', '#F472B6', '#DC67A4'],
+  },
+  // Predefinidas ampliadas (backend/migrations/021_categorias_base_ampliadas.sql): tonos fuera de
+  // los de arriba (rosas, azul, violeta, verde, celeste); mismos contrastes (fondoChip >= 4.5:1
+  // con texto blanco, centro del degradado >= 3:1 con el glifo).
+  'Comida rápida': {
+    base: '#FF7A1A',
+    baseClaro: '#EB7018',
+    fondoChip: '#B85812',
+    degradado: ['#F09452', '#EB7018', '#B05412'],
+    degradadoClaro: ['#EF8F4B', '#EB7018', '#D46516'],
+  },
+  Súper: {
+    base: '#84CC16',
+    baseClaro: '#689F10',
+    fondoChip: '#54820C',
+    degradado: ['#8EB74C', '#689F10', '#4E770C'],
+    degradadoClaro: ['#89B445', '#689F10', '#5E8F0E'],
+  },
+  Café: {
+    base: '#A47148',
+    baseClaro: '#A47148',
+    fondoChip: '#9D6C45',
+    degradado: ['#BB9576', '#A47148', '#7B5536'],
+    degradadoClaro: ['#B89070', '#A47148', '#946641'],
+  },
+  Hogar: {
+    base: '#7C8DA6',
+    baseClaro: '#7C8DA6',
+    fondoChip: '#657387',
+    degradado: ['#9DAABC', '#7C8DA6', '#5D6A7D'],
+    degradadoClaro: ['#99A6BA', '#7C8DA6', '#707F95'],
+  },
+  Ropa: {
+    base: '#D946EF',
+    baseClaro: '#D946EF',
+    fondoChip: '#B83BCB',
+    degradado: ['#E374F3', '#D946EF', '#A335B3'],
+    degradadoClaro: ['#E16FF3', '#D946EF', '#C33FD7'],
+  },
+  Educación: {
+    base: '#14B8A6',
+    baseClaro: '#11A393',
+    fondoChip: '#0C8478',
+    degradado: ['#4DBAAE', '#11A393', '#0D7A6E'],
+    degradadoClaro: ['#45B7AB', '#11A393', '#0F9384'],
+  },
+  Mascotas: {
+    base: '#F5B301',
+    baseClaro: '#C08C01',
+    fondoChip: '#966D01',
+    degradado: ['#D0A941', '#C08C01', '#906901'],
+    degradadoClaro: ['#CEA539', '#C08C01', '#AD7E01'],
+  },
+  'Cuidado personal': {
+    base: '#A78BFA',
+    baseClaro: '#9A80E6',
+    fondoChip: '#7E68BC',
+    degradado: ['#B3A0EC', '#9A80E6', '#7460AD'],
+    degradadoClaro: ['#B09CEC', '#9A80E6', '#8B73CF'],
   },
   // Cobros de suscripciones en Inicio y Movimientos cuando el servicio no tiene logo propio.
   // El centro baja a sky-600 para que el glifo blanco llegue a ~4:1.

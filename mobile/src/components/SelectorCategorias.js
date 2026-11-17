@@ -2,9 +2,10 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
-import { radios } from '../theme/colors';
+import { estiloTarjeta, radios } from '../theme/colors';
 import { fonts } from '../theme/fonts';
 import { useEstilos, useTema } from '../theme/TemaContext';
+import { tipografia } from '../theme/tipografia';
 import { calcularCambioSeleccionPredefinida } from '../utils/categorias';
 import Boton from './Boton';
 import Etiqueta from './Etiqueta';
@@ -14,6 +15,8 @@ import IconoCategoria from './IconoCategoria';
 // Categorías de gasto del usuario (HU-89 / HU-90): predefinidas con interruptor y propias con
 // «Agregar categoría». Lo usan Mis categorías y Elige tus categorías; cada pantalla decide cuándo
 // guardar.
+// Cada sección es una tarjeta (estiloTarjeta) con filas separadas por un hairline: ícono con el
+// color de theme/categorias.js (las propias, el del servidor ya registrado), nombre y subtítulo.
 // - predefinidas: [{ id, nombre, seleccionada }]. Al tocar un interruptor llama a
 //   onCambioSeleccion(cambio, listaNueva, categoria) (cambio de calcularCambioSeleccionPredefinida). Si no se
 //   permite (mínimo una activa), avisa con onAviso y una alerta.
@@ -56,110 +59,86 @@ export default function SelectorCategorias({
   };
 
   const renombrar = (categoria) => setHoja({ editando: categoria });
+  const activas = predefinidas.filter((c) => c.seleccionada).length;
+
+  const fila = (cat, idx, subtitulo, control) => (
+    <View key={String(cat.id)} style={[styles.fila, idx > 0 && styles.filaSeparada]}>
+      <IconoCategoria nombre={cat.nombre} />
+      <View style={styles.filaTextos}>
+        <Text style={styles.nombre} numberOfLines={1}>
+          {cat.nombre}
+        </Text>
+        <Text style={styles.subtitulo}>{subtitulo}</Text>
+      </View>
+      {control}
+    </View>
+  );
 
   return (
     <View style={styles.contenedor}>
       {aviso ? (
         <View
-          style={[styles.banner, aviso.tipo === 'error' ? styles.bannerError : styles.bannerInfo]}
+          style={[styles.banner, aviso.tipo === 'error' && styles.bannerError]}
           accessibilityLiveRegion="polite"
         >
           <MaterialCommunityIcons
             name={aviso.tipo === 'error' ? 'alert-circle-outline' : 'information-outline'}
             size={18}
-            color={aviso.tipo === 'error' ? colors.danger : colors.primary}
+            color={aviso.tipo === 'error' ? colors.alertaTexto : colors.textSecondary}
           />
-          <Text
-            style={[
-              styles.bannerTexto,
-              aviso.tipo === 'error' ? styles.bannerTextoError : styles.bannerTextoInfo,
-            ]}
-          >
+          <Text style={[styles.bannerTexto, aviso.tipo === 'error' && styles.bannerTextoError]}>
             {aviso.texto}
           </Text>
         </View>
       ) : null}
 
       <View style={styles.seccion}>
-        <Etiqueta>Categorías predefinidas</Etiqueta>
-        <Text style={styles.descripcion}>
-          Activa o desactiva las categorías que quieres ver en Nuevo gasto y Presupuestos.
-        </Text>
-        <View style={styles.tarjetaGrupo}>
-          {predefinidas.map((cat, idx) => {
-            const activa = Boolean(cat.seleccionada);
-            return (
-              <View
-                key={String(cat.id)}
-                style={[styles.fila, idx < predefinidas.length - 1 && styles.filaConBorde]}
-              >
-                <IconoCategoria nombre={cat.nombre} tamaño={38} />
-                <View style={styles.filaTextos}>
-                  <Text style={styles.nombre} numberOfLines={1}>
-                    {cat.nombre}
-                  </Text>
-                  <Text style={styles.estado}>{activa ? 'Activa' : 'Inactiva'}</Text>
-                </View>
+        <View style={styles.encabezado}>
+          <Etiqueta>Tus categorías</Etiqueta>
+          <Text style={styles.subtitulo}>
+            {activas} de {predefinidas.length} activas
+          </Text>
+        </View>
+        <View style={styles.tarjeta}>
+          {predefinidas.map((cat, idx) =>
+            fila(
+              cat,
+              idx,
+              cat.seleccionada ? 'Activa' : 'Inactiva',
+              <>
                 {String(ocupadoId) === String(cat.id) ? (
-                  <ActivityIndicator size="small" color={colors.primary} style={styles.spinner} />
+                  <ActivityIndicator size="small" color={colors.textSecondary} />
                 ) : null}
                 <Switch
-                  value={activa}
+                  value={Boolean(cat.seleccionada)}
                   onValueChange={() => alternar(cat)}
                   disabled={ocupadoId != null}
-                  trackColor={{ false: colors.surfaceHigh, true: colors.primary }}
-                  thumbColor="#FFFFFF"
+                  trackColor={{ false: colors.surfaceHighest, true: colors.acento }}
+                  thumbColor={colors.textoSobreColor}
+                  ios_backgroundColor={colors.surfaceHighest}
                   accessibilityLabel={`Categoría ${cat.nombre}`}
                 />
-              </View>
-            );
-          })}
+              </>,
+            ),
+          )}
         </View>
       </View>
 
       <View style={styles.seccion}>
-        <View style={styles.cabeceraPropias}>
-          <Etiqueta>Tus categorías</Etiqueta>
-          <Text style={styles.descripcion}>
-            Crea categorías propias con su propio color para tus gastos.
-          </Text>
+        <View style={styles.encabezado}>
+          <Etiqueta>Personalizadas</Etiqueta>
         </View>
-
-        <Boton
-          titulo="Agregar categoría"
-          secundario
-          onPress={() => setHoja({ editando: null })}
-          disabled={bloqueado}
-        />
-
         {propias.length === 0 ? (
-          <View style={[styles.tarjetaGrupo, styles.vacio]}>
-            <MaterialCommunityIcons name="tag-outline" size={24} color={colors.textSecondary} />
-            <Text style={styles.vacioTexto}>Aún no has creado categorías propias.</Text>
+          <View style={[styles.tarjeta, styles.vacio]}>
+            <Text style={styles.subtitulo}>Aún no has creado categorías propias.</Text>
           </View>
         ) : (
-          <View style={styles.tarjetaGrupo}>
-            {propias.map((cat, idx) => (
-              <View
-                key={String(cat.id)}
-                style={[styles.fila, idx < propias.length - 1 && styles.filaConBorde]}
-              >
-                <IconoCategoria nombre={cat.nombre} tamaño={38} />
-                <View style={styles.filaTextos}>
-                  <Text style={styles.nombre} numberOfLines={1}>
-                    {cat.nombre}
-                  </Text>
-                  <View style={styles.metaPropia}>
-                    <View
-                      style={[
-                        styles.muestraColor,
-                        { backgroundColor: cat.color || colors.primary },
-                      ]}
-                    />
-                    <Text style={styles.estado}>Personalizada</Text>
-                  </View>
-                </View>
-
+          <View style={styles.tarjeta}>
+            {propias.map((cat, idx) =>
+              fila(
+                cat,
+                idx,
+                'Personalizada',
                 <View style={styles.acciones}>
                   {(accionesPropia?.(cat, { renombrar }) || []).map((accion) => (
                     <Pressable
@@ -176,21 +155,27 @@ export default function SelectorCategorias({
                       ]}
                     >
                       {accion.cargando ? (
-                        <ActivityIndicator size="small" color={colors.danger} />
+                        <ActivityIndicator size="small" color={colors.alertaTexto} />
                       ) : (
                         <MaterialCommunityIcons
                           name={accion.icono}
                           size={18}
-                          color={accion.peligro ? colors.danger : colors.textPrimary}
+                          color={accion.peligro ? colors.alertaTexto : colors.text}
                         />
                       )}
                     </Pressable>
                   ))}
-                </View>
-              </View>
-            ))}
+                </View>,
+              ),
+            )}
           </View>
         )}
+        <Boton
+          titulo="Agregar categoría"
+          secundario
+          onPress={() => setHoja({ editando: null })}
+          disabled={bloqueado}
+        />
       </View>
 
       {hoja ? (
@@ -205,10 +190,11 @@ export default function SelectorCategorias({
   );
 }
 
+// Tarjeta, radios y tipografía de Inicio (TarjetaResumen, estiloTarjeta) y de HojaInferior.
 const crearEstilos = (colors) =>
   StyleSheet.create({
     contenedor: {
-      gap: 22,
+      gap: 24,
     },
     banner: {
       flexDirection: 'row',
@@ -216,118 +202,82 @@ const crearEstilos = (colors) =>
       gap: 10,
       paddingHorizontal: 14,
       paddingVertical: 12,
-      borderRadius: radios.controles,
+      borderRadius: radios['2xl'],
       borderWidth: 1,
-    },
-    bannerInfo: {
-      backgroundColor: colors.primarySoft,
-      borderColor: colors.borderSubtle,
+      borderColor: colors.borderStrong,
+      backgroundColor: colors.glass05,
     },
     bannerError: {
-      backgroundColor: colors.dangerSoft,
-      borderColor: colors.danger,
+      borderColor: colors.alerta,
+      backgroundColor: colors.alertaSuave,
     },
     bannerTexto: {
       flex: 1,
-      fontFamily: fonts.sansMedium,
-      fontSize: 13,
-      lineHeight: 18,
-    },
-    bannerTextoInfo: {
-      color: colors.textPrimary,
+      ...tipografia.bodyMd,
+      color: colors.text,
     },
     bannerTextoError: {
-      color: colors.danger,
+      color: colors.alertaTexto,
     },
     seccion: {
-      gap: 10,
+      gap: 12,
     },
-    cabeceraPropias: {
-      gap: 4,
+    encabezado: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 4,
     },
-    descripcion: {
-      fontFamily: fonts.sans,
-      fontSize: 13,
-      lineHeight: 18,
-      color: colors.textSecondary,
-    },
-    tarjetaGrupo: {
-      backgroundColor: colors.surface,
-      borderRadius: radios.controles,
-      borderWidth: 1,
-      borderColor: colors.borderSubtle,
-      overflow: 'hidden',
+    // Las filas dan el alto: la tarjeta solo conserva el padding lateral.
+    tarjeta: {
+      ...estiloTarjeta(colors),
+      paddingVertical: 0,
     },
     fila: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
-      paddingHorizontal: 14,
       paddingVertical: 12,
     },
-    filaConBorde: {
-      borderBottomWidth: 1,
-      borderBottomColor: colors.borderSubtle,
+    filaSeparada: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
     },
     filaTextos: {
       flex: 1,
       gap: 2,
     },
     nombre: {
-      fontFamily: fonts.sansSemiBold,
-      fontSize: 15,
-      lineHeight: 20,
-      color: colors.textPrimary,
+      ...tipografia.bodyLg,
+      fontFamily: fonts.sansMedium,
+      color: colors.text,
     },
-    estado: {
-      fontFamily: fonts.sans,
-      fontSize: 12,
-      lineHeight: 16,
+    subtitulo: {
+      ...tipografia.bodySm,
       color: colors.textSecondary,
-    },
-    spinner: {
-      marginRight: 4,
-    },
-    metaPropia: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-    },
-    muestraColor: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
     },
     acciones: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
     },
+    // Botón de ícono redondo de HojaInferior (cerrar): vidrio con borde white/10.
     botonIcono: {
       width: 36,
       height: 36,
-      borderRadius: 10,
-      backgroundColor: colors.surfaceLow,
+      borderRadius: radios.full,
+      backgroundColor: colors.glass07,
       borderWidth: 1,
-      borderColor: colors.borderSubtle,
+      borderColor: colors.borderStrong,
       alignItems: 'center',
       justifyContent: 'center',
     },
     botonIconoPeligro: {
-      backgroundColor: colors.dangerSoft,
+      backgroundColor: colors.alertaSuave,
     },
     vacio: {
       paddingVertical: 20,
-      paddingHorizontal: 16,
       alignItems: 'center',
-      gap: 6,
-    },
-    vacioTexto: {
-      fontFamily: fonts.sans,
-      fontSize: 13,
-      lineHeight: 18,
-      color: colors.textSecondary,
-      textAlign: 'center',
     },
     presionado: {
       opacity: 0.75,

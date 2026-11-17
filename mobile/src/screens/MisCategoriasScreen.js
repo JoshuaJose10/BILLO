@@ -197,7 +197,7 @@ export default function MisCategoriasScreen({ navigation }) {
           accessibilityLabel="Volver"
           style={({ pressed }) => [styles.botonVolver, pressed && styles.presionado]}
         >
-          <MaterialCommunityIcons name="arrow-left" size={22} color={colors.textPrimary} />
+          <MaterialCommunityIcons name="arrow-left" size={22} color={colors.text} />
         </Pressable>
         <View style={styles.cabeceraTextos}>
           <Text style={styles.titulo} accessibilityRole="header">
@@ -252,7 +252,7 @@ const crearEstilos = (colors) =>
       borderRadius: 20,
       backgroundColor: colors.surface,
       borderWidth: 1,
-      borderColor: colors.borderSubtle,
+      borderColor: colors.border,
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -264,7 +264,7 @@ const crearEstilos = (colors) =>
       fontSize: 22,
       lineHeight: 28,
       letterSpacing: -0.4,
-      color: colors.textPrimary,
+      color: colors.text,
     },
     subtitulo: {
       fontFamily: fonts.sans,
