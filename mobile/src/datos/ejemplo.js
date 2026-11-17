@@ -250,6 +250,84 @@ function porCategoria({ gastos, categorias }, mes) {
   return resultado;
 }
 
+// Mismas reglas que GET /reportes/ingresos (backend/src/controllers/reportes.controller.js).
+function reporteIngresos({ ingresos }, mes) {
+  const mesAnterior = sumarMeses(mes, -1);
+  const delMesActual = delMes(ingresos, mes);
+  const porFuenteMap = new Map();
+  for (const item of delMesActual) {
+    const fuente = item.fuente?.trim() || 'Sin fuente';
+    porFuenteMap.set(fuente, redondear2((porFuenteMap.get(fuente) || 0) + item.monto));
+  }
+  const filas = [...porFuenteMap.entries()]
+    .map(([fuente, total]) => ({ fuente, total }))
+    .sort((a, b) => b.total - a.total || a.fuente.localeCompare(b.fuente, 'es'));
+
+  const granTotal = filas.reduce((suma, f) => suma + f.total, 0);
+  const total = redondear2(granTotal);
+  const exactos = filas.map((f) => (granTotal > 0 ? (f.total * 100) / granTotal : 0));
+  const por_fuente = filas.map((f, i) => ({
+    fuente: f.fuente,
+    total: f.total,
+    porcentaje: Math.floor(exactos[i]),
+  }));
+  if (por_fuente.length > 0 && granTotal > 0) {
+    const sumaPorcentajes = por_fuente.reduce((acc, item) => acc + item.porcentaje, 0);
+    const prioridades = exactos
+      .map((p, indice) => ({ indice, resto: p - Math.floor(p) }))
+      .sort((a, b) => b.resto - a.resto || a.indice - b.indice);
+    for (const { indice } of prioridades.slice(0, 100 - sumaPorcentajes)) {
+      por_fuente[indice].porcentaje += 1;
+    }
+  }
+
+  const total_mes_anterior = sumaMes(ingresos, mesAnterior);
+  const variacion = redondear2(total - total_mes_anterior);
+  const variacion_porcentaje =
+    total_mes_anterior > 0
+      ? redondear2(((total - total_mes_anterior) * 100) / total_mes_anterior)
+      : 0;
+
+  return {
+    mes,
+    total,
+    por_fuente,
+    mes_anterior: mesAnterior,
+    total_mes_anterior,
+    variacion,
+    variacion_porcentaje,
+  };
+}
+
+// Mismas reglas que GET /reportes/balance: serie de 6 meses y totales del mes pedido.
+function reporteBalance({ ingresos, gastos, membresias }, mes) {
+  const gasto_fijo = calcularTotalMensual(membresias);
+  const mesesSerie = [-5, -4, -3, -2, -1, 0].map((d) => sumarMeses(mes, d));
+  const serie = mesesSerie.map((m) => {
+    const ingresosMes = sumaMes(ingresos, m);
+    const gasto_variable = sumaMes(gastos, m);
+    const gastosMes = redondear2(gasto_variable + gasto_fijo);
+    return {
+      mes: m,
+      ingresos: ingresosMes,
+      gasto_variable,
+      gasto_fijo,
+      gastos: gastosMes,
+      balance: redondear2(ingresosMes - gastosMes),
+    };
+  });
+  const actual = serie[serie.length - 1];
+  return {
+    mes,
+    ingresos: actual.ingresos,
+    gasto_variable: actual.gasto_variable,
+    gasto_fijo: actual.gasto_fijo,
+    gastos: actual.gastos,
+    balance: actual.balance,
+    serie,
+  };
+}
+
 // Fecha descendente y, en la misma fecha, id descendente (gastos e ingresos).
 const ordenarPorFecha = (a, b) => (a.fecha === b.fecha ? b.id - a.id : a.fecha < b.fecha ? 1 : -1);
 
@@ -309,6 +387,10 @@ export function responderEjemplo(ruta, { method = 'GET' } = {}, hoy = new Date()
       return Promise.resolve(resumen(datos, params.mes));
     case '/reportes/por-categoria':
       return Promise.resolve(porCategoria(datos, params.mes));
+    case '/reportes/ingresos':
+      return Promise.resolve(reporteIngresos(datos, params.mes));
+    case '/reportes/balance':
+      return Promise.resolve(reporteBalance(datos, params.mes));
     default:
       return rechazar('RUTA_NO_ENCONTRADA');
   }

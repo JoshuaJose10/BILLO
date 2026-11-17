@@ -166,3 +166,43 @@ export function consejoDelMes({
   const verbo = cambio < 0 ? 'bajaron' : 'subieron';
   return `Tus gastos en ${categoria} ${verbo} ${Math.abs(cambio)}% respecto al mes pasado.`;
 }
+
+// Comparación de ingresos frente al mes anterior (a partir de GET /reportes/ingresos).
+export function compararIngresosConMesAnterior(reporteIngresos, hoy = new Date()) {
+  const mes = reporteIngresos?.mes ?? mesActual(hoy);
+  const mesAnterior = reporteIngresos?.mes_anterior || sumarMeses(mes, -1);
+  const enCurso = mes === mesActual(hoy);
+  const anterior = redondear2(aNumero(reporteIngresos?.total_mes_anterior));
+  if (anterior <= 0) return { disponible: false, mesAnterior, enCurso };
+
+  const actual = redondear2(aNumero(reporteIngresos?.total));
+  const diferencia = redondear2(actual - anterior);
+  const porcentaje = Math.round((diferencia * 100) / anterior);
+  return {
+    disponible: true,
+    actual,
+    anterior,
+    diferencia,
+    porcentaje,
+    direccion: diferencia < 0 ? 'bajo' : diferencia > 0 ? 'subio' : 'igual',
+    enCurso,
+    mesAnterior,
+  };
+}
+
+export function textoComparacionIngresos(comparacion) {
+  if (!comparacion?.disponible) return 'Sin datos del mes anterior para comparar';
+  const { direccion, diferencia, enCurso } = comparacion;
+  const monto = formatearMonto(Math.abs(diferencia));
+  const sentido = direccion === 'bajo' ? 'menos' : 'más';
+  if (!enCurso) {
+    return direccion === 'igual'
+      ? 'Recibiste lo mismo que el mes pasado.'
+      : `Recibiste ${monto} ${sentido} que el mes pasado.`;
+  }
+  const mesAnterior = nombreMes(comparacion.mesAnterior).toLowerCase();
+  const llevas = `Llevas ${formatearMonto(comparacion.actual)} este mes; ${mesAnterior} cerró en ${formatearMonto(comparacion.anterior)}.`;
+  return direccion === 'igual'
+    ? `${llevas} Lo mismo que ${mesAnterior} completo.`
+    : `${llevas} ${monto} ${sentido} que ${mesAnterior} completo.`;
+}

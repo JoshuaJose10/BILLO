@@ -4,10 +4,12 @@ import test, { describe } from 'node:test';
 import { repartirPorcentajes } from './reportes.js';
 import {
   compararConMesAnterior,
+  compararIngresosConMesAnterior,
   consejoDelMes,
   desglosePorCategoria,
   etiquetaComparacion,
   textoComparacion,
+  textoComparacionIngresos,
 } from './analisis.js';
 
 // HU-81: cálculos de Reportes (desglose, comparación con el mes anterior y Consejo Billo).
@@ -240,5 +242,48 @@ describe('repartirPorcentajes', () => {
   test('por defecto conserva un decimal (dona)', () => {
     const r = repartirPorcentajes([1, 1, 1]);
     assert.deepEqual(r, [33.4, 33.3, 33.3]);
+  });
+});
+
+describe('compararIngresosConMesAnterior y textoComparacionIngresos', () => {
+  test('compara ingresos del mes pasado y del mes en curso frente al mes anterior', () => {
+    const subioPasado = compararIngresosConMesAnterior(
+      {
+        mes: '2026-10',
+        total: 15000,
+        mes_anterior: '2026-09',
+        total_mes_anterior: 12000,
+      },
+      HOY,
+    );
+    assert.equal(subioPasado.disponible, true);
+    assert.equal(subioPasado.direccion, 'subio');
+    assert.equal(subioPasado.porcentaje, 25);
+    assert.equal(
+      textoComparacionIngresos(subioPasado),
+      'Recibiste $3,000.00 más que el mes pasado.',
+    );
+
+    const enCurso = compararIngresosConMesAnterior(
+      {
+        mes: '2026-11',
+        total: 11500,
+        mes_anterior: '2026-10',
+        total_mes_anterior: 10500,
+      },
+      HOY,
+    );
+    assert.equal(enCurso.enCurso, true);
+    assert.equal(
+      textoComparacionIngresos(enCurso),
+      'Llevas $11,500.00 este mes; octubre cerró en $10,500.00. $1,000.00 más que octubre completo.',
+    );
+
+    const sinAnterior = compararIngresosConMesAnterior(
+      { mes: '2026-11', total: 5000, mes_anterior: '2026-10', total_mes_anterior: 0 },
+      HOY,
+    );
+    assert.equal(sinAnterior.disponible, false);
+    assert.equal(textoComparacionIngresos(sinAnterior), 'Sin datos del mes anterior para comparar');
   });
 });
