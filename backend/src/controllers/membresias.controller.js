@@ -1,5 +1,6 @@
 const { pool } = require('../db');
 const { esMonedaValida } = require('./tipoCambio.controller');
+const { esTarjetaDelUsuario } = require('./tarjetas.controller');
 
 const esFechaValida = (fechaStr) => {
   if (typeof fechaStr !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(fechaStr)) {
@@ -38,6 +39,10 @@ const coincideConversion = (montoOriginal, tipoCambio, costoMxn) => {
 const formatearMembresia = (row) => ({
   id: row.id,
   servicio_id: row.servicio_id === null ? null : Number(row.servicio_id),
+  tarjeta_id:
+    row.tarjeta_id === null || row.tarjeta_id === undefined
+      ? null
+      : Number(row.tarjeta_id),
   nombre: row.nombre,
   costo: Number(row.costo),
   moneda: row.moneda || 'MXN',
@@ -57,6 +62,10 @@ const formatearMembresia = (row) => ({
 const formatearMembresiaConDias = (row) => ({
   id: row.id,
   servicio_id: row.servicio_id === null ? null : Number(row.servicio_id),
+  tarjeta_id:
+    row.tarjeta_id === null || row.tarjeta_id === undefined
+      ? null
+      : Number(row.tarjeta_id),
   nombre: row.nombre,
   costo: Number(row.costo),
   moneda: row.moneda || 'MXN',
@@ -81,7 +90,7 @@ const formatearPagoMembresia = (row) => ({
   monto: Number(row.monto),
 });
 
-const validarDatosMembresia = async (body) => {
+const validarDatosMembresia = async (body, { usuarioId } = {}) => {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return {
       error: {
@@ -91,8 +100,16 @@ const validarDatosMembresia = async (body) => {
     };
   }
 
-  const { servicio_id, frecuencia, fecha_cobro, estado, moneda, monto_original, tipo_cambio } =
-    body;
+  const {
+    servicio_id,
+    tarjeta_id,
+    frecuencia,
+    fecha_cobro,
+    estado,
+    moneda,
+    monto_original,
+    tipo_cambio,
+  } = body;
   let { nombre, costo } = body;
 
   let servicioIdFinal = null;
@@ -274,9 +291,24 @@ const validarDatosMembresia = async (body) => {
     estadoFinal = estado;
   }
 
+  let tarjetaIdFinal = null;
+  if (tarjeta_id !== undefined && tarjeta_id !== null) {
+    const tarjetaValida = await esTarjetaDelUsuario(usuarioId, tarjeta_id);
+    if (!tarjetaValida) {
+      return {
+        error: {
+          code: 'TARJETA_INVALIDA',
+          message: 'La tarjeta seleccionada no existe o no te pertenece',
+        },
+      };
+    }
+    tarjetaIdFinal = tarjeta_id;
+  }
+
   return {
     datos: {
       servicio_id: servicioIdFinal,
+      tarjeta_id: tarjetaIdFinal,
       nombre,
       costo,
       moneda: monedaFinal,
@@ -293,7 +325,7 @@ const validarDatosMembresia = async (body) => {
 const crearMembresia = async (req, res) => {
   try {
     const usuarioId = req.usuario.id;
-    const validacion = await validarDatosMembresia(req.body);
+    const validacion = await validarDatosMembresia(req.body, { usuarioId });
 
     if (validacion.error) {
       return res.status(400).json({ error: validacion.error });
@@ -301,6 +333,7 @@ const crearMembresia = async (req, res) => {
 
     const {
       servicio_id,
+      tarjeta_id,
       nombre,
       costo,
       moneda,
@@ -312,14 +345,15 @@ const crearMembresia = async (req, res) => {
     } = validacion.datos;
 
     const insertQuery = `
-      INSERT INTO membresias (usuario_id, servicio_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, fecha_cobro, estado)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      RETURNING id, servicio_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
+      INSERT INTO membresias (usuario_id, servicio_id, tarjeta_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, fecha_cobro, estado)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING id, servicio_id, tarjeta_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
     `;
 
     const { rows } = await pool.query(insertQuery, [
       usuarioId,
       servicio_id,
+      tarjeta_id,
       nombre,
       costo,
       moneda,
@@ -353,6 +387,7 @@ const listarMembresias = async (req, res) => {
       SELECT 
         id,
         servicio_id,
+        tarjeta_id,
         nombre,
         costo,
         moneda,
@@ -399,13 +434,14 @@ const actualizarMembresia = async (req, res) => {
       });
     }
 
-    const validacion = await validarDatosMembresia(req.body);
+    const validacion = await validarDatosMembresia(req.body, { usuarioId });
     if (validacion.error) {
       return res.status(400).json({ error: validacion.error });
     }
 
     const {
       servicio_id,
+      tarjeta_id,
       nombre,
       costo,
       moneda,
@@ -419,22 +455,24 @@ const actualizarMembresia = async (req, res) => {
     const updateQuery = `
       UPDATE membresias
       SET servicio_id = $3,
-          nombre = $4,
-          costo = $5,
-          moneda = $6,
-          monto_original = $7,
-          tipo_cambio = $8,
-          frecuencia = $9,
-          fecha_cobro = $10,
-          estado = $11
+          tarjeta_id = $4,
+          nombre = $5,
+          costo = $6,
+          moneda = $7,
+          monto_original = $8,
+          tipo_cambio = $9,
+          frecuencia = $10,
+          fecha_cobro = $11,
+          estado = $12
       WHERE id = $1 AND usuario_id = $2
-      RETURNING id, servicio_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
+      RETURNING id, servicio_id, tarjeta_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
     `;
 
     const { rows } = await pool.query(updateQuery, [
       membresiaId,
       usuarioId,
       servicio_id,
+      tarjeta_id,
       nombre,
       costo,
       moneda,
@@ -491,7 +529,7 @@ const pausarMembresia = async (req, res) => {
       UPDATE membresias
       SET estado = 'pausada'
       WHERE id = $1 AND usuario_id = $2
-      RETURNING id, servicio_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
+      RETURNING id, servicio_id, tarjeta_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
     `;
     const { rows } = await pool.query(query, [membresiaId, usuarioId]);
 
@@ -539,7 +577,7 @@ const reactivarMembresia = async (req, res) => {
       UPDATE membresias
       SET estado = 'activa'
       WHERE id = $1 AND usuario_id = $2
-      RETURNING id, servicio_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
+      RETURNING id, servicio_id, tarjeta_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
     `;
     const { rows } = await pool.query(query, [membresiaId, usuarioId]);
 
@@ -641,6 +679,7 @@ const marcarMembresiaPagada = async (req, res) => {
       RETURNING
         id,
         servicio_id,
+        tarjeta_id,
         nombre,
         costo,
         moneda,

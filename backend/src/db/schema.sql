@@ -1,5 +1,5 @@
 -- Esquema de base de datos de BILLO
--- Resultado consolidado de las migraciones (001 a 019)
+-- Resultado consolidado de las migraciones (001 a 021)
 -- Fuente de verdad para cambios de esquema: backend/migrations/
 
 CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -64,10 +64,25 @@ CREATE INDEX IF NOT EXISTS idx_categorias_usuario_id
   ON categorias (usuario_id)
   WHERE usuario_id IS NOT NULL;
 
+CREATE TABLE IF NOT EXISTS tarjetas (
+  id         SERIAL PRIMARY KEY,
+  usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  nombre     VARCHAR(100) NOT NULL,
+  tipo       VARCHAR(20) NOT NULL CHECK (tipo IN ('credito', 'debito')),
+  ultimos4   CHAR(4) NOT NULL CHECK (ultimos4 ~ '^\d{4}$'),
+  dia_corte  INTEGER NULL CHECK (dia_corte IS NULL OR (dia_corte >= 1 AND dia_corte <= 31)),
+  dia_pago   INTEGER NULL CHECK (dia_pago IS NULL OR (dia_pago >= 1 AND dia_pago <= 31)),
+  creada_en  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_tarjetas_usuario_id
+  ON tarjetas (usuario_id);
+
 CREATE TABLE IF NOT EXISTS gastos (
   id             SERIAL PRIMARY KEY,
   usuario_id     INTEGER REFERENCES usuarios(id),
   categoria_id   INTEGER REFERENCES categorias(id),
+  tarjeta_id     INTEGER NULL REFERENCES tarjetas(id) ON DELETE SET NULL,
   monto          NUMERIC(12, 2) CHECK (monto > 0),
   moneda         VARCHAR(3) NOT NULL DEFAULT 'MXN',
   monto_original NUMERIC(12, 2) NULL CHECK (monto_original > 0),
@@ -78,8 +93,15 @@ CREATE TABLE IF NOT EXISTS gastos (
   created_at     TIMESTAMP DEFAULT NOW()
 );
 
+ALTER TABLE gastos
+  ADD COLUMN IF NOT EXISTS tarjeta_id INTEGER NULL REFERENCES tarjetas(id) ON DELETE SET NULL;
+
 CREATE INDEX IF NOT EXISTS idx_gastos_usuario_fecha
 ON gastos (usuario_id, fecha);
+
+CREATE INDEX IF NOT EXISTS idx_gastos_tarjeta_id
+  ON gastos (tarjeta_id)
+  WHERE tarjeta_id IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS presupuestos (
   id           SERIAL PRIMARY KEY,
@@ -101,6 +123,7 @@ CREATE TABLE IF NOT EXISTS membresias (
   id                  SERIAL PRIMARY KEY,
   usuario_id          INTEGER NOT NULL REFERENCES usuarios(id),
   servicio_id         INTEGER NULL REFERENCES catalogo_servicios(id),
+  tarjeta_id          INTEGER NULL REFERENCES tarjetas(id) ON DELETE SET NULL,
   nombre              VARCHAR(255) NOT NULL,
   costo               NUMERIC(12, 2) NOT NULL CHECK (costo > 0),
   moneda              VARCHAR(3) NOT NULL DEFAULT 'MXN',
@@ -112,8 +135,15 @@ CREATE TABLE IF NOT EXISTS membresias (
   ultima_notificacion DATE NULL
 );
 
+ALTER TABLE membresias
+  ADD COLUMN IF NOT EXISTS tarjeta_id INTEGER NULL REFERENCES tarjetas(id) ON DELETE SET NULL;
+
 CREATE INDEX IF NOT EXISTS idx_membresias_usuario_fecha_cobro
 ON membresias (usuario_id, fecha_cobro);
+
+CREATE INDEX IF NOT EXISTS idx_membresias_tarjeta_id
+  ON membresias (tarjeta_id)
+  WHERE tarjeta_id IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS pagos_membresia (
   id           SERIAL PRIMARY KEY,

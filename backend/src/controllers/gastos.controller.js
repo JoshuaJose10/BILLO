@@ -2,6 +2,7 @@ const { pool } = require('../db');
 const { esCategoriaDisponibleParaUsuario } = require('./categorias.controller');
 const { calcularAlertaPresupuesto } = require('./presupuestos.controller');
 const { esMonedaValida } = require('./tipoCambio.controller');
+const { esTarjetaDelUsuario } = require('./tarjetas.controller');
 
 const METODOS_PAGO_VALIDOS = ['efectivo', 'tarjeta', 'transferencia', 'otro'];
 
@@ -59,6 +60,10 @@ const formatearGasto = (row) => ({
       ? null
       : Number(row.tipo_cambio),
   categoria_id: row.categoria_id,
+  tarjeta_id:
+    row.tarjeta_id === null || row.tarjeta_id === undefined
+      ? null
+      : Number(row.tarjeta_id),
   fecha: row.fecha,
   metodo_pago: row.metodo_pago,
   nota: row.nota,
@@ -74,6 +79,7 @@ const validarDatosGasto = async (
     monto_original,
     tipo_cambio,
     categoria_id,
+    tarjeta_id,
     fecha,
     metodo_pago,
     nota,
@@ -206,6 +212,20 @@ const validarDatosGasto = async (
     }
   }
 
+  let tarjetaIdFinal = null;
+  if (tarjeta_id !== undefined && tarjeta_id !== null) {
+    const tarjetaValida = await esTarjetaDelUsuario(usuarioId, tarjeta_id);
+    if (!tarjetaValida) {
+      return {
+        error: {
+          code: 'TARJETA_INVALIDA',
+          message: 'La tarjeta seleccionada no existe o no te pertenece',
+        },
+      };
+    }
+    tarjetaIdFinal = tarjeta_id;
+  }
+
   return {
     datos: {
       monto,
@@ -213,6 +233,7 @@ const validarDatosGasto = async (
       monto_original: montoOriginalFinal,
       tipo_cambio: tipoCambioFinal,
       categoria_id,
+      tarjeta_id: tarjetaIdFinal,
       fecha,
       metodo_pago,
       nota: nota ?? null,
@@ -236,19 +257,21 @@ const crearGasto = async (req, res) => {
       monto_original,
       tipo_cambio,
       categoria_id,
+      tarjeta_id,
       fecha,
       metodo_pago,
       nota,
     } = validacion.datos;
 
     const insertQuery = `
-      INSERT INTO gastos (usuario_id, categoria_id, monto, moneda, monto_original, tipo_cambio, fecha, metodo_pago, nota)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      RETURNING id, monto, moneda, monto_original, tipo_cambio, categoria_id, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, metodo_pago, nota
+      INSERT INTO gastos (usuario_id, categoria_id, tarjeta_id, monto, moneda, monto_original, tipo_cambio, fecha, metodo_pago, nota)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING id, monto, moneda, monto_original, tipo_cambio, categoria_id, tarjeta_id, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, metodo_pago, nota
     `;
     const { rows } = await pool.query(insertQuery, [
       usuarioId,
       categoria_id,
+      tarjeta_id,
       monto,
       moneda,
       monto_original,
@@ -319,7 +342,7 @@ const listarGastos = async (req, res) => {
     }
 
     const query = `
-      SELECT id, monto, moneda, monto_original, tipo_cambio, categoria_id, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, metodo_pago, nota
+      SELECT id, monto, moneda, monto_original, tipo_cambio, categoria_id, tarjeta_id, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, metodo_pago, nota
       FROM gastos
       WHERE ${condiciones.join(' AND ')}
       ORDER BY fecha DESC, id DESC
@@ -376,6 +399,7 @@ const actualizarGasto = async (req, res) => {
       monto_original,
       tipo_cambio,
       categoria_id,
+      tarjeta_id,
       fecha,
       metodo_pago,
       nota,
@@ -388,11 +412,12 @@ const actualizarGasto = async (req, res) => {
           monto_original = $5,
           tipo_cambio = $6,
           categoria_id = $7,
-          fecha = $8,
-          metodo_pago = $9,
-          nota = $10
+          tarjeta_id = $8,
+          fecha = $9,
+          metodo_pago = $10,
+          nota = $11
       WHERE id = $1 AND usuario_id = $2
-      RETURNING id, monto, moneda, monto_original, tipo_cambio, categoria_id, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, metodo_pago, nota
+      RETURNING id, monto, moneda, monto_original, tipo_cambio, categoria_id, tarjeta_id, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, metodo_pago, nota
     `;
 
     const { rows } = await pool.query(updateQuery, [
@@ -403,6 +428,7 @@ const actualizarGasto = async (req, res) => {
       monto_original,
       tipo_cambio,
       categoria_id,
+      tarjeta_id,
       fecha,
       metodo_pago,
       nota,
