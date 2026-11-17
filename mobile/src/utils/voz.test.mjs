@@ -2,7 +2,18 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { avisoDictado, interpretarGasto, mensajeFalloVoz, normalizar } from './voz.js';
+import { DESCRIPCION_MAX, FUENTES } from './ingresos.js';
+import {
+  avisoDictado,
+  interpretarGasto,
+  interpretarDictado,
+  interpretarIngreso,
+  mensajeFalloVoz,
+  normalizar,
+  notaDictada,
+  pareceGasto,
+  pareceIngreso,
+} from './voz.js';
 
 const CATEGORIAS = ['Comida', 'Transporte', 'Entretenimiento', 'Servicios', 'Salud', 'Otros'];
 
@@ -301,5 +312,250 @@ describe('mensajes de la hoja', () => {
       'No entendí la categoría, elígela.',
     );
     assert.equal(avisoDictado('ochenta en comida', { monto: 80, categoria: 'Comida' }), null);
+  });
+});
+
+describe('interpretarIngreso (HU-94)', () => {
+  it('monto y fuente por sinónimos', () => {
+    const montoYFuente = (texto) => {
+      const { monto, fuente } = interpretarIngreso(texto);
+      return { monto, fuente };
+    };
+    assert.deepEqual(montoYFuente('me pagaron cinco mil de sueldo'), {
+      monto: 5000,
+      fuente: 'Sueldo',
+    });
+    assert.deepEqual(montoYFuente('recibí la beca de dos mil'), { monto: 2000, fuente: 'Beca' });
+    assert.deepEqual(montoYFuente('me depositó el cliente 1500'), {
+      monto: 1500,
+      fuente: 'Freelance',
+    });
+    assert.equal(interpretarIngreso('me cayó la quincena, 4 mil').fuente, 'Sueldo');
+  });
+
+  it('lo que no entiende queda en null', () => {
+    assert.deepEqual(interpretarIngreso('me pagaron'), {
+      monto: null,
+      fuente: null,
+      descripcion: null,
+    });
+    assert.deepEqual(interpretarIngreso('me cayó 300'), {
+      monto: 300,
+      fuente: null,
+      descripcion: null,
+    });
+  });
+
+  it('avisoDictado en Ingreso pide la fuente', () => {
+    assert.equal(
+      avisoDictado('me cayó 300', { monto: 300, categoria: null }, 'la fuente'),
+      'No entendí la fuente, elígela.',
+    );
+  });
+});
+
+describe('descripción y fuentes de ingreso (HU-94)', () => {
+  const ingreso = (texto) => interpretarIngreso(texto);
+
+  it('descripción sin monto, fuente ni frases de ingreso', () => {
+    assert.deepEqual(ingreso('me pagaron cinco mil de sueldo de la chamba de diseño'), {
+      monto: 5000,
+      fuente: 'Sueldo',
+      descripcion: 'Chamba de diseño',
+    });
+    assert.deepEqual(ingreso('recibí 1500 por el diseño de un logo'), {
+      monto: 1500,
+      fuente: null,
+      descripcion: 'Diseño de un logo',
+    });
+  });
+
+  it('sin nada más que decir no hay descripción; respeta el máximo', () => {
+    assert.equal(ingreso('recibí la beca de dos mil').descripcion, null);
+    assert.equal(ingreso('me depositó el cliente 1500').descripcion, null);
+    assert.ok(ingreso(`me pagaron 500 ${'x '.repeat(300)}`).descripcion.length <= DESCRIPCION_MAX);
+  });
+
+  it('una frase por cada fuente', () => {
+    const casos = [
+      ['me pagaron el aguinaldo de ocho mil', 8000, 'Aguinaldo/Bono'],
+      ['cobré el bono de 3000', 3000, 'Aguinaldo/Bono'],
+      ['vendí mi bici en 800', 800, 'Ventas'],
+      ['me cayeron intereses de 120', 120, 'Inversiones'],
+      ['cobré la renta 5000', 5000, 'Renta'],
+      ['me regalaron mil pesos', 1000, 'Regalo'],
+      ['me devolvieron 300 del reembolso', 300, 'Reembolso'],
+    ];
+    for (const [texto, monto, fuente] of casos) {
+      const r = ingreso(texto);
+      assert.deepEqual([r.monto, r.fuente], [monto, fuente], texto);
+      assert.equal(
+        FUENTES.some((f) => f.nombre === r.fuente),
+        true,
+        texto,
+      );
+    }
+  });
+
+  it('con varias fuentes mencionadas gana la primera de FUENTES; «me dieron» no pisa al sueldo', () => {
+    assert.equal(ingreso('me dieron mi sueldo 900').fuente, 'Sueldo');
+  });
+
+  it('notaDictada: no sobrescribe lo que el usuario ya escribió', () => {
+    assert.equal(notaDictada('', 'Chamba'), 'Chamba');
+    assert.equal(notaDictada('  ', 'Chamba'), 'Chamba');
+    assert.equal(notaDictada('Mi nota', 'Chamba'), null);
+    assert.equal(notaDictada(undefined, null), '');
+  });
+
+  it('caso del teléfono: un dictado nuevo reemplaza la descripción que vino de otro dictado', () => {
+    const { monto, fuente, descripcion } = interpretarIngreso(
+      'Me pagaron 3000 del proyecto de la tienda',
+    );
+    assert.deepEqual(
+      { monto, fuente, descripcion },
+      {
+        monto: 3000,
+        fuente: 'Freelance',
+        descripcion: 'Tienda',
+      },
+    );
+    // La descripción de antes vino de un dictado (marca en true): se reemplaza.
+    assert.equal(notaDictada('Chamba de diseño', descripcion, true), 'Tienda');
+    // Sin descripción nueva, la del dictado anterior se vacía en vez de quedarse.
+    assert.equal(notaDictada('Chamba de diseño', null, true), '');
+    // Escrita a mano (sin marca): se respeta.
+    assert.equal(notaDictada('Mi nota', 'Tienda', false), null);
+  });
+});
+
+describe('pareceIngreso (HU-94)', () => {
+  it('true con frases de ingreso', () => {
+    for (const texto of [
+      'me pagaron cinco mil',
+      'Me depositaron 2000',
+      'me depositó el cliente 1500',
+      'recibí la beca',
+      'me cayó 300',
+      'cobré el proyecto',
+      'cobré la renta 5000',
+    ]) {
+      assert.equal(pareceIngreso(texto), true, texto);
+    }
+  });
+
+  it('false con gastos', () => {
+    for (const texto of [
+      'ochenta pesos en comida',
+      'pagué la luz',
+      'me cobraron 50',
+      'pagué la renta 5000',
+      '',
+    ]) {
+      assert.equal(pareceIngreso(texto), false, texto);
+    }
+  });
+});
+
+describe('categorías base ampliadas (HU-94)', () => {
+  const NUEVAS = [
+    'Comida rápida',
+    'Súper',
+    'Café',
+    'Hogar',
+    'Ropa',
+    'Educación',
+    'Mascotas',
+    'Cuidado personal',
+  ];
+  const TODAS = [...CATEGORIAS, ...NUEVAS];
+
+  it('con todas activas, cada sinónimo cae en su categoría', () => {
+    const esperado = {
+      'tacos al pastor': 'Comida rápida',
+      'una pizza grande': 'Comida rápida',
+      'un hot dog': 'Comida rápida',
+      'despensa del mes': 'Súper',
+      'compras en walmart': 'Súper',
+      'un café en starbucks': 'Café',
+      'la renta del depa': 'Hogar',
+      'zapatos nuevos': 'Ropa',
+      'la colegiatura': 'Educación',
+      'croquetas del perro': 'Mascotas',
+      'la peluquería': 'Cuidado personal',
+      'comí en un restaurante': 'Comida',
+      'pagué la luz': 'Servicios',
+      'el dentista': 'Salud',
+    };
+    for (const [texto, cat] of Object.entries(esperado)) {
+      assert.equal(categoria(texto, TODAS), cat, texto);
+    }
+  });
+
+  it('sin la lista del usuario se reconocen todas', () => {
+    assert.equal(interpretarGasto('tacos 80').categoria, 'Comida rápida');
+  });
+
+  it('si la nueva no está activa cae en la más cercana: Comida, Servicios, Salud u Otros', () => {
+    const esperado = {
+      tacos: 'Comida',
+      'despensa del mes': 'Comida',
+      'un café': 'Comida',
+      'la renta': 'Servicios',
+      'corte de pelo': 'Salud',
+      'zapatos nuevos': 'Otros',
+      'la colegiatura': 'Otros',
+      'croquetas del perro': 'Otros',
+    };
+    for (const [texto, cat] of Object.entries(esperado)) {
+      assert.equal(categoria(texto, CATEGORIAS), cat, texto);
+    }
+  });
+
+  it('el fallback solo aplica a las no activas y exige que la cercana esté activa', () => {
+    assert.equal(categoria('tacos', ['Comida', 'Café']), 'Comida');
+    assert.equal(categoria('un café', ['Comida', 'Café']), 'Café');
+    assert.equal(categoria('un café', ['Servicios']), null);
+    assert.equal(categoria('tacos en el super', TODAS), null);
+    assert.equal(categoria('tacos en el super', CATEGORIAS), 'Comida');
+  });
+});
+
+describe('cambio automático de pestaña (HU-94)', () => {
+  const TODAS = [...CATEGORIAS, 'Comida rápida', 'Súper', 'Café', 'Hogar'];
+
+  it('«me pagaron 3000» en Gasto cambia a Ingreso', () => {
+    const r = interpretarDictado('me pagaron 3000', 'gasto', TODAS);
+    assert.equal(r.modo, 'ingreso');
+    assert.equal(r.cambio, true);
+    assert.equal(r.monto, 3000);
+    assert.ok('fuente' in r && 'descripcion' in r);
+  });
+
+  it('«gasté 90 en tacos» en Ingreso cambia a Gasto con Comida rápida', () => {
+    const r = interpretarDictado('gasté 90 en tacos', 'ingreso', TODAS);
+    assert.deepEqual(
+      [r.modo, r.cambio, r.monto, r.categoria],
+      ['gasto', true, 90, 'Comida rápida'],
+    );
+  });
+
+  it('«pagué la renta» en Gasto se queda en Gasto', () => {
+    const r = interpretarDictado('pagué la renta 5000', 'gasto', TODAS);
+    assert.deepEqual([r.modo, r.cambio, r.categoria], ['gasto', false, 'Hogar']);
+  });
+
+  it('sin `cambiar` (Deshacer) interpreta en la pestaña pedida', () => {
+    const r = interpretarDictado('me pagaron 3000', 'gasto', TODAS, false);
+    assert.deepEqual([r.modo, r.cambio, r.monto], ['gasto', false, 3000]);
+  });
+
+  it('pareceGasto', () => {
+    for (const texto of ['gasté 90', 'pagué la luz', 'compré tenis', 'me cobraron 50']) {
+      assert.equal(pareceGasto(texto), true, texto);
+    }
+    for (const texto of ['me pagaron 3000', 'cobré la renta', 'me pagó el cliente', '']) {
+      assert.equal(pareceGasto(texto), false, texto);
+    }
   });
 });

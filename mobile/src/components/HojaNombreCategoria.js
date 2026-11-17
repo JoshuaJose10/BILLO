@@ -57,7 +57,7 @@ export default function HojaNombreCategoria({ editando, existentes, onGuardar, o
           <View style={styles.contenido}>
             <Input
               etiqueta="Nombre de la categoría"
-              placeholder="Ej. Mascotas"
+              placeholder="Ej. Gimnasio"
               value={nombre}
               onChangeText={(v) => {
                 setNombre(v);

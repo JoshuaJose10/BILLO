@@ -25,7 +25,7 @@ for (const hoy of FECHAS) {
     it('tiene unos 20 gastos del mes actual y el anterior en las 6 categorías', async () => {
       const categorias = await pedir('/categorias', hoy);
       const gastos = await pedir('/gastos', hoy);
-      assert.equal(categorias.length, 6);
+      assert.equal(categorias.length, 8);
       assert.equal(gastos.length, 20);
       assert.deepEqual(
         new Set(gastos.map((g) => g.categoria_id)),
@@ -82,7 +82,7 @@ for (const hoy of FECHAS) {
       const resumen = await pedir(`/reportes/resumen?mes=${mes}`, hoy);
       const gastos = await pedir(`/gastos?mes=${mes}`, hoy);
       const lista = await pedir(`/reportes/por-categoria?mes=${mes}`, hoy);
-      assert.equal(lista.length, 6);
+      assert.equal(lista.length, 8);
       assert.equal(sumar(lista, 'total'), resumen.gasto_variable);
       assert.equal(
         lista.reduce((s, c) => s + c.porcentaje, 0),
