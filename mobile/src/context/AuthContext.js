@@ -180,6 +180,13 @@ export function AuthProvider({ children }) {
     [guardarSesion, iniciarSesion],
   );
 
+  // HU-89: el PUT /categorias/seleccion de «Elige tus categorías» deja la cuenta configurada; se
+  // guarda en la sesión para que la pantalla no vuelva a salir al reabrir la app.
+  const marcarCategoriasConfiguradas = useCallback(
+    () => guardarSesion(tokenRef.current, { ...usuario, categorias_configuradas: true }),
+    [guardarSesion, usuario],
+  );
+
   // Registro del hook global para 401: si un endpoint con token responde 401, se cierra la sesión
   // solo si la petición se hizo con el token que sigue activo (evita que una petición vieja cierre
   // una sesión recién iniciada).
@@ -204,6 +211,7 @@ export function AuthProvider({ children }) {
       marcarOnboardingVisto,
       iniciarSesion,
       registrarse,
+      marcarCategoriasConfiguradas,
       cerrarSesion,
       limpiarMotivoCierre,
       explorarSinCuenta,
@@ -220,6 +228,7 @@ export function AuthProvider({ children }) {
       marcarOnboardingVisto,
       iniciarSesion,
       registrarse,
+      marcarCategoriasConfiguradas,
       cerrarSesion,
       limpiarMotivoCierre,
       explorarSinCuenta,

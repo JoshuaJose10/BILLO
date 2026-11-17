@@ -39,6 +39,12 @@ describe('totalIngresos', () => {
 describe('iconoFuente', () => {
   it('da el ícono de cada fuente y uno genérico para las desconocidas', () => {
     assert.equal(iconoFuente('Beca'), 'school-outline');
+    assert.equal(iconoFuente('Aguinaldo/Bono'), 'star-circle-outline');
+    assert.equal(iconoFuente('Ventas'), 'storefront-outline');
+    assert.equal(iconoFuente('Inversiones'), 'trending-up');
+    assert.equal(iconoFuente('Renta'), 'home-city-outline');
+    assert.equal(iconoFuente('Regalo'), 'gift-outline');
+    assert.equal(iconoFuente('Reembolso'), 'cash-refund');
     assert.equal(iconoFuente(' Sueldo '), 'briefcase-outline');
     assert.equal(iconoFuente('Salario'), ICONO_INGRESO);
     assert.equal(iconoFuente(null), ICONO_INGRESO);

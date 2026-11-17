@@ -3,8 +3,11 @@
 
 // 'Sesion' con token; 'Visitante' en el modo exploración; sin ninguno, 'Onboarding' la primera vez
 // y 'Auth' (que abre en Entrada) cuando ya se vio u omitió.
-export function navegadorRaiz({ token, visitante, onboardingVisto }) {
-  if (token) return 'Sesion';
+// Con token y una cuenta recién creada (HU-89: el backend la marca con categorias_configuradas =
+// false), 'ElegirCategorias' hasta que las elige. Se compara con false porque las sesiones guardadas
+// antes de HU-89 no traen el campo.
+export function navegadorRaiz({ token, usuario, visitante, onboardingVisto }) {
+  if (token) return usuario?.categorias_configuradas === false ? 'ElegirCategorias' : 'Sesion';
   if (visitante) return 'Visitante';
   return onboardingVisto ? 'Auth' : 'Onboarding';
 }
