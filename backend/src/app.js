@@ -9,6 +9,7 @@ const reportesRoutes = require('./routes/reportes.routes');
 const notificacionesRoutes = require('./routes/notificaciones.routes');
 const tipoCambioRoutes = require('./routes/tipoCambio.routes');
 const ingresosRoutes = require('./routes/ingresos.routes');
+const tarjetasRoutes = require('./routes/tarjetas.routes');
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use('/reportes', reportesRoutes);
 app.use('/notificaciones', notificacionesRoutes);
 app.use('/divisas', tipoCambioRoutes);
 app.use('/ingresos', ingresosRoutes);
+app.use('/tarjetas', tarjetasRoutes);
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', uptime: process.uptime() });

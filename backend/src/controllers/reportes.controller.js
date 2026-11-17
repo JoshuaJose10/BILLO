@@ -199,14 +199,15 @@ const obtenerReporteIngresos = async (req, res) => {
     );
     const total = redondear2(granTotal);
 
-    const porFuente = fuentesResult.rows.map((row) => {
+    const porcentajesExactos = fuentesResult.rows.map((row) =>
+      granTotal > 0 ? (Number(row.total) * 100) / granTotal : 0
+    );
+    const porFuente = fuentesResult.rows.map((row, indice) => {
       const montoFuente = redondear2(row.total);
-      const porcentaje =
-        granTotal > 0 ? Math.round((Number(row.total) * 100) / granTotal) : 0;
       return {
         fuente: row.fuente,
         total: montoFuente,
-        porcentaje,
+        porcentaje: Math.floor(porcentajesExactos[indice]),
       };
     });
 
@@ -215,7 +216,17 @@ const obtenerReporteIngresos = async (req, res) => {
         (acc, item) => acc + item.porcentaje,
         0
       );
-      porFuente[0].porcentaje += 100 - sumaPorcentajes;
+      // Restos mayores: repartir los puntos restantes sin concentrar el ajuste en una fuente.
+      // El índice desempata según el orden del reporte, sin cambiar el orden de la respuesta.
+      const prioridades = porcentajesExactos
+        .map((porcentaje, indice) => ({
+          indice,
+          resto: porcentaje - Math.floor(porcentaje),
+        }))
+        .sort((a, b) => b.resto - a.resto || a.indice - b.indice);
+      for (const { indice } of prioridades.slice(0, 100 - sumaPorcentajes)) {
+        porFuente[indice].porcentaje += 1;
+      }
     }
 
     const totalMesAnterior = redondear2(anteriorResult.rows[0].total_anterior);

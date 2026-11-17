@@ -15,6 +15,7 @@ import {
   combinarCategoriasConPredefinidas,
   extraerCategoriasPropias,
   iconoCategoria,
+  idsSeleccionados,
   LONGITUD_MAX_CATEGORIA,
   MENSAJE_AVISO_PREDEFINIDA_GASTOS,
   MENSAJE_CATEGORIA_EN_USO,
@@ -117,22 +118,22 @@ describe('colores e ícono de categorías propias (HU-89 / HU-90)', () => {
     assert.equal(iconoCategoria('Transporte'), 'car');
 
     registrarColoresCategorias([
-      { id: 10, nombre: 'Mascotas', propia: true, es_predefinida: false, color: '#EF4444' },
+      { id: 10, nombre: 'Gimnasio', propia: true, es_predefinida: false, color: '#EF4444' },
     ]);
 
-    assert.equal(esCategoriaPropia('Mascotas'), true);
-    assert.equal(iconoCategoria('Mascotas'), ICONO_CATEGORIA_PROPIA);
-    assert.equal(iconoCategoria('Mascotas'), 'tag-outline');
-    assert.equal(colorCategoria('Mascotas', true), '#EF4444');
-    assert.equal(colorCategoria('Mascotas', false), '#EF4444');
-    assert.equal(degradadoCategoria('Mascotas', true)[1], '#EF4444');
-    assert.ok(fondoChipCategoria('Mascotas').startsWith('#'));
+    assert.equal(esCategoriaPropia('Gimnasio'), true);
+    assert.equal(iconoCategoria('Gimnasio'), ICONO_CATEGORIA_PROPIA);
+    assert.equal(iconoCategoria('Gimnasio'), 'tag-outline');
+    assert.equal(colorCategoria('Gimnasio', true), '#EF4444');
+    assert.equal(colorCategoria('Gimnasio', false), '#EF4444');
+    assert.equal(degradadoCategoria('Gimnasio', true)[1], '#EF4444');
+    assert.ok(fondoChipCategoria('Gimnasio').startsWith('#'));
 
-    // En Reportes (armarDatosDona), Mascotas aparece con su color asignado por el servidor
-    const dona = armarDatosDona([{ categoria_id: 10, categoria: 'Mascotas', total: 250 }], true);
+    // En Reportes (armarDatosDona), Gimnasio aparece con su color asignado por el servidor
+    const dona = armarDatosDona([{ categoria_id: 10, categoria: 'Gimnasio', total: 250 }], true);
     assert.equal(dona[0].color, '#EF4444');
 
-    // Al renombrar Mascotas a Perros, conserva el color asignado por el servidor
+    // Al renombrar Gimnasio a Perros, conserva el color asignado por el servidor
     registrarColoresCategorias([
       { id: 10, nombre: 'Perros', propia: true, es_predefinida: false, color: '#EF4444' },
     ]);
@@ -143,7 +144,7 @@ describe('colores e ícono de categorías propias (HU-89 / HU-90)', () => {
   test('extraerCategoriasPropias y combinarCategoriasConPredefinidas', () => {
     const activas = [
       { id: 1, nombre: 'Comida', es_predefinida: true, propia: false },
-      { id: 10, nombre: 'Mascotas', es_predefinida: false, propia: true, color: '#EF4444' },
+      { id: 10, nombre: 'Gimnasio', es_predefinida: false, propia: true, color: '#EF4444' },
     ];
     const predefinidas = [
       { id: 1, nombre: 'Comida', es_predefinida: true, seleccionada: true },
@@ -152,7 +153,7 @@ describe('colores e ícono de categorías propias (HU-89 / HU-90)', () => {
 
     const propias = extraerCategoriasPropias(activas);
     assert.equal(propias.length, 1);
-    assert.equal(propias[0].nombre, 'Mascotas');
+    assert.equal(propias[0].nombre, 'Gimnasio');
 
     const todas = combinarCategoriasConPredefinidas(activas, predefinidas);
     assert.equal(
@@ -160,7 +161,7 @@ describe('colores e ícono de categorías propias (HU-89 / HU-90)', () => {
       true,
     );
     assert.equal(
-      todas.some((c) => c.id === 10 && c.nombre === 'Mascotas'),
+      todas.some((c) => c.id === 10 && c.nombre === 'Gimnasio'),
       true,
     );
   });
@@ -174,5 +175,52 @@ describe('colores e ícono de categorías propias (HU-89 / HU-90)', () => {
       mensajeError('CATEGORIA_EN_USO'),
       'Esta categoría tiene gastos o presupuestos; no se puede borrar',
     );
+  });
+});
+
+describe('idsSeleccionados (HU-89)', () => {
+  test('devuelve los ids encendidos en orden: el body de «Omitir» con las predefinidas por defecto', () => {
+    const lista = [
+      { id: 1, nombre: 'Comida', seleccionada: true },
+      { id: 2, nombre: 'Transporte', seleccionada: false },
+      { id: 3, nombre: 'Salud', seleccionada: true },
+    ];
+    assert.deepEqual(idsSeleccionados(lista), [1, 3]);
+  });
+
+  test('tolera lista vacía, null y elementos nulos', () => {
+    assert.deepEqual(idsSeleccionados(null), []);
+    assert.deepEqual(idsSeleccionados([null, { id: 4 }]), []);
+  });
+});
+
+describe('categorías base ampliadas (HU-94)', () => {
+  const NUEVAS = {
+    'Comida rápida': 'hamburger',
+    Súper: 'cart-outline',
+    Café: 'coffee-outline',
+    Hogar: 'home-outline',
+    Ropa: 'tshirt-crew-outline',
+    Educación: 'school-outline',
+    Mascotas: 'paw',
+    'Cuidado personal': 'face-woman-shimmer-outline',
+  };
+  const ANTERIORES = ['Comida', 'Transporte', 'Entretenimiento', 'Servicios', 'Salud', 'Otros'];
+
+  test('cada una tiene ícono propio y colores definidos en ambos temas', () => {
+    for (const [nombre, icono] of Object.entries(NUEVAS)) {
+      assert.equal(iconoCategoria(nombre), icono, nombre);
+      assert.equal(esCategoriaPropia(nombre), false, nombre);
+      for (const oscuro of [true, false]) {
+        assert.match(colorCategoria(nombre, oscuro), /^#[0-9A-F]{6}$/, nombre);
+        assert.equal(degradadoCategoria(nombre, oscuro).length, 3, nombre);
+      }
+      assert.match(fondoChipCategoria(nombre), /^#[0-9A-F]{6}$/, nombre);
+    }
+  });
+
+  test('su color se distingue del de las anteriores y entre sí', () => {
+    const colores = [...Object.keys(NUEVAS), ...ANTERIORES].map((n) => colorCategoria(n, true));
+    assert.equal(new Set(colores).size, colores.length);
   });
 });

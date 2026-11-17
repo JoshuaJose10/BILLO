@@ -1,4 +1,4 @@
-# Contrato de API — Billo (v1.5)
+# Contrato de API — Billo (v1.7)
 
 Estado: **esquema de BD congelado desde el 2026-10-13** (ver «Congelamiento del esquema»). Cualquier cambio al contrato o al esquema se acuerda con el equipo y se anota en el **Registro de cambios**.
 
@@ -14,8 +14,9 @@ Verificado con `curl` contra el backend de `develop` (commit `ec43600`), Postgre
 |---|---|---|
 | `POST /auth/register`, `POST /auth/login` | Sí | Sí (`{ usuario, token }`; incluye `usuario.categorias_configuradas`; correo sin distinguir mayúsculas). Detalle: el registro sin cuerpo responde `NOMBRE_REQUERIDO`, no `CAMPOS_REQUERIDOS` |
 | `GET /auth/perfil` | Sí | Sí |
-| `DELETE /auth/cuenta` | Sí (S3) | Sí (HU-68: requiere token y contraseña, borra en transacción ingresos, gastos, presupuestos, membresías y usuario) |
+| `DELETE /auth/cuenta` | Sí (S3) | Sí (HU-68: requiere token y contraseña, borra en transacción ingresos, gastos, presupuestos, membresías, tarjetas y usuario) |
 | `GET /categorias?tipo=gasto`, `GET /categorias/predefinidas`, `PUT /categorias/seleccion`, `POST/PUT/DELETE /categorias` | Sí (S1/S3) | Sí (incluye `tipo`, `es_predefinida`, `propia` y `color`; selección por usuario y CRUD de categorías propias) |
+| `POST/GET/PUT/DELETE /tarjetas` y `GET /tarjetas/:id/resumen?mes=YYYY-MM` | Sí (S3) | Sí (CRUD de tarjetas del usuario, resumen mensual y asociación opcional `tarjeta_id` en gastos y membresías) |
 | `POST/GET/PUT/DELETE /gastos` | Sí (S1/S3) | Sí (validación de monto, moneda, `monto_original × tipo_cambio = monto` y categoría; JSON malformado → `JSON_INVALIDO`) |
 | `POST/GET/PUT/DELETE /presupuestos` y aviso `alerta` | Sí (S2) | Sí |
 | `GET /catalogo` | Sí (S2) | Sí |
@@ -233,6 +234,35 @@ Body: igual que POST (se reemplazan todos los campos)
 - 200 → { "eliminado": true }
 - 404 → INGRESO_NO_ENCONTRADO
 
+## Tarjetas (todas requieren token) (S3)
+
+Permite al usuario registrar sus tarjetas (`credito` o `debito`, `ultimos4` de 4 dígitos, `dia_corte` y `dia_pago` opcionales entre 1 y 31) y asociarlas opcionalmente mediante `tarjeta_id` en `POST/PUT /gastos` y `POST/PUT /membresias` (debe pertenecer al mismo usuario; si no, responde 400 `TARJETA_INVALIDA`). Al eliminar una tarjeta, los gastos y membresías asociados conservan su registro con `tarjeta_id: null` (`ON DELETE SET NULL`). Al eliminar la cuenta (`DELETE /auth/cuenta`), también se eliminan sus tarjetas.
+
+### POST /tarjetas
+Body: { "nombre": "BBVA Azul", "tipo": "credito", "ultimos4": "4821", "dia_corte": 12, "dia_pago": 2 }
+- 201 → { "tarjeta": { "id": 1, "nombre": "BBVA Azul", "tipo": "credito", "ultimos4": "4821", "dia_corte": 12, "dia_pago": 2, "creada_en": "2026-11-16T18:00:00.000Z" } }
+- 400 → TARJETA_INVALIDA, ULTIMOS4_INVALIDOS
+
+### GET /tarjetas
+Orden: `id` ascendente. Sin tarjetas: 200 `[]`.
+- 200 → [ { "id": 1, "nombre": "BBVA Azul", "tipo": "credito", "ultimos4": "4821", "dia_corte": 12, "dia_pago": 2, "creada_en": "2026-11-16T18:00:00.000Z" }, ... ]
+
+### PUT /tarjetas/:id
+Body: igual que POST (se reemplazan todos los campos)
+- 200 → { "tarjeta": { ... } }
+- 400 → TARJETA_INVALIDA, ULTIMOS4_INVALIDOS
+- 404 → TARJETA_NO_ENCONTRADA
+
+### DELETE /tarjetas/:id
+- 200 → { "eliminado": true }
+- 404 → TARJETA_NO_ENCONTRADA
+
+### GET /tarjetas/:id/resumen?mes=2026-10
+Calcula el total gastado con esa tarjeta en el mes indicado (`gasto_variable` de gastos del mes + `gasto_fijo` mensualizado de membresías activas asociadas a la tarjeta).
+- 200 → { "tarjeta_id": 1, "mes": "2026-10", "gasto_variable": 199.5, "gasto_fijo": 199, "total": 398.5 }
+- 400 → MES_INVALIDO
+- 404 → TARJETA_NO_ENCONTRADA
+
 ## Presupuestos (todas requieren token) (S2) — RF3, RF4
 
 Un presupuesto es único por usuario, categoría y mes (restricción única de la tabla).
@@ -364,6 +394,7 @@ Gasto variable agrupado por categoría, para la gráfica de dona (RF8). `mes` es
 
 ### GET /reportes/ingresos?mes=2026-10  (S3)
 Total de ingresos del mes, desglose por fuente con porcentaje (los ingresos sin fuente se agrupan en `"Sin fuente"`), total del mes anterior y variación (en monto y porcentaje). Un mes sin datos devuelve ceros y `por_fuente: []`.
+Los porcentajes son enteros de 0 a 100 y suman 100 cuando hay ingresos. Se calculan con el método de restos mayores; los empates se resuelven por el orden del reporte (`total` descendente, `fuente` ascendente), sin cambiar el orden de las fuentes en la respuesta.
 - 200 → { "mes": "2026-10", "total": 15000, "por_fuente": [ { "fuente": "Salario", "total": 12000, "porcentaje": 80 }, { "fuente": "Freelance", "total": 3000, "porcentaje": 20 } ], "mes_anterior": "2026-09", "total_mes_anterior": 12000, "variacion": 3000, "variacion_porcentaje": 25 }
 - 400 → MES_INVALIDO
 
@@ -422,6 +453,7 @@ Son campos nuevos y opcionales (no rompen nada de lo existente). Se aplican en u
 | C-05 | `membresias.estado` (varchar(20), activa o pausada, default 'activa') | Pausar o cancelar suscripción sin borrarla (HU-75). | Aplicado en migración 017 |
 | C-06 | Tabla `pagos_membresia` (`id`, `membresia_id` con `ON DELETE CASCADE`, `fecha`, `monto`) | Guardar historial de pagos al marcar una suscripción como pagada (HU-66). | Aplicado en migración 019 |
 | C-07 | `categorias.usuario_id` (int, nulo, CASCADE), `categorias.color` (varchar 7, nulo), `usuarios.categorias_configuradas` (bool, default TRUE) y tabla `usuario_categorias` | Permitir que cada usuario seleccione categorías predefinidas y cree categorías propias con color asignado. | Aplicado en migración 020 |
+| C-08 | Tabla `tarjetas` (`id`, `usuario_id` con `ON DELETE CASCADE`, `nombre`, `tipo`, `ultimos4`, `dia_corte`, `dia_pago`, `creada_en`) y `tarjeta_id` (`ON DELETE SET NULL`) en `gastos` y `membresias` | Registrar las tarjetas del usuario y saber con cuál se pagó cada gasto o suscripción. | Aplicado en migración 021 (Render corre las migraciones al desplegar) |
 
 ### Extensiones propuestas, fuera del congelamiento
 
@@ -465,4 +497,5 @@ Pendiente en la colección Postman (**HU-22**, Luis Dorian): agregar las asercio
 - 2026-11-11 — v1.4 — Sprint 3 (HU-66: Marcar membresía como pagada). Se implementa `POST /membresias/:id/pagada` con token. Avanza automáticamente `fecha_cobro` un mes o un año según su `frecuencia` con ajuste de fin de mes en PostgreSQL (`INTERVAL '1 month'` o `INTERVAL '1 year'`), respondiendo 200 con la membresía actualizada (`id`, `servicio_id`, `nombre`, `costo`, `frecuencia`, `fecha_cobro` y `dias_para_cobro`). Aislamiento A/B de usuarios (404 `MEMBRESIA_NO_ENCONTRADA`). No crea registros en la tabla `gastos` para evitar duplicar el gasto fijo en reportes. En la app móvil se agrega el botón «Marcar como pagada» en la hoja de edición. Autor: Iker.
 - 2026-11-12 — v1.4 — Sprint 3 (Historial de pagos de suscripciones). Se aplica la migración 019 (tabla `pagos_membresia` con `ON DELETE CASCADE`), `POST /membresias/:id/pagada` registra el pago en `pagos_membresia` (sin crear gasto) y se agrega `GET /membresias/:id/pagos` con línea de tiempo corta en el detalle móvil de la suscripción.
 - 2026-11-12 — v1.5 — Categorías por usuario (migración 020). Se agregan `categorias.usuario_id`, `categorias.color`, `usuarios.categorias_configuradas` y `usuario_categorias`. `POST /auth/register` crea cuentas con `categorias_configuradas = false` e incluye el campo en registro y login. Se agregan `GET /categorias/predefinidas`, `PUT /categorias/seleccion`, `POST /categorias`, `PUT /categorias/:id` y `DELETE /categorias/:id`; `GET /categorias` filtra por usuario e incluye `propia` y `color`. `POST /gastos` y `POST /presupuestos` validan que la categoría esté disponible para el usuario, mientras `PUT /gastos/:id` permite conservar la categoría oculta previa del gasto.
-- 2026-11-16 — v1.5 — Reportes de ingresos y balance mensual. Se agregan `GET /reportes/ingresos?mes=YYYY-MM` (total del mes, desglose por fuente con porcentaje, total del mes anterior y variación) y `GET /reportes/balance?mes=YYYY-MM` (ingresos, gasto variable, gasto fijo excluyendo suscripciones pausadas, gastos totales, balance y serie de los últimos 6 meses). Meses sin datos devuelven ceros.
+- 2026-11-16 — v1.6 — Tarjetas por usuario (migración 021). Se crea la tabla `tarjetas` (`ON DELETE CASCADE` desde `usuarios`) y se agrega `tarjeta_id` (`ON DELETE SET NULL`) en `gastos` y `membresias`. Se implementan `POST /tarjetas`, `GET /tarjetas`, `PUT /tarjetas/:id`, `DELETE /tarjetas/:id` y `GET /tarjetas/:id/resumen?mes=YYYY-MM` con códigos `TARJETA_INVALIDA`, `ULTIMOS4_INVALIDOS` y `TARJETA_NO_ENCONTRADA`. `DELETE /auth/cuenta` elimina también las tarjetas del usuario. Render ejecuta las migraciones automáticamente al desplegar.
+- 2026-11-16 — v1.7 — Reportes de ingresos y balance mensual. Se agregan `GET /reportes/ingresos?mes=YYYY-MM` (total del mes, desglose por fuente con porcentaje, total del mes anterior y variación) y `GET /reportes/balance?mes=YYYY-MM` (ingresos, gasto variable, gasto fijo excluyendo suscripciones pausadas, gastos totales, balance y serie de los últimos 6 meses). Meses sin datos devuelven ceros. Los porcentajes por fuente se distribuyen con restos mayores para sumar 100 sin valores negativos, incluso con más de 100 fuentes.

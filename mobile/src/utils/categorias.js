@@ -4,6 +4,13 @@ import { esCategoriaPropia, ICONO_CATEGORIA_PROPIA } from '../theme/categorias.j
 // Las predefinidas usan su ícono del diseño (restaurant, directions_car, theaters,
 // bolt, health_and_safety, more_horiz); las propias usan `tag-outline` (HU-89 / HU-90).
 const ICONOS = [
+  { claves: ['comida rapida'], icono: 'hamburger' },
+  { claves: ['cafe'], icono: 'coffee-outline' },
+  { claves: ['hogar'], icono: 'home-outline' },
+  { claves: ['ropa'], icono: 'tshirt-crew-outline' },
+  { claves: ['educacion'], icono: 'school-outline' },
+  { claves: ['mascota'], icono: 'paw' },
+  { claves: ['cuidado personal'], icono: 'face-woman-shimmer-outline' },
   { claves: ['comida', 'restaurante', 'alimento'], icono: 'silverware-fork-knife' },
   { claves: ['super', 'mercado', 'despensa'], icono: 'cart-outline' },
   { claves: ['transporte', 'gasolina', 'uber', 'taxi'], icono: 'car' },
@@ -77,12 +84,18 @@ export function validarNombreCategoria(nombre, existentes = [], idEditando = nul
   return { valido: true, nombre: limpio, error: null };
 }
 
+// Ids de las categorías encendidas: el body de PUT /categorias/seleccion. «Omitir» de Elige tus
+// categorías (HU-89) lo usa con la lista tal como llegó (las predefinidas por defecto).
+export function idsSeleccionados(categorias) {
+  return (categorias || []).filter((c) => c && Boolean(c.seleccionada)).map((c) => c.id);
+}
+
 // Calcula el siguiente estado al tocar el interruptor de una categoría predefinida.
 // Regla HU-90: mínimo una activa; al apagar una, muestra el aviso de conservación de gastos.
 export function calcularCambioSeleccionPredefinida(predefinidas, idCategoria) {
   const lista = Array.isArray(predefinidas) ? predefinidas : [];
   const objetivo = lista.find((c) => String(c.id) === String(idCategoria));
-  const activas = lista.filter((c) => Boolean(c.seleccionada)).map((c) => c.id);
+  const activas = idsSeleccionados(lista);
 
   if (!objetivo) {
     return {

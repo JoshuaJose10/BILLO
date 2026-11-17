@@ -9,6 +9,21 @@ const MIGRACION_020 = fs.readFileSync(
   'utf8'
 );
 
+const MIGRACION_021 = fs.readFileSync(
+  path.resolve(__dirname, '../../migrations/021_categorias_base_ampliadas.sql'),
+  'utf8'
+);
+const NUEVAS_021 = [
+  'Comida rápida',
+  'Súper',
+  'Café',
+  'Hogar',
+  'Ropa',
+  'Educación',
+  'Mascotas',
+  'Cuidado personal',
+];
+
 module.exports = (getContext) =>
   describe('Categorías por usuario (feature/categorias-usuario)', () => {
     let ctx;
@@ -75,6 +90,57 @@ module.exports = (getContext) =>
         [regBody.usuario.id]
       );
       assert.equal(cfg[0].categorias_configuradas, false);
+    });
+
+    it('migración 021 es idempotente y deja las nuevas activas para usuarios existentes y cuentas nuevas', async () => {
+      const seleccion = async (usuarioId) =>
+        (
+          await ctx.pool.query(
+            `SELECT c.nombre FROM usuario_categorias uc JOIN categorias c ON c.id = uc.categoria_id
+             WHERE uc.usuario_id = $1`,
+            [usuarioId]
+          )
+        ).rows.map((r) => r.nombre);
+
+      // Usuario previo a la 021: sin las nuevas y además quitó Salud por su cuenta.
+      await ctx.pool.query(
+        `DELETE FROM usuario_categorias
+         WHERE usuario_id = $1
+           AND categoria_id IN (SELECT id FROM categorias WHERE nombre = ANY($2::text[]))`,
+        [ctx.a.usuario.id, [...NUEVAS_021, 'Salud']]
+      );
+      const antes = await seleccion(ctx.a.usuario.id);
+
+      await ctx.pool.query(MIGRACION_021);
+      await ctx.pool.query(MIGRACION_021);
+
+      const { rows: filas } = await ctx.pool.query(
+        `SELECT nombre, tipo, es_predefinida, usuario_id FROM categorias WHERE nombre = ANY($1::text[])`,
+        [NUEVAS_021]
+      );
+      assert.equal(filas.length, NUEVAS_021.length);
+      assert.ok(filas.every((f) => f.tipo === 'gasto' && f.es_predefinida && f.usuario_id === null));
+
+      // Existente: recibe las 8 nuevas una sola vez, conserva lo suyo y Salud sigue quitada.
+      const despues = await seleccion(ctx.a.usuario.id);
+      assert.deepEqual([...despues].sort(), [...antes, ...NUEVAS_021].sort());
+      const { body: activas } = await ctx.api
+        .get('/categorias')
+        .set('Authorization', `Bearer ${ctx.a.token}`)
+        .expect(200);
+      for (const nombre of NUEVAS_021) assert.ok(activas.some((c) => c.nombre === nombre), nombre);
+      assert.equal(activas.some((c) => c.nombre === 'Salud'), false);
+
+      // Cuenta nueva: también activas.
+      const { body: reg } = await ctx.api
+        .post('/auth/register')
+        .send({ nombre: 'Nueva', email: 'nueva.021@example.com', password: ctx.password })
+        .expect(201);
+      const { body: nuevas } = await ctx.api
+        .get('/categorias')
+        .set('Authorization', `Bearer ${reg.token}`)
+        .expect(200);
+      for (const nombre of NUEVAS_021) assert.ok(nuevas.some((c) => c.nombre === nombre), nombre);
     });
 
     it('usuario existente conserva predefinidas disponibles y recibe error 401 sin token', async () => {

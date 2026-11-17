@@ -322,6 +322,50 @@ module.exports = (getContext) =>
         );
       });
 
+      for (const cantidad of [18, 150]) {
+        it(`GET /reportes/ingresos reparte 100% entre ${cantidad} fuentes iguales sin porcentajes negativos`, async () => {
+          await ctx.pool.query(
+            `INSERT INTO ingresos (usuario_id, monto, fecha, fuente)
+             SELECT $1, 100, DATE '2026-10-15', 'Fuente ' || LPAD(numero::text, 3, '0')
+             FROM generate_series(1, $2::integer) AS numero`,
+            [ctx.a.usuario.id, cantidad]
+          );
+
+          const { body } = await ctx.api
+            .get('/reportes/ingresos?mes=2026-10')
+            .auth(ctx.a.token, { type: 'bearer' })
+            .expect(200);
+
+          assert.equal(body.total, cantidad * 100);
+          assert.equal(body.por_fuente.length, cantidad);
+          const porcentajes = body.por_fuente.map((item) => item.porcentaje);
+          assert.ok(porcentajes.every((valor) => Number.isInteger(valor) && valor >= 0 && valor <= 100));
+          assert.equal(porcentajes.reduce((suma, valor) => suma + valor, 0), 100);
+          assert.ok(Math.max(...porcentajes) - Math.min(...porcentajes) <= 1);
+          // En empates se conserva el orden del reporte (total descendente, fuente ascendente).
+          assert.equal(body.por_fuente[0].fuente, 'Fuente 001');
+          assert.equal(porcentajes[0], Math.ceil(100 / cantidad));
+          assert.equal(porcentajes[cantidad - 1], Math.floor(100 / cantidad));
+        });
+      }
+
+      it('GET /reportes/ingresos asigna el punto restante al mayor residuo y conserva el orden de las fuentes', async () => {
+        for (const [fuente, monto] of [['Salario', 343], ['Freelance', 334], ['Ventas', 323]]) {
+          await crearIngreso(ctx.a, { monto, fuente });
+        }
+
+        const { body } = await ctx.api
+          .get('/reportes/ingresos?mes=2026-10')
+          .auth(ctx.a.token, { type: 'bearer' })
+          .expect(200);
+
+        assert.deepEqual(body.por_fuente, [
+          { fuente: 'Salario', total: 343, porcentaje: 34 },
+          { fuente: 'Freelance', total: 334, porcentaje: 34 },
+          { fuente: 'Ventas', total: 323, porcentaje: 32 },
+        ]);
+      });
+
       it('GET /reportes/balance concilia exactamente con /ingresos y /reportes/resumen, excluye suscripciones pausadas y arma la serie de 6 meses', async () => {
         // Ingresos en distintos meses de la ventana de 6 meses (2025-09 a 2026-02, cruzando año)
         await crearIngreso(ctx.a, { monto: 5000, fecha: '2025-12-15', fuente: 'Aguinaldo' });
