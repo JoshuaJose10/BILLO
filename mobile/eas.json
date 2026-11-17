@@ -11,6 +11,10 @@
         "buildType": "apk"
       }
     },
+    "qa-hu94": {
+      "extends": "release",
+      "autoIncrement": true
+    },
     "release": {
       "environment": "production",
       "distribution": "internal",
