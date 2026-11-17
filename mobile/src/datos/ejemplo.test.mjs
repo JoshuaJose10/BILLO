@@ -124,6 +124,33 @@ for (const hoy of FECHAS) {
       const catalogo = await pedir('/catalogo', hoy);
       assert.ok(membresias.every((m) => catalogo.some((s) => s.id === m.servicio_id)));
     });
+
+    it('reportes de ingresos y balance coinciden con ingresos, gastos y resumen del mes', async () => {
+      const ingresos = await pedir(`/ingresos?mes=${mes}`, hoy);
+      const resumen = await pedir(`/reportes/resumen?mes=${mes}`, hoy);
+      const repIngresos = await pedir(`/reportes/ingresos?mes=${mes}`, hoy);
+      const repBalance = await pedir(`/reportes/balance?mes=${mes}`, hoy);
+
+      assert.equal(repIngresos.mes, mes);
+      assert.equal(repIngresos.total, sumar(ingresos, 'monto'));
+      assert.equal(
+        repIngresos.por_fuente.reduce((s, f) => s + f.porcentaje, 0),
+        100,
+      );
+      assert.equal(repIngresos.mes_anterior, anterior);
+
+      assert.equal(repBalance.mes, mes);
+      assert.equal(repBalance.ingresos, repIngresos.total);
+      assert.equal(repBalance.gasto_variable, resumen.gasto_variable);
+      assert.equal(repBalance.gasto_fijo, resumen.gasto_fijo);
+      assert.equal(repBalance.gastos, resumen.total);
+      assert.equal(
+        repBalance.balance,
+        Math.round((repBalance.ingresos - repBalance.gastos) * 100) / 100,
+      );
+      assert.equal(repBalance.serie.length, 6);
+      assert.equal(repBalance.serie[5].mes, mes);
+    });
   });
 }
 

@@ -1,11 +1,16 @@
 import { useMemo } from 'react';
 
 import { useApi } from '../context/AuthContext';
-import { normalizarPorCategoria, normalizarResumen } from '../utils/reportes';
+import {
+  normalizarBalance,
+  normalizarPorCategoria,
+  normalizarReporteIngresos,
+  normalizarResumen,
+} from '../utils/reportes';
 
 // Servicio de reportes (RF6, RF8) con el token de la sesión (un 401 cierra la sesión vía useApi).
 // Los errores llegan como { code, message, status } (contrato v1.1); ver utils/errores.js.
-//   const { obtenerResumen, obtenerPorCategoria } = useReportesService();
+//   const { obtenerResumen, obtenerPorCategoria, obtenerIngresos, obtenerBalance } = useReportesService();
 export function useReportesService() {
   const api = useApi();
 
@@ -22,6 +27,17 @@ export function useReportesService() {
       // 500: ERROR_SERVIDOR.
       obtenerPorCategoria: async (mes) =>
         normalizarPorCategoria(await api(`/reportes/por-categoria?mes=${encodeURIComponent(mes)}`)),
+
+      // GET /reportes/ingresos?mes=YYYY-MM → { mes, total, por_fuente, mes_anterior, total_mes_anterior, variacion, variacion_porcentaje }
+      obtenerIngresos: async (mes) =>
+        normalizarReporteIngresos(
+          await api(`/reportes/ingresos?mes=${encodeURIComponent(mes)}`),
+          mes,
+        ),
+
+      // GET /reportes/balance?mes=YYYY-MM → { mes, ingresos, gasto_variable, gasto_fijo, gastos, balance, serie }
+      obtenerBalance: async (mes) =>
+        normalizarBalance(await api(`/reportes/balance?mes=${encodeURIComponent(mes)}`), mes),
     }),
     [api],
   );

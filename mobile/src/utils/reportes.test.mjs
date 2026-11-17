@@ -4,11 +4,18 @@ import { describe, it } from 'node:test';
 
 import { colorCategoria } from '../theme/categorias.js';
 import {
+  armarBarrasBalance,
   armarDatosDona,
+  armarDatosDonaIngresos,
+  colorFuenteIngreso,
   descripcionDona,
+  descripcionDonaIngresos,
   esMesSinDatos,
+  estadoBalanceMes,
   formatearPorcentaje,
+  normalizarBalance,
   normalizarPorCategoria,
+  normalizarReporteIngresos,
   normalizarResumen,
 } from './reportes.js';
 
@@ -194,5 +201,92 @@ describe('descripcionDona', () => {
   it('resume categoría y porcentaje en texto', () => {
     const datos = armarDatosDona([categoria(1, 'Comida', 75), categoria(2, 'Salud', 25)], true);
     assert.equal(descripcionDona(datos), 'Gráfica de gasto por categoría: Comida 75 %, Salud 25 %');
+  });
+});
+
+describe('normalizarReporteIngresos y armarDatosDonaIngresos', () => {
+  it('normaliza montos y fuentes, y arma los tramos de la dona de ingresos', () => {
+    const normalizado = normalizarReporteIngresos(
+      {
+        mes: '2026-11',
+        total: '11500.00',
+        por_fuente: [
+          { fuente: 'Sueldo', total: '9000', porcentaje: '78' },
+          { fuente: 'Freelance', total: '2500', porcentaje: '22' },
+        ],
+        mes_anterior: '2026-10',
+        total_mes_anterior: '10500',
+        variacion: '1000',
+        variacion_porcentaje: '9.52',
+      },
+      '2026-11',
+    );
+    assert.equal(normalizado.total, 11500);
+    assert.equal(normalizado.total_mes_anterior, 10500);
+    assert.equal(normalizado.variacion, 1000);
+    assert.equal(normalizado.por_fuente.length, 2);
+
+    const dona = armarDatosDonaIngresos(normalizado.por_fuente, true);
+    assert.equal(dona.length, 2);
+    assert.equal(dona[0].etiqueta, 'Sueldo');
+    assert.equal(dona[0].color, colorFuenteIngreso('Sueldo', true));
+    assert.equal(sumaPorcentajes(dona), 100);
+    assert.match(descripcionDonaIngresos(dona), /Gráfica de ingresos por fuente: Sueldo/);
+  });
+
+  it('tolera respuesta vacía o sin fuentes con monto', () => {
+    const vacio = normalizarReporteIngresos(null, '2026-11');
+    assert.equal(vacio.total, 0);
+    assert.deepEqual(vacio.por_fuente, []);
+    assert.deepEqual(armarDatosDonaIngresos([], false), []);
+  });
+});
+
+describe('normalizarBalance, estadoBalanceMes y armarBarrasBalance', () => {
+  it('normaliza el reporte de balance y calcula las barras de 6 meses', () => {
+    const balance = normalizarBalance(
+      {
+        mes: '2026-11',
+        ingresos: '11500',
+        gasto_variable: '3053.50',
+        gasto_fijo: '601.92',
+        gastos: '3655.42',
+        balance: '7844.58',
+        serie: [
+          {
+            mes: '2026-10',
+            ingresos: '2000',
+            gasto_variable: '3000',
+            gasto_fijo: '500',
+            gastos: '3500',
+            balance: '-1500',
+          },
+          {
+            mes: '2026-11',
+            ingresos: '11500',
+            gasto_variable: '3053.50',
+            gasto_fijo: '601.92',
+            gastos: '3655.42',
+            balance: '7844.58',
+          },
+        ],
+      },
+      '2026-11',
+    );
+    assert.equal(balance.ingresos, 11500);
+    assert.equal(balance.gastos, 3655.42);
+    assert.equal(balance.balance, 7844.58);
+    assert.equal(estadoBalanceMes(balance.balance), 'positivo');
+    assert.equal(estadoBalanceMes(-10), 'negativo');
+    assert.equal(estadoBalanceMes(0), 'neutro');
+
+    const barras = armarBarrasBalance(balance.serie);
+    assert.equal(barras.length, 2);
+    assert.equal(barras[0].etiqueta, 'Oct');
+    assert.equal(barras[0].estadoBalance, 'negativo');
+    assert.equal(barras[1].etiqueta, 'Nov');
+    assert.equal(barras[1].estadoBalance, 'positivo');
+    assert.equal(barras[1].fraccionIngresos, 1);
+    assert.ok(barras[1].fraccionGastos > 0 && barras[1].fraccionGastos < 1);
   });
 });

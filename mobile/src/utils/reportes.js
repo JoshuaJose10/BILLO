@@ -91,3 +91,167 @@ export function descripcionDona(datos) {
   const partes = (datos || []).map((d) => `${d.etiqueta} ${formatearPorcentaje(d.porcentaje)}`);
   return `Gráfica de gasto por categoría: ${partes.join(', ')}`;
 }
+
+// Paleta de fuentes de ingreso (oscuro / claro) con contraste en ambos temas.
+const COLORES_FUENTES = {
+  sueldo: { oscuro: '#10B981', claro: '#0FA372' },
+  salario: { oscuro: '#10B981', claro: '#0FA372' },
+  freelance: { oscuro: '#3B82F6', claro: '#2563EB' },
+  beca: { oscuro: '#8B5CF6', claro: '#7C3AED' },
+  'aguinaldo/bono': { oscuro: '#F59E0B', claro: '#D97706' },
+  ventas: { oscuro: '#06B6D4', claro: '#0891B2' },
+  inversiones: { oscuro: '#EC4899', claro: '#DB2777' },
+  renta: { oscuro: '#6366F1', claro: '#4F46E5' },
+  regalo: { oscuro: '#F472B6', claro: '#E11D48' },
+  reembolso: { oscuro: '#14B8A6', claro: '#0D9488' },
+  otro: { oscuro: '#8E8E93', claro: '#7C7C82' },
+  'sin fuente': { oscuro: '#8E8E93', claro: '#7C7C82' },
+};
+
+const PALETA_FUENTES_RESPALDO = [
+  { oscuro: '#10B981', claro: '#0FA372' },
+  { oscuro: '#3B82F6', claro: '#2563EB' },
+  { oscuro: '#8B5CF6', claro: '#7C3AED' },
+  { oscuro: '#F59E0B', claro: '#D97706' },
+  { oscuro: '#06B6D4', claro: '#0891B2' },
+  { oscuro: '#EC4899', claro: '#DB2777' },
+  { oscuro: '#14B8A6', claro: '#0D9488' },
+];
+
+export function colorFuenteIngreso(fuente, esOscuro = true) {
+  const clave = String(fuente ?? '')
+    .trim()
+    .toLowerCase();
+  const directo = COLORES_FUENTES[clave];
+  if (directo) return esOscuro ? directo.oscuro : directo.claro;
+  if (!clave) {
+    const neutro = COLORES_FUENTES.otro;
+    return esOscuro ? neutro.oscuro : neutro.claro;
+  }
+  let hash = 0;
+  for (let i = 0; i < clave.length; i += 1) {
+    hash = (hash * 31 + clave.charCodeAt(i)) >>> 0;
+  }
+  const par = PALETA_FUENTES_RESPALDO[hash % PALETA_FUENTES_RESPALDO.length];
+  return esOscuro ? par.oscuro : par.claro;
+}
+
+// GET /reportes/ingresos → { mes, total, por_fuente, mes_anterior, total_mes_anterior, variacion, variacion_porcentaje }
+export function normalizarReporteIngresos(reporte, mes) {
+  const porFuente = Array.isArray(reporte?.por_fuente)
+    ? reporte.por_fuente.map((f) => ({
+        fuente: String(f?.fuente ?? '').trim() || 'Sin fuente',
+        total: numero(f?.total),
+        porcentaje: numero(f?.porcentaje),
+      }))
+    : [];
+  return {
+    mes: reporte?.mes ?? mes ?? null,
+    total: numero(reporte?.total),
+    por_fuente: porFuente,
+    mes_anterior: reporte?.mes_anterior ?? null,
+    total_mes_anterior: numero(reporte?.total_mes_anterior),
+    variacion: numero(reporte?.variacion),
+    variacion_porcentaje: numero(reporte?.variacion_porcentaje),
+  };
+}
+
+// Datos de la dona de ingresos a partir de `por_fuente`:
+// [{ id, value, color, etiqueta, porcentaje }].
+export function armarDatosDonaIngresos(porFuente, esOscuro = true) {
+  const conMonto = (porFuente || [])
+    .map((f) => ({
+      fuente: String(f?.fuente ?? '').trim() || 'Sin fuente',
+      total: numero(f?.total),
+      centavos: Math.round(numero(f?.total) * 100),
+    }))
+    .filter((f) => f.centavos > 0);
+  if (conMonto.length === 0) return [];
+
+  const porcentajes = repartirPorcentajes(conMonto.map((f) => f.centavos));
+  return conMonto.map((f, i) => ({
+    id: f.fuente,
+    value: f.total,
+    color: colorFuenteIngreso(f.fuente, esOscuro),
+    etiqueta: f.fuente,
+    porcentaje: porcentajes[i],
+  }));
+}
+
+export function descripcionDonaIngresos(datos) {
+  const partes = (datos || []).map((d) => `${d.etiqueta} ${formatearPorcentaje(d.porcentaje)}`);
+  return `Gráfica de ingresos por fuente: ${partes.join(', ')}`;
+}
+
+// GET /reportes/balance → { mes, ingresos, gasto_variable, gasto_fijo, gastos, balance, serie }
+export function normalizarBalance(reporte, mes) {
+  const serie = Array.isArray(reporte?.serie)
+    ? reporte.serie.map((item) => ({
+        mes: item?.mes ?? null,
+        ingresos: numero(item?.ingresos),
+        gasto_variable: numero(item?.gasto_variable),
+        gasto_fijo: numero(item?.gasto_fijo),
+        gastos: numero(item?.gastos),
+        balance: numero(item?.balance),
+      }))
+    : [];
+  return {
+    mes: reporte?.mes ?? mes ?? null,
+    ingresos: numero(reporte?.ingresos),
+    gasto_variable: numero(reporte?.gasto_variable),
+    gasto_fijo: numero(reporte?.gasto_fijo),
+    gastos: numero(reporte?.gastos),
+    balance: numero(reporte?.balance),
+    serie,
+  };
+}
+
+export function estadoBalanceMes(balance) {
+  const n = numero(balance);
+  if (n > 0) return 'positivo';
+  if (n < 0) return 'negativo';
+  return 'neutro';
+}
+
+const MESES_CORTOS = [
+  'Ene',
+  'Feb',
+  'Mar',
+  'Abr',
+  'May',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dic',
+];
+
+// Arma las barras comparativas de los últimos 6 meses para la vista Balance.
+export function armarBarrasBalance(serie) {
+  const filas = Array.isArray(serie) ? serie : [];
+  if (filas.length === 0) return [];
+  const maximo = filas.reduce(
+    (max, item) => Math.max(max, numero(item?.ingresos), numero(item?.gastos)),
+    0,
+  );
+  return filas.map((item) => {
+    const mes = String(item?.mes ?? '');
+    const indiceMes = Number(mes.slice(5, 7)) - 1;
+    const etiqueta = MESES_CORTOS[indiceMes] || mes;
+    const ingresos = numero(item?.ingresos);
+    const gastos = numero(item?.gastos);
+    const balance = numero(item?.balance);
+    return {
+      mes,
+      etiqueta,
+      ingresos,
+      gastos,
+      balance,
+      fraccionIngresos: maximo > 0 ? Math.min(Math.max(ingresos / maximo, 0), 1) : 0,
+      fraccionGastos: maximo > 0 ? Math.min(Math.max(gastos / maximo, 0), 0 + 1) : 0,
+      estadoBalance: estadoBalanceMes(balance),
+    };
+  });
+}

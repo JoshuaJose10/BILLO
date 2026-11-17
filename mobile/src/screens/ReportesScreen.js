@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import BarraCategorias from '../components/BarraCategorias';
 import DonaCategorias from '../components/DonaCategorias';
@@ -9,63 +9,60 @@ import EstadoPantalla from '../components/EstadoPantalla';
 import Etiqueta from '../components/Etiqueta';
 import FondoDegradado from '../components/FondoDegradado';
 import IconoCategoria from '../components/IconoCategoria';
+import ItemGasto from '../components/ItemGasto';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
-import PantallaProximamente from '../components/PantallaProximamente';
 import SelectorMes from '../components/SelectorMes';
 import SelectorSegmentado from '../components/SelectorSegmentado';
 import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/CategoriasContext';
+import { useRecargar } from '../hooks/useRecargar';
 import { useGastosService } from '../services/gastos';
+import { useIngresosService } from '../services/ingresos';
 import { usePresupuestosService } from '../services/presupuestos';
 import { useReportesService } from '../services/reportes';
 import { espacios, radios } from '../theme/colors';
-import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
+import { useEstilos, useTema } from '../theme/TemaContext';
 import { tipografia } from '../theme/tipografia';
 import {
   compararConMesAnterior,
+  compararIngresosConMesAnterior,
   consejoDelMes,
   desglosePorCategoria,
   etiquetaComparacion,
   textoComparacion,
+  textoComparacionIngresos,
 } from '../utils/analisis';
-import { useRecargar } from '../hooks/useRecargar';
 import { mesActual, sumarMeses } from '../utils/fechas';
-import { formatearMonto, MONEDA, nombreMes } from '../utils/formato';
+import { fechaRelativa, formatearMonto, MONEDA, nombreMes } from '../utils/formato';
+import { iconoFuente } from '../utils/ingresos';
 import { resumenPresupuestos } from '../utils/presupuestos';
-import { armarDatosDona, esMesSinDatos } from '../utils/reportes';
+import {
+  armarBarrasBalance,
+  armarDatosDona,
+  armarDatosDonaIngresos,
+  colorFuenteIngreso,
+  descripcionDonaIngresos,
+  esMesSinDatos,
+  estadoBalanceMes,
+} from '../utils/reportes';
 import { etiquetaBarraMes, nivelPorcentaje, resumenGastoMes } from '../utils/resumenMes';
 
-// Vistas del segmentado bajo el mes. Solo hay gastos en la app: Ingresos y Balance llevan la
-// insignia "Pronto" (como Tarjetas en Cartera) y muestran PantallaProximamente.
 const VISTAS = [
   { valor: 'gastos', etiqueta: 'Gastos' },
-  { valor: 'ingresos', etiqueta: 'Ingresos', insignia: 'Pronto' },
-  { valor: 'balance', etiqueta: 'Balance', insignia: 'Pronto' },
+  { valor: 'ingresos', etiqueta: 'Ingresos' },
+  { valor: 'balance', etiqueta: 'Balance' },
 ];
 
-const PROXIMAMENTE = {
-  ingresos: {
-    icono: 'cash-plus',
-    titulo: 'Ingresos',
-    mensaje: 'Pronto podrás registrar ingresos',
-  },
-  balance: {
-    icono: 'scale-balance',
-    titulo: 'Balance',
-    mensaje: 'Pronto verás tu balance del mes',
-  },
-};
+const ALTURA_BARRA_MAX = 116;
+const ALTURA_BARRA_MIN = 6;
 
-// Reportes (RF6, RF8; HU-37; diseño HU-81 con el Stitch reportes_modo_oscuro/_claro).
-// Por mes, en paralelo: GET /reportes/resumen y /gastos del mes (obligatorios: si fallan, error con
-// Reintentar), y /gastos del mes anterior y /presupuestos (opcionales: si fallan, se oculta lo que
-// depende de ellos). Orden: dona con el total gastado, gasto variable / fijo / total, rendimiento
-// frente al mes anterior con el avance del presupuesto, desglose por categoría y "Consejo Billo".
-// Los cálculos viven en utils/analisis.js (con pruebas).
-export default function ReportesScreen() {
+// Reportes (RF6, RF8; HU-37, HU-81 y Reportes › Ingresos y Balance):
+// Vistas: Gastos, Ingresos y Balance, compartiendo el selector de mes con flechas.
+export default function ReportesScreen({ navigation }) {
   const alturaNavbar = useAlturaNavbar();
-  const { obtenerResumen } = useReportesService();
+  const { obtenerResumen, obtenerIngresos, obtenerBalance } = useReportesService();
   const { listarGastos } = useGastosService();
+  const { listarIngresos } = useIngresosService();
   const { listarPresupuestos } = usePresupuestosService();
   const { nombrePorId } = useCategorias();
   // Los nombres del desglose salen de la caché de categorías; si falló, se reintenta al enfocar.
@@ -76,7 +73,7 @@ export default function ReportesScreen() {
   const [mes, setMes] = useState(mesActual);
   const [vista, setVista] = useState('gastos');
   // Última respuesta válida, junta para no mezclar dos meses:
-  // { mes, resumen, gastos, anterior (null si falló), presupuestos (null si falló) }.
+  // { mes, resumen, gastos, reporteIngresos, ingresos, balance, anterior, presupuestos }.
   const [datos, setDatos] = useState(null);
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
   const [errorCarga, setErrorCarga] = useState(null);
@@ -87,26 +84,46 @@ export default function ReportesScreen() {
   const cargar = useCallback(async () => {
     const peticion = ++ultimaPeticion.current;
     try {
-      const [resumen, gastos, anterior, presupuestos] = await Promise.all([
-        obtenerResumen(mes),
-        listarGastos({ mes }),
-        listarGastos({ mes: sumarMeses(mes, -1) }).catch(() => null),
-        listarPresupuestos(mes).catch(() => null),
-      ]);
-      if (peticion !== ultimaPeticion.current) return;
-      setDatos({ mes, resumen, gastos, anterior, presupuestos });
+      const [resumen, gastos, reporteIngresos, ingresos, balance, anterior, presupuestos] =
+        await Promise.all([
+          obtenerResumen(mes),
+          listarGastos({ mes }),
+          obtenerIngresos(mes),
+          listarIngresos({ mes }),
+          obtenerBalance(mes),
+          listarGastos({ mes: sumarMeses(mes, -1) }).catch(() => null),
+          listarPresupuestos(mes).catch(() => null),
+        ]);
+      if (peticion !== ultimaPeticion.current) return false;
+      setDatos({
+        mes,
+        resumen,
+        gastos,
+        reporteIngresos,
+        ingresos,
+        balance,
+        anterior,
+        presupuestos,
+      });
       setEstado('listo');
       return true;
     } catch (error) {
-      if (peticion !== ultimaPeticion.current) return;
+      if (peticion !== ultimaPeticion.current) return false;
       setErrorCarga(error);
       setEstado('error');
       return false;
     }
-  }, [obtenerResumen, listarGastos, listarPresupuestos, mes]);
+  }, [
+    obtenerResumen,
+    listarGastos,
+    obtenerIngresos,
+    listarIngresos,
+    obtenerBalance,
+    listarPresupuestos,
+    mes,
+  ]);
 
-  // Recarga al ganar foco (un gasto nuevo aparece al volver) y, como `cargar` cambia con el mes,
-  // también al cambiar de mes.
+  // Recarga al ganar foco y al cambiar de mes.
   useFocusEffect(
     useCallback(() => {
       cargar();
@@ -120,8 +137,6 @@ export default function ReportesScreen() {
     if (estado === 'error') setEstado('cargando');
   };
 
-  // Jalar para recargar, Reintentar y el aviso de arriba piden otra vez el mes. Si falla con ese
-  // mes a la vista, los datos se quedan y el error sale como aviso fijo arriba (useRecargar).
   const hayDatos = datos?.mes === mes;
   const recarga = useRecargar(cargar, {
     error: estado === 'error' ? errorCarga : null,
@@ -130,16 +145,27 @@ export default function ReportesScreen() {
 
   const analisis = useMemo(() => {
     if (!datos) return null;
-    const { mes: mesDatos, resumen, gastos, anterior, presupuestos } = datos;
+    const {
+      mes: mesDatos,
+      resumen,
+      gastos,
+      reporteIngresos,
+      balance,
+      anterior,
+      presupuestos,
+    } = datos;
     const desglose = desglosePorCategoria(gastos, nombrePorId);
     const limite = presupuestos ? resumenPresupuestos(presupuestos).limite : 0;
+    const donaIngresos = armarDatosDonaIngresos(reporteIngresos?.por_fuente, esOscuro);
+    const comparacionIngresos = compararIngresosConMesAnterior(reporteIngresos);
+    const barrasBalance = armarBarrasBalance(balance?.serie);
+
     return {
       desglose,
       dona: armarDatosDona(desglose, esOscuro),
       comparacion: anterior
         ? compararConMesAnterior({ mes: mesDatos, gastosMes: gastos, gastosAnterior: anterior })
         : null,
-      // Avance del presupuesto: solo si ese mes hay presupuestos.
       proyectado:
         limite > 0
           ? resumenGastoMes(
@@ -155,21 +181,26 @@ export default function ReportesScreen() {
         presupuestos,
         nombrePorId,
       }),
+      donaIngresos,
+      comparacionIngresos,
+      barrasBalance,
     };
   }, [datos, nombrePorId, esOscuro]);
 
   const cambiandoMes = estado === 'listo' && datos?.mes !== mes;
 
+  const abrirNuevoIngreso = () => navigation.navigate('NuevoGasto', { tipo: 'ingreso' });
+  const abrirEditarIngreso = (ingreso) => navigation.navigate('NuevoGasto', { ingreso });
+
   let contenido;
   if (estado !== 'listo' && !hayDatos) {
     contenido = <EstadoPantalla estado={estado} error={errorCarga} onReintentar={cargar} />;
-  } else {
+  } else if (vista === 'gastos') {
     const { resumen, gastos } = datos;
     const { desglose, dona, comparacion, proyectado, consejo } = analisis;
     contenido = (
       <View style={[styles.contenido, cambiandoMes ? styles.atenuado : null]}>
         {/* c) Dona con el total gastado (gasto variable) */}
-        {/* Sin tarjeta: la dona va directo sobre el fondo con brillo (Stitch). */}
         <View style={styles.zonaDona}>
           {cambiandoMes ? (
             <ActivityIndicator
@@ -209,8 +240,7 @@ export default function ReportesScreen() {
           <Dato etiqueta="Total" nota="Del mes" monto={resumen.total} />
         </View>
 
-        {/* e) Rendimiento mensual (sin la comparación si falló el mes anterior; sin el avance si
-            fallaron los presupuestos o no hay; sin tarjeta si no queda nada) */}
+        {/* e) Rendimiento mensual */}
         {comparacion || proyectado ? (
           <TarjetaRendimiento comparacion={comparacion} proyectado={proyectado} />
         ) : null}
@@ -230,7 +260,7 @@ export default function ReportesScreen() {
           </View>
         ) : null}
 
-        {/* g) Consejo Billo (solo si hay datos suficientes) */}
+        {/* g) Consejo Billo */}
         {consejo ? (
           <View style={[styles.tarjeta, styles.consejo]}>
             <View style={styles.consejoIcono}>
@@ -244,6 +274,134 @@ export default function ReportesScreen() {
         ) : null}
       </View>
     );
+  } else if (vista === 'ingresos') {
+    const { reporteIngresos, ingresos } = datos;
+    const { donaIngresos, comparacionIngresos } = analisis;
+    const sinIngresos = reporteIngresos.total <= 0 && ingresos.length === 0;
+
+    contenido = (
+      <View style={[styles.contenido, cambiandoMes ? styles.atenuado : null]}>
+        {cambiandoMes ? (
+          <ActivityIndicator
+            size="small"
+            color={colors.textSecondary}
+            style={styles.indicadorMes}
+          />
+        ) : null}
+
+        {sinIngresos ? (
+          <EstadoPantalla
+            estado="vacio"
+            icono="cash-plus"
+            titulo="Sin ingresos este mes"
+            mensaje="Registra tus ingresos para analizar tus fuentes y comparar mes a mes."
+            accion={{
+              titulo: 'Registrar ingreso',
+              icono: 'plus',
+              onPress: abrirNuevoIngreso,
+            }}
+            style={styles.vacio}
+          />
+        ) : (
+          <>
+            {/* Dona de ingresos por fuente con el total del mes en el centro */}
+            <View style={styles.zonaDona}>
+              <DonaCategorias
+                datos={donaIngresos}
+                total={reporteIngresos.total}
+                nombreMes={nombreMes(datos.mes)}
+                animacion={`${datos.mes}-ingresos`}
+                etiquetaCentro="Total ingresos"
+                descripcion={descripcionDonaIngresos(donaIngresos)}
+              />
+            </View>
+
+            {/* Resumen del mes y mes anterior */}
+            <View style={[styles.tarjeta, styles.filaDatos]}>
+              <Dato
+                etiqueta="Este mes"
+                nota={nombreMes(datos.mes)}
+                monto={reporteIngresos.total}
+                colorMonto={colors.exitoTexto}
+              />
+              <View style={styles.divisor} />
+              <Dato
+                etiqueta="Mes anterior"
+                nota={
+                  reporteIngresos.mes_anterior
+                    ? nombreMes(reporteIngresos.mes_anterior)
+                    : 'Anterior'
+                }
+                monto={reporteIngresos.total_mes_anterior}
+              />
+            </View>
+
+            {/* Comparación con el mes anterior */}
+            <TarjetaComparacionIngresos comparacion={comparacionIngresos} />
+
+            {/* Desglose por fuente */}
+            {reporteIngresos.por_fuente.length > 0 ? (
+              <View style={styles.seccion}>
+                <View style={styles.seccionCabecera}>
+                  <Etiqueta style={styles.seccionEtiqueta}>Por fuente</Etiqueta>
+                  <Etiqueta style={styles.seccionContador}>
+                    {reporteIngresos.por_fuente.length}{' '}
+                    {reporteIngresos.por_fuente.length === 1 ? 'fuente' : 'fuentes'}
+                  </Etiqueta>
+                </View>
+                {reporteIngresos.por_fuente.map((f) => (
+                  <FilaFuente
+                    key={f.fuente}
+                    fuente={f}
+                    color={colorFuenteIngreso(f.fuente, esOscuro)}
+                  />
+                ))}
+              </View>
+            ) : null}
+
+            {/* Lista de ingresos del mes */}
+            {ingresos.length > 0 ? (
+              <View style={styles.seccion}>
+                <View style={styles.seccionCabecera}>
+                  <Etiqueta style={styles.seccionEtiqueta}>Ingresos del mes</Etiqueta>
+                  <Etiqueta style={styles.seccionContador}>
+                    {ingresos.length} {ingresos.length === 1 ? 'ingreso' : 'ingresos'}
+                  </Etiqueta>
+                </View>
+                {ingresos.map((item) => (
+                  <Pressable
+                    key={String(item.id)}
+                    onPress={() => abrirEditarIngreso(item)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${item.descripcion || item.fuente || 'Ingreso'}: +${formatearMonto(item.monto)}, ${fechaRelativa(item.fecha)}`}
+                  >
+                    <ItemGasto ingreso={item} opaca />
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+          </>
+        )}
+      </View>
+    );
+  } else {
+    const { balance } = datos;
+    const { barrasBalance } = analisis;
+    contenido = (
+      <View style={[styles.contenido, cambiandoMes ? styles.atenuado : null]}>
+        {cambiandoMes ? (
+          <ActivityIndicator
+            size="small"
+            color={colors.textSecondary}
+            style={styles.indicadorMes}
+          />
+        ) : null}
+
+        <TarjetaBalanceMensual balance={balance} />
+
+        <TarjetaBarrasBalance barras={barrasBalance} mesActualSeleccionado={datos.mes} />
+      </View>
+    );
   }
 
   return (
@@ -252,7 +410,6 @@ export default function ReportesScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.lista,
-          // El último bloque queda por encima de la navbar flotante con aire de sobra.
           { paddingTop: 4, paddingBottom: alturaNavbar + espacios.xl },
         ]}
         {...recarga.propsLista}
@@ -266,7 +423,7 @@ export default function ReportesScreen() {
         </View>
         {/* b) Mes, con el estilo del Stitch (calendario y flechas) */}
         <SelectorMes mes={mes} onCambiar={cambiarMes} calendario />
-        {/* Gastos | Ingresos | Balance: solo Gastos tiene datos por ahora */}
+        {/* c) Selector Gastos | Ingresos | Balance */}
         <SelectorSegmentado
           opciones={VISTAS}
           valor={vista}
@@ -274,31 +431,26 @@ export default function ReportesScreen() {
           accessibilityLabel="Tipo de reporte"
           style={styles.selectorVista}
         />
-        {vista === 'gastos' ? (
-          contenido
-        ) : (
-          <PantallaProximamente
-            key={vista}
-            icono={PROXIMAMENTE[vista].icono}
-            titulo={PROXIMAMENTE[vista].titulo}
-            mensaje={PROXIMAMENTE[vista].mensaje}
-            incrustada
-          />
-        )}
+        {contenido}
       </ScrollView>
       {recarga.aviso}
     </View>
   );
 }
 
-// Un dato de la fila variable / fijo / total.
-function Dato({ etiqueta, nota, monto }) {
+// Un dato de la fila variable / fijo / total o ingresos / gastos.
+function Dato({ etiqueta, nota, monto, colorMonto }) {
   const styles = useEstilos(crearEstilos);
   const texto = formatearMonto(monto);
   return (
     <View style={styles.dato} accessible accessibilityLabel={`${etiqueta} (${nota}): ${texto}`}>
       <Etiqueta style={styles.datoEtiqueta}>{etiqueta}</Etiqueta>
-      <Text style={styles.datoMonto} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+      <Text
+        style={[styles.datoMonto, colorMonto ? { color: colorMonto } : null]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+      >
         {texto}
       </Text>
       <Text style={styles.datoNota} numberOfLines={1}>
@@ -385,6 +537,263 @@ function TarjetaRendimiento({ comparacion, proyectado }) {
   );
 }
 
+// Comparación de ingresos frente al mes anterior (en ingresos subir es positivo y bajar es alerta).
+function TarjetaComparacionIngresos({ comparacion }) {
+  const { colors } = useTema();
+  const styles = useEstilos(crearEstilos);
+  const disponible = comparacion?.disponible;
+  const subio = disponible && comparacion.direccion === 'subio';
+  const bajo = disponible && comparacion.direccion === 'bajo';
+  const colorTendencia = subio ? colors.exitoTexto : bajo ? colors.alertaTexto : colors.text;
+
+  return (
+    <View style={[styles.tarjeta, styles.rendimiento]}>
+      <View style={styles.rendimientoCabecera}>
+        <View style={styles.rendimientoTitulo}>
+          <View style={styles.rendimientoIcono}>
+            <MaterialCommunityIcons
+              name={bajo ? 'trending-down' : 'trending-up'}
+              size={18}
+              color={colors.text}
+            />
+          </View>
+          <Text style={styles.seccionTitulo} numberOfLines={1}>
+            Comparación mensual
+          </Text>
+        </View>
+        {disponible ? (
+          <View
+            style={[
+              styles.insignia,
+              subio ? styles.insigniaExito : bajo ? styles.insigniaAlerta : null,
+            ]}
+          >
+            {subio || bajo ? (
+              <MaterialCommunityIcons
+                name={subio ? 'arrow-up' : 'arrow-down'}
+                size={14}
+                color={colorTendencia}
+              />
+            ) : null}
+            <Text style={[styles.insigniaTexto, { color: colorTendencia }]}>
+              {etiquetaComparacion(comparacion)}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+
+      <Text style={styles.rendimientoTexto}>{textoComparacionIngresos(comparacion)}</Text>
+    </View>
+  );
+}
+
+// Fila del desglose por fuente de ingreso.
+function FilaFuente({ fuente, color }) {
+  const styles = useEstilos(crearEstilos);
+  const { fuente: nombre, total, porcentaje } = fuente;
+  return (
+    <View
+      style={styles.fila}
+      accessible
+      accessibilityLabel={`${nombre}: +${formatearMonto(total)}, ${porcentaje}% del total`}
+    >
+      <IconoCategoria icono={iconoFuente(nombre)} color={color} />
+      <View style={styles.filaTextos}>
+        <Text style={styles.filaNombre} numberOfLines={1}>
+          {nombre}
+        </Text>
+        <Text style={styles.filaDetalle} numberOfLines={1}>
+          <Text style={styles.filaPorcentaje}>{porcentaje}% del total</Text>
+        </Text>
+      </View>
+      <View style={styles.filaMontos}>
+        <Text style={[styles.filaMonto, styles.filaMontoIngreso]} numberOfLines={1}>
+          +{formatearMonto(total)}
+        </Text>
+        <Text style={styles.filaMoneda}>{MONEDA}</Text>
+      </View>
+    </View>
+  );
+}
+
+// Tarjeta de resumen de Balance del mes: Ingresos, Gastos y Balance (verde si positivo, rojo si negativo).
+function TarjetaBalanceMensual({ balance }) {
+  const { colors } = useTema();
+  const styles = useEstilos(crearEstilos);
+  const estado = estadoBalanceMes(balance?.balance);
+  const esPositivo = estado === 'positivo';
+  const esNegativo = estado === 'negativo';
+  const colorBalance = esPositivo
+    ? colors.exitoTexto
+    : esNegativo
+      ? colors.alertaTexto
+      : colors.text;
+  const signo = esPositivo ? '+' : esNegativo ? '−' : '';
+  const textoBalance = `${signo}${formatearMonto(Math.abs(balance?.balance || 0))}`;
+  const etiquetaEstado = esPositivo
+    ? 'Balance positivo'
+    : esNegativo
+      ? 'Balance negativo'
+      : 'En equilibrio';
+
+  return (
+    <View style={[styles.tarjeta, styles.tarjetaBalance]}>
+      <View style={styles.balanceCabecera}>
+        <View>
+          <Etiqueta style={styles.datoEtiqueta}>Balance del mes</Etiqueta>
+          <Text
+            style={[styles.balanceHeroMonto, { color: colorBalance }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.65}
+          >
+            {textoBalance} <Text style={styles.balanceHeroMoneda}>{MONEDA}</Text>
+          </Text>
+        </View>
+        <View
+          style={[
+            styles.insignia,
+            esPositivo ? styles.insigniaExito : esNegativo ? styles.insigniaAlerta : null,
+          ]}
+        >
+          <MaterialCommunityIcons
+            name={
+              esPositivo ? 'check-circle-outline' : esNegativo ? 'alert-circle-outline' : 'equal'
+            }
+            size={14}
+            color={colorBalance}
+          />
+          <Text style={[styles.insigniaTexto, { color: colorBalance }]}>{etiquetaEstado}</Text>
+        </View>
+      </View>
+
+      <View style={styles.divisorHorizontal} />
+
+      <View style={styles.filaDatos}>
+        <Dato
+          etiqueta="Ingresos"
+          nota="Entradas"
+          monto={balance?.ingresos || 0}
+          colorMonto={colors.exitoTexto}
+        />
+        <View style={styles.divisor} />
+        <Dato
+          etiqueta="Gastos"
+          nota={balance?.gasto_fijo > 0 ? 'Var. + fijo' : 'Del mes'}
+          monto={balance?.gastos || 0}
+        />
+        <View style={styles.divisor} />
+        <View
+          style={styles.dato}
+          accessible
+          accessibilityLabel={`Balance (${etiquetaEstado}): ${textoBalance}`}
+        >
+          <Etiqueta style={styles.datoEtiqueta}>Balance</Etiqueta>
+          <Text
+            style={[styles.datoMonto, { color: colorBalance }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+          >
+            {textoBalance}
+          </Text>
+          <Text style={styles.datoNota} numberOfLines={1}>
+            Ingresos − gastos
+          </Text>
+        </View>
+      </View>
+
+      {balance?.gasto_fijo > 0 ? (
+        <Text style={styles.balanceSubdetalle}>
+          Gastos variables {formatearMonto(balance.gasto_variable)} · Suscripciones{' '}
+          {formatearMonto(balance.gasto_fijo)}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
+// Gráfica de barras comparativa de los últimos 6 meses (Ingresos vs Gastos).
+function TarjetaBarrasBalance({ barras, mesActualSeleccionado }) {
+  const { colors } = useTema();
+  const styles = useEstilos(crearEstilos);
+
+  return (
+    <View style={[styles.tarjeta, styles.tarjetaBarras]}>
+      <View style={styles.barrasCabecera}>
+        <Text style={styles.seccionTitulo}>Últimos 6 meses</Text>
+        <View style={styles.leyendaFila}>
+          <View style={styles.leyendaItem}>
+            <View style={[styles.leyendaPunto, { backgroundColor: colors.exito }]} />
+            <Text style={styles.leyendaTexto}>Ingresos</Text>
+          </View>
+          <View style={styles.leyendaItem}>
+            <View style={[styles.leyendaPunto, { backgroundColor: colors.alerta }]} />
+            <Text style={styles.leyendaTexto}>Gastos</Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.barrasLienzo}>
+        {barras.map((item) => {
+          const alturaIngreso =
+            item.ingresos > 0
+              ? Math.max(Math.round(item.fraccionIngresos * ALTURA_BARRA_MAX), ALTURA_BARRA_MIN)
+              : 2;
+          const alturaGasto =
+            item.gastos > 0
+              ? Math.max(Math.round(item.fraccionGastos * ALTURA_BARRA_MAX), ALTURA_BARRA_MIN)
+              : 2;
+          const activo = item.mes === mesActualSeleccionado;
+          const colorNeto =
+            item.estadoBalance === 'positivo'
+              ? colors.exitoTexto
+              : item.estadoBalance === 'negativo'
+                ? colors.alertaTexto
+                : colors.textSecondary;
+
+          return (
+            <View
+              key={item.mes}
+              style={[styles.columnaMes, activo ? styles.columnaMesActiva : null]}
+              accessible
+              accessibilityLabel={`${item.etiqueta}: ingresos ${formatearMonto(item.ingresos)}, gastos ${formatearMonto(item.gastos)}, balance ${formatearMonto(item.balance)}`}
+            >
+              <View style={styles.parBarras}>
+                <View
+                  style={[
+                    styles.barra,
+                    {
+                      height: alturaIngreso,
+                      backgroundColor: item.ingresos > 0 ? colors.exito : colors.outlineVariant30,
+                    },
+                  ]}
+                />
+                <View
+                  style={[
+                    styles.barra,
+                    {
+                      height: alturaGasto,
+                      backgroundColor: item.gastos > 0 ? colors.alerta : colors.outlineVariant30,
+                    },
+                  ]}
+                />
+              </View>
+              <Text style={[styles.etiquetaMesBarra, activo ? styles.etiquetaMesActiva : null]}>
+                {item.etiqueta}
+              </Text>
+              <Text style={[styles.balanceMini, { color: colorNeto }]} numberOfLines={1}>
+                {item.balance > 0 ? '+' : item.balance < 0 ? '−' : ''}
+                {Math.round(Math.abs(item.balance))}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 // Fila del desglose: ícono, nombre, "N% del total • M gastos" y "-$X MXN".
 function FilaCategoria({ categoria }) {
   const styles = useEstilos(crearEstilos);
@@ -431,7 +840,6 @@ const crearEstilos = (colors) =>
     encabezado: {
       marginTop: espacios.xs,
     },
-    // font-label-caps uppercase tracking-widest text-on-surface-variant
     encabezadoEtiqueta: {
       color: colors.textVariant,
     },
@@ -446,7 +854,6 @@ const crearEstilos = (colors) =>
     atenuado: {
       opacity: 0.45,
     },
-    // La tarjeta de vidrio de Inicio (TarjetaResumen): radio 22, brillo superior y sombra suave.
     tarjeta: {
       padding: 14,
       borderRadius: radios.tarjeta,
@@ -459,13 +866,9 @@ const crearEstilos = (colors) =>
       shadowOpacity: 0.35,
       elevation: 6,
     },
-    // Las insignias "Pronto" sobresalen 10 px por arriba del segmentado.
     selectorVista: {
-      marginTop: 10,
+      marginTop: espacios.xs,
     },
-    // espacios.lg entre el selector y la dona, y entre la dona y la fila variable / fijo / total.
-    // Arriba ya suman el gap de la lista (sm + 4) y el margen de `contenido` (xs); abajo, el gap
-    // de `contenido` (md).
     zonaDona: {
       marginTop: espacios.lg - (espacios.sm + 4) - espacios.xs,
       marginBottom: espacios.lg - espacios.md,
@@ -475,7 +878,6 @@ const crearEstilos = (colors) =>
       top: 0,
       right: 0,
     },
-    // d) tres datos con divisores verticales
     filaDatos: {
       flexDirection: 'row',
       alignItems: 'stretch',
@@ -488,6 +890,10 @@ const crearEstilos = (colors) =>
     },
     divisor: {
       width: 1,
+      backgroundColor: colors.border,
+    },
+    divisorHorizontal: {
+      height: 1,
       backgroundColor: colors.border,
     },
     datoEtiqueta: {
@@ -503,7 +909,6 @@ const crearEstilos = (colors) =>
       ...tipografia.bodySm,
       color: colors.textSecondary,
     },
-    // e) Rendimiento mensual
     rendimiento: {
       gap: espacios.sm + 4,
     },
@@ -527,11 +932,10 @@ const crearEstilos = (colors) =>
       justifyContent: 'center',
       backgroundColor: colors.surfaceHighest,
     },
-    // px-space-xs py-1 rounded-full bg-surface-container-highest
     insignia: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 2,
+      gap: 4,
       paddingHorizontal: espacios.sm,
       paddingVertical: espacios.xs,
       borderRadius: radios.full,
@@ -575,7 +979,6 @@ const crearEstilos = (colors) =>
       flexShrink: 1,
       color: colors.textSecondary,
     },
-    // f) Desglose
     seccion: {
       gap: espacios.sm,
     },
@@ -596,7 +999,6 @@ const crearEstilos = (colors) =>
       color: colors.text,
       flexShrink: 1,
     },
-    // Como las filas de Inicio (ItemGasto / TarjetaPresupuesto): rounded-2xl, fondo opaco
     fila: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -630,12 +1032,14 @@ const crearEstilos = (colors) =>
       fontSize: 16,
       color: colors.text,
     },
+    filaMontoIngreso: {
+      color: colors.exitoTexto,
+    },
     filaMoneda: {
       ...tipografia.labelCaps,
       fontSize: 10,
       color: colors.textSecondary,
     },
-    // g) Consejo Billo: ícono de destello en el acento
     consejo: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -664,7 +1068,103 @@ const crearEstilos = (colors) =>
       ...tipografia.bodySm,
       color: colors.textVariant,
     },
-    // Estados de carga, error y vacío: los de Inicio y Movimientos
+    // Balance
+    tarjetaBalance: {
+      gap: espacios.md,
+    },
+    balanceCabecera: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      gap: espacios.sm,
+    },
+    balanceHeroMonto: {
+      ...tipografia.financialMetricLg,
+      fontSize: 28,
+      lineHeight: 34,
+      marginTop: 4,
+    },
+    balanceHeroMoneda: {
+      ...tipografia.labelCaps,
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    balanceSubdetalle: {
+      ...tipografia.bodySm,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    tarjetaBarras: {
+      gap: espacios.md,
+    },
+    barrasCabecera: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: espacios.sm,
+    },
+    leyendaFila: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: espacios.md,
+    },
+    leyendaItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    leyendaPunto: {
+      width: 8,
+      height: 8,
+      borderRadius: radios.full,
+    },
+    leyendaTexto: {
+      ...tipografia.bodySm,
+      color: colors.textSecondary,
+    },
+    barrasLienzo: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      justifyContent: 'space-between',
+      paddingTop: espacios.sm,
+      gap: espacios.xs,
+    },
+    columnaMes: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: 6,
+      paddingHorizontal: 2,
+      borderRadius: radios.xl,
+      gap: 4,
+    },
+    columnaMesActiva: {
+      backgroundColor: colors.glass05,
+    },
+    parBarras: {
+      height: ALTURA_BARRA_MAX,
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      justifyContent: 'center',
+      gap: 4,
+    },
+    barra: {
+      width: 10,
+      borderRadius: radios.sm,
+    },
+    etiquetaMesBarra: {
+      ...tipografia.labelCaps,
+      fontSize: 10,
+      color: colors.textSecondary,
+    },
+    etiquetaMesActiva: {
+      color: colors.text,
+      fontFamily: fonts.sansBold,
+    },
+    balanceMini: {
+      fontFamily: fonts.monoMedium,
+      fontSize: 9,
+      lineHeight: 12,
+    },
     vacio: {
       paddingVertical: espacios.sm,
     },

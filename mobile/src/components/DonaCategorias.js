@@ -69,7 +69,14 @@ function geometriaDona(lado) {
 // - `nombreMes`: "Noviembre", para la pastilla "● MXN · NOVIEMBRE".
 // - `animacion`: cambia (p. ej. el mes) para repetir el barrido de entrada. Con "Reducir
 //   movimiento" los tramos aparecen completos.
-export default function DonaCategorias({ datos, total, nombreMes, animacion }) {
+export default function DonaCategorias({
+  datos,
+  total,
+  nombreMes,
+  animacion,
+  etiquetaCentro = 'Total gastado',
+  descripcion = null,
+}) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
   const reducirMovimiento = useReducedMotion();
@@ -107,7 +114,7 @@ export default function DonaCategorias({ datos, total, nombreMes, animacion }) {
       style={[styles.contenedor, { width: g.lado, height: g.lado }]}
       accessible
       accessibilityRole="image"
-      accessibilityLabel={`Total gastado ${texto}. ${descripcionDona(datos)}`}
+      accessibilityLabel={`${etiquetaCentro} ${texto}. ${descripcion ?? descripcionDona(datos)}`}
     >
       <Svg width={g.lado} height={g.lado} style={styles.lienzo} viewBox={`0 0 ${g.lado} ${g.lado}`}>
         <Circle
@@ -147,7 +154,7 @@ export default function DonaCategorias({ datos, total, nombreMes, animacion }) {
       <View style={styles.capaCentro} pointerEvents="none">
         {/* Ancho fijo (diámetro interior - 2 × 24): el monto se achica para caber en él. */}
         <View style={[styles.centro, { width: g.anchoCentro }]}>
-          <Etiqueta style={styles.centroEtiqueta}>Total gastado</Etiqueta>
+          <Etiqueta style={styles.centroEtiqueta}>{etiquetaCentro}</Etiqueta>
           <Text
             style={styles.centroMonto}
             numberOfLines={1}
