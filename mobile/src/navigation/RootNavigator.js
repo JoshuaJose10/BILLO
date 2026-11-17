@@ -4,6 +4,7 @@ import EstadoPantalla from '../components/EstadoPantalla';
 import { useAuth } from '../context/AuthContext';
 import InvitacionCuentaScreen from '../screens/InvitacionCuentaScreen';
 import AdminCatalogoScreen from '../screens/AdminCatalogoScreen';
+import ElegirCategoriasScreen from '../screens/ElegirCategoriasScreen';
 import MembresiaScreen from '../screens/MembresiaScreen';
 import MisCategoriasScreen from '../screens/MisCategoriasScreen';
 import NuevoGastoScreen from '../screens/NuevoGastoScreen';
@@ -42,12 +43,13 @@ const HOJAS_VISITANTE = [
 
 // Con token se muestran Main y las hojas (NuevoGasto, Perfil, Presupuesto, Membresia); en el modo
 // exploración, Main con datos de ejemplo y la invitación en lugar de las hojas; si no, Onboarding
-// la primera vez (HU-93) y después Auth, que abre en Entrada (utils/flujoInicio). Al
+// la primera vez (HU-93) y después Auth, que abre en Entrada. Una cuenta recién creada solo ve
+// ElegirCategorias hasta elegirlas (HU-89). Las reglas están en utils/flujoInicio. Al
 // cambiar el token o el modo React Navigation cambia de navegador solo, sin navigation.reset.
 export default function RootNavigator() {
-  const { token, visitante, cargando, onboardingVisto } = useAuth();
+  const { token, usuario, visitante, cargando, onboardingVisto } = useAuth();
   const { colors } = useTema();
-  const raiz = navegadorRaiz({ token, visitante, onboardingVisto });
+  const raiz = navegadorRaiz({ token, usuario, visitante, onboardingVisto });
 
   // HU-23 (spike): pantalla de pruebas de voz y widget, solo en desarrollo.
   const opcionesLaboratorio = {
@@ -63,7 +65,13 @@ export default function RootNavigator() {
 
   return (
     <Stack.Navigator>
-      {raiz === 'Sesion' ? (
+      {raiz === 'ElegirCategorias' ? (
+        <Stack.Screen
+          name="ElegirCategorias"
+          component={ElegirCategoriasScreen}
+          options={{ headerShown: false }}
+        />
+      ) : raiz === 'Sesion' ? (
         <>
           <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
           <Stack.Screen name="NuevoGasto" component={NuevoGastoScreen} options={opcionesHoja} />

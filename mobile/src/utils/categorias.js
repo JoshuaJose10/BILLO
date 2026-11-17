@@ -84,12 +84,18 @@ export function validarNombreCategoria(nombre, existentes = [], idEditando = nul
   return { valido: true, nombre: limpio, error: null };
 }
 
+// Ids de las categorías encendidas: el body de PUT /categorias/seleccion. «Omitir» de Elige tus
+// categorías (HU-89) lo usa con la lista tal como llegó (las predefinidas por defecto).
+export function idsSeleccionados(categorias) {
+  return (categorias || []).filter((c) => c && Boolean(c.seleccionada)).map((c) => c.id);
+}
+
 // Calcula el siguiente estado al tocar el interruptor de una categoría predefinida.
 // Regla HU-90: mínimo una activa; al apagar una, muestra el aviso de conservación de gastos.
 export function calcularCambioSeleccionPredefinida(predefinidas, idCategoria) {
   const lista = Array.isArray(predefinidas) ? predefinidas : [];
   const objetivo = lista.find((c) => String(c.id) === String(idCategoria));
-  const activas = lista.filter((c) => Boolean(c.seleccionada)).map((c) => c.id);
+  const activas = idsSeleccionados(lista);
 
   if (!objetivo) {
     return {
