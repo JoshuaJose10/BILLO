@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
+  interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -28,8 +29,11 @@ export const colorEstado = (colors, estado, categoria, esOscuro) =>
 
 // Barra de avance de un presupuesto. `fraccion` (0 a 1, ya con tope en 1) y `porcentaje` (el real,
 // para el lector de pantalla). `etiqueta`: p. ej. "Comida: 84% del presupuesto, alerta".
+// `avance` (maqueta del onboarding, HU-93): shared value 0–1 que manda en lugar de `fraccion`; el
+// color va del neutro (outline) al del estado conforme se llena.
 export default function BarraPresupuesto({
   fraccion,
+  avance: avanceExterno,
   porcentaje,
   estado,
   categoria,
@@ -43,17 +47,22 @@ export default function BarraPresupuesto({
   const relleno = useSharedValue(color);
 
   useEffect(() => {
-    avance.set(withTiming(fraccion, LLENADO));
-  }, [avance, fraccion]);
+    if (!avanceExterno) avance.set(withTiming(fraccion, LLENADO));
+  }, [avance, fraccion, avanceExterno]);
 
   useEffect(() => {
     relleno.set(withTiming(color, CAMBIO_COLOR));
   }, [relleno, color]);
 
-  const estiloRelleno = useAnimatedStyle(() => ({
-    width: `${avance.value * 100}%`,
-    backgroundColor: relleno.value,
-  }));
+  const neutro = colors.outline;
+  const estiloRelleno = useAnimatedStyle(() =>
+    avanceExterno
+      ? {
+          width: `${avanceExterno.value * 100}%`,
+          backgroundColor: interpolateColor(avanceExterno.value, [0, 1], [neutro, color]),
+        }
+      : { width: `${avance.value * 100}%`, backgroundColor: relleno.value },
+  );
 
   return (
     <View

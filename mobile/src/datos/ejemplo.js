@@ -105,11 +105,33 @@ function armarIngresos(filas, mes, diaMaximo, primerId) {
   }));
 }
 
+// Membresía mensual que cobra dentro de `dias` días contados desde `hoy` (misma forma que la API).
+// También la usan las maquetas del onboarding (HU-93).
+export function membresiaEjemplo({
+  id,
+  nombre,
+  costo,
+  dias,
+  frecuencia = 'mensual',
+  hoy = new Date(),
+}) {
+  const fecha_cobro = fechaLocalISO(
+    new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + dias),
+  );
+  return {
+    id,
+    nombre,
+    costo,
+    frecuencia,
+    fecha_cobro,
+    dias_para_cobro: calcularDiasParaCobro(fecha_cobro, fechaLocalISO(hoy)),
+  };
+}
+
 // Todos los datos de ejemplo relativos a `hoy`. Cada llamada devuelve objetos nuevos.
 export function crearDatosEjemplo(hoy = new Date()) {
   const mes = mesActual(hoy);
   const anterior = sumarMeses(mes, -1);
-  const hoyISO = fechaLocalISO(hoy);
 
   const gastos = [
     ...armarGastos(GASTOS_MES_ANTERIOR, anterior, 31, 1),
@@ -131,17 +153,16 @@ export function crearDatosEjemplo(hoy = new Date()) {
 
   const membresias = MEMBRESIAS.map(([servicio_id, frecuencia, dias], i) => {
     const servicio = CATALOGO.find((s) => s.id === servicio_id);
-    const fecha_cobro = fechaLocalISO(
-      new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + dias),
-    );
     return {
-      id: i + 1,
       servicio_id,
-      nombre: servicio.nombre,
-      costo: servicio.costo_sugerido,
-      frecuencia,
-      fecha_cobro,
-      dias_para_cobro: calcularDiasParaCobro(fecha_cobro, hoyISO),
+      ...membresiaEjemplo({
+        id: i + 1,
+        nombre: servicio.nombre,
+        costo: servicio.costo_sugerido,
+        dias,
+        frecuencia,
+        hoy,
+      }),
     };
   });
 
@@ -157,6 +178,17 @@ export function crearDatosEjemplo(hoy = new Date()) {
 
 // Gastos o ingresos del mes.
 const delMes = (lista, mes) => lista.filter((m) => m.fecha.startsWith(`${mes}-`));
+const sumaMes = (lista, mes) =>
+  redondear2(delMes(lista, mes).reduce((suma, m) => suma + m.monto, 0));
+
+// Saldo del mes (ingresos − gastos) y los ingresos, como en Inicio. Lo usan las maquetas del
+// onboarding (HU-93).
+export function saldoMesEjemplo(hoy = new Date()) {
+  const { gastos, ingresos } = crearDatosEjemplo(hoy);
+  const mes = mesActual(hoy);
+  const totalIngresos = sumaMes(ingresos, mes);
+  return { saldo: redondear2(totalIngresos - sumaMes(gastos, mes)), ingresos: totalIngresos };
+}
 
 // Mismas reglas que GET /presupuestos (backend/src/controllers/presupuestos.controller.js).
 function presupuestosConEstado({ presupuestos, gastos, categorias }, mes) {
@@ -186,7 +218,7 @@ function presupuestosConEstado({ presupuestos, gastos, categorias }, mes) {
 
 // Mismas reglas que GET /reportes/resumen: gasto fijo = membresías por mes (anual ÷ 12).
 function resumen({ gastos, membresias }, mes) {
-  const gasto_variable = redondear2(delMes(gastos, mes).reduce((suma, g) => suma + g.monto, 0));
+  const gasto_variable = sumaMes(gastos, mes);
   const gasto_fijo = calcularTotalMensual(membresias);
   return { mes, gasto_variable, gasto_fijo, total: redondear2(gasto_variable + gasto_fijo) };
 }

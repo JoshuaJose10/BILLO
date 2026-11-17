@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { useAuth } from '../context/AuthContext';
+import EntradaScreen from '../screens/EntradaScreen';
 import LoginScreen from '../screens/LoginScreen';
 import OlvideContrasenaScreen from '../screens/OlvideContrasenaScreen';
 import RegistroScreen from '../screens/RegistroScreen';
@@ -11,13 +12,14 @@ const Stack = createNativeStackNavigator();
 
 export default function AuthStack() {
   const { colors } = useTema();
-  // Login, o Registro si se llega desde "Crear cuenta" del modo exploración.
+  // Entrada (HU-93); Registro o Login si se sale del modo exploración; Login si venció la sesión.
   const { entradaAuth } = useAuth();
   return (
     <Stack.Navigator
       initialRouteName={entradaAuth}
       screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}
     >
+      <Stack.Screen name="Entrada" component={EntradaScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Registro" component={RegistroScreen} />
       {/* Recuperar contraseña (HU-65) */}

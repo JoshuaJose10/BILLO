@@ -14,10 +14,28 @@ import { responderEjemplo } from '../datos/ejemplo';
 import { apiFetch, setAlNoAutorizado, setModoVisitante } from '../services/api';
 import * as authService from '../services/auth';
 import { vinculoPush } from '../services/tokenPush';
+import { entradaTrasCierre } from '../utils/flujoInicio';
 import { limpiarWidget } from '../widget/sincronizar';
 
 const CLAVE_TOKEN = 'billo_token';
 const CLAVE_USUARIO = 'billo_usuario';
+// HU-93: ya se vio (o se omitió) el onboarding. No se borra al cerrar sesión.
+const CLAVE_ONBOARDING = 'billo_onboarding_visto';
+
+// SecureStore en el teléfono; en web, localStorage (solo desarrollo).
+const hayLocalStorage = () => typeof localStorage !== 'undefined';
+const almacen =
+  Platform.OS === 'web'
+    ? {
+        leer: async (clave) => (hayLocalStorage() ? localStorage.getItem(clave) : null),
+        guardar: async (clave, valor) => hayLocalStorage() && localStorage.setItem(clave, valor),
+        borrar: async (clave) => hayLocalStorage() && localStorage.removeItem(clave),
+      }
+    : {
+        leer: SecureStore.getItemAsync,
+        guardar: SecureStore.setItemAsync,
+        borrar: SecureStore.deleteItemAsync,
+      };
 
 // Motivo de `motivoCierre` cuando la API rechaza el token (401).
 export const SESION_VENCIDA = 'SESION_VENCIDA';
@@ -31,10 +49,13 @@ export function AuthProvider({ children }) {
   // Por qué se cerró la sesión sin que el usuario lo pidiera (null si no aplica).
   const [motivoCierre, setMotivoCierre] = useState(null);
   // Modo exploración (HU-50): sin JWT y con datos de ejemplo en memoria. Vive solo en este estado
-  // (no se guarda en SecureStore): al cerrar la app se vuelve a Login.
+  // (no se guarda en SecureStore): al cerrar la app se vuelve a Entrada.
   const [visitante, setVisitante] = useState(false);
-  // Pantalla con la que abre Auth: 'Registro' cuando el visitante sale con "Crear cuenta".
-  const [entradaAuth, setEntradaAuth] = useState('Login');
+  // Pantalla con la que abre Auth: Entrada, o 'Registro' / 'Login' cuando el visitante sale
+  // con "Crear cuenta" / "Inicia sesión", o Login si la sesión venció (para mostrar el aviso).
+  const [entradaAuth, setEntradaAuth] = useState('Entrada');
+  // HU-93: se lee junto con el token para que el onboarding no parpadee al arrancar.
+  const [onboardingVisto, setOnboardingVisto] = useState(false);
   const tokenRef = useRef(null);
 
   useEffect(() => {
@@ -50,21 +71,11 @@ export function AuthProvider({ children }) {
 
     (async () => {
       try {
-        let tokenGuardado = null;
-        let usuarioGuardado = null;
+        const [tokenGuardado, usuarioGuardado, visto] = await Promise.all(
+          [CLAVE_TOKEN, CLAVE_USUARIO, CLAVE_ONBOARDING].map(almacen.leer),
+        );
 
-        if (Platform.OS === 'web') {
-          if (typeof localStorage !== 'undefined') {
-            tokenGuardado = localStorage.getItem(CLAVE_TOKEN);
-            usuarioGuardado = localStorage.getItem(CLAVE_USUARIO);
-          }
-        } else {
-          [tokenGuardado, usuarioGuardado] = await Promise.all([
-            SecureStore.getItemAsync(CLAVE_TOKEN),
-            SecureStore.getItemAsync(CLAVE_USUARIO),
-          ]);
-        }
-
+        if (activo && visto) setOnboardingVisto(true);
         if (activo && tokenGuardado) {
           setToken(tokenGuardado);
           setUsuario(usuarioGuardado ? JSON.parse(usuarioGuardado) : null);
@@ -86,17 +97,10 @@ export function AuthProvider({ children }) {
   }, []);
 
   const guardarSesion = useCallback(async (nuevoToken, nuevoUsuario) => {
-    if (Platform.OS === 'web') {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(CLAVE_TOKEN, nuevoToken);
-        localStorage.setItem(CLAVE_USUARIO, JSON.stringify(nuevoUsuario ?? null));
-      }
-    } else {
-      await SecureStore.setItemAsync(CLAVE_TOKEN, nuevoToken);
-      await SecureStore.setItemAsync(CLAVE_USUARIO, JSON.stringify(nuevoUsuario ?? null));
-    }
+    await almacen.guardar(CLAVE_TOKEN, nuevoToken);
+    await almacen.guardar(CLAVE_USUARIO, JSON.stringify(nuevoUsuario ?? null));
     setMotivoCierre(null);
-    setEntradaAuth('Login');
+    setEntradaAuth('Entrada');
     setUsuario(nuevoUsuario ?? null);
     setToken(nuevoToken);
   }, []);
@@ -110,18 +114,12 @@ export function AuthProvider({ children }) {
     // push en segundo plano, no debe tomarse como "sesión vencida" de la sesión siguiente.
     tokenRef.current = null;
     setMotivoCierre(motivo);
+    setEntradaAuth(entradaTrasCierre(motivo === SESION_VENCIDA));
     setToken(null);
     setUsuario(null);
     try {
-      if (Platform.OS === 'web') {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.removeItem(CLAVE_TOKEN);
-          localStorage.removeItem(CLAVE_USUARIO);
-        }
-      } else {
-        await SecureStore.deleteItemAsync(CLAVE_TOKEN);
-        await SecureStore.deleteItemAsync(CLAVE_USUARIO);
-      }
+      await almacen.borrar(CLAVE_TOKEN);
+      await almacen.borrar(CLAVE_USUARIO);
     } catch {
       // El estado en memoria ya quedó limpio.
     }
@@ -137,7 +135,14 @@ export function AuthProvider({ children }) {
 
   const limpiarMotivoCierre = useCallback(() => setMotivoCierre(null), []);
 
-  // "Explorar sin cuenta" en Login. La guardia de apiFetch se activa antes del render que monta
+  // "Comenzar" u "Omitir" del onboarding (HU-93): RootNavigator pasa a Entrada. Si no se puede
+  // guardar, solo se vuelve a mostrar la próxima vez.
+  const marcarOnboardingVisto = useCallback(() => {
+    setOnboardingVisto(true);
+    almacen.guardar(CLAVE_ONBOARDING, '1').catch(() => {});
+  }, []);
+
+  // "Explorar sin cuenta" en Entrada y Login. La guardia de apiFetch se activa antes del render que monta
   // las pantallas, así que ninguna petición alcanza a salir.
   const explorarSinCuenta = useCallback(() => {
     setModoVisitante(true);
@@ -202,6 +207,8 @@ export function AuthProvider({ children }) {
       motivoCierre,
       visitante,
       entradaAuth,
+      onboardingVisto,
+      marcarOnboardingVisto,
       iniciarSesion,
       registrarse,
       marcarCategoriasConfiguradas,
@@ -217,6 +224,8 @@ export function AuthProvider({ children }) {
       motivoCierre,
       visitante,
       entradaAuth,
+      onboardingVisto,
+      marcarOnboardingVisto,
       iniciarSesion,
       registrarse,
       marcarCategoriasConfiguradas,

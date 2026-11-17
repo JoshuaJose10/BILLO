@@ -48,6 +48,17 @@ const SEPARACION = 16;
 const APARECER = { duration: 160 };
 const RESALTAR = { duration: 120 };
 
+// Arco del abanico en una capa de `ancho` × `alto` con la barra ocupando `altoInferior` abajo.
+// La maqueta del onboarding lo usa para saber dónde quedan las acciones.
+export const arcoAbanico = ({ ancho, alto, altoInferior }) => ({
+  ancho,
+  base: alto - altoInferior - SEPARACION - RADIO_ACTIVA,
+  radioMax: RADIO,
+  margen: SEPARACION + RADIO_ACTIVA,
+  anguloInicio: ANGULO_INICIO,
+  anguloFin: ANGULO_FIN,
+});
+
 const vibrar = (promesa) => promesa.catch(() => {});
 const vibrarAbrir = () => vibrar(Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium));
 const vibrarCambio = () => vibrar(Haptics.selectionAsync());
@@ -58,6 +69,7 @@ export function useGestoAbanico({
   tamanoBoton,
   altoInferior,
   reducirMovimiento,
+  controlado,
 }) {
   const ventana = useWindowDimensions();
   // Tamaño real de la capa (onLayout); antes de medirla, el de la ventana.
@@ -69,22 +81,20 @@ export function useGestoAbanico({
   };
   const n = acciones.length;
   const arco = useMemo(
-    () => ({
-      ancho,
-      base: alto - altoInferior - SEPARACION - RADIO_ACTIVA,
-      radioMax: RADIO,
-      margen: SEPARACION + RADIO_ACTIVA,
-      anguloInicio: ANGULO_INICIO,
-      anguloFin: ANGULO_FIN,
-    }),
+    () => arcoAbanico({ ancho, alto, altoInferior }),
     [ancho, alto, altoInferior],
   );
   const posiciones = useMemo(() => posicionesAbanico(n, arco), [n, arco]);
   // abierto: 0 cerrado → 1 abierto. activo: índice bajo el dedo o -1. boton: centro del botón.
-  const abierto = useSharedValue(0);
-  const activo = useSharedValue(-1);
-  const botonX = useSharedValue(0);
-  const botonY = useSharedValue(0);
+  // `controlado` (maqueta del onboarding, HU-93): { abierto, activo, botonX, botonY } que mueve
+  // otro; el gesto queda apagado.
+  const propios = {
+    abierto: useSharedValue(0),
+    activo: useSharedValue(-1),
+    botonX: useSharedValue(0),
+    botonY: useSharedValue(0),
+  };
+  const { abierto, activo, botonX, botonY } = controlado ?? propios;
   const mitad = tamanoBoton / 2;
 
   const soltar = (indice) => {
@@ -94,7 +104,7 @@ export function useGestoAbanico({
 
   const gesto = usePanGesture({
     activateAfterLongPress: MANTENER_MS,
-    enabled: n > 0,
+    enabled: n > 0 && !controlado,
     onActivate: (e) => {
       'worklet';
       botonX.set(e.absoluteX - e.x + mitad);

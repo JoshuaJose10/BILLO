@@ -8,10 +8,12 @@ import ElegirCategoriasScreen from '../screens/ElegirCategoriasScreen';
 import MembresiaScreen from '../screens/MembresiaScreen';
 import MisCategoriasScreen from '../screens/MisCategoriasScreen';
 import NuevoGastoScreen from '../screens/NuevoGastoScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
 import PerfilScreen from '../screens/PerfilScreen';
 import PresupuestoScreen from '../screens/PresupuestoScreen';
 import LaboratorioScreen from '../spike/LaboratorioScreen';
 import { useTema } from '../theme/TemaContext';
+import { navegadorRaiz } from '../utils/flujoInicio';
 import AuthStack from './AuthStack';
 import MainTabs from './MainTabs';
 
@@ -39,15 +41,15 @@ const HOJAS_VISITANTE = [
   'InvitacionCuenta',
 ];
 
-// Cuenta recién creada (HU-89): el backend la marca con categorias_configuradas = false y, hasta
-// que elige sus categorías, solo existe ElegirCategorias. Se compara con false porque las sesiones
-// guardadas antes de HU-89 no traen el campo. El modo exploración nunca la muestra.
 // Con token se muestran Main y las hojas (NuevoGasto, Perfil, Presupuesto, Membresia); en el modo
-// exploración, Main con datos de ejemplo y la invitación en lugar de las hojas; si no, Auth. Al
+// exploración, Main con datos de ejemplo y la invitación en lugar de las hojas; si no, Onboarding
+// la primera vez (HU-93) y después Auth, que abre en Entrada. Una cuenta recién creada solo ve
+// ElegirCategorias hasta elegirlas (HU-89). Las reglas están en utils/flujoInicio. Al
 // cambiar el token o el modo React Navigation cambia de navegador solo, sin navigation.reset.
 export default function RootNavigator() {
-  const { token, usuario, visitante, cargando } = useAuth();
+  const { token, usuario, visitante, cargando, onboardingVisto } = useAuth();
   const { colors } = useTema();
+  const raiz = navegadorRaiz({ token, usuario, visitante, onboardingVisto });
 
   // HU-23 (spike): pantalla de pruebas de voz y widget, solo en desarrollo.
   const opcionesLaboratorio = {
@@ -63,13 +65,13 @@ export default function RootNavigator() {
 
   return (
     <Stack.Navigator>
-      {token && usuario?.categorias_configuradas === false ? (
+      {raiz === 'ElegirCategorias' ? (
         <Stack.Screen
           name="ElegirCategorias"
           component={ElegirCategoriasScreen}
           options={{ headerShown: false }}
         />
-      ) : token ? (
+      ) : raiz === 'Sesion' ? (
         <>
           <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
           <Stack.Screen name="NuevoGasto" component={NuevoGastoScreen} options={opcionesHoja} />
@@ -94,7 +96,7 @@ export default function RootNavigator() {
             />
           ) : null}
         </>
-      ) : visitante ? (
+      ) : raiz === 'Visitante' ? (
         <>
           <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
           {HOJAS_VISITANTE.map((nombre) => (
@@ -106,8 +108,14 @@ export default function RootNavigator() {
             />
           ))}
         </>
-      ) : (
+      ) : raiz === 'Auth' ? (
         <Stack.Screen name="Auth" component={AuthStack} options={{ headerShown: false }} />
+      ) : (
+        <Stack.Screen
+          name="Onboarding"
+          component={OnboardingScreen}
+          options={{ headerShown: false }}
+        />
       )}
     </Stack.Navigator>
   );

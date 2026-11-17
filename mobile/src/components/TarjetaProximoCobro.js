@@ -8,6 +8,8 @@ import { tipografia } from '../theme/tipografia';
 import { formatearMontoCorto, MONEDA } from '../utils/formato';
 import {
   estiloServicio,
+  fechaCobroCiclo,
+  formatearDiaMes,
   inicialServicio,
   nivelCobro,
   textoProximoCobro,
@@ -17,8 +19,10 @@ import {
 // logo con el color de marca, "PRÓXIMO COBRO • en N días" (en aviso si faltan 3 o menos), nombre
 // y "$X MXN / mes" (o "/ año"). `cobro` sale de proximoCobro ({ membresia, dias, mas }); con
 // varias el mismo día muestra la primera y "+N más". Sin cobro no se dibuja. Al tocarla abre
-// Cartera › Suscripciones (onPress).
-export default function TarjetaProximoCobro({ cobro, onPress }) {
+// Cartera › Suscripciones (onPress). `conFecha`: agrega el día del cobro bajo el monto ("14 nov").
+// `style`: ajustes de posición (el onboarding quita el margen superior de Inicio).
+// `children`: contenido extra dentro de la tarjeta, debajo (la cuenta regresiva del onboarding).
+export default function TarjetaProximoCobro({ cobro, onPress, conFecha = false, style, children }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
   if (!cobro) return null;
@@ -38,38 +42,44 @@ export default function TarjetaProximoCobro({ cobro, onPress }) {
         mas > 0 ? `, y ${mas} más el mismo día` : ''
       }`}
       accessibilityHint="Abre tus suscripciones en Cartera"
-      style={({ pressed }) => [styles.tarjeta, pressed ? styles.presionada : null]}
+      style={({ pressed }) => [styles.tarjeta, style, pressed ? styles.presionada : null]}
     >
-      <View style={[styles.squircle, { backgroundColor: colorMarca, shadowColor: colorMarca }]}>
-        {predefinido ? (
-          <MaterialCommunityIcons name={icono} size={20} color={colors.textoSobreColor} />
-        ) : (
-          <Text style={styles.inicial}>{inicialServicio(membresia.nombre)}</Text>
-        )}
-      </View>
-
-      <View style={styles.textos}>
-        <View style={styles.etiquetaFila}>
-          <Text style={styles.etiqueta}>PRÓXIMO COBRO</Text>
-          <View style={styles.punto} />
-          <Text style={[styles.cuando, aviso ? styles.cuandoAviso : null]}>{cuando}</Text>
+      <View style={styles.fila}>
+        <View style={[styles.squircle, { backgroundColor: colorMarca, shadowColor: colorMarca }]}>
+          {predefinido ? (
+            <MaterialCommunityIcons name={icono} size={20} color={colors.textoSobreColor} />
+          ) : (
+            <Text style={styles.inicial}>{inicialServicio(membresia.nombre)}</Text>
+          )}
         </View>
-        <View style={styles.nombreFila}>
-          <Text style={styles.nombre} numberOfLines={1}>
-            {membresia.nombre}
+
+        <View style={styles.textos}>
+          <View style={styles.etiquetaFila}>
+            <Text style={styles.etiqueta}>PRÓXIMO COBRO</Text>
+            <View style={styles.punto} />
+            <Text style={[styles.cuando, aviso ? styles.cuandoAviso : null]}>{cuando}</Text>
+          </View>
+          <View style={styles.nombreFila}>
+            <Text style={styles.nombre} numberOfLines={1}>
+              {membresia.nombre}
+            </Text>
+            {mas > 0 ? <Text style={styles.mas}>+{mas} más</Text> : null}
+          </View>
+        </View>
+
+        <View style={styles.montoColumna}>
+          <Text style={styles.monto} numberOfLines={1}>
+            {monto}
           </Text>
-          {mas > 0 ? <Text style={styles.mas}>+{mas} más</Text> : null}
+          <Text style={styles.sufijo}>
+            {MONEDA} / {periodo}
+          </Text>
+          {conFecha ? (
+            <Text style={styles.sufijo}>{formatearDiaMes(fechaCobroCiclo(membresia))}</Text>
+          ) : null}
         </View>
       </View>
-
-      <View style={styles.montoColumna}>
-        <Text style={styles.monto} numberOfLines={1}>
-          {monto}
-        </Text>
-        <Text style={styles.sufijo}>
-          {MONEDA} / {periodo}
-        </Text>
-      </View>
+      {children}
     </Pressable>
   );
 }
@@ -78,11 +88,14 @@ const crearEstilos = (colors) =>
   StyleSheet.create({
     // Misma tarjeta de vidrio que "Gastado este mes" (TarjetaResumen); gap-3.5 entre ambas
     tarjeta: {
-      flexDirection: 'row',
-      alignItems: 'center',
       gap: 12,
       marginTop: 14,
       ...estiloTarjeta(colors),
+    },
+    fila: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
     },
     presionada: {
       opacity: 0.7,
