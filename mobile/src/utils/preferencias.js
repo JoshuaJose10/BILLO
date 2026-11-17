@@ -12,6 +12,10 @@ export const MODOS_TEMA = [
 
 export const MODO_TEMA_DEFECTO = 'automatico';
 
+// «Ocultar saldo» del ojito de Inicio (HU-82) en SecureStore: lo usan hooks/useSaldoOculto y el
+// widget «Billo» (widget/datoWidget), que muestra «••••».
+export const CLAVE_SALDO_OCULTO = 'billo_saldo_oculto';
+
 export const EQUIPO_BILLO = [
   { nombre: 'Joshua José Dávalos Durán', rol: 'Líder de proyecto' },
   { nombre: 'Fernando Villafuerte Ferreyra', rol: 'Frontend y diseño' },
