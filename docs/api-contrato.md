@@ -1,4 +1,4 @@
-# Contrato de API — Billo (v1.4)
+# Contrato de API — Billo (v1.7)
 
 Estado: **esquema de BD congelado desde el 2026-10-13** (ver «Congelamiento del esquema»). Cualquier cambio al contrato o al esquema se acuerda con el equipo y se anota en el **Registro de cambios**.
 
@@ -22,7 +22,7 @@ Verificado con `curl` contra el backend de `develop` (commit `ec43600`), Postgre
 | `GET /catalogo` | Sí (S2) | Sí |
 | `POST/PUT/DELETE /catalogo` | No (404 `RUTA_NO_ENCONTRADA`) | Pendiente de S3 (RF9) |
 | `POST/GET/PUT/DELETE /membresias` y `POST /membresias/:id/pagada` | Sí (S2/S3) | Sí (HU-66: avanza fecha de cobro un mes o un año sin crear gasto duplicado) |
-| `GET /reportes/resumen`, `GET /reportes/por-categoria` | Sí (S2) | Sí |
+| `GET /reportes/resumen`, `GET /reportes/por-categoria`, `GET /reportes/ingresos`, `GET /reportes/balance` | Sí (S2/S3) | Sí (reutiliza cálculo de resumen excluyendo suscripciones pausadas; meses sin datos devuelven ceros) |
 | `GET /divisas/tipo-cambio?moneda=USD` | Sí (S3) | Sí (con token, caché de 5 minutos y 502 `FUENTE_NO_DISPONIBLE`) |
 | `POST /notificaciones/token` | Sí (S3) | Sí (200 `{ registrado: true }`, 400 `TOKEN_PUSH_INVALIDO`) |
 | Token con `rol` y rutas de administración | No | Pendiente de S3 (RF9) |
@@ -392,6 +392,17 @@ Gasto variable agrupado por categoría, para la gráfica de dona (RF8). `mes` es
 - 200 → [ { "categoria_id": 3, "categoria": "Comida", "total": 1260.50, "porcentaje": 51 }, ... ]
 - 400 → MES_INVALIDO
 
+### GET /reportes/ingresos?mes=2026-10  (S3)
+Total de ingresos del mes, desglose por fuente con porcentaje (los ingresos sin fuente se agrupan en `"Sin fuente"`), total del mes anterior y variación (en monto y porcentaje). Un mes sin datos devuelve ceros y `por_fuente: []`.
+Los porcentajes son enteros de 0 a 100 y suman 100 cuando hay ingresos. Se calculan con el método de restos mayores; los empates se resuelven por el orden del reporte (`total` descendente, `fuente` ascendente), sin cambiar el orden de las fuentes en la respuesta.
+- 200 → { "mes": "2026-10", "total": 15000, "por_fuente": [ { "fuente": "Salario", "total": 12000, "porcentaje": 80 }, { "fuente": "Freelance", "total": 3000, "porcentaje": 20 } ], "mes_anterior": "2026-09", "total_mes_anterior": 12000, "variacion": 3000, "variacion_porcentaje": 25 }
+- 400 → MES_INVALIDO
+
+### GET /reportes/balance?mes=2026-10  (S3)
+Calcula los ingresos del mes, gasto variable, gasto fijo (reutilizando la lógica de `/reportes/resumen`, por lo que las suscripciones pausadas no cuentan), gasto total (`gastos = gasto_variable + gasto_fijo`), `balance` (`ingresos − gasto_variable − gasto_fijo`) y la `serie` cronológica de los últimos 6 meses terminando en `mes`. Un mes sin datos devuelve ceros.
+- 200 → { "mes": "2026-10", "ingresos": 15000, "gasto_variable": 2480.5, "gasto_fijo": 428, "gastos": 2908.5, "balance": 12091.5, "serie": [ { "mes": "2026-05", "ingresos": 0, "gasto_variable": 0, "gasto_fijo": 428, "gastos": 428, "balance": -428 }, ..., { "mes": "2026-10", "ingresos": 15000, "gasto_variable": 2480.5, "gasto_fijo": 428, "gastos": 2908.5, "balance": 12091.5 } ] }
+- 400 → MES_INVALIDO
+
 ## Notificaciones de cobro (S3) — RF7
 
 El cron diario revisa las membresías cuya `fecha_cobro` esté a 3 días o menos y envía un push mediante Expo (el margen de 3 días es un supuesto por confirmar). Para eso la app registra el token de Expo del teléfono.
@@ -487,3 +498,4 @@ Pendiente en la colección Postman (**HU-22**, Luis Dorian): agregar las asercio
 - 2026-11-12 — v1.4 — Sprint 3 (Historial de pagos de suscripciones). Se aplica la migración 019 (tabla `pagos_membresia` con `ON DELETE CASCADE`), `POST /membresias/:id/pagada` registra el pago en `pagos_membresia` (sin crear gasto) y se agrega `GET /membresias/:id/pagos` con línea de tiempo corta en el detalle móvil de la suscripción.
 - 2026-11-12 — v1.5 — Categorías por usuario (migración 020). Se agregan `categorias.usuario_id`, `categorias.color`, `usuarios.categorias_configuradas` y `usuario_categorias`. `POST /auth/register` crea cuentas con `categorias_configuradas = false` e incluye el campo en registro y login. Se agregan `GET /categorias/predefinidas`, `PUT /categorias/seleccion`, `POST /categorias`, `PUT /categorias/:id` y `DELETE /categorias/:id`; `GET /categorias` filtra por usuario e incluye `propia` y `color`. `POST /gastos` y `POST /presupuestos` validan que la categoría esté disponible para el usuario, mientras `PUT /gastos/:id` permite conservar la categoría oculta previa del gasto.
 - 2026-11-16 — v1.6 — Tarjetas por usuario (migración 021). Se crea la tabla `tarjetas` (`ON DELETE CASCADE` desde `usuarios`) y se agrega `tarjeta_id` (`ON DELETE SET NULL`) en `gastos` y `membresias`. Se implementan `POST /tarjetas`, `GET /tarjetas`, `PUT /tarjetas/:id`, `DELETE /tarjetas/:id` y `GET /tarjetas/:id/resumen?mes=YYYY-MM` con códigos `TARJETA_INVALIDA`, `ULTIMOS4_INVALIDOS` y `TARJETA_NO_ENCONTRADA`. `DELETE /auth/cuenta` elimina también las tarjetas del usuario. Render ejecuta las migraciones automáticamente al desplegar.
+- 2026-11-16 — v1.7 — Reportes de ingresos y balance mensual. Se agregan `GET /reportes/ingresos?mes=YYYY-MM` (total del mes, desglose por fuente con porcentaje, total del mes anterior y variación) y `GET /reportes/balance?mes=YYYY-MM` (ingresos, gasto variable, gasto fijo excluyendo suscripciones pausadas, gastos totales, balance y serie de los últimos 6 meses). Meses sin datos devuelven ceros. Los porcentajes por fuente se distribuyen con restos mayores para sumar 100 sin valores negativos, incluso con más de 100 fuentes.
