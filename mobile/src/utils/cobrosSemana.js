@@ -1,5 +1,6 @@
 // Tarjeta «Esta semana cobran» de Inicio (HU-73, RF7). Sin imports de React Native para poder
 // probarla con node --test.
+import { costoPropio } from './membresias.js';
 
 // Ventana de la tarjeta: hoy y los 7 días siguientes (dias_para_cobro de 0 a 7).
 export const DIAS_SEMANA_COBROS = 7;
@@ -31,7 +32,7 @@ export function cobrosDeLaSemana(membresias, hoy = new Date()) {
     .map((m) => ({
       id: m.id,
       nombre: m.nombre,
-      costo: Number(m.costo) || 0,
+      costo: costoPropio(m),
       dias: m.dias_para_cobro,
       dia: diaDeCobro(m.dias_para_cobro, hoy),
     }))

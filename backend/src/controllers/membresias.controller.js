@@ -1,6 +1,7 @@
 const { pool } = require('../db');
 const { esMonedaValida } = require('./tipoCambio.controller');
 const { esTarjetaDelUsuario } = require('./tarjetas.controller');
+const { costoPropio } = require('../utils/membresias');
 
 const esFechaValida = (fechaStr) => {
   if (typeof fechaStr !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(fechaStr)) {
@@ -57,6 +58,7 @@ const formatearMembresia = (row) => ({
   frecuencia: row.frecuencia,
   fecha_cobro: row.fecha_cobro,
   estado: row.estado || 'activa',
+  personas: Number(row.personas) || 1,
 });
 
 const formatearMembresiaConDias = (row) => ({
@@ -80,6 +82,7 @@ const formatearMembresiaConDias = (row) => ({
   frecuencia: row.frecuencia,
   fecha_cobro: row.fecha_cobro,
   estado: row.estado || 'activa',
+  personas: Number(row.personas) || 1,
   dias_para_cobro: Number(row.dias_para_cobro),
 });
 
@@ -305,6 +308,17 @@ const validarDatosMembresia = async (body, { usuarioId } = {}) => {
     tarjetaIdFinal = tarjeta_id;
   }
 
+  // HU-76: entre cuántas personas se divide (entero ≥ 1; sin el campo, 1).
+  const personas = body.personas ?? 1;
+  if (!Number.isInteger(personas) || personas < 1 || personas > 2147483647) {
+    return {
+      error: {
+        code: 'PERSONAS_INVALIDAS',
+        message: 'personas debe ser un número entero mayor o igual a 1',
+      },
+    };
+  }
+
   return {
     datos: {
       servicio_id: servicioIdFinal,
@@ -317,6 +331,7 @@ const validarDatosMembresia = async (body, { usuarioId } = {}) => {
       frecuencia,
       fecha_cobro,
       estado: estadoFinal,
+      personas,
     },
   };
 };
@@ -376,12 +391,13 @@ const crearMembresia = async (req, res) => {
       frecuencia,
       fecha_cobro,
       estado,
+      personas,
     } = validacion.datos;
 
     const insertQuery = `
-      INSERT INTO membresias (usuario_id, servicio_id, tarjeta_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, fecha_cobro, estado)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-      RETURNING id, servicio_id, tarjeta_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
+      INSERT INTO membresias (usuario_id, servicio_id, tarjeta_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, fecha_cobro, estado, personas)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      RETURNING id, servicio_id, tarjeta_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado, personas
     `;
 
     const client = await pool.connect();
@@ -400,9 +416,11 @@ const crearMembresia = async (req, res) => {
         frecuencia,
         fecha_cobro,
         estado,
+        personas,
       ]));
       if (fechaUltimoPago) {
-        await insertarPagosDesde(client, rows[0].id, rows[0].costo, frecuencia, fechaUltimoPago);
+        const parte = costoPropio(rows[0].costo, rows[0].personas);
+        await insertarPagosDesde(client, rows[0].id, parte, frecuencia, fechaUltimoPago);
       }
       await client.query('COMMIT');
     } catch (txError) {
@@ -444,6 +462,7 @@ const listarMembresias = async (req, res) => {
         frecuencia,
         TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro,
         estado,
+        personas,
         (fecha_cobro - CURRENT_DATE)::integer AS dias_para_cobro
       FROM membresias
       WHERE usuario_id = $1
@@ -498,6 +517,7 @@ const actualizarMembresia = async (req, res) => {
       frecuencia,
       fecha_cobro,
       estado,
+      personas,
     } = validacion.datos;
 
     const updateQuery = `
@@ -511,9 +531,10 @@ const actualizarMembresia = async (req, res) => {
           tipo_cambio = $9,
           frecuencia = $10,
           fecha_cobro = $11,
-          estado = $12
+          estado = $12,
+          personas = $13
       WHERE id = $1 AND usuario_id = $2
-      RETURNING id, servicio_id, tarjeta_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
+      RETURNING id, servicio_id, tarjeta_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado, personas
     `;
 
     const { rows } = await pool.query(updateQuery, [
@@ -529,6 +550,7 @@ const actualizarMembresia = async (req, res) => {
       frecuencia,
       fecha_cobro,
       estado,
+      personas,
     ]);
 
     if (rows.length === 0) {
@@ -577,7 +599,7 @@ const pausarMembresia = async (req, res) => {
       UPDATE membresias
       SET estado = 'pausada'
       WHERE id = $1 AND usuario_id = $2
-      RETURNING id, servicio_id, tarjeta_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
+      RETURNING id, servicio_id, tarjeta_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado, personas
     `;
     const { rows } = await pool.query(query, [membresiaId, usuarioId]);
 
@@ -625,7 +647,7 @@ const reactivarMembresia = async (req, res) => {
       UPDATE membresias
       SET estado = 'activa'
       WHERE id = $1 AND usuario_id = $2
-      RETURNING id, servicio_id, tarjeta_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
+      RETURNING id, servicio_id, tarjeta_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado, personas
     `;
     const { rows } = await pool.query(query, [membresiaId, usuarioId]);
 
@@ -734,6 +756,7 @@ const marcarMembresiaPagada = async (req, res) => {
         monto_original,
         tipo_cambio,
         estado,
+        personas,
         frecuencia,
         TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro,
         (fecha_cobro - CURRENT_DATE)::integer AS dias_para_cobro
@@ -762,7 +785,7 @@ const marcarMembresiaPagada = async (req, res) => {
         `INSERT INTO pagos_membresia (membresia_id, fecha, monto)
          VALUES ($1, CURRENT_DATE, $2)
          RETURNING id, membresia_id, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, monto`,
-        [membresiaId, membresiaActualizada.costo]
+        [membresiaId, costoPropio(membresiaActualizada.costo, membresiaActualizada.personas)]
       );
       pagoRegistrado = pagoRes.rows[0];
       await client.query('COMMIT');

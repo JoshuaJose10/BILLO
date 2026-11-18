@@ -50,6 +50,7 @@ import {
   formatearDiaMes,
   resumenPagosMembresia,
   sugerenciasCatalogo,
+  textoCostoCompartido,
   validarMembresia,
 } from '../utils/membresias';
 import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
@@ -148,6 +149,7 @@ export default function MembresiaScreen({ navigation, route }) {
   };
   const [servicioId, setServicioId] = useState(() => membresiaEditada?.servicio_id ?? null);
   const [tarjetaId, setTarjetaId] = useState(() => membresiaEditada?.tarjeta_id ?? null);
+  const [personas, setPersonas] = useState(() => membresiaEditada?.personas ?? 1); // HU-76
   const [tarjetas, setTarjetas] = useState([]);
   const [estadoTarjetas, setEstadoTarjetas] = useState('cargando');
   const [errorTarjetas, setErrorTarjetas] = useState(null);
@@ -401,6 +403,7 @@ export default function MembresiaScreen({ navigation, route }) {
         fechaCobro: fechaCobroISO,
         tarjetaId,
       }),
+      personas,
       // HU-95: el backend llena el historial desde el pago (solo al crear con «Ya la pagué»).
       ...(conPago ? { fecha_ultimo_pago: fechaISO } : {}),
     };
@@ -542,6 +545,30 @@ export default function MembresiaScreen({ navigation, route }) {
     moneda !== 'MXN' && tipoCambio && montoIngresado > 0
       ? calcularEquivalenteMxn(montoIngresado, tipoCambio)
       : null;
+  const textoCompartido =
+    montoIngresado > 0
+      ? textoCostoCompartido({ costo: equivalenteMxn ?? montoIngresado, personas })
+      : null;
+  // − / + del panel de personas (HU-76): 1 a 10, toque de 44×52 con el estilo `opcion`.
+  const botonPersonas = (paso) => {
+    const limite = paso < 0 ? personas <= 1 : personas >= 10;
+    return (
+      <Pressable
+        onPress={() => setPersonas((p) => p + paso)}
+        disabled={limite}
+        accessibilityRole="button"
+        accessibilityLabel={paso < 0 ? 'Quitar una persona' : 'Agregar una persona'}
+        accessibilityState={{ disabled: limite }}
+        style={({ pressed }) => [styles.opcion, pressed ? styles.opcionPresionada : null]}
+      >
+        <MaterialCommunityIcons
+          name={paso < 0 ? 'minus' : 'plus'}
+          size={28}
+          color={limite ? colors.outline : colors.text}
+        />
+      </Pressable>
+    );
+  };
 
   return (
     <HojaInferior
@@ -591,6 +618,13 @@ export default function MembresiaScreen({ navigation, route }) {
             chevron
             onPress={() => setPanel('frecuencia')}
             accessibilityLabel={`Frecuencia de cobro: ${frecuenciaActual.etiqueta}`}
+          />
+          <ChipSelector
+            icono="account-multiple-outline"
+            etiqueta={`${personas} ${personas === 1 ? 'persona' : 'personas'}`}
+            chevron
+            onPress={() => setPanel('personas')}
+            accessibilityLabel={`Se divide entre ${personas} ${personas === 1 ? 'persona' : 'personas'}`}
           />
           <ChipSelector
             icono="calendar-blank-outline"
@@ -655,6 +689,12 @@ export default function MembresiaScreen({ navigation, route }) {
               <Text style={styles.textoTasa}>
                 Tipo de cambio: 1 {moneda} = ${tipoCambio.toFixed(4)} MXN
               </Text>
+            </View>
+          ) : null}
+          {/* HU-76: tu parte, en su propia línea bajo el equivalente de divisa */}
+          {textoCompartido ? (
+            <View style={styles.filaEquivalente}>
+              <Text style={styles.textoEquivalente}>{textoCompartido}</Text>
             </View>
           ) : null}
         </View>
@@ -879,6 +919,18 @@ export default function MembresiaScreen({ navigation, route }) {
               ) : null}
             </Pressable>
           ))}
+        </PanelHoja>
+      ) : null}
+
+      {/* HU-76: − / + de 1 a 10 con el patrón de opción del panel de frecuencia */}
+      {panel === 'personas' ? (
+        <PanelHoja titulo="¿Entre cuántas personas se divide?" onCerrar={() => setPanel(null)}>
+          <View style={styles.opcion}>
+            {botonPersonas(-1)}
+            <Text style={[styles.opcionTexto, { textAlign: 'center' }]}>{personas}</Text>
+            {botonPersonas(1)}
+          </View>
+          <Boton titulo="Listo" onPress={() => setPanel(null)} />
         </PanelHoja>
       ) : null}
 

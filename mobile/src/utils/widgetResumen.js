@@ -8,6 +8,7 @@ import { formatearMonto, formatearMontoCorto, MONEDA, partesMonto } from './form
 import { saldoDelMes, totalIngresos } from './ingresos.js';
 import {
   ajustarAlSiguienteCiclo,
+  costoPropio,
   estiloServicio,
   proximoCobro,
   textoProximoCobro,
@@ -192,7 +193,7 @@ export function crearDatoWidget(
     .filter((m) => m.estado !== 'pausada' && /^\d{4}-\d{2}-\d{2}$/.test(m.fecha_cobro ?? ''))
     .map((m) => ({
       nombre: m.nombre,
-      costo: Number(m.costo),
+      costo: costoPropio(m),
       fecha_cobro: m.fecha_cobro_original ?? m.fecha_cobro,
       frecuencia: m.frecuencia || 'mensual',
     }));

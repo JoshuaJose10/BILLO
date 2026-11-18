@@ -132,11 +132,15 @@ CREATE TABLE IF NOT EXISTS membresias (
   frecuencia          VARCHAR(20) NOT NULL CHECK (frecuencia IN ('mensual', 'anual')),
   fecha_cobro         DATE NOT NULL,
   estado              VARCHAR(20) NOT NULL DEFAULT 'activa' CHECK (estado IN ('activa', 'pausada')),
-  ultima_notificacion DATE NULL
+  ultima_notificacion DATE NULL,
+  personas            INTEGER NOT NULL DEFAULT 1 CHECK (personas >= 1)
 );
 
 ALTER TABLE membresias
   ADD COLUMN IF NOT EXISTS tarjeta_id INTEGER NULL REFERENCES tarjetas(id) ON DELETE SET NULL;
+
+ALTER TABLE membresias
+  ADD COLUMN IF NOT EXISTS personas INTEGER NOT NULL DEFAULT 1 CHECK (personas >= 1);
 
 CREATE INDEX IF NOT EXISTS idx_membresias_usuario_fecha_cobro
 ON membresias (usuario_id, fecha_cobro);

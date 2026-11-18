@@ -50,6 +50,7 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
       monto_original: null,
       tipo_cambio: null,
       estado: 'activa',
+      personas: 1,
     });
     const lista = await get('/membresias');
     assert.equal(lista.length, 1);
@@ -95,6 +96,7 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
       monto_original: null,
       tipo_cambio: null,
       estado: 'activa',
+      personas: 1,
     });
     await conciliar(ctx.a, 0, 199, 199);
     await ctx.api.put(`/membresias/${m.id}`).auth(ctx.a.token, { type: 'bearer' })
@@ -660,6 +662,7 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
         frecuencia: 'mensual',
         fecha_cobro: '2026-10-15',
         estado: 'activa',
+        personas: 1,
       });
 
       // El total mensual y Reportes suman el equivalente en MXN (186.31)
@@ -1090,6 +1093,67 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
         if (token) req.auth(token, { type: 'bearer' });
         expectError(await req, 401, 'NO_AUTORIZADO');
       }
+    });
+  });
+
+  describe('Costo compartido en planes Duo/Familiar (HU-76)', () => {
+    const auth = (req) => req.auth(ctx.a.token, { type: 'bearer' });
+    const spotify = (patch = {}) => datos({ nombre: 'Spotify', costo: 129, personas: 2, ...patch });
+
+    it('$129 entre 2 aporta 64.50 al gasto fijo y la respuesta trae personas', async () => {
+      const m = await crear(spotify());
+      assert.equal(m.personas, 2);
+      assert.equal(m.costo, 129);
+      assert.equal((await get('/membresias'))[0].personas, 2);
+      assert.equal((await resumen()).gasto_fijo, 64.5);
+    });
+
+    it('sin el campo queda en 1 y el gasto fijo no cambia', async () => {
+      const m = await crear(datos());
+      assert.equal(m.personas, 1);
+      assert.equal((await resumen()).gasto_fijo, 199);
+    });
+
+    for (const personas of [0, 1.5, -2, '2', 'dos']) {
+      it(`personas ${JSON.stringify(personas)} → 400 PERSONAS_INVALIDAS en POST y PUT`, async () => {
+        expectError(await auth(ctx.api.post('/membresias')).send(spotify({ personas })), 400, 'PERSONAS_INVALIDAS');
+        const m = await crear(spotify());
+        expectError(await auth(ctx.api.put(`/membresias/${m.id}`)).send(spotify({ personas })), 400, 'PERSONAS_INVALIDAS');
+        assert.equal((await get('/membresias'))[0].personas, 2);
+      });
+    }
+
+    it('Reportes y Cartera (app) coinciden al centavo: $129 entre 2 y $99 anual entre 3', async () => {
+      const { costoPropio, calcularTotalMensual } = await import('../../../mobile/src/utils/membresias.js');
+      await crear(spotify());
+      await crear(datos({ nombre: 'Familiar', costo: 99, personas: 3, frecuencia: 'anual' }));
+      assert.equal(costoPropio({ costo: 129, personas: 2 }), 64.5);
+      assert.equal(costoPropio({ costo: 99, personas: 3 }), 33);
+      const lista = await get('/membresias');
+      assert.equal((await resumen()).gasto_fijo, 67.25);
+      assert.equal(calcularTotalMensual(lista), (await resumen()).gasto_fijo);
+    });
+
+    it('pagos_membresia guarda tu parte y no se recalcula al cambiar personas (historial)', async () => {
+      const m = await crear(spotify({ fecha_ultimo_pago: '2026-01-05', fecha_cobro: '2026-02-05' }));
+      const previos = await get(`/membresias/${m.id}/pagos`);
+      assert.ok(previos.length > 0);
+      assert.ok(previos.every((p) => p.monto === 64.5));
+      const pagada = await auth(ctx.api.post(`/membresias/${m.id}/pagada`)).expect(200);
+      assert.equal(pagada.body.pago.monto, 64.5);
+      assert.equal(pagada.body.membresia.personas, 2);
+      await auth(ctx.api.put(`/membresias/${m.id}`)).send(spotify({ personas: 3 })).expect(200);
+      assert.ok((await get(`/membresias/${m.id}/pagos`)).every((p) => p.monto === 64.5));
+      assert.equal((await resumen()).gasto_fijo, 43);
+    });
+
+    it('exportar CSV usa tu parte (también en divisa)', async () => {
+      await crear(spotify());
+      await crear(datos({ nombre: 'Duo USD', costo: 186.32, moneda: 'USD', monto_original: 10,
+        tipo_cambio: 18.632, personas: 2 }));
+      const { text } = await auth(ctx.api.get('/exportar?formato=csv')).expect(200);
+      assert.match(text, /suscripcion,2026-10-20,Spotify,mensual,64\.50,MXN,/);
+      assert.match(text, /suscripcion,2026-10-20,Duo USD,mensual,5\.00,USD,/);
     });
   });
 });

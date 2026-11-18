@@ -356,13 +356,15 @@ Body: igual que POST
 - Si `moneda` es otro código ISO 4217 de 3 letras soportado (ej. `"USD"` o `"EUR"`), `monto_original` y `tipo_cambio` son obligatorios y `monto_original × tipo_cambio` redondeado a 2 decimales debe coincidir con `costo`.
 - Reportes y totales mensuales siempre suman `costo` en `MXN`.
 
+`personas` es opcional (HU-76, planes Duo/Familiar): entero ≥ 1 entre quienes se divide la suscripción; si se omite (también en `PUT`), vale 1. `0`, `1.5`, negativos o texto → 400 `PERSONAS_INVALIDAS`. Todas las respuestas de membresía lo incluyen. `costo` sigue siendo el **costo completo** del plan (referencia: «Pagas $64.50 de $129»); todo lo que suma lo que el usuario paga usa **tu parte** = `ROUND(costo / personas, 2)` por suscripción (mínimo 0.01) y después se suma (anual: tu parte / 12, redondeado al final): gasto fijo de `GET /reportes/resumen`, `/reportes/balance` y `/tarjetas/:id/resumen`, el `monto` de `pagos_membresia`, el aviso push de cobro («Spotify se cobra hoy: $64.50 de $129») y el `monto` de las suscripciones en `GET /exportar` (también `monto_original` en divisa). Los pagos ya registrados en `pagos_membresia` **no se recalculan** si después cambia `personas`: son historial.
+
 ### POST /membresias
 Body (en MXN): { "nombre": "Spotify", "costo": 129, "frecuencia": "mensual", "fecha_cobro": "2026-10-20", "servicio_id": 1 }
 Body (en otra divisa): { "nombre": "ChatGPT Plus", "costo": 186.31, "moneda": "USD", "monto_original": 10, "tipo_cambio": 18.6311, "frecuencia": "mensual", "fecha_cobro": "2026-10-20" }
 - 201 → { "membresia": { "id": 9, "servicio_id": 1, "nombre": "Spotify", "costo": 129, "moneda": "MXN", "monto_original": null, "tipo_cambio": null, "frecuencia": "mensual", "fecha_cobro": "2026-10-20" } }
-- 400 → NOMBRE_INVALIDO, COSTO_INVALIDO, FRECUENCIA_INVALIDA, FECHA_INVALIDA, SERVICIO_INEXISTENTE, MONEDA_INVALIDA, MONTO_INVALIDO
+- 400 → NOMBRE_INVALIDO, COSTO_INVALIDO, FRECUENCIA_INVALIDA, FECHA_INVALIDA, SERVICIO_INEXISTENTE, MONEDA_INVALIDA, MONTO_INVALIDO, PERSONAS_INVALIDAS
 
-`fecha_ultimo_pago` (opcional, `YYYY-MM-DD`, HU-95): fecha en que el usuario ya pagó la suscripción. Si viene, en la misma transacción del alta se registra en `pagos_membresia` un pago por ciclo desde esa fecha hasta hoy inclusive (`fecha_ultimo_pago + n × INTERVAL '1 month'` o `'1 year'`, con el ajuste de fin de mes de PostgreSQL), con `monto` = `costo`; se guardan como máximo los 24 más recientes. Ejemplo: mensual con `fecha_ultimo_pago` 2026-10-16, registrada el 2026-11-17 → pagos 2026-10-16 y 2026-11-16 (la app manda `fecha_cobro` 2026-12-16). Fecha mal formada o futura → 400 `FECHA_INVALIDA` sin crear nada. Sin el campo no se registra ningún pago. `PUT /membresias/:id` no lo acepta.
+`fecha_ultimo_pago` (opcional, `YYYY-MM-DD`, HU-95): fecha en que el usuario ya pagó la suscripción. Si viene, en la misma transacción del alta se registra en `pagos_membresia` un pago por ciclo desde esa fecha hasta hoy inclusive (`fecha_ultimo_pago + n × INTERVAL '1 month'` o `'1 year'`, con el ajuste de fin de mes de PostgreSQL), con `monto` = tu parte (`ROUND(costo / personas, 2)`, HU-76); se guardan como máximo los 24 más recientes. Ejemplo: mensual con `fecha_ultimo_pago` 2026-10-16, registrada el 2026-11-17 → pagos 2026-10-16 y 2026-11-16 (la app manda `fecha_cobro` 2026-12-16). Fecha mal formada o futura → 400 `FECHA_INVALIDA` sin crear nada. Sin el campo no se registra ningún pago. `PUT /membresias/:id` no lo acepta.
 
 ### GET /membresias
 Orden: `fecha_cobro` ascendente.
@@ -371,7 +373,7 @@ Orden: `fecha_cobro` ascendente.
 ### PUT /membresias/:id
 Body: igual que POST
 - 200 → { "membresia": { ... } }
-- 400 → NOMBRE_INVALIDO, COSTO_INVALIDO, FRECUENCIA_INVALIDA, FECHA_INVALIDA, SERVICIO_INEXISTENTE, MONEDA_INVALIDA, MONTO_INVALIDO
+- 400 → NOMBRE_INVALIDO, COSTO_INVALIDO, FRECUENCIA_INVALIDA, FECHA_INVALIDA, SERVICIO_INEXISTENTE, MONEDA_INVALIDA, MONTO_INVALIDO, PERSONAS_INVALIDAS
 - 404 → MEMBRESIA_NO_ENCONTRADA
 
 ### POST /membresias/:id/pausar  (requiere token) (HU-75)
@@ -491,6 +493,7 @@ Son campos nuevos y opcionales (no rompen nada de lo existente). Se aplican en u
 | C-07 | `categorias.usuario_id` (int, nulo, CASCADE), `categorias.color` (varchar 7, nulo), `usuarios.categorias_configuradas` (bool, default TRUE) y tabla `usuario_categorias` | Permitir que cada usuario seleccione categorías predefinidas y cree categorías propias con color asignado. | Aplicado en migración 020 |
 | C-08 | Tabla `tarjetas` (`id`, `usuario_id` con `ON DELETE CASCADE`, `nombre`, `tipo`, `ultimos4`, `dia_corte`, `dia_pago`, `creada_en`) y `tarjeta_id` (`ON DELETE SET NULL`) en `gastos` y `membresias` | Registrar las tarjetas del usuario y saber con cuál se pagó cada gasto o suscripción. | Aplicado en migración 021 (Render corre las migraciones al desplegar) |
 | C-09 | Columnas `frecuencia`, `proximo_ingreso`, `recurrente` e `ingreso_origen_id` (`ON DELETE SET NULL`) en `ingresos` | Generar automáticamente ingresos recurrentes (semanal, quincenal, mensual) mediante proceso diario sin duplicados por fecha. | Aplicado en migración 022 |
+| C-10 | `membresias.personas` (integer, `NOT NULL DEFAULT 1`, `CHECK (personas >= 1)`) | Costo compartido en planes Duo/Familiar: lo que el usuario paga es `ROUND(costo / personas, 2)` (HU-76). | Aplicado en migración 023 |
 
 ### Extensiones propuestas, fuera del congelamiento
 
@@ -539,3 +542,4 @@ Pendiente en la colección Postman (**HU-22**, Luis Dorian): agregar las asercio
 - 2026-11-17 — v1.8 — HU-95: `POST /membresias` acepta `fecha_ultimo_pago` opcional (`YYYY-MM-DD`, hoy o antes; si no, 400 `FECHA_INVALIDA`) y, en la misma transacción del alta, registra en `pagos_membresia` un pago por ciclo desde esa fecha hasta hoy (máximo los 24 más recientes). Sin el campo, el comportamiento no cambia. Sin cambios en el esquema. Autor: Fernando.
 - 2026-11-17 — v1.9 — Edición de perfil, cambio de contraseña y exportación CSV. Se agregan `PUT /auth/perfil` (`nombre` de 1 a 100 caracteres → `{ usuario }`), `POST /auth/cambiar-contrasena` (`contrasena_actual` y `contrasena_nueva` ≥ 8; errores `CONTRASENA_ACTUAL_INCORRECTA` y `CONTRASENA_INVALIDA`) y `GET /exportar?formato=csv&mes=YYYY-MM` (CSV UTF-8 con BOM con gastos, ingresos y suscripciones del usuario). El CSV mantiene la correspondencia entre importe y moneda originales y neutraliza fórmulas de Excel.
 - 2026-11-17 — v1.10 — Ingresos recurrentes (migración 022). Se agregan `frecuencia` (`semanal|quincenal|mensual`, nulo = único), `proximo_ingreso`, `recurrente` e `ingreso_origen_id` en `ingresos`. `POST/PUT /ingresos` aceptan `frecuencia` (`400 FRECUENCIA_INVALIDA`), el proceso diario `jobs/ingresosRecurrentes.js` genera el ingreso del periodo una sola vez por fecha con `recurrente: true` y cancelar la recurrencia conserva los ingresos ya generados.
+- 2026-11-18 — v1.11 — HU-76: costo compartido (migración 023, C-10). `POST/PUT /membresias` aceptan `personas` opcional (entero ≥ 1, por defecto 1; si no, 400 `PERSONAS_INVALIDAS`) y todas las respuestas de membresía lo incluyen. Gasto fijo de Reportes y de tarjetas, `pagos_membresia` (`POST /membresias/:id/pagada` y `fecha_ultimo_pago`), aviso push y exportación CSV usan tu parte `ROUND(costo / personas, 2)`; `costo` sigue siendo el costo completo. Los pagos ya registrados no se recalculan al cambiar `personas`. Con `personas = 1` nada cambia. Autor: Fernando.

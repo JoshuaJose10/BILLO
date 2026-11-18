@@ -81,10 +81,11 @@ const CATALOGO = [
   { id: 4, nombre: 'Duolingo', logo_url: null, costo_sugerido: 1499 },
 ];
 
-// [servicio_id, frecuencia, días para el cobro]: todas cobran pronto (dos en 3 días o menos).
+// [servicio_id, frecuencia, días para el cobro, personas]: todas cobran pronto (dos en 3 días o
+// menos). Spotify se comparte entre 2 (HU-76) para que la demo muestre «Pagas $64.50 de $129».
 const MEMBRESIAS = [
   [1, 'mensual', 2],
-  [2, 'mensual', 3],
+  [2, 'mensual', 3, 2],
   [3, 'mensual', 9],
   [4, 'anual', 20],
 ];
@@ -181,12 +182,13 @@ export function crearDatosEjemplo(hoy = new Date()) {
     monto_limite,
   }));
 
-  const membresias = MEMBRESIAS.map(([servicio_id, frecuencia, dias], i) => {
+  const membresias = MEMBRESIAS.map(([servicio_id, frecuencia, dias, personas = 1], i) => {
     const servicio = CATALOGO.find((s) => s.id === servicio_id);
     return {
       servicio_id,
       tarjeta_id: i < 2 ? 1 : i === 2 ? 2 : null,
       estado: 'activa',
+      personas,
       ...membresiaEjemplo({
         id: i + 1,
         nombre: servicio.nombre,
