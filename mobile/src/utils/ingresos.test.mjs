@@ -8,6 +8,7 @@ import {
   iconoFuente,
   normalizarFrecuencia,
   OPCIONES_FRECUENCIA,
+  prepararRecurrenciaIngreso,
   saldoDelMes,
   totalIngresos,
 } from './ingresos.js';
@@ -80,5 +81,61 @@ describe('frecuencia de ingresos', () => {
     assert.equal(etiquetaFrecuencia('mensual'), 'Mensual');
     assert.equal(etiquetaFrecuencia(null), 'No');
     assert.equal(etiquetaFrecuencia('xyz'), 'No');
+  });
+});
+
+describe('programación del ingreso al guardar y mostrar Próximo', () => {
+  const original = {
+    fecha: '2026-11-01',
+    frecuencia: 'quincenal',
+    proximo_ingreso: '2026-12-01',
+  };
+
+  it('conserva el próximo periodo avanzado al editar datos ajenos a la programación', () => {
+    const editado = { ...original, monto: 16000, descripcion: 'Nómina editada', fuente: 'Sueldo' };
+    assert.deepEqual(prepararRecurrenciaIngreso(editado, original), {
+      frecuencia: 'quincenal',
+      proximo_ingreso: '2026-12-01',
+    });
+  });
+
+  it('omite el próximo anterior al cambiar la frecuencia para que la API lo recalcule', () => {
+    assert.deepEqual(prepararRecurrenciaIngreso({ ...original, frecuencia: 'mensual' }, original), {
+      frecuencia: 'mensual',
+    });
+  });
+
+  it('omite el próximo anterior al cambiar la fecha para que la API lo recalcule', () => {
+    assert.deepEqual(prepararRecurrenciaIngreso({ ...original, fecha: '2026-11-02' }, original), {
+      frecuencia: 'quincenal',
+    });
+  });
+
+  it('cancela con null y deja de mostrar el próximo ingreso', () => {
+    assert.deepEqual(prepararRecurrenciaIngreso({ ...original, frecuencia: null }, original), {
+      frecuencia: null,
+    });
+  });
+
+  it('no agrega campos de recurrencia al crear sin repetir', () => {
+    assert.deepEqual(prepararRecurrenciaIngreso({ fecha: original.fecha, frecuencia: null }), {});
+  });
+
+  it('envía la frecuencia al crear sin reutilizar una fecha próxima', () => {
+    assert.deepEqual(prepararRecurrenciaIngreso(original), { frecuencia: 'quincenal' });
+  });
+
+  it('permite programar un ingreso único y recalcular uno sin próximo disponible', () => {
+    assert.deepEqual(
+      prepararRecurrenciaIngreso(original, {
+        ...original,
+        frecuencia: null,
+        proximo_ingreso: null,
+      }),
+      { frecuencia: 'quincenal' },
+    );
+    assert.deepEqual(prepararRecurrenciaIngreso(original, { ...original, proximo_ingreso: null }), {
+      frecuencia: 'quincenal',
+    });
   });
 });
