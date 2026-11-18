@@ -245,6 +245,10 @@ export default function InicioScreen({ navigation }) {
         saldo={saldo}
         ingresos={totalIngresos(ingresosMes)}
         onRegistrarIngreso={abrirNuevoIngreso}
+        tarjetas={tarjetas}
+        onAbrirTarjetas={() =>
+          navigation.navigate('Cartera', { seccion: 'tarjetas', solicitud: Date.now() })
+        }
       />
 
       <TarjetaResumen

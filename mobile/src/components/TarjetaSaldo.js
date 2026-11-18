@@ -1,13 +1,15 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { useSaldoOculto } from '../hooks/useSaldoOculto';
 import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { tipografia } from '../theme/tipografia';
 import { formatearMonto, MONEDA, partesMonto } from '../utils/formato';
+import { etiquetaAccesibleTarjeta } from '../utils/tarjetas';
 import Etiqueta from './Etiqueta';
+import TarjetaVisual from './TarjetaVisual';
 
 // Bloque "Saldo disponible" de Inicio (Stitch 07_inicio_*_fondo_1), entre el saludo y la tarjeta
 // del mes. `saldo` = ingresos − gastos del mes (HU-82): sin él (null: mes sin movimientos) muestra
@@ -17,10 +19,22 @@ import Etiqueta from './Etiqueta';
 // Al final, la pastilla de acción «↓ Ingreso» llama a `onRegistrarIngreso` (sin él no se dibuja:
 // la maqueta del onboarding).
 // El ojo oculta saldo, aviso e ingresos ("••••••" con el mismo estilo, para que el layout no
-// salte); la preferencia se recuerda (useSaldoOculto). Sin la pila de tarjetas (Próximamente).
-export default function TarjetaSaldo({ saldo, ingresos = 0, onRegistrarIngreso }) {
+// salte); la preferencia se recuerda (useSaldoOculto).
+// A la derecha, la pila de hasta 3 `tarjetas` (TarjetaVisual 'mini', algo rotadas, asomando del
+// borde como en Stitch); tocarla llama a `onAbrirTarjetas`. El saldo se limita al 62 % del ancho
+// para no quedar debajo; sin tarjetas o en pantallas angostas no se dibuja.
+export default function TarjetaSaldo({
+  saldo,
+  ingresos = 0,
+  onRegistrarIngreso,
+  tarjetas = [],
+  onAbrirTarjetas,
+}) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
+  const { width } = useWindowDimensions();
+  const pila =
+    onAbrirTarjetas && width >= ANCHO_MIN_PILA ? (tarjetas || []).slice(0, MAX_PILA) : [];
   const conSaldo = typeof saldo === 'number' && Number.isFinite(saldo);
   const negativo = conSaldo && saldo < 0;
   // El signo va con "−" (menos tipográfico), no con el guion de Intl.
@@ -58,6 +72,7 @@ export default function TarjetaSaldo({ saldo, ingresos = 0, onRegistrarIngreso }
 
       <View
         accessible
+        style={pila.length > 0 ? styles.conPila : null}
         accessibilityLabel={
           oculto
             ? 'Saldo oculto'
@@ -118,11 +133,36 @@ export default function TarjetaSaldo({ saldo, ingresos = 0, onRegistrarIngreso }
           <Text style={styles.pastillaTexto}>Ingreso</Text>
         </Pressable>
       ) : null}
+
+      {pila.length > 0 ? (
+        <Pressable
+          onPress={onAbrirTarjetas}
+          accessibilityRole="button"
+          accessibilityLabel={`Tus tarjetas: ${pila.map(etiquetaAccesibleTarjeta).join(', ')}`}
+          accessibilityHint="Abre tus tarjetas en Cartera"
+          style={styles.pila}
+        >
+          {/* La primera tarjeta va al frente (se dibuja al final), las demás detrás y giradas */}
+          {[...pila].reverse().map((t, i, lista) => (
+            <TarjetaVisual
+              key={t.id}
+              tarjeta={t}
+              tamano="mini"
+              style={[
+                styles.mini,
+                { top: i * 12, transform: [{ rotate: `${(lista.length - 1 - i) * -4}deg` }] },
+              ]}
+            />
+          ))}
+        </Pressable>
+      ) : null}
     </View>
   );
 }
 
 const OCULTO = '••••••';
+const MAX_PILA = 3;
+const ANCHO_MIN_PILA = 360;
 
 const crearEstilos = (colors) =>
   StyleSheet.create({
@@ -222,5 +262,25 @@ const crearEstilos = (colors) =>
     pastillaTexto: {
       ...tipografia.labelAccion,
       color: colors.text,
+    },
+    // Pila de tarjetas (Stitch: absolute -right-14, w-32 escalonadas top 0/12/24)
+    conPila: {
+      maxWidth: '62%',
+    },
+    pila: {
+      position: 'absolute',
+      top: espacios.md,
+      right: -(espacios.margen + espacios.md),
+      width: 128,
+      height: 81 + (MAX_PILA - 1) * 12,
+    },
+    mini: {
+      position: 'absolute',
+      right: 0,
+      shadowColor: colors.sombra,
+      shadowOffset: { width: -8, height: 6 },
+      shadowRadius: 16,
+      shadowOpacity: 0.5,
+      elevation: 6,
     },
   });

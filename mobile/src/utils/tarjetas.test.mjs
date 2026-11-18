@@ -5,15 +5,20 @@ import { prepararDatosGasto, prepararDatosMembresia } from './divisas.js';
 import {
   calcularResumenTarjetaMes,
   colorTarjeta,
+  etiquetaAccesibleTarjeta,
   etiquetaTarjeta,
   etiquetaTipoTarjeta,
   formatearUltimos4,
+  lineaCaraTarjeta,
   nombreTarjetaPorId,
   resumenGeneralTarjetas,
   subtituloTarjeta,
+  suscripcionesDeTarjeta,
   textoFechasTarjeta,
+  titularTarjeta,
   validarTarjeta,
 } from './tarjetas.js';
+import { degradadoTarjeta } from '../theme/tarjetas.js';
 
 describe('utils/tarjetas', () => {
   it('formatea etiquetas, subtítulos y fechas de corte/pago de una tarjeta', () => {
@@ -156,5 +161,62 @@ describe('utils/tarjetas', () => {
       tarjetaId: 2,
     });
     assert.equal(membresiaConTarjeta.tarjeta_id, 2);
+  });
+
+  describe('cara y resumen de la tarjeta (diseño Stitch)', () => {
+    const banorte = { id: 7, nombre: 'Banorte', tipo: 'credito', ultimos4: '0435' };
+
+    it('línea de la cara: crédito con corte/pago, débito «DÉBITO»', () => {
+      assert.equal(
+        lineaCaraTarjeta({ ...banorte, dia_corte: 12, dia_pago: 2 }),
+        'CORTE 12 · PAGO 2',
+      );
+      assert.equal(lineaCaraTarjeta({ ...banorte, dia_pago: 2 }), 'PAGO 2');
+      assert.equal(lineaCaraTarjeta(banorte), null);
+      assert.equal(lineaCaraTarjeta({ ...banorte, tipo: 'debito', dia_corte: 3 }), 'DÉBITO');
+    });
+
+    it('titular en mayúsculas y etiqueta accesible', () => {
+      assert.equal(titularTarjeta('Fernando Villafuerte'), 'FERNANDO V.');
+      assert.equal(titularTarjeta('Fer'), 'FER');
+      assert.equal(titularTarjeta(undefined), '');
+      assert.equal(
+        etiquetaAccesibleTarjeta(banorte),
+        'Tarjeta de crédito Banorte terminada en 0435',
+      );
+      assert.equal(
+        etiquetaAccesibleTarjeta({ nombre: 'Nu', tipo: 'debito' }),
+        'Tarjeta de débito Nu',
+      );
+    });
+
+    it('suscripciones vinculadas: texto y total al mes con calcularTotalMensual', () => {
+      const membresias = [
+        { id: 1, nombre: 'Netflix', costo: 299, frecuencia: 'mensual', tarjeta_id: 7 },
+        { id: 2, nombre: 'Duolingo', costo: 1200, frecuencia: 'anual', tarjeta_id: '7' },
+        { id: 3, nombre: 'Spotify', costo: 129, frecuencia: 'mensual', tarjeta_id: 8 },
+        { id: 4, nombre: 'iCloud', costo: 49, frecuencia: 'mensual', tarjeta_id: null },
+      ];
+      const r = suscripcionesDeTarjeta(membresias, 7);
+      assert.deepEqual(
+        r.vinculadas.map((m) => m.id),
+        [1, 2],
+      );
+      assert.equal(r.texto, '2 suscripciones');
+      assert.equal(r.totalMensual, 399);
+      assert.equal(suscripcionesDeTarjeta(membresias, 8).texto, '1 suscripción');
+      assert.deepEqual(suscripcionesDeTarjeta(membresias, 9), {
+        vinculadas: [],
+        texto: 'Sin suscripciones',
+        totalMensual: 0,
+      });
+    });
+
+    it('gradiente por tipo, con tono distinto según el id', () => {
+      const credito1 = degradadoTarjeta({ id: 1, tipo: 'credito' });
+      assert.notDeepEqual(credito1, degradadoTarjeta({ id: 2, tipo: 'credito' }));
+      assert.notDeepEqual(credito1, degradadoTarjeta({ id: 1, tipo: 'debito' }));
+      assert.equal(credito1.length, 3);
+    });
   });
 });
