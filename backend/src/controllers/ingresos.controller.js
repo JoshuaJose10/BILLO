@@ -1,4 +1,8 @@
 const { pool } = require('../db');
+const {
+  FRECUENCIAS_INGRESO_VALIDAS,
+  calcularSiguienteIngreso,
+} = require('../jobs/ingresosRecurrentes');
 
 const esFechaValida = (fechaStr) => {
   if (typeof fechaStr !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(fechaStr)) {
@@ -33,10 +37,13 @@ const formatearIngreso = (row) => ({
   fecha: row.fecha,
   descripcion: row.descripcion,
   fuente: row.fuente,
+  frecuencia: row.frecuencia ?? null,
+  proximo_ingreso: row.proximo_ingreso ?? null,
+  recurrente: Boolean(row.recurrente),
 });
 
 const validarDatosIngreso = (body) => {
-  const { monto, fecha, descripcion, fuente } =
+  const { monto, fecha, descripcion, fuente, frecuencia, proximo_ingreso } =
     body && typeof body === 'object' ? body : {};
 
   if (!esMontoValido(monto)) {
@@ -87,12 +94,47 @@ const validarDatosIngreso = (body) => {
     fuenteFinal = fuente.trim();
   }
 
+  let frecuenciaFinal = null;
+  let proximoIngresoFinal = null;
+
+  if (frecuencia !== undefined && frecuencia !== null) {
+    if (
+      typeof frecuencia !== 'string' ||
+      !FRECUENCIAS_INGRESO_VALIDAS.includes(frecuencia)
+    ) {
+      return {
+        error: {
+          code: 'FRECUENCIA_INVALIDA',
+          message: "La frecuencia debe ser 'semanal', 'quincenal' o 'mensual'",
+        },
+      };
+    }
+    frecuenciaFinal = frecuencia;
+
+    if (proximo_ingreso !== undefined && proximo_ingreso !== null) {
+      if (!esFechaValida(proximo_ingreso)) {
+        return {
+          error: {
+            code: 'FECHA_INVALIDA',
+            message:
+              'La fecha del próximo ingreso no es válida (formato esperado: YYYY-MM-DD)',
+          },
+        };
+      }
+      proximoIngresoFinal = proximo_ingreso;
+    } else {
+      proximoIngresoFinal = calcularSiguienteIngreso(fecha, frecuenciaFinal);
+    }
+  }
+
   return {
     datos: {
       monto,
       fecha,
       descripcion: descripcion ?? null,
       fuente: fuenteFinal,
+      frecuencia: frecuenciaFinal,
+      proximo_ingreso: proximoIngresoFinal,
     },
   };
 };
@@ -107,12 +149,36 @@ const crearIngreso = async (req, res) => {
       return res.status(400).json({ error: validacion.error });
     }
 
-    const { monto, fecha, descripcion, fuente } = validacion.datos;
+    const {
+      monto,
+      fecha,
+      descripcion,
+      fuente,
+      frecuencia,
+      proximo_ingreso,
+    } = validacion.datos;
 
     const insertQuery = `
-      INSERT INTO ingresos (usuario_id, monto, fecha, descripcion, fuente)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, monto, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, descripcion, fuente
+      INSERT INTO ingresos (
+        usuario_id,
+        monto,
+        fecha,
+        descripcion,
+        fuente,
+        frecuencia,
+        proximo_ingreso,
+        recurrente
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, FALSE)
+      RETURNING
+        id,
+        monto,
+        TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha,
+        descripcion,
+        fuente,
+        frecuencia,
+        TO_CHAR(proximo_ingreso, 'YYYY-MM-DD') AS proximo_ingreso,
+        recurrente
     `;
 
     const { rows } = await pool.query(insertQuery, [
@@ -121,6 +187,8 @@ const crearIngreso = async (req, res) => {
       fecha,
       descripcion,
       fuente,
+      frecuencia,
+      proximo_ingreso,
     ]);
 
     return res.status(201).json({ ingreso: formatearIngreso(rows[0]) });
@@ -158,7 +226,15 @@ const listarIngresos = async (req, res) => {
     }
 
     const query = `
-      SELECT id, monto, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, descripcion, fuente
+      SELECT
+        id,
+        monto,
+        TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha,
+        descripcion,
+        fuente,
+        frecuencia,
+        TO_CHAR(proximo_ingreso, 'YYYY-MM-DD') AS proximo_ingreso,
+        recurrente
       FROM ingresos
       WHERE ${condiciones.join(' AND ')}
       ORDER BY fecha DESC, id DESC
@@ -201,16 +277,33 @@ const actualizarIngreso = async (req, res) => {
       return res.status(400).json({ error: validacion.error });
     }
 
-    const { monto, fecha, descripcion, fuente } = validacion.datos;
+    const {
+      monto,
+      fecha,
+      descripcion,
+      fuente,
+      frecuencia,
+      proximo_ingreso,
+    } = validacion.datos;
 
     const updateQuery = `
       UPDATE ingresos
       SET monto = $3,
           fecha = $4,
           descripcion = $5,
-          fuente = $6
+          fuente = $6,
+          frecuencia = $7,
+          proximo_ingreso = $8
       WHERE id = $1 AND usuario_id = $2
-      RETURNING id, monto, TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, descripcion, fuente
+      RETURNING
+        id,
+        monto,
+        TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha,
+        descripcion,
+        fuente,
+        frecuencia,
+        TO_CHAR(proximo_ingreso, 'YYYY-MM-DD') AS proximo_ingreso,
+        recurrente
     `;
 
     const { rows } = await pool.query(updateQuery, [
@@ -220,6 +313,8 @@ const actualizarIngreso = async (req, res) => {
       fecha,
       descripcion,
       fuente,
+      frecuencia,
+      proximo_ingreso,
     ]);
 
     if (rows.length === 0) {
