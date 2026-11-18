@@ -66,7 +66,8 @@ export function useMembresiasService() {
         });
       },
 
-      // POST /membresias { servicio_id?, nombre, costo, frecuencia, fecha_cobro } → 201 { membresia }
+      // POST /membresias { servicio_id?, nombre, costo, frecuencia, fecha_cobro, fecha_ultimo_pago? }
+      // → 201 { membresia }
       crearMembresia: async (datos) => {
         const respuesta = await api('/membresias', {
           method: 'POST',

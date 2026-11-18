@@ -972,6 +972,102 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
       assert.equal(pagosB[0].monto, 129);
     });
 
+    describe('HU-95: alta con fecha_ultimo_pago llena el historial', () => {
+      // «Hoy» es CURRENT_DATE de PostgreSQL: las fechas se calculan en SQL relativas a él.
+      const fechaSql = async (expr) =>
+        (await ctx.pool.query(`SELECT TO_CHAR((${expr})::date, 'YYYY-MM-DD') AS f`)).rows[0].f;
+      const crearPagada = async (fecha_ultimo_pago, extra = {}) =>
+        crear(datos({ costo: 219, fecha_ultimo_pago, ...extra }));
+      const fechasPagos = async (m) => (await get(`/membresias/${m.id}/pagos`)).map((p) => p.fecha);
+
+      it('mensual pagada hace 1 mes y 1 día → 2 pagos con el costo', async () => {
+        const pago = await fechaSql("CURRENT_DATE - INTERVAL '1 month' - INTERVAL '1 day'");
+        const m = await crearPagada(pago);
+        const pagos = await get(`/membresias/${m.id}/pagos`);
+        assert.deepEqual(pagos.map((p) => p.fecha), [
+          await fechaSql(`'${pago}'::date + INTERVAL '1 month'`),
+          pago,
+        ]);
+        assert.ok(pagos.every((p) => p.monto === 219 && p.membresia_id === m.id));
+        assert.equal(Number((await ctx.pool.query('SELECT COUNT(*) AS total FROM gastos')).rows[0].total), 0);
+      });
+
+      it('un pago inicial de hoy se registra una sola vez', async () => {
+        const hoy = await fechaSql('CURRENT_DATE');
+        assert.deepEqual(await fechasPagos(await crearPagada(hoy)), [hoy]);
+      });
+
+      it('un fallo al insertar el historial revierte también el alta', async () => {
+        await ctx.pool.query(`
+          CREATE FUNCTION rechazar_pago_hu95() RETURNS trigger LANGUAGE plpgsql AS $$
+          BEGIN
+            RAISE EXCEPTION 'Fallo de historial para probar rollback HU-95';
+          END;
+          $$;
+          CREATE TRIGGER rechazar_pago_hu95 BEFORE INSERT ON pagos_membresia
+          FOR EACH ROW EXECUTE FUNCTION rechazar_pago_hu95();
+        `);
+        try {
+          expectError(
+            await ctx.api.post('/membresias').auth(ctx.a.token, { type: 'bearer' })
+              .send(datos({ fecha_ultimo_pago: await fechaSql('CURRENT_DATE') })),
+            500,
+            'ERROR_SERVIDOR'
+          );
+          assert.deepEqual(await get('/membresias'), []);
+          assert.equal(Number((await ctx.pool.query('SELECT COUNT(*) AS total FROM pagos_membresia')).rows[0].total), 0);
+        } finally {
+          await ctx.pool.query('DROP TRIGGER rechazar_pago_hu95 ON pagos_membresia; DROP FUNCTION rechazar_pago_hu95()');
+        }
+      });
+
+      it('anual pagada hace 3 meses → 1 pago', async () => {
+        const pago = await fechaSql("CURRENT_DATE - INTERVAL '3 months'");
+        assert.deepEqual(await fechasPagos(await crearPagada(pago, { frecuencia: 'anual' })), [pago]);
+      });
+
+      it('mensual del 31 de enero: el siguiente pago cae en fin de febrero', async () => {
+        const anio = Number((await fechaSql('CURRENT_DATE')).slice(0, 4)) - 1;
+        const fechas = await fechasPagos(await crearPagada(`${anio}-01-31`));
+        const fin = (anio % 4 === 0 && anio % 100 !== 0) || anio % 400 === 0 ? 29 : 28;
+        assert.ok(fechas.includes(`${anio}-02-${fin}`));
+        assert.ok(fechas.includes(`${anio}-03-31`));
+      });
+
+      it('mensual de hace 3 años → solo los 24 más recientes', async () => {
+        const fechas = await fechasPagos(await crearPagada(await fechaSql("CURRENT_DATE - INTERVAL '3 years'")));
+        assert.equal(fechas.length, 24);
+        assert.equal(fechas[0], await fechaSql('CURRENT_DATE'));
+      });
+
+      it('sin el campo → 0 pagos', async () => {
+        assert.deepEqual(await fechasPagos(await crear()), []);
+      });
+
+      for (const [caso, expr] of [
+        ['futura', "CURRENT_DATE + INTERVAL '1 day'"],
+        ['mal formada', null],
+      ]) it(`fecha ${caso} → 400 FECHA_INVALIDA sin crear la membresía`, async () => {
+        const fecha = expr ? await fechaSql(expr) : '2026-13-01';
+        expectError(
+          await ctx.api.post('/membresias').auth(ctx.a.token, { type: 'bearer' })
+            .send(datos({ fecha_ultimo_pago: fecha })),
+          400,
+          'FECHA_INVALIDA'
+        );
+        assert.deepEqual(await get('/membresias'), []);
+      });
+
+      it('el historial creado sigue aislado: otro usuario recibe 404', async () => {
+        const m = await crearPagada(await fechaSql("CURRENT_DATE - INTERVAL '1 month'"));
+        expectError(
+          await ctx.api.get(`/membresias/${m.id}/pagos`).auth(ctx.b.token, { type: 'bearer' }),
+          404,
+          'MEMBRESIA_NO_ENCONTRADA'
+        );
+      });
+    });
+
     it('aislamiento A/B, IDs inválidos y autenticación en GET /membresias/:id/pagos', async () => {
       const mA = await crear(datos(), ctx.a);
 

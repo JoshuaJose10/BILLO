@@ -37,6 +37,23 @@ npm start -- --tunnel
 El túnel de Metro no publica la API: el teléfono también debe poder llegar a
 `EXPO_PUBLIC_API_URL`. Después de cambiar `.env`, reinicia con `npm start -- --clear`.
 
+## Error de versiones en `check:sdk`
+
+Si CI muestra `Found outdated dependencies` en `expo install --check`, el fallo
+está en las dependencias del proyecto. Para el aviso de HU-85/HU-95 se alinearon
+`expo` a `~58.0.26` y `expo-dev-client` a `~58.0.21`, con su `package-lock.json`.
+Al recibir estos cambios, ejecuta desde `mobile`:
+
+```bash
+npm ci
+npm run check:sdk
+npm run doctor
+```
+
+Si Expo recomienda otras versiones en el futuro, usa `npx expo install --fix`,
+repite los checks y guarda los cambios de `package.json` y `package-lock.json`
+juntos. La actualización de Expo Go en el teléfono se hace por separado.
+
 ## Development build: voz y widget
 
 `expo-speech-recognition` y `react-native-android-widget` no están incluidos en
