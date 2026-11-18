@@ -1,4 +1,4 @@
-# Contrato de API — Billo (v1.9)
+# Contrato de API — Billo (v1.10)
 
 Estado: **esquema de BD congelado desde el 2026-10-13** (ver «Congelamiento del esquema»). Cualquier cambio al contrato o al esquema se acuerda con el equipo y se anota en el **Registro de cambios**.
 
@@ -228,24 +228,26 @@ Ejemplo 404 → { "error": { "code": "GASTO_NO_ENCONTRADO", "message": "Gasto no
 - 200 → { "eliminado": true }
 - 404 → GASTO_NO_ENCONTRADO
 
-## Ingresos (todas requieren token) (S3) — HU-82
+## Ingresos (todas requieren token) (S3) — HU-82 y recurrencia
 
-Registra los ingresos del usuario autenticado (`monto` mayor a 0 con hasta 2 decimales, `fecha` en formato `YYYY-MM-DD`, `descripcion` opcional de hasta 200 caracteres y `fuente` opcional de hasta 100 caracteres). Los reportes y presupuestos siguen sumando únicamente gastos. Al eliminar la cuenta (`DELETE /auth/cuenta`), también se eliminan sus ingresos (`ON DELETE CASCADE`).
+Registra los ingresos del usuario autenticado (`monto` mayor a 0 con hasta 2 decimales, `fecha` en formato `YYYY-MM-DD`, `descripcion` opcional de hasta 200 caracteres, `fuente` opcional de hasta 100 caracteres y `frecuencia` opcional en `'semanal' | 'quincenal' | 'mensual'` o `null` para ingreso único). Cuando se indica `frecuencia`, el backend calcula `proximo_ingreso` (o acepta `proximo_ingreso` válido) y el proceso diario (`jobs/ingresosRecurrentes.js`) genera el ingreso de cada periodo una sola vez por fecha marcándolo con `recurrente: true`. Cancelar la recurrencia (`PUT /ingresos/:id` con `frecuencia: null`) detiene futuros cobros sin borrar los ingresos ya generados. Al eliminar la cuenta (`DELETE /auth/cuenta`), también se eliminan sus ingresos (`ON DELETE CASCADE`).
+
+La recurrencia quincenal avanza 15 días y la semanal 7 días. La mensual conserva el día de la fecha del ingreso origen: 31 de enero → 28 de febrero (29 en año bisiesto) → 31 de marzo → 30 de abril. El job relee y bloquea el origen en una transacción por ingreso: una cancelación confirmada antes del bloqueo impide generar; si el job ya tiene el bloqueo, la cancelación espera a que termine. La inserción y el avance se confirman juntos o se revierten juntos si fallan.
 
 ### POST /ingresos
-Body: { "monto": 15000, "fecha": "2026-11-01", "descripcion": "Quincena", "fuente": "Salario" }
-- 201 → { "ingreso": { "id": 1, "monto": 15000, "fecha": "2026-11-01", "descripcion": "Quincena", "fuente": "Salario" } }
-- 400 → MONTO_INVALIDO, FECHA_INVALIDA, DESCRIPCION_INVALIDA, FUENTE_INVALIDA
+Body: { "monto": 15000, "fecha": "2026-11-01", "descripcion": "Quincena", "fuente": "Salario", "frecuencia": "quincenal" }
+- 201 → { "ingreso": { "id": 1, "monto": 15000, "fecha": "2026-11-01", "descripcion": "Quincena", "fuente": "Salario", "frecuencia": "quincenal", "proximo_ingreso": "2026-11-16", "recurrente": false } }
+- 400 → MONTO_INVALIDO, FECHA_INVALIDA, DESCRIPCION_INVALIDA, FUENTE_INVALIDA, FRECUENCIA_INVALIDA
 
 ### GET /ingresos?mes=2026-11
-El filtro `mes` (`YYYY-MM`) es opcional. Orden: fecha descendente y, con la misma fecha, el más reciente primero (`id` descendente). Sin ingresos: 200 `[]`.
-- 200 → [ { "id": 1, "monto": 15000, "fecha": "2026-11-01", "descripcion": "Quincena", "fuente": "Salario" }, ... ]
+El filtro `mes` (`YYYY-MM`) es opcional. Orden: fecha descendente y, con la misma fecha, el más reciente primero (`id` descendente). Los ingresos generados automáticamente por el proceso diario llevan `recurrente: true`. Sin ingresos: 200 `[]`.
+- 200 → [ { "id": 2, "monto": 15000, "fecha": "2026-11-16", "descripcion": "Quincena", "fuente": "Salario", "frecuencia": null, "proximo_ingreso": null, "recurrente": true }, { "id": 1, "monto": 15000, "fecha": "2026-11-01", "descripcion": "Quincena", "fuente": "Salario", "frecuencia": "quincenal", "proximo_ingreso": "2026-12-01", "recurrente": false } ]
 - 400 → MES_INVALIDO
 
 ### PUT /ingresos/:id
-Body: igual que POST (se reemplazan todos los campos)
+Body: igual que POST (enviar `frecuencia: null` u omitirla cancela la recurrencia sin borrar los ingresos ya generados)
 - 200 → { "ingreso": { ... } } (ingreso actualizado)
-- 400 → MONTO_INVALIDO, FECHA_INVALIDA, DESCRIPCION_INVALIDA, FUENTE_INVALIDA
+- 400 → MONTO_INVALIDO, FECHA_INVALIDA, DESCRIPCION_INVALIDA, FUENTE_INVALIDA, FRECUENCIA_INVALIDA
 - 404 → INGRESO_NO_ENCONTRADO (no existe, no pertenece al usuario o el `id` no es un entero positivo)
 
 ### DELETE /ingresos/:id
@@ -488,6 +490,7 @@ Son campos nuevos y opcionales (no rompen nada de lo existente). Se aplican en u
 | C-06 | Tabla `pagos_membresia` (`id`, `membresia_id` con `ON DELETE CASCADE`, `fecha`, `monto`) | Guardar historial de pagos al marcar una suscripción como pagada (HU-66). | Aplicado en migración 019 |
 | C-07 | `categorias.usuario_id` (int, nulo, CASCADE), `categorias.color` (varchar 7, nulo), `usuarios.categorias_configuradas` (bool, default TRUE) y tabla `usuario_categorias` | Permitir que cada usuario seleccione categorías predefinidas y cree categorías propias con color asignado. | Aplicado en migración 020 |
 | C-08 | Tabla `tarjetas` (`id`, `usuario_id` con `ON DELETE CASCADE`, `nombre`, `tipo`, `ultimos4`, `dia_corte`, `dia_pago`, `creada_en`) y `tarjeta_id` (`ON DELETE SET NULL`) en `gastos` y `membresias` | Registrar las tarjetas del usuario y saber con cuál se pagó cada gasto o suscripción. | Aplicado en migración 021 (Render corre las migraciones al desplegar) |
+| C-09 | Columnas `frecuencia`, `proximo_ingreso`, `recurrente` e `ingreso_origen_id` (`ON DELETE SET NULL`) en `ingresos` | Generar automáticamente ingresos recurrentes (semanal, quincenal, mensual) mediante proceso diario sin duplicados por fecha. | Aplicado en migración 022 |
 
 ### Extensiones propuestas, fuera del congelamiento
 
@@ -535,3 +538,4 @@ Pendiente en la colección Postman (**HU-22**, Luis Dorian): agregar las asercio
 - 2026-11-16 — v1.7 — Reportes de ingresos y balance mensual. Se agregan `GET /reportes/ingresos?mes=YYYY-MM` (total del mes, desglose por fuente con porcentaje, total del mes anterior y variación) y `GET /reportes/balance?mes=YYYY-MM` (ingresos, gasto variable, gasto fijo excluyendo suscripciones pausadas, gastos totales, balance y serie de los últimos 6 meses). Meses sin datos devuelven ceros. Los porcentajes por fuente se distribuyen con restos mayores para sumar 100 sin valores negativos, incluso con más de 100 fuentes.
 - 2026-11-17 — v1.8 — HU-95: `POST /membresias` acepta `fecha_ultimo_pago` opcional (`YYYY-MM-DD`, hoy o antes; si no, 400 `FECHA_INVALIDA`) y, en la misma transacción del alta, registra en `pagos_membresia` un pago por ciclo desde esa fecha hasta hoy (máximo los 24 más recientes). Sin el campo, el comportamiento no cambia. Sin cambios en el esquema. Autor: Fernando.
 - 2026-11-17 — v1.9 — Edición de perfil, cambio de contraseña y exportación CSV. Se agregan `PUT /auth/perfil` (`nombre` de 1 a 100 caracteres → `{ usuario }`), `POST /auth/cambiar-contrasena` (`contrasena_actual` y `contrasena_nueva` ≥ 8; errores `CONTRASENA_ACTUAL_INCORRECTA` y `CONTRASENA_INVALIDA`) y `GET /exportar?formato=csv&mes=YYYY-MM` (CSV UTF-8 con BOM con gastos, ingresos y suscripciones del usuario). El CSV mantiene la correspondencia entre importe y moneda originales y neutraliza fórmulas de Excel.
+- 2026-11-17 — v1.10 — Ingresos recurrentes (migración 022). Se agregan `frecuencia` (`semanal|quincenal|mensual`, nulo = único), `proximo_ingreso`, `recurrente` e `ingreso_origen_id` en `ingresos`. `POST/PUT /ingresos` aceptan `frecuencia` (`400 FRECUENCIA_INVALIDA`), el proceso diario `jobs/ingresosRecurrentes.js` genera el ingreso del periodo una sola vez por fecha con `recurrente: true` y cancelar la recurrencia conserva los ingresos ya generados.

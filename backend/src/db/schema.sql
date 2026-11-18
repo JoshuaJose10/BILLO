@@ -1,5 +1,5 @@
 -- Esquema de base de datos de BILLO
--- Resultado consolidado de las migraciones (001 a 021)
+-- Resultado consolidado de las migraciones (001 a 022)
 -- Fuente de verdad para cambios de esquema: backend/migrations/
 
 CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -156,17 +156,36 @@ CREATE INDEX IF NOT EXISTS idx_pagos_membresia_membresia_fecha
 ON pagos_membresia (membresia_id, fecha DESC, id DESC);
 
 CREATE TABLE IF NOT EXISTS ingresos (
-  id          SERIAL PRIMARY KEY,
-  usuario_id  INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
-  monto       NUMERIC(12, 2) NOT NULL CHECK (monto > 0),
-  fecha       DATE NOT NULL,
-  descripcion VARCHAR(255) NULL,
-  fuente      VARCHAR(100) NULL,
-  created_at  TIMESTAMP DEFAULT NOW()
+  id                SERIAL PRIMARY KEY,
+  usuario_id        INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  monto             NUMERIC(12, 2) NOT NULL CHECK (monto > 0),
+  fecha             DATE NOT NULL,
+  descripcion       VARCHAR(255) NULL,
+  fuente            VARCHAR(100) NULL,
+  frecuencia        VARCHAR(20) NULL CHECK (frecuencia IS NULL OR frecuencia IN ('semanal', 'quincenal', 'mensual')),
+  proximo_ingreso   DATE NULL,
+  recurrente        BOOLEAN NOT NULL DEFAULT FALSE,
+  ingreso_origen_id INTEGER NULL REFERENCES ingresos(id) ON DELETE SET NULL,
+  created_at        TIMESTAMP DEFAULT NOW()
 );
+
+ALTER TABLE ingresos
+  ADD COLUMN IF NOT EXISTS frecuencia VARCHAR(20) NULL
+    CHECK (frecuencia IS NULL OR frecuencia IN ('semanal', 'quincenal', 'mensual')),
+  ADD COLUMN IF NOT EXISTS proximo_ingreso DATE NULL,
+  ADD COLUMN IF NOT EXISTS recurrente BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS ingreso_origen_id INTEGER NULL REFERENCES ingresos(id) ON DELETE SET NULL;
 
 CREATE INDEX IF NOT EXISTS idx_ingresos_usuario_fecha
 ON ingresos (usuario_id, fecha);
+
+CREATE INDEX IF NOT EXISTS idx_ingresos_proximo_ingreso
+  ON ingresos (proximo_ingreso)
+  WHERE frecuencia IS NOT NULL AND proximo_ingreso IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ingresos_origen_fecha_unico
+  ON ingresos (ingreso_origen_id, fecha)
+  WHERE ingreso_origen_id IS NOT NULL;
 
 INSERT INTO usuario_categorias (usuario_id, categoria_id)
 SELECT u.id, c.id
