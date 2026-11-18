@@ -3,10 +3,14 @@ import { StyleSheet, Text } from 'react-native';
 import { useEstilos } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 
-// Etiqueta mono en mayúsculas (label-caps de Obsidian Luminescence).
-export default function Etiqueta({ children, style }) {
+// Etiqueta mono en mayúsculas (label-caps de Obsidian Luminescence). Otras props van al Text.
+export default function Etiqueta({ children, style, ...props }) {
   const styles = useEstilos(crearEstilos);
-  return <Text style={[styles.etiqueta, style]}>{children}</Text>;
+  return (
+    <Text {...props} style={[styles.etiqueta, style]}>
+      {children}
+    </Text>
+  );
 }
 
 const crearEstilos = (colors) =>
