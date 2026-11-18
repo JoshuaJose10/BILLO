@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, View } from 'react-native';
+import { Modal, StyleSheet, Text, View } from 'react-native';
 
 import { fonts } from '../theme/fonts';
 import { useEstilos } from '../theme/TemaContext';
@@ -46,47 +46,40 @@ export default function HojaNombreCategoria({ editando, existentes, onGuardar, o
     <Modal
       visible
       transparent
+      statusBarTranslucent
       animationType="none"
       onRequestClose={() => !guardando && hojaRef.current?.cerrar()}
     >
-      <KeyboardAvoidingView
-        style={styles.pantalla}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <HojaInferior ref={hojaRef} titulo={titulo} bloqueada={guardando} onCerrada={onCerrar}>
-          <View style={styles.contenido}>
-            <Input
-              etiqueta="Nombre de la categoría"
-              placeholder="Ej. Gimnasio"
-              value={nombre}
-              onChangeText={(v) => {
-                setNombre(v);
-                if (error) setError('');
-              }}
-              maxLength={LONGITUD_MAX_CATEGORIA}
-              autoCapitalize="sentences"
-              autoFocus
-              editable={!guardando}
-              pie={
-                <Text style={styles.contador}>
-                  {nombre.trim().length}/{LONGITUD_MAX_CATEGORIA} caracteres
-                </Text>
-              }
-              error={error}
-            />
-            <Boton titulo={editando ? 'Guardar' : 'Crear'} onPress={guardar} cargando={guardando} />
-          </View>
-        </HojaInferior>
-      </KeyboardAvoidingView>
+      <HojaInferior ref={hojaRef} titulo={titulo} bloqueada={guardando} onCerrada={onCerrar}>
+        <View style={styles.contenido}>
+          <Input
+            etiqueta="Nombre de la categoría"
+            placeholder="Ej. Gimnasio"
+            value={nombre}
+            onChangeText={(v) => {
+              setNombre(v);
+              if (error) setError('');
+            }}
+            maxLength={LONGITUD_MAX_CATEGORIA}
+            autoCapitalize="sentences"
+            autoFocus
+            editable={!guardando}
+            pie={
+              <Text style={styles.contador}>
+                {nombre.trim().length}/{LONGITUD_MAX_CATEGORIA} caracteres
+              </Text>
+            }
+            error={error}
+          />
+          <Boton titulo={editando ? 'Guardar' : 'Crear'} onPress={guardar} cargando={guardando} />
+        </View>
+      </HojaInferior>
     </Modal>
   );
 }
 
 const crearEstilos = (colors) =>
   StyleSheet.create({
-    pantalla: {
-      flex: 1,
-    },
     contenido: {
       gap: 16,
       paddingTop: 16,

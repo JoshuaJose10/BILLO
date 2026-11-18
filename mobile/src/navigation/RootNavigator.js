@@ -11,6 +11,7 @@ import NuevoGastoScreen from '../screens/NuevoGastoScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import PerfilScreen from '../screens/PerfilScreen';
 import PresupuestoScreen from '../screens/PresupuestoScreen';
+import TarjetaScreen from '../screens/TarjetaScreen';
 import LaboratorioScreen from '../spike/LaboratorioScreen';
 import { useTema } from '../theme/TemaContext';
 import { navegadorRaiz } from '../utils/flujoInicio';
@@ -37,6 +38,7 @@ const HOJAS_VISITANTE = [
   'Perfil',
   'Presupuesto',
   'Membresia',
+  'Tarjeta',
   'MisCategorias',
   'InvitacionCuenta',
 ];
@@ -78,6 +80,7 @@ export default function RootNavigator() {
           <Stack.Screen name="Perfil" component={PerfilScreen} options={opcionesHoja} />
           <Stack.Screen name="Presupuesto" component={PresupuestoScreen} options={opcionesHoja} />
           <Stack.Screen name="Membresia" component={MembresiaScreen} options={opcionesHoja} />
+          <Stack.Screen name="Tarjeta" component={TarjetaScreen} options={opcionesHoja} />
           <Stack.Screen
             name="AdminCatalogo"
             component={AdminCatalogoScreen}

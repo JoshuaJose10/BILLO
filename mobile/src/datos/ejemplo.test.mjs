@@ -151,6 +151,23 @@ for (const hoy of FECHAS) {
       assert.equal(repBalance.serie.length, 6);
       assert.equal(repBalance.serie[5].mes, mes);
     });
+
+    it('tiene tarjetas de ejemplo con resumen mensual consistente con gastos y membresías', async () => {
+      const tarjetas = await pedir('/tarjetas', hoy);
+      assert.equal(tarjetas.length, 2);
+      assert.ok(tarjetas.some((t) => t.tipo === 'credito' && t.ultimos4 === '4821'));
+      assert.ok(tarjetas.some((t) => t.tipo === 'debito' && t.ultimos4 === '9034'));
+
+      for (const t of tarjetas) {
+        const res = await pedir(`/tarjetas/${t.id}/resumen?mes=${mes}`, hoy);
+        assert.equal(res.tarjeta_id, t.id);
+        assert.equal(res.mes, mes);
+        assert.equal(res.total, Math.round((res.gasto_variable + res.gasto_fijo) * 100) / 100);
+      }
+      await assert.rejects(pedir(`/tarjetas/999/resumen?mes=${mes}`, hoy), {
+        code: 'TARJETA_NO_ENCONTRADA',
+      });
+    });
   });
 }
 
@@ -168,6 +185,9 @@ describe('responderEjemplo', () => {
       ['/membresias', 'POST'],
       ['/membresias/1', 'PUT'],
       ['/membresias/1', 'DELETE'],
+      ['/tarjetas', 'POST'],
+      ['/tarjetas/1', 'PUT'],
+      ['/tarjetas/1', 'DELETE'],
       ['/notificaciones/token', 'POST'],
       ['/notificaciones/token', 'DELETE'],
     ];

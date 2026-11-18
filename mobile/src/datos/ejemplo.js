@@ -2,6 +2,7 @@ import { MODO_VISITANTE } from '../services/api.js';
 import { fechaLocalISO, mesActual, sumarMeses } from '../utils/fechas.js';
 import { calcularDiasParaCobro, calcularTotalMensual, diasEnMes } from '../utils/membresias.js';
 import { gastoPorCategoria } from '../utils/resumenMes.js';
+import { calcularResumenTarjetaMes } from '../utils/tarjetas.js';
 
 // Modo exploración (HU-50, RF10; docs/api-contrato.md, "Modo exploración"): datos de ejemplo en
 // memoria con la misma forma que las respuestas de la API, para que los servicios y las pantallas
@@ -88,6 +89,25 @@ const MEMBRESIAS = [
   [4, 'anual', 20],
 ];
 
+const TARJETAS = [
+  {
+    id: 1,
+    nombre: 'BBVA Azul',
+    tipo: 'credito',
+    ultimos4: '4821',
+    dia_corte: 12,
+    dia_pago: 2,
+  },
+  {
+    id: 2,
+    nombre: 'Nu Débito',
+    tipo: 'debito',
+    ultimos4: '9034',
+    dia_corte: null,
+    dia_pago: null,
+  },
+];
+
 function armarGastos(filas, mes, diaMaximo, primerId) {
   const [anio, numero] = mes.split('-').map(Number);
   const tope = Math.min(diaMaximo, diasEnMes(anio, numero));
@@ -100,6 +120,7 @@ function armarGastos(filas, mes, diaMaximo, primerId) {
     categoria_id,
     fecha: `${mes}-${String(Math.min(dia, tope)).padStart(2, '0')}`,
     metodo_pago,
+    tarjeta_id: metodo_pago === 'tarjeta' ? (i % 2 === 0 ? 1 : 2) : null,
     nota,
   }));
 }
@@ -164,6 +185,8 @@ export function crearDatosEjemplo(hoy = new Date()) {
     const servicio = CATALOGO.find((s) => s.id === servicio_id);
     return {
       servicio_id,
+      tarjeta_id: i < 2 ? 1 : i === 2 ? 2 : null,
+      estado: 'activa',
       ...membresiaEjemplo({
         id: i + 1,
         nombre: servicio.nombre,
@@ -181,6 +204,7 @@ export function crearDatosEjemplo(hoy = new Date()) {
     ingresos,
     presupuestos,
     membresias,
+    tarjetas: TARJETAS.map((t) => ({ ...t })),
     catalogo: CATALOGO.map((s) => ({ ...s })),
   };
 }
@@ -381,6 +405,8 @@ export function responderEjemplo(ruta, { method = 'GET' } = {}, hoy = new Date()
       return Promise.resolve(
         [...datos.membresias].sort((a, b) => a.dias_para_cobro - b.dias_para_cobro),
       );
+    case '/tarjetas':
+      return Promise.resolve(datos.tarjetas);
     case '/catalogo':
       return Promise.resolve(datos.catalogo);
     case '/reportes/resumen':
@@ -391,7 +417,18 @@ export function responderEjemplo(ruta, { method = 'GET' } = {}, hoy = new Date()
       return Promise.resolve(reporteIngresos(datos, params.mes));
     case '/reportes/balance':
       return Promise.resolve(reporteBalance(datos, params.mes));
-    default:
+    default: {
+      const matchResumenTarjeta = camino.match(/^\/tarjetas\/(\d+)\/resumen$/);
+      if (matchResumenTarjeta) {
+        const tarjetaId = Number(matchResumenTarjeta[1]);
+        const existe = datos.tarjetas.some((t) => t.id === tarjetaId);
+        if (!existe) return rechazar('TARJETA_NO_ENCONTRADA');
+        const mesResumen = params.mes || mesActual(hoy);
+        return Promise.resolve(
+          calcularResumenTarjetaMes(tarjetaId, datos.gastos, datos.membresias, mesResumen),
+        );
+      }
       return rechazar('RUTA_NO_ENCONTRADA');
+    }
   }
 }

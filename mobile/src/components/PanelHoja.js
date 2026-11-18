@@ -1,16 +1,17 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 
-// Panel flotante dentro de una hoja inferior (selector de método de pago, fecha o nota).
-// Se dibuja encima del contenido de la hoja; tocar el fondo oscuro lo cierra.
+// Panel flotante dentro de una hoja inferior (selector de método de pago, fecha, moneda o nota).
+// Se dibuja encima del contenido de la hoja; su altura se acota al espacio disponible de la hoja
+// y hace scroll interno si las opciones superan esa altura; tocar el fondo oscuro lo cierra.
 export default function PanelHoja({ titulo, onCerrar, children }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
   return (
-    <View style={StyleSheet.absoluteFill}>
+    <View style={styles.contenedor}>
       <Pressable
         style={styles.fondo}
         onPress={onCerrar}
@@ -29,7 +30,14 @@ export default function PanelHoja({ titulo, onCerrar, children }) {
             <MaterialCommunityIcons name="close" size={22} color={colors.textSecondary} />
           </Pressable>
         </View>
-        {children}
+        <ScrollView
+          style={styles.cuerpoScroll}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {children}
+        </ScrollView>
       </View>
     </View>
   );
@@ -37,20 +45,29 @@ export default function PanelHoja({ titulo, onCerrar, children }) {
 
 const crearEstilos = (colors) =>
   StyleSheet.create({
+    contenedor: {
+      ...StyleSheet.absoluteFillObject,
+      padding: 16,
+      justifyContent: 'flex-start',
+    },
     fondo: {
-      ...StyleSheet.absoluteFill,
+      ...StyleSheet.absoluteFillObject,
       backgroundColor: colors.scrim,
       borderTopLeftRadius: 32,
       borderTopRightRadius: 32,
     },
     panel: {
-      marginTop: 16,
-      marginHorizontal: 16,
+      maxHeight: '100%',
+      flexShrink: 1,
       padding: 20,
       borderRadius: 24,
       backgroundColor: colors.surface,
       borderWidth: 1,
       borderColor: colors.border,
+    },
+    cuerpoScroll: {
+      flexGrow: 0,
+      flexShrink: 1,
     },
     cabecera: {
       flexDirection: 'row',
@@ -62,5 +79,6 @@ const crearEstilos = (colors) =>
       fontFamily: fonts.sansBold,
       color: colors.text,
       fontSize: 18,
+      lineHeight: 24,
     },
   });

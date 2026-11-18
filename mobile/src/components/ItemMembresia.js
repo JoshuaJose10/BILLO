@@ -20,7 +20,7 @@ import { formatearCostoMembresia } from '../utils/divisas';
 // inicial si el servicio no tiene ícono propio), nombre, plan, precio "/ mes" en mono y la pastilla
 // "Cobra en N días (D mmm)" con un punto: verde si faltan más de 3 días, ámbar si 3 o menos.
 // `opaca`: fondo sólido para permitir swipe con FilaDeslizable sin transparencia.
-export default function ItemMembresia({ membresia, opaca = false }) {
+export default function ItemMembresia({ membresia, nombreTarjeta = null, opaca = false }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
@@ -38,6 +38,7 @@ export default function ItemMembresia({ membresia, opaca = false }) {
         ? colors.exito
         : colors.outline;
   const anual = frecuencia === 'anual';
+  const textoPlan = `${anual ? 'Plan anual' : 'Plan mensual'}${nombreTarjeta ? ` · ${nombreTarjeta}` : ''}`;
 
   return (
     <View
@@ -60,7 +61,7 @@ export default function ItemMembresia({ membresia, opaca = false }) {
             {nombre}
           </Text>
           <Text style={styles.plan} numberOfLines={1}>
-            {anual ? 'Plan anual' : 'Plan mensual'}
+            {textoPlan}
           </Text>
         </View>
         <Text style={styles.montoContenedor} numberOfLines={1}>

@@ -15,6 +15,7 @@ import { useCategorias, useReintentarCategoriasAlEnfocar } from '../context/Cate
 import { etiquetaMetodoPago, useGastosService } from '../services/gastos';
 import { useIngresosService } from '../services/ingresos';
 import { useMembresiasService } from '../services/membresias';
+import { useTarjetasService } from '../services/tarjetas';
 import { useActualizarWidget } from '../widget/useActualizarWidget';
 import { radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
@@ -24,6 +25,7 @@ import { mesActual } from '../utils/fechas';
 import { formatearMonto, nombreMes } from '../utils/formato';
 import { cobrosSuscripcionesEnMes } from '../utils/membresias';
 import { agruparPorDia, claveMovimiento, rutaMovimiento } from '../utils/movimientos';
+import { nombreTarjetaPorId } from '../utils/tarjetas';
 
 // Ingresos (HU-82): sin filtro de categoría, los del mes van mezclados por día con los gastos
 // (agruparPorDia); el total del mes y de cada día siguen sumando solo gastos. Con una categoría
@@ -37,6 +39,7 @@ export default function MovimientosScreen({ navigation }) {
   const { listarGastos, eliminarGasto } = useGastosService();
   const { listarIngresos, eliminarIngreso } = useIngresosService();
   const { listarMembresias } = useMembresiasService();
+  const { listarTarjetas } = useTarjetasService();
   const actualizarWidgetResumen = useActualizarWidget();
   // Categorías de la caché de la sesión (filtro y nombres de cada gasto).
   const {
@@ -58,6 +61,7 @@ export default function MovimientosScreen({ navigation }) {
   const [gastos, setGastos] = useState([]);
   const [ingresos, setIngresos] = useState([]);
   const [membresias, setMembresias] = useState(null);
+  const [tarjetas, setTarjetas] = useState([]);
   const [filtroCargado, setFiltroCargado] = useState(null);
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
   const [errorCarga, setErrorCarga] = useState(null);
@@ -68,15 +72,17 @@ export default function MovimientosScreen({ navigation }) {
   const cargar = useCallback(async () => {
     const peticion = ++ultimaPeticion.current;
     try {
-      const [lista, listaIngresos, listaMembresias] = await Promise.all([
+      const [lista, listaIngresos, listaMembresias, listaTarjetas] = await Promise.all([
         listarGastos({ mes, categoria_id: categoriaId }),
         categoriaId == null ? listarIngresos({ mes }) : [],
         categoriaId == null ? listarMembresias().catch(() => null) : null,
+        listarTarjetas().catch(() => null),
       ]);
       if (peticion !== ultimaPeticion.current) return;
       setGastos(lista);
       setIngresos(listaIngresos);
       setMembresias(listaMembresias);
+      if (Array.isArray(listaTarjetas)) setTarjetas(listaTarjetas);
       setFiltroCargado({ mes, categoriaId });
       setEstado('listo');
       return true;
@@ -86,7 +92,7 @@ export default function MovimientosScreen({ navigation }) {
       setEstado('error');
       return false;
     }
-  }, [listarGastos, listarIngresos, listarMembresias, mes, categoriaId]);
+  }, [listarGastos, listarIngresos, listarMembresias, listarTarjetas, mes, categoriaId]);
 
   // Recarga al ganar foco (un gasto nuevo aparece al volver de NuevoGasto) y, como `cargar`
   // cambia con el filtro, también al cambiar de mes o de categoría.
@@ -230,7 +236,10 @@ export default function MovimientosScreen({ navigation }) {
               eliminar={item.tipo === 'ingreso' ? eliminarIngreso : eliminarGasto}
               onEliminado={() => eliminado(item)}
               nombreCategoria={nombrePorId(item.categoria_id)}
-              metodoPago={etiquetaMetodoPago(item.metodo_pago)}
+              metodoPago={
+                nombreTarjetaPorId(tarjetas, item.tarjeta_id ?? item.membresia?.tarjeta_id) ||
+                etiquetaMetodoPago(item.metodo_pago)
+              }
             />
           </View>
         )}

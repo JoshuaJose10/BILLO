@@ -836,37 +836,35 @@ export default function PerfilScreen({ navigation }) {
       {/* Panel de selección de Moneda preferida */}
       {panel === 'moneda' ? (
         <PanelHoja titulo="Moneda preferida" onCerrar={() => setPanel(null)}>
-          <ScrollView style={styles.listaMonedas} showsVerticalScrollIndicator={false}>
-            {MONEDAS_DISPONIBLES.map((m) => {
-              const seleccionada = m.codigo === infoMoneda.codigo;
-              return (
-                <Pressable
-                  key={m.codigo}
-                  onPress={() => {
-                    cambiarMonedaPreferida(m.codigo);
-                    setPanel(null);
-                  }}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: seleccionada }}
-                  style={({ pressed }) => [
-                    styles.opcionMoneda,
-                    pressed ? styles.opcionMonedaPresionada : null,
-                  ]}
-                >
-                  <View style={styles.simboloMonedaContenedor}>
-                    <Text style={styles.simboloMonedaTexto}>{m.simbolo}</Text>
-                  </View>
-                  <View style={styles.monedaInfoColumna}>
-                    <Text style={styles.opcionTexto}>{m.codigo}</Text>
-                    <Text style={styles.nombreMonedaSubtexto}>{m.nombre}</Text>
-                  </View>
-                  {seleccionada ? (
-                    <MaterialCommunityIcons name="check" size={22} color={colors.text} />
-                  ) : null}
-                </Pressable>
-              );
-            })}
-          </ScrollView>
+          {MONEDAS_DISPONIBLES.map((m) => {
+            const seleccionada = m.codigo === infoMoneda.codigo;
+            return (
+              <Pressable
+                key={m.codigo}
+                onPress={() => {
+                  cambiarMonedaPreferida(m.codigo);
+                  setPanel(null);
+                }}
+                accessibilityRole="button"
+                accessibilityState={{ selected: seleccionada }}
+                style={({ pressed }) => [
+                  styles.opcionMoneda,
+                  pressed ? styles.opcionMonedaPresionada : null,
+                ]}
+              >
+                <View style={styles.simboloMonedaContenedor}>
+                  <Text style={styles.simboloMonedaTexto}>{m.simbolo}</Text>
+                </View>
+                <View style={styles.monedaInfoColumna}>
+                  <Text style={styles.opcionTexto}>{m.codigo}</Text>
+                  <Text style={styles.nombreMonedaSubtexto}>{m.nombre}</Text>
+                </View>
+                {seleccionada ? (
+                  <MaterialCommunityIcons name="check" size={22} color={colors.text} />
+                ) : null}
+              </Pressable>
+            );
+          })}
         </PanelHoja>
       ) : null}
 
@@ -1263,9 +1261,6 @@ const crearEstilos = (colors) =>
       lineHeight: 16,
       color: colors.textSecondary,
     },
-    listaMonedas: {
-      maxHeight: 340,
-    },
     opcionMoneda: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -1284,6 +1279,7 @@ const crearEstilos = (colors) =>
       backgroundColor: colors.surfaceLow,
       alignItems: 'center',
       justifyContent: 'center',
+      flexShrink: 0,
     },
     simboloMonedaTexto: {
       fontFamily: fonts.monoMedium,
@@ -1292,15 +1288,18 @@ const crearEstilos = (colors) =>
     },
     monedaInfoColumna: {
       flex: 1,
+      gap: 2,
     },
     opcionTexto: {
       fontFamily: fonts.sansSemiBold,
       color: colors.text,
       fontSize: 15,
+      lineHeight: 20,
     },
     nombreMonedaSubtexto: {
       fontFamily: fonts.sans,
       fontSize: 12,
+      lineHeight: 16,
       color: colors.textSecondary,
     },
     acercaCabecera: {
