@@ -13,7 +13,8 @@ import { etiquetaAccesibleTarjeta, etiquetaTipoTarjeta, lineaCaraTarjeta } from 
 // tarjeta, •••• últimos 4, `titular` y «CORTE 12 · PAGO 2» o «DÉBITO».
 // `tamano`: 'normal' (ancho completo, Cartera) o 'mini' (128 px, pila de Inicio: chip,
 // contactless y •••• 4419, como en 07_inicio_*).
-export default function TarjetaVisual({ tarjeta, titular, tamano = 'normal', style }) {
+// `soloFondo`: solo gradiente y borde (las tarjetas de atrás de la pila).
+export default function TarjetaVisual({ tarjeta, titular, tamano = 'normal', soloFondo, style }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
   const mini = tamano === 'mini';
@@ -54,36 +55,42 @@ export default function TarjetaVisual({ tarjeta, titular, tamano = 'normal', sty
       accessibilityLabel={etiquetaAccesibleTarjeta(tarjeta)}
     >
       <LinearGradient colors={caraTarjeta.brillo} style={styles.brillo} pointerEvents="none" />
-      <View style={styles.fila}>
-        {mini ? (
-          chip
-        ) : (
-          <View style={styles.marca}>
-            <Text style={styles.billo}>Billo</Text>
-            <Text style={styles.insignia}>{etiquetaTipoTarjeta(tarjeta?.tipo).toUpperCase()}</Text>
+      {soloFondo ? null : (
+        <>
+          <View style={styles.fila}>
+            {mini ? (
+              chip
+            ) : (
+              <View style={styles.marca}>
+                <Text style={styles.billo}>Billo</Text>
+                <Text style={styles.insignia}>
+                  {etiquetaTipoTarjeta(tarjeta?.tipo).toUpperCase()}
+                </Text>
+              </View>
+            )}
+            <MaterialCommunityIcons
+              name="contactless-payment"
+              size={mini ? 13 : 20}
+              color={colors.textoSobreColor}
+            />
           </View>
-        )}
-        <MaterialCommunityIcons
-          name="contactless-payment"
-          size={mini ? 13 : 20}
-          color={colors.textoSobreColor}
-        />
-      </View>
-      {mini ? null : (
-        <View style={styles.fila}>
-          {chip}
-          <Text style={styles.suave} numberOfLines={1}>
-            {String(tarjeta?.nombre ?? '').toUpperCase()}
-          </Text>
-        </View>
+          {mini ? null : (
+            <View style={styles.fila}>
+              {chip}
+              <Text style={styles.suave} numberOfLines={1}>
+                {String(tarjeta?.nombre ?? '').toUpperCase()}
+              </Text>
+            </View>
+          )}
+          <View style={[styles.fila, styles.filaFinal]}>
+            <View>
+              <Text style={mini ? styles.numeroMini : styles.numero}>•••• {tarjeta?.ultimos4}</Text>
+              {!mini && titular ? <Text style={styles.titular}>{titular}</Text> : null}
+            </View>
+            {linea ? <Text style={styles.linea}>{linea}</Text> : null}
+          </View>
+        </>
       )}
-      <View style={[styles.fila, styles.filaFinal]}>
-        <View>
-          <Text style={mini ? styles.numeroMini : styles.numero}>•••• {tarjeta?.ultimos4}</Text>
-          {!mini && titular ? <Text style={styles.titular}>{titular}</Text> : null}
-        </View>
-        {linea ? <Text style={styles.linea}>{linea}</Text> : null}
-      </View>
     </LinearGradient>
   );
 }
