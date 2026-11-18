@@ -7,6 +7,7 @@ import { fonts } from '../theme/fonts';
 import { tipografia } from '../theme/tipografia';
 import { formatearMontoCorto, MONEDA } from '../utils/formato';
 import {
+  costoPropio,
   estiloServicio,
   fechaCobroCiclo,
   formatearDiaMes,
@@ -32,7 +33,7 @@ export default function TarjetaProximoCobro({ cobro, onPress, conFecha = false, 
   const aviso = nivelCobro(dias) === 'aviso';
   const periodo = membresia.frecuencia === 'anual' ? 'año' : 'mes';
   const cuando = textoProximoCobro(dias);
-  const monto = formatearMontoCorto(membresia.costo);
+  const monto = formatearMontoCorto(costoPropio(membresia));
 
   return (
     <Pressable

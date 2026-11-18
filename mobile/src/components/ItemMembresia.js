@@ -12,6 +12,7 @@ import {
   inicialServicio,
   nivelCobro,
   textoCobro,
+  textoCostoCompartido,
 } from '../utils/membresias';
 import { formatearCostoMembresia } from '../utils/divisas';
 
@@ -65,7 +66,10 @@ export default function ItemMembresia({ membresia, nombreTarjeta = null, opaca =
           </Text>
         </View>
         <Text style={styles.montoContenedor} numberOfLines={1}>
-          <Text style={styles.monto}>{formatearCostoMembresia(costo, moneda, monto_original)}</Text>
+          <Text style={styles.monto}>
+            {textoCostoCompartido(membresia) ??
+              formatearCostoMembresia(costo, moneda, monto_original)}
+          </Text>
           <Text style={styles.sufijo}>{anual ? ' / año' : ' / mes'}</Text>
         </Text>
       </View>

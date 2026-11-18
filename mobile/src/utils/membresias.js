@@ -3,6 +3,7 @@
 
 import { coloresServicio } from '../theme/servicios.js';
 import { fechaLocalISO, parsearFechaLocal } from './fechas.js';
+import { formatearMontoCorto } from './formato.js';
 
 const MESES_CORTOS = [
   'ene',
@@ -177,13 +178,29 @@ export function detectarServicioRepetido(nueva = {}, existentes = [], idExcluir 
   };
 }
 
-// Suma el gasto fijo mensual: membresías mensuales aportan su costo completo,
+// Tu parte de una suscripción compartida (HU-76): costo / personas a 2 decimales (mínimo 0.01).
+// Misma fórmula que backend/src/utils/membresias.js para que Cartera y Reportes den lo mismo.
+// Todo total de lo que el usuario paga usa esto; el costo completo solo es referencia.
+export function costoPropio(membresia) {
+  const costo = Number(membresia?.costo) || 0;
+  if (costo <= 0) return 0;
+  const parte = costo / (Number(membresia?.personas) || 1);
+  return Math.max(0.01, Math.round((parte + Number.EPSILON) * 100) / 100);
+}
+
+// «Pagas $64.50 de $129» (en MXN) si se comparte entre más de una persona; con 1, null.
+export function textoCostoCompartido(membresia) {
+  if ((Number(membresia?.personas) || 1) <= 1) return null;
+  return `Pagas ${formatearMontoCorto(costoPropio(membresia))} de ${formatearMontoCorto(membresia.costo)}`;
+}
+
+// Suma el gasto fijo mensual: membresías mensuales aportan tu parte completa,
 // anuales se dividen entre 12. Las membresías pausadas no cuentan (HU-75). Redondeado a 2 decimales.
 export function calcularTotalMensual(membresias = []) {
   if (!Array.isArray(membresias) || membresias.length === 0) return 0;
   const suma = membresias.reduce((total, m) => {
     if (m?.estado === 'pausada') return total;
-    const costo = Number(m?.costo) || 0;
+    const costo = costoPropio(m);
     if (m?.frecuencia === 'anual') {
       return total + costo / 12;
     }
@@ -198,7 +215,7 @@ export function calcularTotalAnual(membresias = []) {
   if (!Array.isArray(membresias) || membresias.length === 0) return 0;
   const suma = membresias.reduce((total, m) => {
     if (m?.estado === 'pausada') return total;
-    const costo = Number(m?.costo) || 0;
+    const costo = costoPropio(m);
     if (m?.frecuencia === 'anual') {
       return total + costo;
     }
@@ -220,7 +237,7 @@ export function calcularTotalEsteMes(membresias = [], fechaReferenciaStr) {
 
   const suma = membresias.reduce((total, m) => {
     if (m?.estado === 'pausada') return total;
-    const costo = Number(m?.costo) || 0;
+    const costo = costoPropio(m);
     if (costo <= 0) return total;
 
     const frecuencia = m?.frecuencia === 'anual' ? 'anual' : 'mensual';
@@ -247,7 +264,7 @@ export function calcularTotalEsteMes(membresias = [], fechaReferenciaStr) {
 // Costo mensual de una membresía: las anuales se reparten en 12 meses.
 const costoMensual = (m) => {
   if (m?.estado === 'pausada') return 0;
-  const costo = Number(m?.costo) || 0;
+  const costo = costoPropio(m);
   return m?.frecuencia === 'anual' ? costo / 12 : costo;
 };
 
@@ -471,9 +488,9 @@ export function cobrosSuscripcionesEnMes(membresias, mes, fechaHoyStr) {
       tipo: 'suscripcion',
       id: m.id,
       fecha,
-      monto: Number(m.costo) || 0,
+      monto: costoPropio(m),
       moneda: m.moneda,
-      monto_original: m.monto_original,
+      monto_original: m.monto_original && costoPropio({ ...m, costo: m.monto_original }),
       nota: m.nombre,
       membresia: m,
     })),

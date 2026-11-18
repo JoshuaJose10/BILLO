@@ -50,6 +50,7 @@ import {
   formatearDiaMes,
   resumenPagosMembresia,
   sugerenciasCatalogo,
+  textoCostoCompartido,
   validarMembresia,
 } from '../utils/membresias';
 import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
@@ -148,6 +149,7 @@ export default function MembresiaScreen({ navigation, route }) {
   };
   const [servicioId, setServicioId] = useState(() => membresiaEditada?.servicio_id ?? null);
   const [tarjetaId, setTarjetaId] = useState(() => membresiaEditada?.tarjeta_id ?? null);
+  const [personas, setPersonas] = useState(() => membresiaEditada?.personas ?? 1); // HU-76
   const [tarjetas, setTarjetas] = useState([]);
   const [estadoTarjetas, setEstadoTarjetas] = useState('cargando');
   const [errorTarjetas, setErrorTarjetas] = useState(null);
@@ -401,6 +403,7 @@ export default function MembresiaScreen({ navigation, route }) {
         fechaCobro: fechaCobroISO,
         tarjetaId,
       }),
+      personas,
       // HU-95: el backend llena el historial desde el pago (solo al crear con «Ya la pagué»).
       ...(conPago ? { fecha_ultimo_pago: fechaISO } : {}),
     };
@@ -542,6 +545,10 @@ export default function MembresiaScreen({ navigation, route }) {
     moneda !== 'MXN' && tipoCambio && montoIngresado > 0
       ? calcularEquivalenteMxn(montoIngresado, tipoCambio)
       : null;
+  const textoCompartido =
+    montoIngresado > 0
+      ? textoCostoCompartido({ costo: equivalenteMxn ?? montoIngresado, personas })
+      : null;
 
   return (
     <HojaInferior
@@ -666,6 +673,26 @@ export default function MembresiaScreen({ navigation, route }) {
         ) : null}
         {errores.costo ? (
           <Text style={[styles.notaCampo, styles.errorCampo]}>{errores.costo}</Text>
+        ) : null}
+        {/* HU-76: costo compartido (− / + de 1 a 10) y tu parte en MXN */}
+        <View style={styles.filaEquivalente}>
+          <Text style={styles.textoTasa}>¿Entre cuántas personas se divide?</Text>
+          <ChipSelector
+            etiqueta="−"
+            onPress={() => setPersonas((p) => Math.max(1, p - 1))}
+            accessibilityLabel={`Quitar una persona (${personas})`}
+          />
+          <Text style={styles.textoEquivalente}>{personas}</Text>
+          <ChipSelector
+            etiqueta="+"
+            onPress={() => setPersonas((p) => Math.min(10, p + 1))}
+            accessibilityLabel={`Agregar una persona (${personas})`}
+          />
+        </View>
+        {textoCompartido ? (
+          <View style={styles.filaEquivalente}>
+            <Text style={styles.textoEquivalente}>{textoCompartido}</Text>
+          </View>
         ) : null}
 
         {/* Catálogo de servicios (solo al agregar), en el lugar de las categorías de Nuevo gasto */}
