@@ -1,4 +1,4 @@
-# Contrato de API — Billo (v1.7)
+# Contrato de API — Billo (v1.8)
 
 Estado: **esquema de BD congelado desde el 2026-10-13** (ver «Congelamiento del esquema»). Cualquier cambio al contrato o al esquema se acuerda con el equipo y se anota en el **Registro de cambios**.
 
@@ -342,6 +342,8 @@ Body (en otra divisa): { "nombre": "ChatGPT Plus", "costo": 186.31, "moneda": "U
 - 201 → { "membresia": { "id": 9, "servicio_id": 1, "nombre": "Spotify", "costo": 129, "moneda": "MXN", "monto_original": null, "tipo_cambio": null, "frecuencia": "mensual", "fecha_cobro": "2026-10-20" } }
 - 400 → NOMBRE_INVALIDO, COSTO_INVALIDO, FRECUENCIA_INVALIDA, FECHA_INVALIDA, SERVICIO_INEXISTENTE, MONEDA_INVALIDA, MONTO_INVALIDO
 
+`fecha_ultimo_pago` (opcional, `YYYY-MM-DD`, HU-95): fecha en que el usuario ya pagó la suscripción. Si viene, en la misma transacción del alta se registra en `pagos_membresia` un pago por ciclo desde esa fecha hasta hoy inclusive (`fecha_ultimo_pago + n × INTERVAL '1 month'` o `'1 year'`, con el ajuste de fin de mes de PostgreSQL), con `monto` = `costo`; se guardan como máximo los 24 más recientes. Ejemplo: mensual con `fecha_ultimo_pago` 2026-10-16, registrada el 2026-11-17 → pagos 2026-10-16 y 2026-11-16 (la app manda `fecha_cobro` 2026-12-16). Fecha mal formada o futura → 400 `FECHA_INVALIDA` sin crear nada. Sin el campo no se registra ningún pago. `PUT /membresias/:id` no lo acepta.
+
 ### GET /membresias
 Orden: `fecha_cobro` ascendente.
 - 200 → [ { "id": 9, "servicio_id": 1, "nombre": "Spotify", "costo": 129, "moneda": "MXN", "monto_original": null, "tipo_cambio": null, "frecuencia": "mensual", "fecha_cobro": "2026-10-20", "dias_para_cobro": 7 }, ... ]
@@ -499,3 +501,4 @@ Pendiente en la colección Postman (**HU-22**, Luis Dorian): agregar las asercio
 - 2026-11-12 — v1.5 — Categorías por usuario (migración 020). Se agregan `categorias.usuario_id`, `categorias.color`, `usuarios.categorias_configuradas` y `usuario_categorias`. `POST /auth/register` crea cuentas con `categorias_configuradas = false` e incluye el campo en registro y login. Se agregan `GET /categorias/predefinidas`, `PUT /categorias/seleccion`, `POST /categorias`, `PUT /categorias/:id` y `DELETE /categorias/:id`; `GET /categorias` filtra por usuario e incluye `propia` y `color`. `POST /gastos` y `POST /presupuestos` validan que la categoría esté disponible para el usuario, mientras `PUT /gastos/:id` permite conservar la categoría oculta previa del gasto.
 - 2026-11-16 — v1.6 — Tarjetas por usuario (migración 021). Se crea la tabla `tarjetas` (`ON DELETE CASCADE` desde `usuarios`) y se agrega `tarjeta_id` (`ON DELETE SET NULL`) en `gastos` y `membresias`. Se implementan `POST /tarjetas`, `GET /tarjetas`, `PUT /tarjetas/:id`, `DELETE /tarjetas/:id` y `GET /tarjetas/:id/resumen?mes=YYYY-MM` con códigos `TARJETA_INVALIDA`, `ULTIMOS4_INVALIDOS` y `TARJETA_NO_ENCONTRADA`. `DELETE /auth/cuenta` elimina también las tarjetas del usuario. Render ejecuta las migraciones automáticamente al desplegar.
 - 2026-11-16 — v1.7 — Reportes de ingresos y balance mensual. Se agregan `GET /reportes/ingresos?mes=YYYY-MM` (total del mes, desglose por fuente con porcentaje, total del mes anterior y variación) y `GET /reportes/balance?mes=YYYY-MM` (ingresos, gasto variable, gasto fijo excluyendo suscripciones pausadas, gastos totales, balance y serie de los últimos 6 meses). Meses sin datos devuelven ceros. Los porcentajes por fuente se distribuyen con restos mayores para sumar 100 sin valores negativos, incluso con más de 100 fuentes.
+- 2026-11-17 — v1.8 — HU-95: `POST /membresias` acepta `fecha_ultimo_pago` opcional (`YYYY-MM-DD`, hoy o antes; si no, 400 `FECHA_INVALIDA`) y, en la misma transacción del alta, registra en `pagos_membresia` un pago por ciclo desde esa fecha hasta hoy (máximo los 24 más recientes). Sin el campo, el comportamiento no cambia. Sin cambios en el esquema. Autor: Fernando.

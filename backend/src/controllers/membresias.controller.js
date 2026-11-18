@@ -321,6 +321,25 @@ const validarDatosMembresia = async (body, { usuarioId } = {}) => {
   };
 };
 
+// Historial al registrar una suscripción ya pagada (HU-95): un pago por ciclo desde
+// fecha_ultimo_pago hasta hoy (inclusive), los 24 más recientes. Cada fecha es inicio + n ciclos
+// con el INTERVAL de PostgreSQL (31 ene → 28 feb → 31 mar), igual que el próximo cobro de la app.
+const insertarPagosDesde = (client, membresiaId, costo, frecuencia, fechaUltimoPago) => {
+  const anual = frecuencia === 'anual';
+  return client.query(
+    `INSERT INTO pagos_membresia (membresia_id, fecha, monto)
+     SELECT $1, fecha, $2
+     FROM (
+       SELECT ($3::date + n * $4::interval)::date AS fecha
+       FROM generate_series(0, (EXTRACT(YEAR FROM age(CURRENT_DATE, $3::date))::int + 1) * $5) AS n
+     ) AS ciclos
+     WHERE fecha <= CURRENT_DATE
+     ORDER BY fecha DESC
+     LIMIT 24`,
+    [membresiaId, costo, fechaUltimoPago, anual ? '1 year' : '1 month', anual ? 1 : 12]
+  );
+};
+
 // POST /membresias
 const crearMembresia = async (req, res) => {
   try {
@@ -329,6 +348,21 @@ const crearMembresia = async (req, res) => {
 
     if (validacion.error) {
       return res.status(400).json({ error: validacion.error });
+    }
+
+    const fechaUltimoPago = req.body.fecha_ultimo_pago;
+    if (fechaUltimoPago !== undefined && fechaUltimoPago !== null) {
+      const valida =
+        esFechaValida(fechaUltimoPago) &&
+        (await pool.query('SELECT $1::date <= CURRENT_DATE AS ok', [fechaUltimoPago])).rows[0].ok;
+      if (!valida) {
+        return res.status(400).json({
+          error: {
+            code: 'FECHA_INVALIDA',
+            message: 'La fecha del último pago no es válida (YYYY-MM-DD, hoy o antes)',
+          },
+        });
+      }
     }
 
     const {
@@ -350,19 +384,33 @@ const crearMembresia = async (req, res) => {
       RETURNING id, servicio_id, tarjeta_id, nombre, costo, moneda, monto_original, tipo_cambio, frecuencia, TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro, estado
     `;
 
-    const { rows } = await pool.query(insertQuery, [
-      usuarioId,
-      servicio_id,
-      tarjeta_id,
-      nombre,
-      costo,
-      moneda,
-      monto_original,
-      tipo_cambio,
-      frecuencia,
-      fecha_cobro,
-      estado,
-    ]);
+    const client = await pool.connect();
+    let rows;
+    try {
+      await client.query('BEGIN');
+      ({ rows } = await client.query(insertQuery, [
+        usuarioId,
+        servicio_id,
+        tarjeta_id,
+        nombre,
+        costo,
+        moneda,
+        monto_original,
+        tipo_cambio,
+        frecuencia,
+        fecha_cobro,
+        estado,
+      ]));
+      if (fechaUltimoPago) {
+        await insertarPagosDesde(client, rows[0].id, rows[0].costo, frecuencia, fechaUltimoPago);
+      }
+      await client.query('COMMIT');
+    } catch (txError) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw txError;
+    } finally {
+      client.release();
+    }
 
     return res
       .status(201)
