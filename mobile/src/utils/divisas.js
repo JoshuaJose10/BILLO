@@ -48,6 +48,7 @@ export function prepararDatosGasto({
   categoriaId,
   fecha,
   metodoPago,
+  tarjetaId,
   nota,
 }) {
   const base = {
@@ -55,6 +56,9 @@ export function prepararDatosGasto({
     fecha,
     metodo_pago: metodoPago,
     nota: nota?.trim() || null,
+    ...(tarjetaId !== undefined
+      ? { tarjeta_id: metodoPago === 'tarjeta' ? (tarjetaId ?? null) : null }
+      : {}),
   };
 
   if (moneda === 'MXN' || !moneda) {
@@ -116,12 +120,14 @@ export function prepararDatosMembresia({
   tipoCambio = null,
   frecuencia,
   fechaCobro,
+  tarjetaId,
 }) {
   const base = {
     servicio_id: servicioId,
     nombre: typeof nombre === 'string' ? nombre.trim() : nombre,
     frecuencia,
     fecha_cobro: fechaCobro,
+    ...(tarjetaId !== undefined ? { tarjeta_id: tarjetaId ?? null } : {}),
   };
 
   if (moneda === 'MXN' || !moneda) {

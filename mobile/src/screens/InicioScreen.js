@@ -21,6 +21,7 @@ import { useIngresosService } from '../services/ingresos';
 import { useMembresiasService } from '../services/membresias';
 import { usePresupuestosService } from '../services/presupuestos';
 import { useReportesService } from '../services/reportes';
+import { useTarjetasService } from '../services/tarjetas';
 import { radios } from '../theme/colors';
 import { useEstilos } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
@@ -34,6 +35,7 @@ import { saldoDelMes, totalIngresos } from '../utils/ingresos';
 import { cobrosSuscripcionesEnMes, proximoCobro } from '../utils/membresias';
 import { presupuestosEnRiesgo, resumenPresupuestos } from '../utils/presupuestos';
 import { gastoPorCategoria, resumenGastoMes } from '../utils/resumenMes';
+import { nombreTarjetaPorId } from '../utils/tarjetas';
 import { actualizarWidget } from '../widget/sincronizar';
 
 // Categorías con chip en la tarjeta del mes (las de más gasto).
@@ -59,6 +61,7 @@ export default function InicioScreen({ navigation }) {
   const { listarPresupuestos } = usePresupuestosService();
   const { obtenerResumen } = useReportesService();
   const { listarMembresias } = useMembresiasService();
+  const { listarTarjetas } = useTarjetasService();
   const {
     categorias,
     todasCategorias,
@@ -77,6 +80,7 @@ export default function InicioScreen({ navigation }) {
   const [presupuestos, setPresupuestos] = useState(null);
   // null si no se pudieron cargar las membresías.
   const [membresias, setMembresias] = useState(null);
+  const [tarjetas, setTarjetas] = useState([]);
   const [mesCargado, setMesCargado] = useState(null);
   const [estado, setEstado] = useState('cargando'); // 'cargando' | 'listo' | 'error'
   const [errorCarga, setErrorCarga] = useState(null);
@@ -91,16 +95,20 @@ export default function InicioScreen({ navigation }) {
     const peticion = ++ultimaPeticion.current;
     const mes = mesActual();
     try {
-      const datos = await cargarDatosInicio(
-        { obtenerResumen, listarGastos, listarIngresos, listarPresupuestos, listarMembresias },
-        mes,
-      );
+      const [datos, listaTarjetas] = await Promise.all([
+        cargarDatosInicio(
+          { obtenerResumen, listarGastos, listarIngresos, listarPresupuestos, listarMembresias },
+          mes,
+        ),
+        listarTarjetas().catch(() => null),
+      ]);
       if (peticion !== ultimaPeticion.current) return;
       setResumen(datos.resumen);
       setGastosMes(datos.gastos);
       setIngresosMes(datos.ingresos);
       setPresupuestos(datos.presupuestos);
       setMembresias(datos.membresias);
+      if (Array.isArray(listaTarjetas)) setTarjetas(listaTarjetas);
       setMesCargado(mes);
       setEstado('listo');
       setHayDatos(true);
@@ -111,7 +119,14 @@ export default function InicioScreen({ navigation }) {
       setEstado('error');
       return false;
     }
-  }, [obtenerResumen, listarGastos, listarIngresos, listarPresupuestos, listarMembresias]);
+  }, [
+    obtenerResumen,
+    listarGastos,
+    listarIngresos,
+    listarPresupuestos,
+    listarMembresias,
+    listarTarjetas,
+  ]);
 
   // Recarga cada vez que Inicio gana foco (por ejemplo al cerrar la hoja de Nuevo gasto).
   useFocusEffect(
@@ -328,6 +343,10 @@ export default function InicioScreen({ navigation }) {
               eliminar={item.tipo === 'ingreso' ? eliminarIngreso : eliminarGasto}
               onEliminado={() => eliminado(item)}
               nombreCategoria={nombrePorId(item.categoria_id)}
+              metodoPago={nombreTarjetaPorId(
+                tarjetas,
+                item.tarjeta_id ?? item.membresia?.tarjeta_id,
+              )}
             />
           </View>
         )}

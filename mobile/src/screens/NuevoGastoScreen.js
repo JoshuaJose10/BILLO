@@ -33,6 +33,7 @@ import { useDivisasService } from '../services/divisas';
 import { METODO_PAGO_DEFECTO, METODOS_PAGO, NOTA_MAX, useGastosService } from '../services/gastos';
 import { useIngresosService } from '../services/ingresos';
 import { useDictado } from '../services/reconocimientoVoz';
+import { useTarjetasService } from '../services/tarjetas';
 import { useActualizarWidget } from '../widget/useActualizarWidget';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
@@ -46,6 +47,7 @@ import { fechaRelativa, formatearMonto, LOCALE, resumirTexto } from '../utils/fo
 import { DESCRIPCION_MAX, FUENTES } from '../utils/ingresos';
 import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
 import { resolverMonedaInicialGasto } from '../utils/preferencias';
+import { etiquetaTarjeta, etiquetaTipoTarjeta } from '../utils/tarjetas';
 import { avisoDictado, interpretarDictado, mensajeFalloVoz, notaDictada } from '../utils/voz';
 
 // Hoja inferior sobre Inicio y las tabs (ruta NuevoGasto con presentation: 'transparentModal').
@@ -69,6 +71,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
   const nombreTipo = esIngreso ? 'ingreso' : 'gasto';
   const { crearGasto, actualizarGasto, eliminarGasto } = useGastosService();
   const { crearIngreso, actualizarIngreso, eliminarIngreso } = useIngresosService();
+  const { listarTarjetas } = useTarjetasService();
   const actualizarWidgetResumen = useActualizarWidget();
   const {
     categorias,
@@ -131,7 +134,21 @@ export default function NuevoGastoScreen({ navigation, route }) {
     gastoEditado?.categoria_id ?? route.params?.categoriaId ?? null,
   );
   const [metodo, setMetodo] = useState(gastoEditado?.metodo_pago || METODO_PAGO_DEFECTO);
+  const [tarjetaId, setTarjetaId] = useState(gastoEditado?.tarjeta_id ?? null);
+  const [tarjetas, setTarjetas] = useState([]);
   const [fuente, setFuente] = useState(ingresoEditado?.fuente ?? null);
+
+  useEffect(() => {
+    let activo = true;
+    listarTarjetas()
+      .then((lista) => {
+        if (activo) setTarjetas(lista);
+      })
+      .catch(() => {});
+    return () => {
+      activo = false;
+    };
+  }, [listarTarjetas]);
   const [fecha, setFecha] = useState(() =>
     editando ? parsearFechaLocal((gastoEditado || ingresoEditado).fecha) : new Date(),
   );
@@ -360,6 +377,8 @@ export default function NuevoGastoScreen({ navigation, route }) {
         await (editando ? actualizarIngreso(ingresoEditado.id, datos) : crearIngreso(datos));
         actualizarWidgetResumen();
       } else {
+        const tarjetaValidaId =
+          metodo === 'tarjeta' && tarjetas.some((t) => t.id === tarjetaId) ? tarjetaId : null;
         const datos = prepararDatosGasto({
           montoOriginal: montoNum,
           moneda,
@@ -367,6 +386,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
           categoriaId: categoriaElegida,
           fecha: fechaLocalISO(fecha),
           metodoPago: metodo,
+          tarjetaId: tarjetaValidaId,
           nota,
         });
         const { alerta } = editando
@@ -421,6 +441,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
   const monedaCaptura = esIngreso ? 'MXN' : moneda;
   const notaMax = esIngreso ? DESCRIPCION_MAX : NOTA_MAX;
   const metodoActual = METODOS_PAGO.find((m) => m.valor === metodo) || METODOS_PAGO[0];
+  const tarjetaElegida = tarjetas.find((t) => t.id === tarjetaId) ?? null;
   const fechaTexto = fechaRelativa(fechaLocalISO(fecha));
   const montoIngresado = montoDesdeTexto(texto);
   const equivalenteMxn =
@@ -472,6 +493,19 @@ export default function NuevoGastoScreen({ navigation, route }) {
               onPress={() => setPanel('metodo')}
               accessibilityLabel={`Método de pago: ${metodoActual.etiqueta}`}
             />
+            {metodo === 'tarjeta' && tarjetas.length > 0 ? (
+              <ChipSelector
+                icono="credit-card-chip-outline"
+                etiqueta={tarjetaElegida ? etiquetaTarjeta(tarjetaElegida) : 'Tarjeta (opcional)'}
+                chevron
+                onPress={() => setPanel('tarjeta')}
+                accessibilityLabel={
+                  tarjetaElegida
+                    ? `Tarjeta: ${etiquetaTarjeta(tarjetaElegida)}`
+                    : 'Tarjeta: sin especificar'
+                }
+              />
+            ) : null}
           </>
         )}
         <ChipSelector
@@ -642,6 +676,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
               key={m.valor}
               onPress={() => {
                 setMetodo(m.valor);
+                if (m.valor !== 'tarjeta') setTarjetaId(null);
                 setPanel(null);
               }}
               accessibilityRole="button"
@@ -651,6 +686,55 @@ export default function NuevoGastoScreen({ navigation, route }) {
               <MaterialCommunityIcons name={m.icono} size={22} color={colors.text} />
               <Text style={styles.opcionTexto}>{m.etiqueta}</Text>
               {m.valor === metodo ? (
+                <MaterialCommunityIcons name="check" size={22} color={colors.text} />
+              ) : null}
+            </Pressable>
+          ))}
+        </PanelHoja>
+      ) : null}
+
+      {panel === 'tarjeta' ? (
+        <PanelHoja titulo="Tarjeta" onCerrar={() => setPanel(null)}>
+          <Pressable
+            onPress={() => {
+              setTarjetaId(null);
+              setPanel(null);
+            }}
+            accessibilityRole="button"
+            accessibilityState={{ selected: tarjetaElegida == null }}
+            style={({ pressed }) => [styles.opcion, pressed ? styles.opcionPresionada : null]}
+          >
+            <MaterialCommunityIcons
+              name="credit-card-off-outline"
+              size={22}
+              color={colors.textSecondary}
+            />
+            <Text style={styles.opcionTexto}>Sin especificar</Text>
+            {tarjetaElegida == null ? (
+              <MaterialCommunityIcons name="check" size={22} color={colors.text} />
+            ) : null}
+          </Pressable>
+          {tarjetas.map((t) => (
+            <Pressable
+              key={t.id}
+              onPress={() => {
+                setTarjetaId(t.id);
+                setPanel(null);
+              }}
+              accessibilityRole="button"
+              accessibilityState={{ selected: t.id === tarjetaElegida?.id }}
+              style={({ pressed }) => [styles.opcion, pressed ? styles.opcionPresionada : null]}
+            >
+              <MaterialCommunityIcons
+                name={t.tipo === 'credito' ? 'credit-card-chip-outline' : 'credit-card-outline'}
+                size={22}
+                color={colors.text}
+              />
+              <View style={styles.monedaInfoColumna}>
+                <Text style={styles.opcionTexto}>{etiquetaTarjeta(t)}</Text>
+                <Text style={styles.nombreMonedaSubtexto}>{etiquetaTipoTarjeta(t.tipo)}</Text>
+              </View>
+              {t.id === tarjetaElegida?.id ? (
                 <MaterialCommunityIcons name="check" size={22} color={colors.text} />
               ) : null}
             </Pressable>

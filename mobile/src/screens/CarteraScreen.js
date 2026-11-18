@@ -16,13 +16,14 @@ import Etiqueta from '../components/Etiqueta';
 import FilaDeslizable, { useFilasDeslizables } from '../components/FilaDeslizable';
 import FondoDegradado from '../components/FondoDegradado';
 import ItemMembresia from '../components/ItemMembresia';
+import ItemTarjeta from '../components/ItemTarjeta';
 import { useAlturaNavbar } from '../components/NavbarFlotante';
-import PantallaProximamente from '../components/PantallaProximamente';
 import SelectorMes from '../components/SelectorMes';
 import SelectorSegmentado from '../components/SelectorSegmentado';
 import TarjetaPresupuesto from '../components/TarjetaPresupuesto';
 import { useMembresiasService } from '../services/membresias';
 import { usePresupuestosService } from '../services/presupuestos';
+import { useTarjetasService } from '../services/tarjetas';
 import { useActualizarWidget } from '../widget/useActualizarWidget';
 import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
@@ -46,21 +47,14 @@ import {
 } from '../utils/membresias';
 import { gastoPorCategoriaDePresupuestos, resumenPresupuestos } from '../utils/presupuestos';
 import { etiquetaBarraMes, nivelPorcentaje, resumenGastoMes } from '../utils/resumenMes';
+import { nombreTarjetaPorId, resumenGeneralTarjetas } from '../utils/tarjetas';
 
-// Secciones de Cartera. Presupuestos (RF3), Suscripciones / Membresías (RF5) y Tarjetas (pronto).
+// Secciones de Cartera: Presupuestos (RF3), Suscripciones / Membresías (RF5) y Tarjetas (HU-89).
 const SECCIONES = [
   { valor: 'presupuestos', etiqueta: 'Presupuestos' },
   { valor: 'suscripciones', etiqueta: 'Suscripciones' },
-  { valor: 'tarjetas', etiqueta: 'Tarjetas', insignia: 'Pronto' },
+  { valor: 'tarjetas', etiqueta: 'Tarjetas' },
 ];
-
-const PROXIMAMENTE = {
-  tarjetas: {
-    icono: 'credit-card-outline',
-    titulo: 'Tarjetas',
-    mensaje: 'Pronto podrás registrar tus tarjetas y ver en qué las usas.',
-  },
-};
 
 // Fundido corto al cambiar de sección y al aparecer las filas.
 const APARECER = FadeIn.duration(180);
@@ -91,11 +85,13 @@ export default function CarteraScreen({ navigation, route }) {
   const reducirMovimiento = useReducedMotion();
   const { listarPresupuestos, eliminarPresupuesto, copiarPresupuestos } = usePresupuestosService();
   const { listarMembresias, eliminarMembresia } = useMembresiasService();
+  const { listarTarjetasConResumen, eliminarTarjeta } = useTarjetasService();
   const actualizarWidgetResumen = useActualizarWidget();
 
   const [seccion, setSeccion] = useState('presupuestos');
   const enPresupuestos = seccion === 'presupuestos';
   const enSuscripciones = seccion === 'suscripciones';
+  const enTarjetas = seccion === 'tarjetas';
 
   // --- Estado de Presupuestos ---
   const [mes, setMes] = useState(mesActual);
@@ -115,6 +111,13 @@ export default function CarteraScreen({ navigation, route }) {
   const ultimaPeticionMembresias = useRef(0);
   const [ordenSubs, setOrdenSubs] = useState(() => ordenRecordado);
 
+  // --- Estado de Tarjetas ---
+  const [tarjetas, setTarjetas] = useState([]);
+  const [mesTarjetasCargado, setMesTarjetasCargado] = useState(null);
+  const [estadoTarjetas, setEstadoTarjetas] = useState('cargando');
+  const [errorTarjetas, setErrorTarjetas] = useState(null);
+  const ultimaPeticionTarjetas = useRef(0);
+
   // Aplica los parámetros una vez por `solicitud`, durante el render (sin efecto) como recomienda
   // React para ajustar estado a partir de props.
   const { solicitud, seccion: seccionPedida, mes: mesPedido } = route?.params ?? {};
@@ -125,6 +128,7 @@ export default function CarteraScreen({ navigation, route }) {
     if (/^\d{4}-\d{2}$/.test(mesPedido ?? '') && mesPedido !== mes) {
       setMes(mesPedido);
       if (estadoPresupuestos === 'error') setEstadoPresupuestos('cargando');
+      if (estadoTarjetas === 'error') setEstadoTarjetas('cargando');
     }
   }
 
@@ -145,12 +149,37 @@ export default function CarteraScreen({ navigation, route }) {
     }
   }, [listarPresupuestos, mes]);
 
+  const cargarTarjetas = useCallback(async () => {
+    const peticion = ++ultimaPeticionTarjetas.current;
+    try {
+      const lista = await listarTarjetasConResumen(mes);
+      if (peticion !== ultimaPeticionTarjetas.current) return;
+      setTarjetas(lista);
+      setMesTarjetasCargado(mes);
+      setEstadoTarjetas('listo');
+      return true;
+    } catch (error) {
+      if (peticion !== ultimaPeticionTarjetas.current) return;
+      setErrorTarjetas(error);
+      setEstadoTarjetas('error');
+      return false;
+    }
+  }, [listarTarjetasConResumen, mes]);
+
   const cargarMembresias = useCallback(async () => {
     const peticion = ++ultimaPeticionMembresias.current;
     try {
-      const lista = await listarMembresias();
+      const [lista, listaTarjetas] = await Promise.all([
+        listarMembresias(),
+        listarTarjetasConResumen(mes).catch(() => null),
+      ]);
       if (peticion !== ultimaPeticionMembresias.current) return;
       setMembresias(lista);
+      if (Array.isArray(listaTarjetas)) {
+        setTarjetas(listaTarjetas);
+        setMesTarjetasCargado(mes);
+        setEstadoTarjetas('listo');
+      }
       setMembresiasCargadas(true);
       setEstadoMembresias('listo');
       return true;
@@ -160,7 +189,7 @@ export default function CarteraScreen({ navigation, route }) {
       setEstadoMembresias('error');
       return false;
     }
-  }, [listarMembresias]);
+  }, [listarMembresias, listarTarjetasConResumen, mes]);
 
   useFocusEffect(
     useCallback(() => {
@@ -168,14 +197,29 @@ export default function CarteraScreen({ navigation, route }) {
         cargarPresupuestos();
       } else if (enSuscripciones) {
         cargarMembresias();
+      } else if (enTarjetas) {
+        cargarTarjetas();
       }
-    }, [enPresupuestos, enSuscripciones, cargarPresupuestos, cargarMembresias]),
+    }, [
+      enPresupuestos,
+      enSuscripciones,
+      enTarjetas,
+      cargarPresupuestos,
+      cargarMembresias,
+      cargarTarjetas,
+    ]),
   );
 
   const cambiarSeccion = (nueva) => {
+    filas.cerrarAbierta();
     setSeccion(nueva);
     if (nueva === 'suscripciones' && estadoMembresias === 'cargando') {
       cargarMembresias();
+    } else if (
+      nueva === 'tarjetas' &&
+      (estadoTarjetas === 'cargando' || mesTarjetasCargado !== mes)
+    ) {
+      cargarTarjetas();
     }
   };
 
@@ -190,12 +234,22 @@ export default function CarteraScreen({ navigation, route }) {
     error: estadoMembresias === 'error' ? errorMembresias : null,
     hayDatos: membresiasCargadas,
   });
-  const recarga = enPresupuestos ? recargaPresupuestos : enSuscripciones ? recargaMembresias : null;
+  const tarjetasCargadas = mesTarjetasCargado === mes;
+  const recargaTarjetas = useRecargar(cargarTarjetas, {
+    error: estadoTarjetas === 'error' ? errorTarjetas : null,
+    hayDatos: tarjetasCargadas,
+  });
+  const recarga = enPresupuestos
+    ? recargaPresupuestos
+    : enSuscripciones
+      ? recargaMembresias
+      : recargaTarjetas;
 
   const cambiarMes = (nuevo) => {
     setMes(nuevo);
     setAvisoCopia('');
     if (estadoPresupuestos === 'error') setEstadoPresupuestos('cargando');
+    if (estadoTarjetas === 'error') setEstadoTarjetas('cargando');
   };
 
   const copiarDelMesAnterior = async () => {
@@ -214,7 +268,8 @@ export default function CarteraScreen({ navigation, route }) {
   };
 
   // Reintentar deja el error a la vista con el botón en cargando y pide solo la sección que falló.
-  const reintentar = () => (enPresupuestos ? cargarPresupuestos() : cargarMembresias());
+  const reintentar = () =>
+    enPresupuestos ? cargarPresupuestos() : enSuscripciones ? cargarMembresias() : cargarTarjetas();
 
   const filas = useFilasDeslizables();
 
@@ -236,6 +291,14 @@ export default function CarteraScreen({ navigation, route }) {
     setMembresias((lista) => lista.filter((m) => m.id !== id));
     cargarMembresias();
     actualizarWidgetResumen();
+  };
+
+  // Handlers para Tarjetas
+  const crearTarjeta = () => navigation.navigate('Tarjeta');
+  const editarTarjeta = (t) => navigation.navigate('Tarjeta', { tarjeta: t });
+  const tarjetaEliminada = (id) => {
+    setTarjetas((lista) => lista.filter((t) => t.id !== id));
+    cargarTarjetas();
   };
 
   // Resumen de Presupuestos
@@ -307,17 +370,28 @@ export default function CarteraScreen({ navigation, route }) {
     setOrdenSubs(orden);
   };
 
-  // Acción del botón píldora según la sección; null en "Próximamente" (se oculta).
+  // Resumen de Tarjetas
+  const resumenT = useMemo(() => resumenGeneralTarjetas(tarjetas), [tarjetas]);
+  const listoTarjetas =
+    estadoTarjetas === 'listo' || (estadoTarjetas === 'error' && tarjetasCargadas);
+  const cambiandoMesT = listoTarjetas && mesTarjetasCargado !== mes;
+  const atenuadoT = cambiandoMesT ? styles.atenuado : null;
+  const nombreDelMesT = nombreMes(mesTarjetasCargado ?? mes);
+  const hayTarjetas = listoTarjetas && tarjetas.length > 0;
+
+  // Acción del botón píldora según la sección.
   const accionEncabezado = enPresupuestos
     ? { texto: 'Nuevo', etiqueta: 'Nuevo presupuesto', onPress: crearPresupuesto }
     : enSuscripciones
       ? { texto: 'Agregar', etiqueta: 'Agregar suscripción', onPress: crearMembresia }
-      : null;
+      : { texto: 'Agregar', etiqueta: 'Agregar tarjeta', onPress: crearTarjeta };
   const animar = (animacion) => (reducirMovimiento ? undefined : animacion);
 
   const subtituloCartera = enSuscripciones
     ? 'Gestión de cobros recurrentes'
-    : 'Límites de gasto y control mensual';
+    : enTarjetas
+      ? 'Tarjetas de crédito y débito'
+      : 'Límites de gasto y control mensual';
 
   const encabezado = (
     <View style={styles.encabezado}>
@@ -498,21 +572,79 @@ export default function CarteraScreen({ navigation, route }) {
           />
         </Animated.View>
       ) : null}
+
+      {/* Sección Tarjetas */}
+      {enTarjetas ? (
+        <Animated.View entering={APARECER} style={styles.seccionPresupuestos}>
+          <SelectorMes mes={mes} onCambiar={cambiarMes} />
+
+          {hayTarjetas ? (
+            <View style={[styles.tarjetaResumenSubs, atenuadoT]}>
+              <View style={styles.resumenFila}>
+                <Etiqueta style={styles.resumenEtiqueta}>
+                  Gastado con tarjeta en {nombreDelMesT}
+                </Etiqueta>
+                {cambiandoMesT ? (
+                  <ActivityIndicator size="small" color={colors.textSecondary} />
+                ) : null}
+              </View>
+              <View style={styles.resumenMontosSubs}>
+                <Text style={styles.resumenTotalSubs} numberOfLines={1} adjustsFontSizeToFit>
+                  {formatearMonto(resumenT.totalMes)}
+                </Text>
+                <Text style={styles.resumenMonedaSubs}>MXN</Text>
+              </View>
+              <View style={styles.resumenDetalleFila}>
+                <MaterialCommunityIcons
+                  name="credit-card-multiple-outline"
+                  size={14}
+                  color={colors.textSecondary}
+                />
+                <Text style={styles.resumenDetalleSubs} numberOfLines={1}>
+                  <Text style={styles.resumenDetalleFuerte}>
+                    {resumenT.cantidad} {resumenT.cantidad === 1 ? 'tarjeta' : 'tarjetas'}
+                  </Text>
+                  {` · ${resumenT.credito} crédito · ${resumenT.debito} débito`}
+                </Text>
+              </View>
+            </View>
+          ) : null}
+
+          {hayTarjetas ? (
+            <View style={styles.cabeceraListaSubs}>
+              <Etiqueta>MIS TARJETAS</Etiqueta>
+              <Text style={styles.contadorServicios}>
+                {tarjetas.length} {tarjetas.length === 1 ? 'TARJETA' : 'TARJETAS'}
+              </Text>
+            </View>
+          ) : null}
+        </Animated.View>
+      ) : null}
     </View>
   );
 
   let contenidoVacio;
-  if (!enPresupuestos && !enSuscripciones) {
-    const proximamente = PROXIMAMENTE[seccion];
+  if (enTarjetas) {
+    const vacio = listoTarjetas;
     contenidoVacio = (
-      <Animated.View key={seccion} entering={APARECER}>
-        <PantallaProximamente
-          icono={proximamente.icono}
-          titulo={proximamente.titulo}
-          mensaje={proximamente.mensaje}
-          incrustada
-        />
-      </Animated.View>
+      <EstadoPantalla
+        estado={vacio ? 'vacio' : estadoTarjetas}
+        error={errorTarjetas}
+        titulo={vacio ? 'Sin tarjetas registradas' : null}
+        mensaje={
+          vacio
+            ? 'Agrega tus tarjetas de crédito o débito para saber con cuál pagaste cada gasto o suscripción.'
+            : null
+        }
+        icono={vacio ? 'credit-card-outline' : undefined}
+        onReintentar={reintentar}
+        accion={{
+          titulo: 'Agregar tu primera tarjeta',
+          icono: 'plus',
+          onPress: crearTarjeta,
+        }}
+        style={atenuadoT}
+      />
     );
   } else if (enPresupuestos) {
     const vacio = listoPresupuestos;
@@ -570,7 +702,9 @@ export default function CarteraScreen({ navigation, route }) {
       ? listaMembresiasLista
         ? filasSubs
         : []
-      : [];
+      : listoTarjetas
+        ? tarjetas
+        : [];
 
   return (
     <View style={styles.pantalla}>
@@ -626,7 +760,34 @@ export default function CarteraScreen({ navigation, route }) {
                     accessibilityRole="button"
                     accessibilityLabel={`Editar suscripción ${item.nombre}`}
                   >
-                    <ItemMembresia membresia={item} opaca />
+                    <ItemMembresia
+                      membresia={item}
+                      nombreTarjeta={nombreTarjetaPorId(tarjetas, item.tarjeta_id)}
+                      opaca
+                    />
+                  </Pressable>
+                </FilaDeslizable>
+              </Animated.View>
+            );
+          }
+          if (enTarjetas) {
+            return (
+              <Animated.View entering={APARECER} style={atenuadoT}>
+                <FilaDeslizable
+                  filas={filas}
+                  onEditar={() => editarTarjeta(item)}
+                  eliminar={() => eliminarTarjeta(item.id)}
+                  onEliminado={() => tarjetaEliminada(item.id)}
+                  tituloEliminar={`¿Eliminar la tarjeta ${item.nombre} ·· ${item.ultimos4}?`}
+                  codigoNoExiste="TARJETA_NO_ENCONTRADA"
+                  mensajeNoExiste="Esta tarjeta ya no existe"
+                >
+                  <Pressable
+                    onPress={() => editarTarjeta(item)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Editar tarjeta ${item.nombre}`}
+                  >
+                    <ItemTarjeta tarjeta={item} opaca />
                   </Pressable>
                 </FilaDeslizable>
               </Animated.View>

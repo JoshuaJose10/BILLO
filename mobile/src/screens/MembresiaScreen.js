@@ -27,6 +27,7 @@ import SelectorSegmentado from '../components/SelectorSegmentado';
 import TecladoNumerico from '../components/TecladoNumerico';
 import { guardarUltimoTipoCambio, useDivisasService } from '../services/divisas';
 import { useMembresiasService } from '../services/membresias';
+import { useTarjetasService } from '../services/tarjetas';
 import { useActualizarWidget } from '../widget/useActualizarWidget';
 import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
@@ -53,6 +54,7 @@ import {
   validarMembresia,
 } from '../utils/membresias';
 import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
+import { etiquetaTarjeta, etiquetaTipoTarjeta } from '../utils/tarjetas';
 
 // Al crear (HU-84): con «Ya la pagué» la fecha es la del último pago y el próximo cobro se calcula.
 const OPCIONES_PAGO = [
@@ -105,6 +107,7 @@ export default function MembresiaScreen({ navigation, route }) {
     marcarPagada,
     listarPagos,
   } = useMembresiasService();
+  const { listarTarjetas } = useTarjetasService();
   const actualizarWidgetResumen = useActualizarWidget();
 
   const membresiaEditada = route.params?.membresia;
@@ -164,7 +167,21 @@ export default function MembresiaScreen({ navigation, route }) {
     if (valor === 'pagada' && fecha > new Date()) setFecha(new Date());
   };
   const [servicioId, setServicioId] = useState(() => membresiaEditada?.servicio_id ?? null);
-  const [panel, setPanel] = useState(null); // 'nombre' | 'frecuencia' | 'fecha' | 'moneda'
+  const [tarjetaId, setTarjetaId] = useState(() => membresiaEditada?.tarjeta_id ?? null);
+  const [tarjetas, setTarjetas] = useState([]);
+  const [panel, setPanel] = useState(null); // 'nombre' | 'frecuencia' | 'fecha' | 'moneda' | 'tarjeta'
+
+  useEffect(() => {
+    let activo = true;
+    listarTarjetas()
+      .then((lista) => {
+        if (activo) setTarjetas(lista);
+      })
+      .catch(() => {});
+    return () => {
+      activo = false;
+    };
+  }, [listarTarjetas]);
 
   // Si editamos una suscripción con moneda extranjera, guardamos su tipo de cambio como último conocido
   useEffect(() => {
@@ -381,6 +398,7 @@ export default function MembresiaScreen({ navigation, route }) {
       return;
     }
 
+    const tarjetaValidaId = tarjetas.some((t) => t.id === tarjetaId) ? tarjetaId : null;
     const payload = {
       ...prepararDatosMembresia({
         servicioId,
@@ -390,6 +408,7 @@ export default function MembresiaScreen({ navigation, route }) {
         tipoCambio,
         frecuencia,
         fechaCobro: fechaCobroISO,
+        tarjetaId: tarjetaValidaId,
       }),
       // HU-95: el backend llena el historial desde el pago (solo al crear con «Ya la pagué»).
       ...(conPago ? { fecha_ultimo_pago: fechaISO } : {}),
@@ -589,6 +608,23 @@ export default function MembresiaScreen({ navigation, route }) {
             onPress={abrirFecha}
             accessibilityLabel={`${tituloFecha}: ${formatearDiaMes(fechaISO)}`}
           />
+          {tarjetas.length > 0 ? (
+            <ChipSelector
+              icono="credit-card-chip-outline"
+              etiqueta={
+                tarjetas.find((t) => t.id === tarjetaId)
+                  ? etiquetaTarjeta(tarjetas.find((t) => t.id === tarjetaId))
+                  : 'Tarjeta (opcional)'
+              }
+              chevron
+              onPress={() => setPanel('tarjeta')}
+              accessibilityLabel={
+                tarjetas.find((t) => t.id === tarjetaId)
+                  ? `Tarjeta: ${etiquetaTarjeta(tarjetas.find((t) => t.id === tarjetaId))}`
+                  : 'Tarjeta: sin especificar'
+              }
+            />
+          ) : null}
         </ScrollView>
         {conPago ? (
           <Text style={styles.notaCampo}>Próximo cobro: {formatearDiaMes(proximoCobroISO)}</Text>
@@ -892,6 +928,55 @@ export default function MembresiaScreen({ navigation, route }) {
                 <Text style={styles.nombreMonedaSubtexto}>{m.nombre}</Text>
               </View>
               {m.codigo === moneda ? (
+                <MaterialCommunityIcons name="check" size={22} color={colors.text} />
+              ) : null}
+            </Pressable>
+          ))}
+        </PanelHoja>
+      ) : null}
+
+      {panel === 'tarjeta' ? (
+        <PanelHoja titulo="Tarjeta" onCerrar={() => setPanel(null)}>
+          <Pressable
+            onPress={() => {
+              setTarjetaId(null);
+              setPanel(null);
+            }}
+            accessibilityRole="button"
+            accessibilityState={{ selected: !tarjetas.some((t) => t.id === tarjetaId) }}
+            style={({ pressed }) => [styles.opcion, pressed ? styles.opcionPresionada : null]}
+          >
+            <MaterialCommunityIcons
+              name="credit-card-off-outline"
+              size={22}
+              color={colors.textSecondary}
+            />
+            <Text style={styles.opcionTexto}>Sin especificar</Text>
+            {!tarjetas.some((t) => t.id === tarjetaId) ? (
+              <MaterialCommunityIcons name="check" size={22} color={colors.text} />
+            ) : null}
+          </Pressable>
+          {tarjetas.map((t) => (
+            <Pressable
+              key={t.id}
+              onPress={() => {
+                setTarjetaId(t.id);
+                setPanel(null);
+              }}
+              accessibilityRole="button"
+              accessibilityState={{ selected: t.id === tarjetaId }}
+              style={({ pressed }) => [styles.opcion, pressed ? styles.opcionPresionada : null]}
+            >
+              <MaterialCommunityIcons
+                name={t.tipo === 'credito' ? 'credit-card-chip-outline' : 'credit-card-outline'}
+                size={22}
+                color={colors.text}
+              />
+              <View style={styles.monedaInfoColumna}>
+                <Text style={styles.opcionTexto}>{etiquetaTarjeta(t)}</Text>
+                <Text style={styles.nombreMonedaSubtexto}>{etiquetaTipoTarjeta(t.tipo)}</Text>
+              </View>
+              {t.id === tarjetaId ? (
                 <MaterialCommunityIcons name="check" size={22} color={colors.text} />
               ) : null}
             </Pressable>

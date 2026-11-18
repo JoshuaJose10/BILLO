@@ -58,6 +58,11 @@ const MENSAJES = {
   MEMBRESIA_NO_ENCONTRADA: 'Esa membresía ya no existe.',
   TOKEN_PUSH_INVALIDO: 'No se pudieron activar las notificaciones.',
 
+  // Tarjetas (HU-85 / HU-89)
+  TARJETA_INVALIDA: 'Revisa los datos de la tarjeta.',
+  ULTIMOS4_INVALIDOS: 'Ingresa los últimos 4 dígitos de la tarjeta.',
+  TARJETA_NO_ENCONTRADA: 'Esa tarjeta ya no existe.',
+
   // Generados por la app
   API_URL_FALTANTE:
     'La app no tiene la dirección del servidor. Define EXPO_PUBLIC_API_URL en mobile/.env y reinicia Expo.',
