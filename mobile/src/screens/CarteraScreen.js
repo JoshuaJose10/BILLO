@@ -743,7 +743,7 @@ const crearEstilos = (colors) =>
       gap: 6,
       paddingHorizontal: 10,
       paddingVertical: 3,
-      borderRadius: 9999,
+      borderRadius: radios.full,
       backgroundColor: colors.glass05,
       borderWidth: 1,
       borderColor: colors.borderStrong,
@@ -751,7 +751,7 @@ const crearEstilos = (colors) =>
     puntoMesVerde: {
       width: 6,
       height: 6,
-      borderRadius: 3,
+      borderRadius: radios.full,
       backgroundColor: colors.cobroProximo,
     },
     textoMesActual: {
@@ -777,12 +777,13 @@ const crearEstilos = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: colors.surfaceHigh,
-      borderRadius: radios.md,
+      // Vidrio y borde sutil como la píldora del mes (radios.md no existe en el tema)
+      backgroundColor: colors.glass05,
+      borderRadius: radios.lg,
       paddingVertical: espacios.sm,
       paddingHorizontal: espacios.md,
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: colors.borderStrong,
     },
     columnaProyeccionSubs: {
       flex: 1,
