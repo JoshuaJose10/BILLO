@@ -531,7 +531,7 @@ const crearEstilos = (colors) =>
     },
     botonAccion: {
       padding: 8,
-      borderRadius: radios.md,
+      borderRadius: radios.lg,
       backgroundColor: colors.glass05,
     },
     botonAccionEliminar: {
@@ -600,7 +600,7 @@ const crearEstilos = (colors) =>
       alignItems: 'center',
       backgroundColor: colors.alertaFondo || colors.glass05,
       padding: 10,
-      borderRadius: radios.md,
+      borderRadius: radios.lg,
       marginBottom: 14,
       gap: 6,
     },

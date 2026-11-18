@@ -4,6 +4,43 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const esEmailValido = (email) => EMAIL_REGEX.test(email.trim());
 
 export const MIN_PASSWORD = 8;
+export const MAX_NOMBRE = 100;
+
+// Nombre del usuario (Registro y Editar nombre en Perfil): 1 a 100 caracteres como el backend.
+export function errorNombre(nombre) {
+  const limpio = typeof nombre === 'string' ? nombre.trim() : '';
+  if (!limpio) return 'Ingresa tu nombre';
+  if (limpio.length > MAX_NOMBRE) return `El nombre puede tener hasta ${MAX_NOMBRE} caracteres`;
+  return undefined;
+}
+
+export function validarEditarNombre(nombre) {
+  const limpio = typeof nombre === 'string' ? nombre.trim() : '';
+  const error = errorNombre(limpio);
+  return {
+    valido: !error,
+    nombre: limpio,
+    error: error ?? null,
+  };
+}
+
+export function validarCambioContrasena({ actual = '', nueva = '', confirmacion = '' } = {}) {
+  const errActual = !actual ? 'Ingresa tu contraseña actual' : undefined;
+  let errNueva = errorPasswordNueva(nueva);
+  if (!errNueva && actual && nueva === actual) {
+    errNueva = 'La nueva contraseña debe ser diferente a la actual';
+  }
+  const errConfirmacion = errorConfirmacion(nueva, confirmacion);
+  const errores = {
+    actual: errActual,
+    nueva: errNueva,
+    confirmacion: errConfirmacion,
+  };
+  return {
+    valido: !hayErrores(errores),
+    errores,
+  };
+}
 
 // Mensajes de los formularios de Login, Registro y Recuperar contraseña (undefined = válido).
 export function errorEmail(email) {

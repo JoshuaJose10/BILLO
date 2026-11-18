@@ -3,12 +3,14 @@ import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   AppState,
   Linking,
   Platform,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   View,
@@ -17,43 +19,72 @@ import {
 import appConfig from '../../app.json';
 import Avatar from '../components/Avatar';
 import Boton from '../components/Boton';
+import FuerzaPassword from '../components/FuerzaPassword';
 import HojaInferior from '../components/HojaInferior';
 import Input from '../components/Input';
 import PanelHoja from '../components/PanelHoja';
 import { useApi, useAuth } from '../context/AuthContext';
+import { MODO_VISITANTE } from '../services/api';
 import { radios } from '../theme/colors';
-import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
+import { useEstilos, useTema } from '../theme/TemaContext';
 import { esAdmin } from '../utils/auth';
 import { MONEDAS_DISPONIBLES } from '../utils/divisas';
-import { mensajeError } from '../utils/errores';
+import { mensajeError, textosError } from '../utils/errores';
 import {
   descripcionMonedaPreferida,
   estadoNotificaciones,
   MODOS_TEMA,
   obtenerInfoAcercaDe,
 } from '../utils/preferencias';
+import { MAX_NOMBRE, validarCambioContrasena, validarEditarNombre } from '../utils/validacion';
 
 // Hoja inferior de Perfil (ruta Perfil con presentation: 'transparentModal'), se abre
-// desde el avatar de Inicio. Permite ajustar tema, moneda preferida, notificaciones,
-// consultar Acerca de Billo, administrar catálogo (admin), eliminar cuenta y cerrar sesión (HU-87).
+// desde el avatar de Inicio. Permite editar nombre, cambiar contraseña, exportar datos en CSV,
+// ajustar tema, moneda preferida, notificaciones, consultar Acerca de Billo, administrar catálogo
+// (admin), eliminar cuenta y cerrar sesión (HU-87 / feature/perfil-cuenta-exportar).
 export default function PerfilScreen({ navigation }) {
-  const { usuario, token, cerrarSesion } = useAuth();
+  const { usuario, token, visitante, actualizarUsuario, cerrarSesion, salirDeVisitante } =
+    useAuth();
   const api = useApi();
   const { colors, modoTema, cambiarModoTema, monedaPreferida, cambiarMonedaPreferida } = useTema();
   const styles = useEstilos(crearEstilos);
   const esAdministrador = esAdmin(token);
+  const enModoVisitante = Boolean(visitante || !token);
 
   const versionApp = Constants.expoConfig?.version || appConfig?.expo?.version || '1.0.0';
   const infoAcercaDe = obtenerInfoAcercaDe(versionApp);
   const infoMoneda = descripcionMonedaPreferida(monedaPreferida);
 
-  // Panel flotante activo: null | 'moneda' | 'acerca' | 'eliminar'
+  // Panel flotante activo: null | 'moneda' | 'acerca' | 'eliminar' | 'nombre' | 'password'
   const [panel, setPanel] = useState(null);
   const [permisoNotif, setPermisoNotif] = useState(null);
+  const [avisoExito, setAvisoExito] = useState('');
+
+  // Estado de Editar nombre
+  const [nuevoNombre, setNuevoNombre] = useState('');
+  const [errorCampoNombre, setErrorCampoNombre] = useState('');
+  const [errorNombreApi, setErrorNombreApi] = useState(null);
+  const [guardandoNombre, setGuardandoNombre] = useState(false);
+
+  // Estado de Cambiar contraseña
+  const [passwordActual, setPasswordActual] = useState('');
+  const [passwordNueva, setPasswordNueva] = useState('');
+  const [passwordConfirmar, setPasswordConfirmar] = useState('');
+  const [erroresPassword, setErroresPassword] = useState({});
+  const [errorPasswordApi, setErrorPasswordApi] = useState(null);
+  const [guardandoPassword, setGuardandoPassword] = useState(false);
+
+  // Estado de Exportar mis datos
+  const [exportando, setExportando] = useState(false);
+  const [errorExportar, setErrorExportar] = useState(null);
+
+  // Estado de Eliminar cuenta
   const [password, setPassword] = useState('');
   const [eliminando, setEliminando] = useState(false);
   const [errorApi, setErrorApi] = useState('');
+
+  const ocupado = guardandoNombre || guardandoPassword || exportando || eliminando;
 
   useEffect(() => {
     if (Platform.OS === 'web') return undefined;
@@ -80,6 +111,148 @@ export default function PerfilScreen({ navigation }) {
   }, []);
 
   const infoNotif = estadoNotificaciones(permisoNotif);
+
+  const avisarModoVisitante = () => {
+    Alert.alert('Requiere una cuenta', mensajeError(MODO_VISITANTE), [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Crear cuenta',
+        onPress: () => {
+          navigation.goBack();
+          salirDeVisitante?.('Registro');
+        },
+      },
+    ]);
+  };
+
+  const abrirEditarNombre = () => {
+    if (enModoVisitante) {
+      avisarModoVisitante();
+      return;
+    }
+    setNuevoNombre(usuario?.nombre || '');
+    setErrorCampoNombre('');
+    setErrorNombreApi(null);
+    setAvisoExito('');
+    setPanel('nombre');
+  };
+
+  const handleGuardarNombre = async () => {
+    if (guardandoNombre) return;
+    const validacion = validarEditarNombre(nuevoNombre);
+    if (!validacion.valido) {
+      setErrorCampoNombre(validacion.error);
+      return;
+    }
+    setGuardandoNombre(true);
+    setErrorCampoNombre('');
+    setErrorNombreApi(null);
+    try {
+      const resp = await api('/auth/perfil', {
+        method: 'PUT',
+        body: { nombre: validacion.nombre },
+      });
+      const actualizado = resp?.usuario || { ...usuario, nombre: validacion.nombre };
+      await actualizarUsuario?.({ nombre: actualizado.nombre });
+      setGuardandoNombre(false);
+      setPanel(null);
+      setAvisoExito('Tu nombre se actualizó correctamente.');
+    } catch (err) {
+      setGuardandoNombre(false);
+      if (err?.code === 'NOMBRE_INVALIDO' || err?.code === 'NOMBRE_REQUERIDO') {
+        setErrorCampoNombre(mensajeError(err.code, err.message));
+      } else {
+        setErrorNombreApi(err);
+      }
+    }
+  };
+
+  const abrirCambiarPassword = () => {
+    if (enModoVisitante) {
+      avisarModoVisitante();
+      return;
+    }
+    setPasswordActual('');
+    setPasswordNueva('');
+    setPasswordConfirmar('');
+    setErroresPassword({});
+    setErrorPasswordApi(null);
+    setAvisoExito('');
+    setPanel('password');
+  };
+
+  const handleCambiarPassword = async () => {
+    if (guardandoPassword) return;
+    const validacion = validarCambioContrasena({
+      actual: passwordActual,
+      nueva: passwordNueva,
+      confirmacion: passwordConfirmar,
+    });
+    if (!validacion.valido) {
+      setErroresPassword(validacion.errores);
+      return;
+    }
+    setGuardandoPassword(true);
+    setErroresPassword({});
+    setErrorPasswordApi(null);
+    try {
+      await api('/auth/cambiar-contrasena', {
+        method: 'POST',
+        body: {
+          contrasena_actual: passwordActual,
+          contrasena_nueva: passwordNueva,
+        },
+      });
+      setGuardandoPassword(false);
+      setPanel(null);
+      setPasswordActual('');
+      setPasswordNueva('');
+      setPasswordConfirmar('');
+      setAvisoExito('Contraseña actualizada correctamente.');
+      Alert.alert('Contraseña actualizada', 'Tu contraseña se actualizó correctamente.');
+    } catch (err) {
+      setGuardandoPassword(false);
+      if (err?.code === 'CONTRASENA_ACTUAL_INCORRECTA' || err?.code === 'PASSWORD_INCORRECTA') {
+        setErroresPassword({ actual: mensajeError(err.code, err.message) });
+      } else if (err?.code === 'CONTRASENA_INVALIDA' || err?.code === 'PASSWORD_MUY_CORTA') {
+        setErroresPassword({ nueva: mensajeError(err.code, err.message) });
+      } else {
+        setErrorPasswordApi(err);
+      }
+    }
+  };
+
+  const handleExportarDatos = async () => {
+    if (exportando) return;
+    if (enModoVisitante) {
+      avisarModoVisitante();
+      return;
+    }
+    setExportando(true);
+    setErrorExportar(null);
+    setAvisoExito('');
+    try {
+      const csvTexto = await api('/exportar?formato=csv', { respuestaTexto: true });
+      setExportando(false);
+      if (Platform.OS === 'web' && typeof document !== 'undefined') {
+        const blob = new Blob([csvTexto], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'billo-datos.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        await Share.share({
+          title: 'billo-datos.csv',
+          message: csvTexto,
+        });
+      }
+    } catch (err) {
+      setExportando(false);
+      setErrorExportar(err);
+    }
+  };
 
   const abrirAjustesNotificaciones = async () => {
     try {
@@ -138,7 +311,7 @@ export default function PerfilScreen({ navigation }) {
       titulo="Perfil"
       etiquetaFondo="Cerrar perfil"
       onCerrada={() => navigation.goBack()}
-      bloqueada={eliminando}
+      bloqueada={ocupado}
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -147,9 +320,29 @@ export default function PerfilScreen({ navigation }) {
         {/* Tarjeta de datos del usuario y versión de la app */}
         <View style={styles.tarjetaUsuario}>
           <Avatar nombre={usuario?.nombre} tamano={72} />
-          <Text style={styles.nombre} numberOfLines={1}>
-            {usuario?.nombre || 'Sin nombre'}
-          </Text>
+          <View style={styles.filaNombre}>
+            <Text style={styles.nombre} numberOfLines={1}>
+              {usuario?.nombre || 'Sin nombre'}
+            </Text>
+            {!enModoVisitante ? (
+              <Pressable
+                onPress={abrirEditarNombre}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Editar nombre"
+                style={({ pressed }) => [
+                  styles.botonEditarNombre,
+                  pressed ? styles.opcionTemaPresionada : null,
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name="pencil-outline"
+                  size={15}
+                  color={colors.textSecondary}
+                />
+              </Pressable>
+            ) : null}
+          </View>
           {usuario?.email ? (
             <Text style={styles.correo} numberOfLines={1}>
               {usuario.email}
@@ -172,6 +365,17 @@ export default function PerfilScreen({ navigation }) {
             ) : null}
           </View>
         </View>
+
+        {avisoExito ? (
+          <View style={styles.bannerExito} accessibilityLiveRegion="polite">
+            <MaterialCommunityIcons
+              name="check-circle-outline"
+              size={18}
+              color={colors.exitoTexto}
+            />
+            <Text style={styles.bannerExitoTexto}>{avisoExito}</Text>
+          </View>
+        ) : null}
 
         {/* Sección de Ajustes */}
         <Text style={styles.tituloSeccion}>Preferencias</Text>
@@ -318,6 +522,103 @@ export default function PerfilScreen({ navigation }) {
         {/* Acciones de cuenta y administración */}
         <Text style={styles.tituloSeccion}>Cuenta</Text>
 
+        {enModoVisitante ? (
+          <View style={styles.bloqueAjuste}>
+            <Text style={styles.subtextoAjuste}>{mensajeError(MODO_VISITANTE)}</Text>
+          </View>
+        ) : (
+          <>
+            {/* Editar nombre */}
+            <Pressable
+              onPress={abrirEditarNombre}
+              accessibilityRole="button"
+              accessibilityLabel="Editar nombre"
+              style={({ pressed }) => [
+                styles.filaAjuste,
+                pressed ? styles.filaAjustePresionada : null,
+              ]}
+            >
+              <View style={styles.iconoAjusteCirculo}>
+                <MaterialCommunityIcons name="account-edit-outline" size={20} color={colors.text} />
+              </View>
+              <View style={styles.columnaAjuste}>
+                <Text style={styles.etiquetaAjuste}>Editar nombre</Text>
+                <Text style={styles.subtextoAjuste} numberOfLines={1}>
+                  {usuario?.nombre || 'Actualiza cómo te llamamos en Billo'}
+                </Text>
+              </View>
+              <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textSecondary} />
+            </Pressable>
+
+            {/* Cambiar contraseña */}
+            <Pressable
+              onPress={abrirCambiarPassword}
+              accessibilityRole="button"
+              accessibilityLabel="Cambiar contraseña"
+              style={({ pressed }) => [
+                styles.filaAjuste,
+                pressed ? styles.filaAjustePresionada : null,
+              ]}
+            >
+              <View style={styles.iconoAjusteCirculo}>
+                <MaterialCommunityIcons name="lock-reset" size={20} color={colors.text} />
+              </View>
+              <View style={styles.columnaAjuste}>
+                <Text style={styles.etiquetaAjuste}>Cambiar contraseña</Text>
+                <Text style={styles.subtextoAjuste} numberOfLines={1}>
+                  Actualiza tu contraseña de acceso
+                </Text>
+              </View>
+              <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textSecondary} />
+            </Pressable>
+
+            {/* Exportar mis datos */}
+            <Pressable
+              onPress={handleExportarDatos}
+              disabled={exportando}
+              accessibilityRole="button"
+              accessibilityLabel="Exportar mis datos"
+              style={({ pressed }) => [
+                styles.filaAjuste,
+                pressed ? styles.filaAjustePresionada : null,
+              ]}
+            >
+              <View style={styles.iconoAjusteCirculo}>
+                <MaterialCommunityIcons
+                  name="file-delimited-outline"
+                  size={20}
+                  color={colors.text}
+                />
+              </View>
+              <View style={styles.columnaAjuste}>
+                <Text style={styles.etiquetaAjuste}>Exportar mis datos</Text>
+                <Text style={styles.subtextoAjuste} numberOfLines={1}>
+                  {exportando
+                    ? 'Preparando archivo CSV…'
+                    : 'Descarga tus movimientos en CSV y compártelos'}
+                </Text>
+              </View>
+              {exportando ? (
+                <ActivityIndicator size="small" color={colors.textSecondary} />
+              ) : (
+                <MaterialCommunityIcons
+                  name="share-variant-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                />
+              )}
+            </Pressable>
+
+            {errorExportar ? (
+              <BloqueErrorConReintentar
+                error={errorExportar}
+                onReintentar={handleExportarDatos}
+                cargando={exportando}
+              />
+            ) : null}
+          </>
+        )}
+
         {/* HU-49: opción de administración del catálogo exclusiva para administradores */}
         {esAdministrador ? (
           <View style={styles.bloqueAccion}>
@@ -344,25 +645,193 @@ export default function PerfilScreen({ navigation }) {
           </View>
         ) : null}
 
-        {/* HU-68: Eliminar mi cuenta con confirmación */}
-        <View style={styles.bloqueAccion}>
-          <Boton
-            titulo="Eliminar mi cuenta"
-            icono="account-remove-outline"
-            onPress={() => {
-              setErrorApi('');
-              setPassword('');
-              setPanel('eliminar');
-            }}
-            destructivo
-          />
-        </View>
+        {!enModoVisitante ? (
+          <>
+            {/* HU-68: Eliminar mi cuenta con confirmación */}
+            <View style={styles.bloqueAccion}>
+              <Boton
+                titulo="Eliminar mi cuenta"
+                icono="account-remove-outline"
+                onPress={() => {
+                  setErrorApi('');
+                  setPassword('');
+                  setPanel('eliminar');
+                }}
+                destructivo
+              />
+            </View>
 
-        {/* Cerrar sesión siempre al final */}
-        <View style={styles.bloqueCerrarSesion}>
-          <Boton titulo="Cerrar sesión" icono="logout" onPress={confirmarCerrarSesion} secundario />
-        </View>
+            {/* Cerrar sesión siempre al final */}
+            <View style={styles.bloqueCerrarSesion}>
+              <Boton
+                titulo="Cerrar sesión"
+                icono="logout"
+                onPress={confirmarCerrarSesion}
+                secundario
+              />
+            </View>
+          </>
+        ) : null}
       </ScrollView>
+
+      {/* Panel de Editar nombre */}
+      {panel === 'nombre' ? (
+        <PanelHoja
+          titulo="Editar nombre"
+          onCerrar={() => {
+            if (!guardandoNombre) {
+              setPanel(null);
+              setErrorCampoNombre('');
+              setErrorNombreApi(null);
+            }
+          }}
+        >
+          <Input
+            etiqueta="Tu nombre"
+            icono="account-outline"
+            placeholder="Ej. Fernando Villafuerte"
+            value={nuevoNombre}
+            onChangeText={(t) => {
+              setNuevoNombre(t);
+              if (errorCampoNombre) setErrorCampoNombre('');
+              if (errorNombreApi) setErrorNombreApi(null);
+            }}
+            maxLength={MAX_NOMBRE}
+            limpiable
+            editable={!guardandoNombre}
+            error={errorCampoNombre}
+            autoCapitalize="words"
+          />
+          <Text style={styles.contadorTexto}>
+            {nuevoNombre.trim().length}/{MAX_NOMBRE} caracteres
+          </Text>
+
+          {errorNombreApi ? (
+            <BloqueErrorConReintentar
+              error={errorNombreApi}
+              onReintentar={handleGuardarNombre}
+              cargando={guardandoNombre}
+            />
+          ) : null}
+
+          <View style={styles.accionesConfirmacion}>
+            <Boton
+              titulo="Guardar nombre"
+              icono="check"
+              onPress={handleGuardarNombre}
+              cargando={guardandoNombre}
+              disabled={guardandoNombre}
+            />
+            <Boton
+              titulo="Cancelar"
+              onPress={() => {
+                setPanel(null);
+                setErrorCampoNombre('');
+                setErrorNombreApi(null);
+              }}
+              disabled={guardandoNombre}
+              secundario
+            />
+          </View>
+        </PanelHoja>
+      ) : null}
+
+      {/* Panel de Cambiar contraseña */}
+      {panel === 'password' ? (
+        <PanelHoja
+          titulo="Cambiar contraseña"
+          onCerrar={() => {
+            if (!guardandoPassword) {
+              setPanel(null);
+              setErroresPassword({});
+              setErrorPasswordApi(null);
+            }
+          }}
+        >
+          <Input
+            etiqueta="Contraseña actual"
+            icono="lock-outline"
+            password
+            placeholder="Ingresa tu contraseña actual"
+            value={passwordActual}
+            onChangeText={(t) => {
+              setPasswordActual(t);
+              if (erroresPassword.actual) {
+                setErroresPassword((prev) => ({ ...prev, actual: undefined }));
+              }
+              if (errorPasswordApi) setErrorPasswordApi(null);
+            }}
+            editable={!guardandoPassword}
+            error={erroresPassword.actual}
+            autoCapitalize="none"
+          />
+
+          <Input
+            etiqueta="Nueva contraseña"
+            icono="lock-reset"
+            password
+            placeholder="Al menos 8 caracteres"
+            value={passwordNueva}
+            onChangeText={(t) => {
+              setPasswordNueva(t);
+              if (erroresPassword.nueva) {
+                setErroresPassword((prev) => ({ ...prev, nueva: undefined }));
+              }
+              if (errorPasswordApi) setErrorPasswordApi(null);
+            }}
+            editable={!guardandoPassword}
+            error={erroresPassword.nueva}
+            pie={<FuerzaPassword password={passwordNueva} />}
+            autoCapitalize="none"
+          />
+
+          <Input
+            etiqueta="Confirmar nueva contraseña"
+            icono="lock-check-outline"
+            password
+            placeholder="Repite la nueva contraseña"
+            value={passwordConfirmar}
+            onChangeText={(t) => {
+              setPasswordConfirmar(t);
+              if (erroresPassword.confirmacion) {
+                setErroresPassword((prev) => ({ ...prev, confirmacion: undefined }));
+              }
+              if (errorPasswordApi) setErrorPasswordApi(null);
+            }}
+            editable={!guardandoPassword}
+            error={erroresPassword.confirmacion}
+            autoCapitalize="none"
+          />
+
+          {errorPasswordApi ? (
+            <BloqueErrorConReintentar
+              error={errorPasswordApi}
+              onReintentar={handleCambiarPassword}
+              cargando={guardandoPassword}
+            />
+          ) : null}
+
+          <View style={styles.accionesConfirmacion}>
+            <Boton
+              titulo="Actualizar contraseña"
+              icono="check"
+              onPress={handleCambiarPassword}
+              cargando={guardandoPassword}
+              disabled={guardandoPassword}
+            />
+            <Boton
+              titulo="Cancelar"
+              onPress={() => {
+                setPanel(null);
+                setErroresPassword({});
+                setErrorPasswordApi(null);
+              }}
+              disabled={guardandoPassword}
+              secundario
+            />
+          </View>
+        </PanelHoja>
+      ) : null}
 
       {/* Panel de selección de Moneda preferida */}
       {panel === 'moneda' ? (
@@ -488,6 +957,32 @@ export default function PerfilScreen({ navigation }) {
   );
 }
 
+function BloqueErrorConReintentar({ error, onReintentar, cargando }) {
+  const { colors } = useTema();
+  const styles = useEstilos(crearEstilos);
+  const { titulo, mensaje } = textosError(error);
+  return (
+    <View style={styles.bloqueError} accessibilityLiveRegion="polite">
+      <View style={styles.bloqueErrorFila}>
+        <MaterialCommunityIcons name="alert-circle-outline" size={18} color={colors.alertaTexto} />
+        <View style={styles.bloqueErrorTextos}>
+          <Text style={styles.bloqueErrorTitulo}>{titulo}</Text>
+          {mensaje ? <Text style={styles.bloqueErrorMensaje}>{mensaje}</Text> : null}
+        </View>
+      </View>
+      <Boton
+        titulo="Reintentar"
+        icono="refresh"
+        onPress={onReintentar}
+        cargando={cargando}
+        disabled={cargando}
+        secundario
+        compacto
+      />
+    </View>
+  );
+}
+
 const crearEstilos = (colors) =>
   StyleSheet.create({
     scrollContenido: {
@@ -502,7 +997,13 @@ const crearEstilos = (colors) =>
       backgroundColor: colors.glass05,
       borderWidth: 1,
       borderColor: colors.border,
-      marginBottom: 18,
+      marginBottom: 14,
+    },
+    filaNombre: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 10,
     },
     nombre: {
       fontFamily: fonts.sansSemiBold,
@@ -510,7 +1011,17 @@ const crearEstilos = (colors) =>
       lineHeight: 26,
       letterSpacing: -0.3,
       color: colors.text,
-      marginTop: 10,
+      flexShrink: 1,
+    },
+    botonEditarNombre: {
+      width: 28,
+      height: 28,
+      borderRadius: radios.full,
+      backgroundColor: colors.surfaceHigh,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     correo: {
       fontFamily: fonts.sans,
@@ -554,6 +1065,23 @@ const crearEstilos = (colors) =>
       fontFamily: fonts.sansSemiBold,
       fontSize: 12,
       color: colors.acentoTexto,
+    },
+    bannerExito: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: radios.xl,
+      backgroundColor: colors.exitoSuave,
+      marginBottom: 12,
+    },
+    bannerExitoTexto: {
+      flex: 1,
+      fontFamily: fonts.sansMedium,
+      fontSize: 13,
+      lineHeight: 18,
+      color: colors.exitoTexto,
     },
     tituloSeccion: {
       fontFamily: fonts.sansSemiBold,
@@ -696,6 +1224,43 @@ const crearEstilos = (colors) =>
     bloqueCerrarSesion: {
       marginTop: 2,
     },
+    contadorTexto: {
+      fontFamily: fonts.sans,
+      fontSize: 12,
+      lineHeight: 16,
+      color: colors.textSecondary,
+      textAlign: 'right',
+      marginTop: -8,
+      marginBottom: 12,
+    },
+    bloqueError: {
+      padding: 12,
+      borderRadius: radios.xl,
+      backgroundColor: colors.alertaSuave,
+      gap: 10,
+      marginBottom: 12,
+    },
+    bloqueErrorFila: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 8,
+    },
+    bloqueErrorTextos: {
+      flex: 1,
+      gap: 2,
+    },
+    bloqueErrorTitulo: {
+      fontFamily: fonts.sansSemiBold,
+      fontSize: 13,
+      lineHeight: 18,
+      color: colors.alertaTexto,
+    },
+    bloqueErrorMensaje: {
+      fontFamily: fonts.sans,
+      fontSize: 12,
+      lineHeight: 16,
+      color: colors.textSecondary,
+    },
     opcionMoneda: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -798,7 +1363,6 @@ const crearEstilos = (colors) =>
       marginBottom: 16,
     },
     accionesConfirmacion: {
-      marginTop: 16,
-      gap: 10,
+      gap: 8,
     },
   });

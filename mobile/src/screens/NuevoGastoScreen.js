@@ -44,7 +44,13 @@ import { mensajeError } from '../utils/errores';
 import { vistaLista } from '../utils/estadoCarga';
 import { fechaLocalISO, parsearFechaLocal } from '../utils/fechas';
 import { fechaRelativa, formatearMonto, LOCALE, resumirTexto } from '../utils/formato';
-import { DESCRIPCION_MAX, FUENTES } from '../utils/ingresos';
+import {
+  DESCRIPCION_MAX,
+  FUENTES,
+  normalizarFrecuencia,
+  OPCIONES_FRECUENCIA,
+  prepararRecurrenciaIngreso,
+} from '../utils/ingresos';
 import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
 import { resolverMonedaInicialGasto } from '../utils/preferencias';
 import { etiquetaTarjeta, etiquetaTipoTarjeta } from '../utils/tarjetas';
@@ -154,6 +160,14 @@ export default function NuevoGastoScreen({ navigation, route }) {
   );
   // En Ingreso es la `descripcion`.
   const [nota, setNota] = useState(gastoEditado?.nota ?? ingresoEditado?.descripcion ?? '');
+  // Ingreso recurrente (contrato v1.10): null = único; al editar, la del ingreso.
+  const [frecuencia, setFrecuencia] = useState(() =>
+    normalizarFrecuencia(ingresoEditado?.frecuencia),
+  );
+  const recurrenciaIngreso = prepararRecurrenciaIngreso(
+    { fecha: fechaLocalISO(fecha), frecuencia },
+    ingresoEditado,
+  );
   const [panel, setPanel] = useState(null); // 'metodo' | 'fecha' | 'nota' | 'moneda'
   // Aviso del dictado por voz (permiso negado, monto no entendido…); la captura manual sigue.
   const [avisoVoz, setAvisoVoz] = useState(null);
@@ -373,6 +387,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
           fecha: fechaLocalISO(fecha),
           descripcion: nota.trim() || null,
           fuente,
+          ...recurrenciaIngreso,
         };
         await (editando ? actualizarIngreso(ingresoEditado.id, datos) : crearIngreso(datos));
         actualizarWidgetResumen();
@@ -616,6 +631,23 @@ export default function NuevoGastoScreen({ navigation, route }) {
           )}
         </View>
         {errores.categoria ? <Text style={styles.errorCampo}>{errores.categoria}</Text> : null}
+
+        {esIngreso ? (
+          <View style={styles.filaRepetir}>
+            <Text style={styles.textoRepetir}>Repetir</Text>
+            <SelectorSegmentado
+              opciones={OPCIONES_FRECUENCIA}
+              valor={frecuencia}
+              onCambiar={setFrecuencia}
+              accessibilityLabel="Repetir ingreso"
+            />
+            {recurrenciaIngreso.proximo_ingreso ? (
+              <Text style={styles.textoRepetir}>
+                Próximo: {fechaRelativa(recurrenciaIngreso.proximo_ingreso)}
+              </Text>
+            ) : null}
+          </View>
+        ) : null}
 
         <View style={styles.zonaTeclado}>
           {dictando ? (
@@ -881,6 +913,17 @@ const crearEstilos = (colors) =>
       lineHeight: 16,
       marginTop: -4,
       marginBottom: 8,
+    },
+    // «Repetir» (solo Ingreso) arriba del teclado y el botón
+    filaRepetir: {
+      marginBottom: 10,
+      gap: 6,
+    },
+    textoRepetir: {
+      fontFamily: fonts.sansMedium,
+      fontSize: 12,
+      lineHeight: 16,
+      color: colors.textSecondary,
     },
     // gap-2.5 entre teclado y botón
     zonaTeclado: {

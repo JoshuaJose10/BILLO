@@ -36,3 +36,39 @@ export function saldoDelMes(ingresos, gastoMes) {
   if (!ingresos?.length && !(gastoMes > 0)) return null;
   return redondear2(totalIngresos(ingresos) - (gastoMes || 0));
 }
+
+// Recurrencia (contrato v1.10): `frecuencia` 'semanal' | 'quincenal' | 'mensual' o null (único).
+export const OPCIONES_FRECUENCIA = [
+  { valor: null, etiqueta: 'No' },
+  { valor: 'semanal', etiqueta: 'Semanal' },
+  { valor: 'quincenal', etiqueta: 'Quincenal' },
+  { valor: 'mensual', etiqueta: 'Mensual' },
+];
+
+// undefined / '' / 'no' / desconocida → null; si no, la frecuencia en minúsculas.
+export function normalizarFrecuencia(frecuencia) {
+  const valor = typeof frecuencia === 'string' ? frecuencia.trim().toLowerCase() : '';
+  return OPCIONES_FRECUENCIA.some((o) => o.valor && o.valor === valor) ? valor : null;
+}
+
+// 'quincenal' → 'Quincenal'; sin frecuencia, 'No'.
+export const etiquetaFrecuencia = (frecuencia) =>
+  OPCIONES_FRECUENCIA.find((o) => o.valor === normalizarFrecuencia(frecuencia)).etiqueta;
+
+// Conserva el avance del proceso diario si no cambió la programación. Sin próximo explícito,
+// el backend lo recalcula desde `fecha`; al crear sin repetir se mantiene el body anterior.
+export function prepararRecurrenciaIngreso({ fecha, frecuencia }, ingresoOriginal) {
+  const valor = normalizarFrecuencia(frecuencia);
+  if (!ingresoOriginal && !valor) return {};
+
+  const conservarProximo =
+    valor &&
+    valor === normalizarFrecuencia(ingresoOriginal?.frecuencia) &&
+    fecha === ingresoOriginal?.fecha &&
+    ingresoOriginal?.proximo_ingreso;
+
+  return {
+    frecuencia: valor,
+    ...(conservarProximo ? { proximo_ingreso: ingresoOriginal.proximo_ingreso } : {}),
+  };
+}

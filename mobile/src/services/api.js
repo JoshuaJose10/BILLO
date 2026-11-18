@@ -42,7 +42,10 @@ function normalizarError(status, body) {
 // Con `token` se envía el encabezado Authorization y un 401 dispara el cierre de sesión.
 // Con `signal` quien llama puede cancelar la petición (HU-47); igual que el timeout (TIMEOUT_MS),
 // se reporta como SIN_CONEXION.
-export async function apiFetch(ruta, { method = 'GET', body, token, signal } = {}) {
+export async function apiFetch(
+  ruta,
+  { method = 'GET', body, token, signal, respuestaTexto = false } = {},
+) {
   // Guardia del modo exploración: ni el token push ni ninguna otra ruta sale a la red.
   if (modoVisitante) {
     throw { code: MODO_VISITANTE, message: '', status: 0 };
@@ -78,6 +81,10 @@ export async function apiFetch(ruta, { method = 'GET', body, token, signal } = {
     signal?.removeEventListener('abort', cancelar);
   }
 
+  if (respuesta.ok && respuestaTexto) {
+    return typeof respuesta.text === 'function' ? await respuesta.text() : '';
+  }
+
   let datos = null;
   try {
     datos = await respuesta.json();
@@ -90,7 +97,8 @@ export async function apiFetch(ruta, { method = 'GET', body, token, signal } = {
       respuesta.status === 401 &&
       token &&
       alNoAutorizado &&
-      datos?.error?.code !== 'PASSWORD_INCORRECTA'
+      datos?.error?.code !== 'PASSWORD_INCORRECTA' &&
+      datos?.error?.code !== 'CONTRASENA_ACTUAL_INCORRECTA'
     ) {
       alNoAutorizado(token);
     }
