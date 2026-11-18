@@ -154,7 +154,7 @@ export default function MembresiaScreen({ navigation, route }) {
   const conPago = !editando && pago === 'pagada';
   const fechaISO = fechaLocalISO(fecha);
   const proximoCobroISO = conPago ? calcularProximoCobroDesdePago(fechaISO, frecuencia) : fechaISO;
-  const tituloFecha = conPago ? 'Fecha de tu último pago' : 'Próxima fecha de cobro';
+  const tituloFecha = conPago ? '¿Cuándo la pagaste?' : 'Próxima fecha de cobro';
   // El último pago no puede ser en el futuro.
   const fechaMaxima = conPago ? new Date() : undefined;
   const cambiarPago = (valor) => {
@@ -379,15 +379,19 @@ export default function MembresiaScreen({ navigation, route }) {
       return;
     }
 
-    const payload = prepararDatosMembresia({
-      servicioId,
-      nombre: nombre.trim(),
-      costoOriginal: validacion.costo,
-      moneda,
-      tipoCambio,
-      frecuencia,
-      fechaCobro: fechaCobroISO,
-    });
+    const payload = {
+      ...prepararDatosMembresia({
+        servicioId,
+        nombre: nombre.trim(),
+        costoOriginal: validacion.costo,
+        moneda,
+        tipoCambio,
+        frecuencia,
+        fechaCobro: fechaCobroISO,
+      }),
+      // HU-95: el backend llena el historial desde el pago (solo al crear con «Ya la pagué»).
+      ...(conPago ? { fecha_ultimo_pago: fechaISO } : {}),
+    };
 
     // Aviso de servicio repetido (HU-74)
     if (!forzar) {
