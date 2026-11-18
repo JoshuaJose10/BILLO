@@ -212,11 +212,15 @@ describe('utils/tarjetas', () => {
       });
     });
 
-    it('gradiente por tipo, con tono distinto según el id', () => {
-      const credito1 = degradadoTarjeta({ id: 1, tipo: 'credito' });
-      assert.notDeepEqual(credito1, degradadoTarjeta({ id: 2, tipo: 'credito' }));
-      assert.notDeepEqual(credito1, degradadoTarjeta({ id: 1, tipo: 'debito' }));
-      assert.equal(credito1.length, 3);
+    it('gradiente por id entre los 10 (crédito y débito juntos): seguidas nunca iguales', () => {
+      const colores = Array.from({ length: 10 }, (_, id) => degradadoTarjeta({ id }).join());
+      assert.equal(new Set(colores).size, 10);
+      assert.deepEqual(
+        degradadoTarjeta({ id: 3, tipo: 'debito' }),
+        degradadoTarjeta({ id: 3, tipo: 'credito' }),
+      );
+      assert.deepEqual(degradadoTarjeta({ id: 13 }), degradadoTarjeta({ id: 3 }));
+      assert.equal(degradadoTarjeta({}).length, 3);
     });
   });
 });

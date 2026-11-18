@@ -7,7 +7,8 @@ import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { tipografia } from '../theme/tipografia';
 import { formatearMonto, MONEDA, partesMonto } from '../utils/formato';
-import { etiquetaAccesibleTarjeta } from '../utils/tarjetas';
+import { etiquetaAccesibleTarjeta, suscripcionesDeTarjeta } from '../utils/tarjetas';
+import AvataresServicios from './AvataresServicios';
 import Etiqueta from './Etiqueta';
 import TarjetaVisual from './TarjetaVisual';
 
@@ -21,13 +22,15 @@ import TarjetaVisual from './TarjetaVisual';
 // El ojo oculta saldo, aviso e ingresos ("••••••" con el mismo estilo, para que el layout no
 // salte); la preferencia se recuerda (useSaldoOculto).
 // A la derecha, la pila de hasta 3 `tarjetas` (TarjetaVisual 'mini', algo rotadas, asomando del
-// borde como en Stitch); tocarla llama a `onAbrirTarjetas`. El saldo se limita al 62 % del ancho
-// para no quedar debajo; sin tarjetas o en pantallas angostas no se dibuja.
+// borde como en Stitch) y debajo hasta 3 íconos de las `membresias` pagadas con ellas; tocarla
+// llama a `onAbrirTarjetas`. El saldo se limita al 62 % del ancho para no quedar debajo; sin
+// tarjetas o en pantallas angostas no se dibuja.
 export default function TarjetaSaldo({
   saldo,
   ingresos = 0,
   onRegistrarIngreso,
   tarjetas = [],
+  membresias = [],
   onAbrirTarjetas,
 }) {
   const { colors } = useTema();
@@ -35,6 +38,9 @@ export default function TarjetaSaldo({
   const { width } = useWindowDimensions();
   const pila =
     onAbrirTarjetas && width >= ANCHO_MIN_PILA ? (tarjetas || []).slice(0, MAX_PILA) : [];
+  const vinculadas = pila.length
+    ? (tarjetas || []).flatMap((t) => suscripcionesDeTarjeta(membresias, t.id).vinculadas)
+    : [];
   const conSaldo = typeof saldo === 'number' && Number.isFinite(saldo);
   const negativo = conSaldo && saldo < 0;
   // El signo va con "−" (menos tipográfico), no con el guion de Intl.
@@ -143,17 +149,21 @@ export default function TarjetaSaldo({
           style={styles.pila}
         >
           {/* La primera tarjeta va al frente (se dibuja al final), las demás detrás y giradas */}
-          {[...pila].reverse().map((t, i, lista) => (
-            <TarjetaVisual
-              key={t.id}
-              tarjeta={t}
-              tamano="mini"
-              style={[
-                styles.mini,
-                { top: i * 12, transform: [{ rotate: `${(lista.length - 1 - i) * -4}deg` }] },
-              ]}
-            />
-          ))}
+          <View style={styles.tarjetasPila}>
+            {[...pila].reverse().map((t, i, lista) => (
+              <TarjetaVisual
+                key={t.id}
+                tarjeta={t}
+                tamano="mini"
+                style={[
+                  styles.mini,
+                  { top: i * 12, transform: [{ rotate: `${(lista.length - 1 - i) * -4}deg` }] },
+                ]}
+              />
+            ))}
+          </View>
+          {/* Como en Stitch: hasta 3 suscripciones pagadas con esas tarjetas */}
+          <AvataresServicios membresias={vinculadas} style={styles.avataresPila} />
         </Pressable>
       ) : null}
     </View>
@@ -270,9 +280,17 @@ const crearEstilos = (colors) =>
     pila: {
       position: 'absolute',
       top: espacios.md,
-      right: -(espacios.margen + espacios.md),
+      right: -(espacios.margen + espacios.lg),
       width: 128,
+    },
+    tarjetasPila: {
       height: 81 + (MAX_PILA - 1) * 12,
+    },
+    // La pila asoma 24 px fuera de la pantalla; los íconos quedan 8 px dentro del borde.
+    avataresPila: {
+      alignSelf: 'flex-end',
+      marginTop: espacios.sm,
+      marginRight: espacios.xl,
     },
     mini: {
       position: 'absolute',

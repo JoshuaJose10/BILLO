@@ -6,10 +6,8 @@ import { fonts } from '../theme/fonts';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { tipografia } from '../theme/tipografia';
 import { formatearMonto, formatearMontoCorto, MONEDA } from '../utils/formato';
-import { estiloServicio, inicialServicio } from '../utils/membresias';
 import { colorTarjeta } from '../utils/tarjetas';
-
-const MAX_AVATARES = 3;
+import AvataresServicios from './AvataresServicios';
 
 // Fila resumen bajo la cara de la tarjeta en Cartera → Tarjetas (HU-89, Stitch
 // 14_cartera_tarjetas_*): avatares de las suscripciones vinculadas (o el squircle de la tarjeta si
@@ -27,27 +25,7 @@ export default function ItemTarjeta({ tarjeta, suscripciones, opaca = false }) {
   return (
     <View style={[styles.tarjeta, opaca ? styles.tarjetaOpaca : null]}>
       {vinculadas.length > 0 ? (
-        <View style={styles.avatares}>
-          {vinculadas.slice(0, MAX_AVATARES).map((m, i) => {
-            const { color, icono: iconoServicio, predefinido } = estiloServicio(m.nombre);
-            return (
-              <View
-                key={m.id}
-                style={[styles.avatar, i > 0 && styles.avatarEncimado, { backgroundColor: color }]}
-              >
-                {predefinido ? (
-                  <MaterialCommunityIcons
-                    name={iconoServicio}
-                    size={14}
-                    color={colors.textoSobreColor}
-                  />
-                ) : (
-                  <Text style={styles.inicial}>{inicialServicio(m.nombre)}</Text>
-                )}
-              </View>
-            );
-          })}
-        </View>
+        <AvataresServicios membresias={vinculadas} />
       ) : (
         <View style={[styles.squircle, { backgroundColor: colorMarca, shadowColor: colorMarca }]}>
           <MaterialCommunityIcons name={icono} size={22} color={colors.textoSobreColor} />
@@ -99,27 +77,6 @@ const crearEstilos = (colors) =>
       shadowRadius: 10,
       shadowOpacity: 0.35,
       elevation: 4,
-    },
-    // Avatares encimados (-space-x-1.5 de Stitch) con borde del color de la fila
-    avatares: {
-      flexDirection: 'row',
-    },
-    avatar: {
-      width: 30,
-      height: 30,
-      borderRadius: radios.full,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: 2,
-      borderColor: colors.card,
-    },
-    avatarEncimado: {
-      marginLeft: -8,
-    },
-    inicial: {
-      fontFamily: fonts.sansBold,
-      fontSize: 11,
-      color: colors.textoSobreColor,
     },
     textos: {
       flex: 1,
