@@ -6,13 +6,14 @@ import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { tipografia } from '../theme/tipografia';
 import {
+  costoPropio,
+  detalleCostoCompartido,
   diasParaCobroCiclo,
   estiloServicio,
   fechaCobroCiclo,
   inicialServicio,
   nivelCobro,
   textoCobro,
-  textoCostoCompartido,
 } from '../utils/membresias';
 import { formatearCostoMembresia } from '../utils/divisas';
 
@@ -39,6 +40,7 @@ export default function ItemMembresia({ membresia, nombreTarjeta = null, opaca =
         ? colors.exito
         : colors.outline;
   const anual = frecuencia === 'anual';
+  const compartida = detalleCostoCompartido(membresia);
   const textoPlan = `${anual ? 'Plan anual' : 'Plan mensual'}${nombreTarjeta ? ` · ${nombreTarjeta}` : ''}`;
 
   return (
@@ -65,13 +67,22 @@ export default function ItemMembresia({ membresia, nombreTarjeta = null, opaca =
             {textoPlan}
           </Text>
         </View>
-        <Text style={styles.montoContenedor} numberOfLines={1}>
-          <Text style={styles.monto}>
-            {textoCostoCompartido(membresia) ??
-              formatearCostoMembresia(costo, moneda, monto_original)}
+        {/* HU-76: compartida → tu parte y «de $239 · entre 5» debajo; con 1 persona, como antes */}
+        <View style={styles.montoContenedor}>
+          <Text numberOfLines={1}>
+            <Text style={styles.monto}>
+              {compartida
+                ? formatearCostoMembresia(costoPropio(membresia))
+                : formatearCostoMembresia(costo, moneda, monto_original)}
+            </Text>
+            <Text style={styles.sufijo}>{anual ? ' / año' : ' / mes'}</Text>
           </Text>
-          <Text style={styles.sufijo}>{anual ? ' / año' : ' / mes'}</Text>
-        </Text>
+          {compartida ? (
+            <Text style={styles.plan} numberOfLines={1}>
+              {compartida}
+            </Text>
+          ) : null}
+        </View>
       </View>
 
       <View style={styles.filaInferior}>
@@ -144,6 +155,7 @@ const crearEstilos = (colors) =>
     },
     montoContenedor: {
       flexShrink: 0,
+      alignItems: 'flex-end',
     },
     monto: {
       ...tipografia.financialMetricMd,

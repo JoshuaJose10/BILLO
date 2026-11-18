@@ -549,6 +549,26 @@ export default function MembresiaScreen({ navigation, route }) {
     montoIngresado > 0
       ? textoCostoCompartido({ costo: equivalenteMxn ?? montoIngresado, personas })
       : null;
+  // − / + del panel de personas (HU-76): 1 a 10, toque de 44×52 con el estilo `opcion`.
+  const botonPersonas = (paso) => {
+    const limite = paso < 0 ? personas <= 1 : personas >= 10;
+    return (
+      <Pressable
+        onPress={() => setPersonas((p) => p + paso)}
+        disabled={limite}
+        accessibilityRole="button"
+        accessibilityLabel={paso < 0 ? 'Quitar una persona' : 'Agregar una persona'}
+        accessibilityState={{ disabled: limite }}
+        style={({ pressed }) => [styles.opcion, pressed ? styles.opcionPresionada : null]}
+      >
+        <MaterialCommunityIcons
+          name={paso < 0 ? 'minus' : 'plus'}
+          size={28}
+          color={limite ? colors.outline : colors.text}
+        />
+      </Pressable>
+    );
+  };
 
   return (
     <HojaInferior
@@ -598,6 +618,13 @@ export default function MembresiaScreen({ navigation, route }) {
             chevron
             onPress={() => setPanel('frecuencia')}
             accessibilityLabel={`Frecuencia de cobro: ${frecuenciaActual.etiqueta}`}
+          />
+          <ChipSelector
+            icono="account-multiple-outline"
+            etiqueta={`${personas} ${personas === 1 ? 'persona' : 'personas'}`}
+            chevron
+            onPress={() => setPanel('personas')}
+            accessibilityLabel={`Se divide entre ${personas} ${personas === 1 ? 'persona' : 'personas'}`}
           />
           <ChipSelector
             icono="calendar-blank-outline"
@@ -664,6 +691,12 @@ export default function MembresiaScreen({ navigation, route }) {
               </Text>
             </View>
           ) : null}
+          {/* HU-76: tu parte, en su propia línea bajo el equivalente de divisa */}
+          {textoCompartido ? (
+            <View style={styles.filaEquivalente}>
+              <Text style={styles.textoEquivalente}>{textoCompartido}</Text>
+            </View>
+          ) : null}
         </View>
         {avisoTipoCambio ? (
           <View style={styles.avisoTipoCambioContenedor}>
@@ -673,26 +706,6 @@ export default function MembresiaScreen({ navigation, route }) {
         ) : null}
         {errores.costo ? (
           <Text style={[styles.notaCampo, styles.errorCampo]}>{errores.costo}</Text>
-        ) : null}
-        {/* HU-76: costo compartido (− / + de 1 a 10) y tu parte en MXN */}
-        <View style={styles.filaEquivalente}>
-          <Text style={styles.textoTasa}>¿Entre cuántas personas se divide?</Text>
-          <ChipSelector
-            etiqueta="−"
-            onPress={() => setPersonas((p) => Math.max(1, p - 1))}
-            accessibilityLabel={`Quitar una persona (${personas})`}
-          />
-          <Text style={styles.textoEquivalente}>{personas}</Text>
-          <ChipSelector
-            etiqueta="+"
-            onPress={() => setPersonas((p) => Math.min(10, p + 1))}
-            accessibilityLabel={`Agregar una persona (${personas})`}
-          />
-        </View>
-        {textoCompartido ? (
-          <View style={styles.filaEquivalente}>
-            <Text style={styles.textoEquivalente}>{textoCompartido}</Text>
-          </View>
         ) : null}
 
         {/* Catálogo de servicios (solo al agregar), en el lugar de las categorías de Nuevo gasto */}
@@ -906,6 +919,18 @@ export default function MembresiaScreen({ navigation, route }) {
               ) : null}
             </Pressable>
           ))}
+        </PanelHoja>
+      ) : null}
+
+      {/* HU-76: − / + de 1 a 10 con el patrón de opción del panel de frecuencia */}
+      {panel === 'personas' ? (
+        <PanelHoja titulo="¿Entre cuántas personas se divide?" onCerrar={() => setPanel(null)}>
+          <View style={styles.opcion}>
+            {botonPersonas(-1)}
+            <Text style={[styles.opcionTexto, { textAlign: 'center' }]}>{personas}</Text>
+            {botonPersonas(1)}
+          </View>
+          <Boton titulo="Listo" onPress={() => setPanel(null)} />
         </PanelHoja>
       ) : null}
 

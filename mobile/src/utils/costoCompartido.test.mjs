@@ -9,6 +9,7 @@ import {
   calcularTotalMensual,
   cobrosSuscripcionesEnMes,
   costoPropio,
+  detalleCostoCompartido,
   textoCostoCompartido,
   tramosSuscripciones,
 } from './membresias.js';
@@ -33,6 +34,13 @@ describe('costoPropio (HU-76)', () => {
     assert.equal(textoCostoCompartido(spotify), 'Pagas $64.50 de $129');
     assert.equal(textoCostoCompartido({ costo: 129, personas: 1 }), null);
     assert.equal(textoCostoCompartido({ costo: 129 }), null);
+  });
+
+  it('fila: «de $239 · entre 5» solo si personas > 1', () => {
+    assert.equal(detalleCostoCompartido({ costo: 239, personas: 5 }), 'de $239 · entre 5');
+    assert.equal(costoPropio({ costo: 239, personas: 5 }), 47.8);
+    assert.equal(detalleCostoCompartido({ costo: 239, personas: 1 }), null);
+    assert.equal(detalleCostoCompartido({ costo: 239 }), null);
   });
 
   it('Cartera: mensual, al año y este mes suman tu parte', () => {

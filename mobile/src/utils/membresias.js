@@ -194,6 +194,13 @@ export function textoCostoCompartido(membresia) {
   return `Pagas ${formatearMontoCorto(costoPropio(membresia))} de ${formatearMontoCorto(membresia.costo)}`;
 }
 
+// Línea chica bajo tu parte en la fila de Cartera: «de $239 · entre 5»; con 1 persona, null.
+export function detalleCostoCompartido(membresia) {
+  const personas = Number(membresia?.personas) || 1;
+  if (personas <= 1) return null;
+  return `de ${formatearMontoCorto(membresia.costo)} · entre ${personas}`;
+}
+
 // Suma el gasto fijo mensual: membresías mensuales aportan tu parte completa,
 // anuales se dividen entre 12. Las membresías pausadas no cuentan (HU-75). Redondeado a 2 decimales.
 export function calcularTotalMensual(membresias = []) {
