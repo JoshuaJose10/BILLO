@@ -158,11 +158,10 @@ export default function TarjetaSaldo({
                 key={t.id}
                 style={[
                   styles.mini,
+                  i === lista.length - 1 ? styles.miniFrente : null,
                   {
                     top: i * PASO_PILA,
                     backgroundColor: degradadoTarjeta(t)[0],
-                    shadowOffset: { width: -8 - 2 * i, height: 6 + 2 * i },
-                    shadowRadius: 20 + 4 * i,
                     elevation: 6 + 3 * i,
                   },
                 ]}
@@ -324,8 +323,17 @@ const crearEstilos = (colors) =>
       width: 128,
       height: 100,
       borderRadius: 20,
+      // Sombra de iOS solo hacia izquierda-abajo: el desplazamiento vertical supera al radio,
+      // así el difuminado no asoma por el borde superior. Suave en las de atrás.
       shadowColor: colors.sombra,
-      shadowOpacity: 0.6,
+      shadowOffset: { width: -4, height: 6 },
+      shadowRadius: 4,
+      shadowOpacity: 0.2,
+    },
+    miniFrente: {
+      shadowOffset: { width: -6, height: 8 },
+      shadowRadius: 6,
+      shadowOpacity: 0.35,
     },
     caraMini: {
       width: '100%',
