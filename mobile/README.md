@@ -84,6 +84,9 @@ Sin esa configuración no se puede validar la recepción push de RF7.
 
 ## APK de entrega (HU-53)
 
+Para preparar las pruebas del APK por USB con ADB, scrcpy y capturas por caso,
+consulta la [guía de entorno Android para HU-79](../docs/qa/hu79-entorno-android.md).
+
 Para generar y compartir una nueva versión, seguir la
 [guía de release Android](../docs/release-android.md). La configuración local
 prepara la versión **1.0.1**; no significa que ya exista un APK publicado.
