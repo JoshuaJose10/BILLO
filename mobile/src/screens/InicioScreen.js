@@ -1,5 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import Avatar from '../components/Avatar';
@@ -53,7 +53,7 @@ const CHIPS_CATEGORIA = 3;
 // Los nombres de las categorías salen de la caché de la sesión (useCategorias).
 export default function InicioScreen({ navigation }) {
   const alturaNavbar = useAlturaNavbar();
-  const { usuario } = useAuth();
+  const { usuario, token } = useAuth();
   const { listarGastos, eliminarGasto } = useGastosService();
   const { listarIngresos, eliminarIngreso } = useIngresosService();
   const { listarPresupuestos } = usePresupuestosService();
@@ -104,8 +104,6 @@ export default function InicioScreen({ navigation }) {
       setMesCargado(mes);
       setEstado('listo');
       setHayDatos(true);
-      // HU-58: el widget de Android muestra el mismo total del mes que acaba de cargar Inicio.
-      actualizarWidget(datos.resumen, mes);
       return true;
     } catch (error) {
       if (peticion !== ultimaPeticion.current) return;
@@ -137,6 +135,23 @@ export default function InicioScreen({ navigation }) {
     () => Object.fromEntries((todasCategorias || categorias).map((c) => [c.id, c.nombre])),
     [todasCategorias, categorias],
   );
+  // HU-58: el widget «Billo» muestra el mismo saldo, categorías y próximo cobro que Inicio. Va en un
+  // efecto para usar los nombres de categoría aunque lleguen después de los datos.
+  useEffect(() => {
+    if (!mesCargado || !token) return;
+    actualizarWidget(
+      {
+        resumen,
+        gastos: gastosMes,
+        ingresos: ingresosMes,
+        membresias,
+        categorias: todasCategorias || categorias,
+      },
+      mesCargado,
+      token,
+    );
+  }, [token, mesCargado, resumen, gastosMes, ingresosMes, membresias, todasCategorias, categorias]);
+
   const porCategoria = useMemo(
     () => gastoPorCategoria(gastosMes, nombresCategoria),
     [gastosMes, nombresCategoria],

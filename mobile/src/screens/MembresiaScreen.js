@@ -27,6 +27,7 @@ import SelectorSegmentado from '../components/SelectorSegmentado';
 import TecladoNumerico from '../components/TecladoNumerico';
 import { guardarUltimoTipoCambio, useDivisasService } from '../services/divisas';
 import { useMembresiasService } from '../services/membresias';
+import { useActualizarWidget } from '../widget/useActualizarWidget';
 import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
@@ -48,6 +49,7 @@ import {
   filtrarCatalogo,
   formatearDiaMes,
   resumenPagosMembresia,
+  sugerenciasCatalogo,
   validarMembresia,
 } from '../utils/membresias';
 import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
@@ -103,6 +105,7 @@ export default function MembresiaScreen({ navigation, route }) {
     marcarPagada,
     listarPagos,
   } = useMembresiasService();
+  const actualizarWidgetResumen = useActualizarWidget();
 
   const membresiaEditada = route.params?.membresia;
   const editando = Boolean(membresiaEditada);
@@ -153,7 +156,7 @@ export default function MembresiaScreen({ navigation, route }) {
   const conPago = !editando && pago === 'pagada';
   const fechaISO = fechaLocalISO(fecha);
   const proximoCobroISO = conPago ? calcularProximoCobroDesdePago(fechaISO, frecuencia) : fechaISO;
-  const tituloFecha = conPago ? 'Fecha de tu último pago' : 'Próxima fecha de cobro';
+  const tituloFecha = conPago ? '¿Cuándo la pagaste?' : 'Próxima fecha de cobro';
   // El último pago no puede ser en el futuro.
   const fechaMaxima = conPago ? new Date() : undefined;
   const cambiarPago = (valor) => {
@@ -256,6 +259,11 @@ export default function MembresiaScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
   const alturaTeclado = useAlturaTeclado();
   const catalogoFiltrado = useMemo(() => filtrarCatalogo(catalogo, busqueda), [catalogo, busqueda]);
+  // Sugerencias al escribir el nombre (HU-85): solo con el catálogo ya cargado.
+  const sugerencias = useMemo(
+    () => (vistaCatalogo === 'lista' ? sugerenciasCatalogo(catalogo, nombre) : []),
+    [vistaCatalogo, catalogo, nombre],
+  );
 
   const limpiarError = (...campos) => {
     if (campos.some((c) => errores[c])) {
@@ -283,6 +291,27 @@ export default function MembresiaScreen({ navigation, route }) {
     setAvisoTipoCambio('');
     limpiarError('nombre', 'costo');
   };
+
+  // Fila de chips del catálogo: la usan «Elegir del catálogo» y las sugerencias del nombre.
+  const filaServicios = (items, alElegir = seleccionarDelCatalogo) => (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      style={styles.filaScroll}
+      contentContainerStyle={styles.filaCatalogo}
+    >
+      {items.map((item) => (
+        <ChipServicio
+          key={item.id}
+          nombre={item.nombre}
+          monto={item.costo_sugerido}
+          seleccionado={servicioId === item.id}
+          onPress={() => alElegir(item)}
+        />
+      ))}
+    </ScrollView>
+  );
 
   const seleccionarMoneda = async (codigoMoneda) => {
     setPanel(null);
@@ -352,15 +381,19 @@ export default function MembresiaScreen({ navigation, route }) {
       return;
     }
 
-    const payload = prepararDatosMembresia({
-      servicioId,
-      nombre: nombre.trim(),
-      costoOriginal: validacion.costo,
-      moneda,
-      tipoCambio,
-      frecuencia,
-      fechaCobro: fechaCobroISO,
-    });
+    const payload = {
+      ...prepararDatosMembresia({
+        servicioId,
+        nombre: nombre.trim(),
+        costoOriginal: validacion.costo,
+        moneda,
+        tipoCambio,
+        frecuencia,
+        fechaCobro: fechaCobroISO,
+      }),
+      // HU-95: el backend llena el historial desde el pago (solo al crear con «Ya la pagué»).
+      ...(conPago ? { fecha_ultimo_pago: fechaISO } : {}),
+    };
 
     // Aviso de servicio repetido (HU-74)
     if (!forzar) {
@@ -403,6 +436,7 @@ export default function MembresiaScreen({ navigation, route }) {
       } else {
         await crearMembresia(payload);
       }
+      actualizarWidgetResumen();
       route.params?.onGuardado?.();
       enviando.current = false;
       hojaRef.current?.cerrar();
@@ -425,6 +459,7 @@ export default function MembresiaScreen({ navigation, route }) {
       } else {
         await pausarMembresia(membresiaEditada.id);
       }
+      actualizarWidgetResumen();
       enviando.current = false;
       hojaRef.current?.cerrar();
     } catch (error) {
@@ -442,6 +477,7 @@ export default function MembresiaScreen({ navigation, route }) {
 
     try {
       await eliminarMembresia(membresiaEditada.id);
+      actualizarWidgetResumen();
       route.params?.onGuardado?.();
       enviando.current = false;
       hojaRef.current?.cerrar();
@@ -472,6 +508,7 @@ export default function MembresiaScreen({ navigation, route }) {
           setErrorApi('');
           try {
             await marcarPagada(membresiaEditada.id);
+            actualizarWidgetResumen();
             enviando.current = false;
             hojaRef.current?.cerrar();
           } catch (error) {
@@ -636,23 +673,7 @@ export default function MembresiaScreen({ navigation, route }) {
                     Sin coincidencias
                   </Text>
                 ) : (
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    keyboardShouldPersistTaps="handled"
-                    style={styles.filaScroll}
-                    contentContainerStyle={styles.filaCatalogo}
-                  >
-                    {catalogoFiltrado.map((item) => (
-                      <ChipServicio
-                        key={item.id}
-                        nombre={item.nombre}
-                        monto={item.costo_sugerido}
-                        seleccionado={servicioId === item.id}
-                        onPress={() => seleccionarDelCatalogo(item)}
-                      />
-                    ))}
-                  </ScrollView>
+                  filaServicios(catalogoFiltrado)
                 )}
               </>
             )}
@@ -802,6 +823,12 @@ export default function MembresiaScreen({ navigation, route }) {
             onSubmitEditing={() => setPanel(null)}
             style={styles.inputNombre}
           />
+          {sugerencias.length > 0
+            ? filaServicios(sugerencias, (item) => {
+                seleccionarDelCatalogo(item);
+                setPanel(null);
+              })
+            : null}
           <Boton titulo="Listo" onPress={() => setPanel(null)} />
         </PanelHoja>
       ) : null}

@@ -2,6 +2,7 @@
   "expo": {
     "name": "Billo",
     "slug": "billo",
+    "scheme": "billo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -43,16 +44,75 @@
       [
         "react-native-android-widget",
         {
+          "fonts": [
+            "./node_modules/@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf",
+            "./node_modules/@expo-google-fonts/inter/500Medium/Inter_500Medium.ttf",
+            "./node_modules/@expo-google-fonts/inter/600SemiBold/Inter_600SemiBold.ttf",
+            "./node_modules/@expo-google-fonts/inter/700Bold/Inter_700Bold.ttf",
+            "./node_modules/@expo-google-fonts/jetbrains-mono/400Regular/JetBrainsMono_400Regular.ttf",
+            "./node_modules/@expo-google-fonts/jetbrains-mono/500Medium/JetBrainsMono_500Medium.ttf",
+            "./node_modules/@expo-google-fonts/jetbrains-mono/600SemiBold/JetBrainsMono_600SemiBold.ttf",
+            "./node_modules/@expo-google-fonts/jetbrains-mono/700Bold/JetBrainsMono_700Bold.ttf"
+          ],
           "widgets": [
             {
               "name": "ResumenMes",
+              "updatePeriodMillis": 1800000,
               "label": "Billo",
-              "description": "Total del mes",
-              "minWidth": "250dp",
+              "description": "Saldo del mes y accesos rápidos a gasto, ingreso y voz",
+              "minWidth": "110dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 2,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widget-resumen-preview.png"
+            },
+            {
+              "name": "RegistrarVoz",
+              "label": "Registrar por voz",
+              "description": "Registra un gasto o ingreso hablando",
+              "minWidth": "110dp",
+              "minHeight": "40dp",
+              "targetCellWidth": 2,
+              "targetCellHeight": 1,
+              "resizeMode": "horizontal",
+              "previewImage": "./assets/widget-registrar-voz-preview.png"
+            },
+            {
+              "name": "BalanceMes",
+              "updatePeriodMillis": 1800000,
+              "label": "Balance del mes",
+              "description": "Ingresos, gastos y balance del mes",
+              "minWidth": "110dp",
               "minHeight": "110dp",
               "targetCellWidth": 4,
               "targetCellHeight": 2,
-              "resizeMode": "horizontal"
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widgets/balancemes_preview.png"
+            },
+            {
+              "name": "DonaCategorias",
+              "updatePeriodMillis": 1800000,
+              "label": "Dona por categoría",
+              "description": "Categorías del mes con el total al centro",
+              "minWidth": "110dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widgets/donacategorias_preview.png"
+            },
+            {
+              "name": "ProximoCobro",
+              "updatePeriodMillis": 1800000,
+              "label": "Próximo cobro",
+              "description": "Servicio, monto y días para tu siguiente cobro",
+              "minWidth": "110dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widgets/proximocobro_preview.png"
             }
           ]
         }

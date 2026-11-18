@@ -25,6 +25,7 @@ import { AvisosProvider } from './src/context/AvisosContext';
 import { CategoriasProvider } from './src/context/CategoriasContext';
 import RootNavigator from './src/navigation/RootNavigator';
 import { navegacionRef } from './src/navigation/navegacionRef';
+import { useAperturaDesdeEnlace } from './src/services/enlaces';
 import {
   useAperturaDesdeNotificacion,
   useRegistroNotificaciones,
@@ -34,10 +35,13 @@ import { TemaProvider, useTema } from './src/theme/TemaContext';
 // NavigationContainer con el fondo, la tarjeta y el texto del tema activo, para que al navegar no
 // aparezcan destellos blancos o negros. La barra de estado va clara en oscuro y oscura en claro.
 // AvisosProvider va dentro para que el aviso de presupuesto se dibuje encima de todo y navegue.
-// Aquí también se registra el token push de la sesión y se atiende el toque de un aviso (HU-47).
+// Aquí también se registra el token push de la sesión y se atiende el toque de un aviso (HU-47) y
+// el deep link billo://registrar del widget «Registrar por voz».
 function Navegacion() {
+  const [listo, setListo] = useState(false);
   useRegistroNotificaciones();
   useAperturaDesdeNotificacion();
+  useAperturaDesdeEnlace(listo);
   const { colors, esOscuro } = useTema();
   const temaNavegacion = useMemo(() => {
     const base = esOscuro ? DarkTheme : DefaultTheme;
@@ -53,7 +57,7 @@ function Navegacion() {
   }, [colors, esOscuro]);
 
   return (
-    <NavigationContainer ref={navegacionRef} theme={temaNavegacion}>
+    <NavigationContainer ref={navegacionRef} theme={temaNavegacion} onReady={() => setListo(true)}>
       <AvisosProvider>
         <RootNavigator />
       </AvisosProvider>

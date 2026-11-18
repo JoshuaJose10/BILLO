@@ -440,6 +440,27 @@ describe('utils/membresias', () => {
       );
     });
 
+    test('HU-95: si el ciclo de hoy ya entra en el historial, el próximo es el mes siguiente', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2026-09-17', 'mensual', '2026-11-17'),
+        '2026-12-17',
+      );
+    });
+
+    test('HU-95: un cobro de fin de mes pagado hoy conserva el día del pago original', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2026-01-31', 'mensual', '2026-02-28'),
+        '2026-03-31',
+      );
+    });
+
+    test('HU-95: si el ciclo anual de hoy ya está pagado, avanza al siguiente año', () => {
+      assert.equal(
+        calcularProximoCobroDesdePago('2024-02-29', 'anual', '2028-02-29'),
+        '2029-02-28',
+      );
+    });
+
     test('tolera entradas inválidas devolviendo la entrada original', () => {
       assert.equal(calcularProximoCobroDesdePago(null), null);
       assert.equal(calcularProximoCobroDesdePago('9 nov'), '9 nov');

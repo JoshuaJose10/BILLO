@@ -84,8 +84,8 @@ const crearEstilos = (colors) =>
       backgroundColor: colors.surfaceHighest,
       overflow: 'hidden',
     },
+    // Sin radio propio: la pista redondea los extremos y recorta (overflow hidden).
     tramo: {
       height: '100%',
-      borderRadius: radios.full,
     },
   });

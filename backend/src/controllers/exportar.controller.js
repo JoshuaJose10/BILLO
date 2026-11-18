@@ -19,7 +19,11 @@ const escaparCeldaCsv = (valor) => {
   if (valor === null || valor === undefined) {
     return '';
   }
-  const texto = String(valor);
+  let texto = String(valor);
+  // Las comillas CSV no impiden que Excel evalúe una celda como fórmula.
+  if (/^\s*[-=+@]|^[\t\r\n]/.test(texto)) {
+    texto = `'${texto}`;
+  }
   if (/[",\r\n]/.test(texto)) {
     return `"${texto.replace(/"/g, '""')}"`;
   }
@@ -65,8 +69,9 @@ const exportarDatos = async (req, res) => {
            TO_CHAR(g.fecha, 'YYYY-MM-DD') AS fecha,
            COALESCE(g.nota, '') AS descripcion,
            COALESCE(c.nombre, '') AS categoria_fuente,
-           g.monto,
-           COALESCE(g.moneda, 'MXN') AS moneda,
+           COALESCE(g.monto_original, g.monto) AS monto,
+           CASE WHEN g.monto_original IS NULL THEN 'MXN'
+                ELSE COALESCE(g.moneda, 'MXN') END AS moneda,
            COALESCE(g.metodo_pago, '') AS metodo_pago
          FROM gastos g
          LEFT JOIN categorias c ON c.id = g.categoria_id
@@ -94,8 +99,9 @@ const exportarDatos = async (req, res) => {
            TO_CHAR(fecha_cobro, 'YYYY-MM-DD') AS fecha,
            nombre AS descripcion,
            frecuencia AS categoria_fuente,
-           costo AS monto,
-           COALESCE(moneda, 'MXN') AS moneda,
+           COALESCE(monto_original, costo) AS monto,
+           CASE WHEN monto_original IS NULL THEN 'MXN'
+                ELSE COALESCE(moneda, 'MXN') END AS moneda,
            CASE WHEN tarjeta_id IS NOT NULL THEN 'tarjeta' ELSE '' END AS metodo_pago
          FROM membresias
          WHERE usuario_id = $1

@@ -840,6 +840,91 @@ module.exports = getContext => describe('Autenticación (Postman 01 / RF1)', () 
         .expect(200);
     });
 
+    it('GET /exportar mantiene el importe y la moneda originales en gastos y suscripciones', async () => {
+      await ctx.crearGasto(ctx.a, {
+        monto: 200,
+        moneda: 'USD',
+        monto_original: 10,
+        tipo_cambio: 20,
+        nota: 'Gasto en dolares',
+      });
+      await ctx.crearGasto(ctx.a, { monto: 85.5, nota: 'Gasto en pesos' });
+      await ctx.api
+        .post('/membresias')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({
+          nombre: 'Servicio en euros',
+          costo: 440,
+          moneda: 'EUR',
+          monto_original: 20,
+          tipo_cambio: 22,
+          frecuencia: 'mensual',
+          fecha_cobro: '2026-10-20',
+        })
+        .expect(201);
+
+      for (const query of ['?formato=csv', '?formato=csv&mes=2026-10']) {
+        const { text } = await ctx.api
+          .get(`/exportar${query}`)
+          .auth(ctx.a.token, { type: 'bearer' })
+          .expect(200);
+        assert.match(text, /gasto,2026-10-05,Gasto en dolares,Comida,10\.00,USD,efectivo/);
+        assert.match(text, /gasto,2026-10-05,Gasto en pesos,Comida,85\.50,MXN,efectivo/);
+        assert.match(text, /suscripcion,2026-10-20,Servicio en euros,mensual,20\.00,EUR,/);
+        assert.doesNotMatch(text, /200\.00,USD|440\.00,EUR/);
+      }
+
+      // Registros antiguos sin importe original conservan su valor convertido en MXN.
+      await ctx.pool.query('UPDATE gastos SET monto_original = NULL WHERE usuario_id = $1', [ctx.a.usuario.id]);
+      await ctx.pool.query('UPDATE membresias SET monto_original = NULL WHERE usuario_id = $1', [ctx.a.usuario.id]);
+      const { text } = await ctx.api
+        .get('/exportar?formato=csv')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+      assert.match(text, /Gasto en dolares,Comida,200\.00,MXN,/);
+      assert.match(text, /Servicio en euros,mensual,440\.00,MXN,/);
+    });
+
+    it('GET /exportar neutraliza formulas de Excel en las celdas de texto', async () => {
+      const casos = [
+        ['=1+1', "'=1+1"],
+        ['+1+1', "'+1+1"],
+        ['-1+1', "'-1+1"],
+        ['@SUM(1)', "'@SUM(1)"],
+        ['  =1+1', "'  =1+1"],
+        ['\t=1+1', "'\t=1+1"],
+        ['\r=1+1', `"'\r=1+1"`],
+        ['\n=1+1', `"'\n=1+1"`],
+        ['=IF(1=1,"si","no")', `"'=IF(1=1,""si"",""no"")"`],
+        ['Cafe, "manana"\nsegunda linea', `"Cafe, ""manana""\nsegunda linea"`],
+      ];
+      for (const [nota] of casos) {
+        await ctx.crearGasto(ctx.a, { nota });
+      }
+      await ctx.api
+        .post('/ingresos')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({ monto: 100, fecha: '2026-10-15', descripcion: '=2+2', fuente: '+Bono' })
+        .expect(201);
+      await ctx.api
+        .post('/membresias')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({ nombre: '@Servicio', costo: 199, frecuencia: 'mensual', fecha_cobro: '2026-10-20' })
+        .expect(201);
+
+      const { text } = await ctx.api
+        .get('/exportar?formato=csv')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+      for (const [, celdaEsperada] of casos) {
+        assert.ok(text.includes(`gasto,2026-10-05,${celdaEsperada},Comida,85.50,MXN,efectivo\r\n`));
+      }
+      assert.ok(text.includes("ingreso,2026-10-15,'=2+2,'+Bono,100.00,MXN,\r\n"));
+      assert.ok(text.includes("suscripcion,2026-10-20,'@Servicio,mensual,199.00,MXN,\r\n"));
+      const gastos = await ctx.listar(ctx.a);
+      assert.ok(gastos.some(gasto => gasto.nota === '=1+1'), 'La proteccion del CSV no modifica los datos guardados');
+    });
+
     it('GET /exportar genera CSV en UTF-8 con BOM solo con los datos del usuario (con y sin filtro de mes)', async () => {
       // Datos del usuario A en octubre y noviembre
       await ctx.crearGasto(ctx.a, {

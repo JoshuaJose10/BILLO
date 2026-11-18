@@ -8,6 +8,7 @@ import {
   normalizarBusqueda,
   ORDEN_SUSCRIPCIONES,
   ordenarMembresias,
+  sugerenciasCatalogo,
   tramosSuscripciones,
 } from './membresias.js';
 
@@ -55,6 +56,39 @@ describe('filtrarCatalogo', () => {
     assert.equal(filtrarCatalogo(CATALOGO, ''), CATALOGO);
     assert.equal(filtrarCatalogo(CATALOGO, '   '), CATALOGO);
     assert.deepEqual(filtrarCatalogo(undefined, 'spo'), []);
+  });
+});
+
+describe('sugerenciasCatalogo (HU-85)', () => {
+  const CON_APPLE = [
+    ...CATALOGO,
+    { id: 6, nombre: 'Apple Music', costo_sugerido: 115 },
+    { id: 7, nombre: 'Apple TV+', costo_sugerido: 199 },
+    { id: 8, nombre: 'Pineapple Box', costo_sugerido: 50 },
+    { id: 9, nombre: 'Apple One Familiar', costo_sugerido: 369 },
+  ];
+
+  test('"net" → Netflix; "spo" → Spotify', () => {
+    assert.deepEqual(ids(sugerenciasCatalogo(CON_APPLE, 'net')), [1]);
+    assert.deepEqual(ids(sugerenciasCatalogo(CON_APPLE, 'spo')), [2, 3]);
+  });
+
+  test('"apple" y "ÁPPLE": primero los que empiezan con el texto, luego los que lo contienen', () => {
+    assert.deepEqual(ids(sugerenciasCatalogo(CON_APPLE, 'apple')), [6, 7, 9, 8]);
+    assert.deepEqual(ids(sugerenciasCatalogo(CON_APPLE, 'ÁPPLE')), [6, 7, 9, 8]);
+  });
+
+  test('sin coincidencias o texto vacío → []', () => {
+    assert.deepEqual(sugerenciasCatalogo(CON_APPLE, 'gimnasio'), []);
+    assert.deepEqual(sugerenciasCatalogo(CON_APPLE, ''), []);
+    assert.deepEqual(sugerenciasCatalogo(CON_APPLE, '   '), []);
+    assert.deepEqual(sugerenciasCatalogo(undefined, 'net'), []);
+  });
+
+  test('a lo más max resultados (6 por defecto)', () => {
+    const muchos = Array.from({ length: 10 }, (_, i) => ({ id: i, nombre: `Plan ${i}` }));
+    assert.equal(sugerenciasCatalogo(muchos, 'plan').length, 6);
+    assert.equal(sugerenciasCatalogo(muchos, 'plan', 2).length, 2);
   });
 });
 

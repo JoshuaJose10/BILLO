@@ -58,7 +58,7 @@ const ALTURA_BARRA_MIN = 6;
 
 // Reportes (RF6, RF8; HU-37, HU-81 y Reportes › Ingresos y Balance):
 // Vistas: Gastos, Ingresos y Balance, compartiendo el selector de mes con flechas.
-export default function ReportesScreen({ navigation }) {
+export default function ReportesScreen({ navigation, route }) {
   const alturaNavbar = useAlturaNavbar();
   const { obtenerResumen, obtenerIngresos, obtenerBalance } = useReportesService();
   const { listarGastos } = useGastosService();
@@ -72,6 +72,12 @@ export default function ReportesScreen({ navigation }) {
 
   const [mes, setMes] = useState(mesActual);
   const [vista, setVista] = useState('gastos');
+  const { solicitud, vista: vistaPedida } = route?.params ?? {};
+  const [solicitudAplicada, setSolicitudAplicada] = useState(null);
+  if (solicitud && solicitud !== solicitudAplicada) {
+    setSolicitudAplicada(solicitud);
+    if (VISTAS.some((v) => v.valor === vistaPedida)) setVista(vistaPedida);
+  }
   // Última respuesta válida, junta para no mezclar dos meses:
   // { mes, resumen, gastos, reporteIngresos, ingresos, balance, anterior, presupuestos }.
   const [datos, setDatos] = useState(null);
@@ -635,36 +641,53 @@ function TarjetaBalanceMensual({ balance }) {
     : esNegativo
       ? 'Balance negativo'
       : 'En equilibrio';
+  // La insignia va junto al título: si título + insignia no caben en la fila, queda solo el ícono.
+  // `insignia` se mide solo con el texto visible, para volver a mostrarlo si luego hay ancho.
+  const [anchos, setAnchos] = useState({ fila: 0, titulo: 0, insignia: 0 });
+  const medir = (clave) => (e) => {
+    const ancho = e.nativeEvent.layout.width;
+    setAnchos((a) => (a[clave] === ancho ? a : { ...a, [clave]: ancho }));
+  };
+  const soloIcono = anchos.fila > 0 && anchos.titulo + espacios.sm + anchos.insignia > anchos.fila;
 
   return (
     <View style={[styles.tarjeta, styles.tarjetaBalance]}>
-      <View style={styles.balanceCabecera}>
-        <View>
-          <Etiqueta style={styles.datoEtiqueta}>Balance del mes</Etiqueta>
-          <Text
-            style={[styles.balanceHeroMonto, { color: colorBalance }]}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.65}
+      <View>
+        <View style={styles.balanceCabecera} onLayout={medir('fila')}>
+          <Etiqueta style={styles.datoEtiqueta} onLayout={medir('titulo')}>
+            Balance del mes
+          </Etiqueta>
+          <View
+            style={[
+              styles.insignia,
+              esPositivo ? styles.insigniaExito : esNegativo ? styles.insigniaAlerta : null,
+            ]}
+            onLayout={soloIcono ? undefined : medir('insignia')}
+            accessible
+            accessibilityLabel={etiquetaEstado}
           >
-            {textoBalance} <Text style={styles.balanceHeroMoneda}>{MONEDA}</Text>
-          </Text>
+            <MaterialCommunityIcons
+              name={
+                esPositivo ? 'check-circle-outline' : esNegativo ? 'alert-circle-outline' : 'equal'
+              }
+              size={14}
+              color={colorBalance}
+            />
+            {soloIcono ? null : (
+              <Text style={[styles.insigniaTexto, { color: colorBalance }]} numberOfLines={1}>
+                {etiquetaEstado}
+              </Text>
+            )}
+          </View>
         </View>
-        <View
-          style={[
-            styles.insignia,
-            esPositivo ? styles.insigniaExito : esNegativo ? styles.insigniaAlerta : null,
-          ]}
+        <Text
+          style={[styles.balanceHeroMonto, { color: colorBalance }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.65}
         >
-          <MaterialCommunityIcons
-            name={
-              esPositivo ? 'check-circle-outline' : esNegativo ? 'alert-circle-outline' : 'equal'
-            }
-            size={14}
-            color={colorBalance}
-          />
-          <Text style={[styles.insigniaTexto, { color: colorBalance }]}>{etiquetaEstado}</Text>
-        </View>
+          {textoBalance} <Text style={styles.balanceHeroMoneda}>{MONEDA}</Text>
+        </Text>
       </View>
 
       <View style={styles.divisorHorizontal} />
@@ -1074,12 +1097,13 @@ const crearEstilos = (colors) =>
     },
     balanceCabecera: {
       flexDirection: 'row',
-      alignItems: 'flex-start',
+      alignItems: 'center',
       justifyContent: 'space-between',
       gap: espacios.sm,
     },
     balanceHeroMonto: {
       ...tipografia.financialMetricLg,
+      flexShrink: 1,
       fontSize: 28,
       lineHeight: 34,
       marginTop: 4,
