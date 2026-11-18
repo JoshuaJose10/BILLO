@@ -73,7 +73,7 @@ export default function SelectorSegmentado({
         const activa = opcion.valor === valor;
         return (
           <Pressable
-            key={opcion.valor}
+            key={String(opcion.valor)}
             onPress={() => elegir(opcion)}
             accessibilityRole="tab"
             accessibilityState={{ selected: activa }}

@@ -2,7 +2,15 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { ICONO_INGRESO, iconoFuente, saldoDelMes, totalIngresos } from './ingresos.js';
+import {
+  etiquetaFrecuencia,
+  ICONO_INGRESO,
+  iconoFuente,
+  normalizarFrecuencia,
+  OPCIONES_FRECUENCIA,
+  saldoDelMes,
+  totalIngresos,
+} from './ingresos.js';
 
 describe('saldoDelMes', () => {
   it('es ingresos del mes − gastos del mes', () => {
@@ -48,5 +56,29 @@ describe('iconoFuente', () => {
     assert.equal(iconoFuente(' Sueldo '), 'briefcase-outline');
     assert.equal(iconoFuente('Salario'), ICONO_INGRESO);
     assert.equal(iconoFuente(null), ICONO_INGRESO);
+  });
+});
+
+describe('frecuencia de ingresos', () => {
+  it('ofrece No, Semanal, Quincenal y Mensual (No = null)', () => {
+    assert.deepEqual(
+      OPCIONES_FRECUENCIA.map((o) => o.valor),
+      [null, 'semanal', 'quincenal', 'mensual'],
+    );
+  });
+
+  it('normaliza undefined, vacío, «no» y desconocidas a null', () => {
+    for (const v of [undefined, null, '', '  ', 'no', 'No', 'anual', 5]) {
+      assert.equal(normalizarFrecuencia(v), null);
+    }
+    assert.equal(normalizarFrecuencia('quincenal'), 'quincenal');
+    assert.equal(normalizarFrecuencia(' Mensual '), 'mensual');
+  });
+
+  it('da la etiqueta legible de cada frecuencia', () => {
+    assert.equal(etiquetaFrecuencia('semanal'), 'Semanal');
+    assert.equal(etiquetaFrecuencia('mensual'), 'Mensual');
+    assert.equal(etiquetaFrecuencia(null), 'No');
+    assert.equal(etiquetaFrecuencia('xyz'), 'No');
   });
 });

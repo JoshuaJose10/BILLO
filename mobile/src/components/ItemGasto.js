@@ -5,6 +5,7 @@ import { useEstilos } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
 import { fechaRelativa, formatearMonto } from '../utils/formato';
 import { iconoFuente } from '../utils/ingresos';
+import Etiqueta from './Etiqueta';
 import IconoCategoria from './IconoCategoria';
 
 // Movimiento de la lista (Stitch: Inicio, panel "Movimientos"): ícono de la categoría en color,
@@ -16,6 +17,7 @@ import IconoCategoria from './IconoCategoria';
 // acciones que van detrás no se ven a través de la fila.
 // Con `ingreso` en lugar de `gasto` (HU-82): ícono de la fuente en verde, título = descripción o
 // fuente, subtítulo "Fuente · Ingreso" y el monto en verde con "+".
+// Un ingreso con `recurrente === true` (generado por el proceso diario) lleva la insignia «Recurrente».
 // `marca` ({ icono, color }): logo de un servicio en lugar del ícono de la categoría (suscripciones).
 export default function ItemGasto({
   gasto,
@@ -33,9 +35,14 @@ export default function ItemGasto({
       <View style={[styles.fila, opaca ? styles.filaOpaca : null]}>
         <IconoCategoria icono={iconoFuente(ingreso.fuente)} />
         <View style={styles.textos}>
-          <Text style={styles.titulo} numberOfLines={1}>
-            {descripcion || fuente}
-          </Text>
+          <View style={styles.filaTitulo}>
+            <Text style={[styles.titulo, styles.tituloFlex]} numberOfLines={1}>
+              {descripcion || fuente}
+            </Text>
+            {ingreso.recurrente === true ? (
+              <Etiqueta style={styles.insignia}>Recurrente</Etiqueta>
+            ) : null}
+          </View>
           <Text style={styles.subtitulo} numberOfLines={1}>
             {descripcion ? `${fuente} · Ingreso` : 'Ingreso'}
           </Text>
@@ -98,6 +105,26 @@ const crearEstilos = (colors) =>
     },
     textos: {
       flex: 1,
+    },
+    filaTitulo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    tituloFlex: {
+      flexShrink: 1,
+    },
+    // Pastilla acento sobre Etiqueta (mismo tinte que la insignia de SelectorSegmentado)
+    insignia: {
+      fontSize: 9,
+      lineHeight: 12,
+      letterSpacing: 0.4,
+      paddingHorizontal: 6,
+      paddingVertical: 1,
+      borderRadius: radios.full,
+      overflow: 'hidden',
+      backgroundColor: colors.acentoSuave,
+      color: colors.acentoTexto,
     },
     // font-body-md text-body-md text-primary font-medium tracking-tight
     titulo: {
