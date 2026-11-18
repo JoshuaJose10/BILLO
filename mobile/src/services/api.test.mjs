@@ -116,4 +116,14 @@ describe('apiFetch: timeout y errores de red', () => {
       respuesta(400, { error: { code: 'MES_INVALIDO', message: 'Mes' } });
     await assert.rejects(apiFetch('/gastos'), { code: 'MES_INVALIDO', message: 'Mes' });
   });
+
+  it('respuestaTexto devuelve texto plano (CSV de /exportar) cuando la respuesta es 200', async () => {
+    globalThis.fetch = async () => ({
+      ok: true,
+      status: 200,
+      text: async () => 'tipo,fecha,monto\r\ngasto,2026-11-10,120.00\r\n',
+    });
+    const csv = await apiFetch('/exportar?formato=csv', { respuestaTexto: true, token: 'jwt' });
+    assert.match(csv, /^tipo,fecha,monto/);
+  });
 });
