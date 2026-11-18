@@ -989,6 +989,36 @@ module.exports = getContext => describe('QA membresías y reportes (RF5/RF6/RF8)
           pago,
         ]);
         assert.ok(pagos.every((p) => p.monto === 219 && p.membresia_id === m.id));
+        assert.equal(Number((await ctx.pool.query('SELECT COUNT(*) AS total FROM gastos')).rows[0].total), 0);
+      });
+
+      it('un pago inicial de hoy se registra una sola vez', async () => {
+        const hoy = await fechaSql('CURRENT_DATE');
+        assert.deepEqual(await fechasPagos(await crearPagada(hoy)), [hoy]);
+      });
+
+      it('un fallo al insertar el historial revierte también el alta', async () => {
+        await ctx.pool.query(`
+          CREATE FUNCTION rechazar_pago_hu95() RETURNS trigger LANGUAGE plpgsql AS $$
+          BEGIN
+            RAISE EXCEPTION 'Fallo de historial para probar rollback HU-95';
+          END;
+          $$;
+          CREATE TRIGGER rechazar_pago_hu95 BEFORE INSERT ON pagos_membresia
+          FOR EACH ROW EXECUTE FUNCTION rechazar_pago_hu95();
+        `);
+        try {
+          expectError(
+            await ctx.api.post('/membresias').auth(ctx.a.token, { type: 'bearer' })
+              .send(datos({ fecha_ultimo_pago: await fechaSql('CURRENT_DATE') })),
+            500,
+            'ERROR_SERVIDOR'
+          );
+          assert.deepEqual(await get('/membresias'), []);
+          assert.equal(Number((await ctx.pool.query('SELECT COUNT(*) AS total FROM pagos_membresia')).rows[0].total), 0);
+        } finally {
+          await ctx.pool.query('DROP TRIGGER rechazar_pago_hu95 ON pagos_membresia; DROP FUNCTION rechazar_pago_hu95()');
+        }
       });
 
       it('anual pagada hace 3 meses → 1 pago', async () => {
