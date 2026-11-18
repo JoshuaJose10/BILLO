@@ -15,6 +15,14 @@ router.post('/restablecer', authController.restablecerContrasena);
 // PERFIL (ruta oficial /perfil y alias temporal /profile)
 router.get('/perfil', authMiddleware, authController.profile);
 router.get('/profile', authMiddleware, authController.profile);
+router.put('/perfil', authMiddleware, authController.actualizarPerfil);
+router.put('/profile', authMiddleware, authController.actualizarPerfil);
+// CAMBIAR CONTRASENA CON SESION INICIADA
+router.post(
+  '/cambiar-contrasena',
+  authMiddleware,
+  authController.cambiarContrasena
+);
 // ELIMINAR CUENTA (HU-68)
 router.delete('/cuenta', authMiddleware, authController.eliminarCuenta);
 

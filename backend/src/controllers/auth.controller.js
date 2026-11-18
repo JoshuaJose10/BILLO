@@ -231,6 +231,132 @@ const profile = async (req, res) => {
   }
 };
 
+// ACTUALIZAR PERFIL DEL USUARIO (PUT /auth/perfil)
+const actualizarPerfil = async (req, res) => {
+  try {
+    const { id } = req.usuario;
+    const { nombre } =
+      req.body && typeof req.body === 'object' ? req.body : {};
+
+    if (
+      typeof nombre !== 'string' ||
+      nombre.trim().length < 1 ||
+      nombre.trim().length > 100
+    ) {
+      return res.status(400).json({
+        error: {
+          code: 'NOMBRE_INVALIDO',
+          message: 'El nombre es obligatorio y debe tener entre 1 y 100 caracteres',
+        },
+      });
+    }
+
+    const nombreLimpio = nombre.trim();
+    const result = await pool.query(
+      `UPDATE usuarios
+       SET nombre = $1
+       WHERE id = $2
+       RETURNING id, nombre, email`,
+      [nombreLimpio, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: {
+          code: 'USUARIO_NO_ENCONTRADO',
+          message: 'El usuario no existe',
+        },
+      });
+    }
+
+    return res.status(200).json({
+      usuario: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Error al actualizar el perfil:', error);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'No se pudo actualizar el perfil',
+      },
+    });
+  }
+};
+
+// CAMBIAR CONTRASEÑA CON SESIÓN INICIADA (POST /auth/cambiar-contrasena)
+const cambiarContrasena = async (req, res) => {
+  try {
+    const { id } = req.usuario;
+    const { contrasena_actual, contrasena_nueva } =
+      req.body && typeof req.body === 'object' ? req.body : {};
+
+    if (typeof contrasena_actual !== 'string' || contrasena_actual === '') {
+      return res.status(400).json({
+        error: {
+          code: 'CONTRASENA_ACTUAL_INCORRECTA',
+          message: 'La contraseña actual es incorrecta',
+        },
+      });
+    }
+
+    if (typeof contrasena_nueva !== 'string' || contrasena_nueva.length < 8) {
+      return res.status(400).json({
+        error: {
+          code: 'CONTRASENA_INVALIDA',
+          message: 'La nueva contraseña debe tener al menos 8 caracteres',
+        },
+      });
+    }
+
+    const userRes = await pool.query(
+      'SELECT id, password_hash FROM usuarios WHERE id = $1',
+      [id]
+    );
+
+    if (userRes.rows.length === 0) {
+      return res.status(404).json({
+        error: {
+          code: 'USUARIO_NO_ENCONTRADO',
+          message: 'El usuario no existe',
+        },
+      });
+    }
+
+    const coincide = await bcrypt.compare(
+      contrasena_actual,
+      userRes.rows[0].password_hash
+    );
+
+    if (!coincide) {
+      return res.status(400).json({
+        error: {
+          code: 'CONTRASENA_ACTUAL_INCORRECTA',
+          message: 'La contraseña actual es incorrecta',
+        },
+      });
+    }
+
+    const nuevoHash = await bcrypt.hash(contrasena_nueva, 10);
+    await pool.query(
+      'UPDATE usuarios SET password_hash = $1 WHERE id = $2',
+      [nuevoHash, id]
+    );
+
+    return res.status(200).json({
+      actualizada: true,
+      message: 'Contraseña actualizada correctamente',
+    });
+  } catch (error) {
+    console.error('Error al cambiar contraseña:', error);
+    return res.status(500).json({
+      error: {
+        code: 'ERROR_SERVIDOR',
+        message: 'No se pudo cambiar la contraseña',
+      },
+    });
+  }
+};
+
 // SOLICITAR RECUPERACIÓN DE CONTRASEÑA (POST /auth/olvide-contrasena)
 const olvideContrasena = async (req, res) => {
   try {
@@ -500,6 +626,8 @@ module.exports = {
   register,
   login,
   profile,
+  actualizarPerfil,
+  cambiarContrasena,
   olvideContrasena,
   restablecerContrasena,
   eliminarCuenta,

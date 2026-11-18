@@ -347,6 +347,116 @@ module.exports = (getContext) =>
     }
 
     describe('Ingresos recurrentes (feature/ingresos-recurrentes / Migración 022)', () => {
+      for (const [anio, febrero] of [[2026, '28'], [2028, '29']]) {
+        it(`mensual conserva el día 31 después de febrero de ${anio}`, async () => {
+          const { procesarIngresosRecurrentes } = require('../../src/jobs/ingresosRecurrentes');
+          const base = await crear({ fecha: `${anio}-01-31`, frecuencia: 'mensual' });
+          const resultado = await procesarIngresosRecurrentes({
+            pool: ctx.pool, fechaReferencia: `${anio}-04-30`,
+          });
+          assert.equal(resultado.errores, 0);
+          assert.equal(resultado.generados, 3);
+          const { rows } = await ctx.pool.query(
+            "SELECT TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha FROM ingresos WHERE ingreso_origen_id = $1 ORDER BY fecha",
+            [base.id]
+          );
+          assert.deepEqual(rows.map(i => i.fecha), [
+            `${anio}-02-${febrero}`, `${anio}-03-31`, `${anio}-04-30`,
+          ]);
+          const original = (await listar()).find(i => i.id === base.id);
+          assert.equal(original.proximo_ingreso, `${anio}-05-31`);
+        });
+      }
+
+      it('no genera si la API confirma la cancelación después de seleccionar los pendientes', async () => {
+        const { procesarIngresosRecurrentes } = require('../../src/jobs/ingresosRecurrentes');
+        const datos = baseIngreso({ frecuencia: 'quincenal' });
+        const base = await crear(datos);
+        let liberar;
+        let avisar;
+        const pausa = new Promise(resolve => { liberar = resolve; });
+        const seleccionado = new Promise(resolve => { avisar = resolve; });
+        const poolConPausa = {
+          connect: () => ctx.pool.connect(),
+          query: async (sql, valores) => {
+            const resultado = await ctx.pool.query(sql, valores);
+            if (sql.includes('ORDER BY id ASC')) {
+              avisar();
+              await pausa;
+            }
+            return resultado;
+          },
+        };
+        const proceso = procesarIngresosRecurrentes({
+          pool: poolConPausa, fechaReferencia: '2026-11-16',
+        });
+        try {
+          await seleccionado;
+          await call('put', `/ingresos/${base.id}`, { ...datos, frecuencia: null }).expect(200);
+        } finally {
+          liberar();
+          await proceso;
+        }
+        const resultado = await proceso;
+        assert.equal(resultado.errores, 0);
+        assert.equal(resultado.generados, 0);
+        const lista = await listar();
+        assert.equal(lista.length, 1);
+        assert.equal(lista[0].frecuencia, null);
+        assert.equal(lista[0].proximo_ingreso, null);
+      });
+
+      it('dos jobs simultáneos generan una sola vez cada periodo pendiente', async () => {
+        const { procesarIngresosRecurrentes } = require('../../src/jobs/ingresosRecurrentes');
+        await crear({ frecuencia: 'semanal' });
+        const resultados = await Promise.all([1, 2].map(() => procesarIngresosRecurrentes({
+          pool: ctx.pool, fechaReferencia: '2026-11-22',
+        })));
+        assert.equal(resultados.reduce((total, r) => total + r.generados, 0), 3);
+        assert.ok(resultados.every(r => r.errores === 0));
+        const lista = await listar();
+        assert.equal(lista.length, 4);
+        assert.equal(lista.filter(i => i.recurrente).length, 3);
+        assert.equal(lista.find(i => !i.recurrente).proximo_ingreso, '2026-11-29');
+      });
+
+      it('revierte los ingresos generados si falla el avance y permite reintentar', async () => {
+        const { procesarIngresosRecurrentes } = require('../../src/jobs/ingresosRecurrentes');
+        await crear({ frecuencia: 'semanal' });
+        const errores = [];
+        const poolConFallo = {
+          query: (...args) => ctx.pool.query(...args),
+          connect: async () => {
+            const client = await ctx.pool.connect();
+            return {
+              release: () => client.release(),
+              query: (sql, valores) => {
+                if (sql.startsWith('UPDATE ingresos SET proximo_ingreso')) {
+                  return Promise.reject(new Error('Fallo simulado al avanzar'));
+                }
+                return client.query(sql, valores);
+              },
+            };
+          },
+        };
+        const fallido = await procesarIngresosRecurrentes({
+          pool: poolConFallo, fechaReferencia: '2026-11-08',
+          logger: { error: mensaje => errores.push(mensaje) },
+        });
+        assert.equal(fallido.errores, 1);
+        assert.equal(fallido.generados, 0);
+        assert.match(errores[0], /Fallo simulado/);
+        const lista = await listar();
+        assert.equal(lista.length, 1);
+        assert.equal(lista[0].proximo_ingreso, '2026-11-08');
+        const reintento = await procesarIngresosRecurrentes({
+          pool: ctx.pool, fechaReferencia: '2026-11-08',
+        });
+        assert.equal(reintento.errores, 0);
+        assert.equal(reintento.generados, 1);
+        assert.equal((await listar()).length, 2);
+      });
+
       it('Migración 022 es idempotente y POST/PUT /ingresos aceptan frecuencia (semanal, quincenal, mensual) y rechazan valores inválidos', async () => {
         const sql022 = fs.readFileSync(
           path.resolve(

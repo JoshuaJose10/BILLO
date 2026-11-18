@@ -717,4 +717,319 @@ module.exports = getContext => describe('Autenticación (Postman 01 / RF1)', () 
       expectError(resTokenInvalido, 401, 'NO_AUTORIZADO');
     });
   });
+
+  describe('Editar perfil, cambiar contraseña y exportar datos CSV (feature/api-perfil-exportar)', () => {
+    it('PUT /auth/perfil actualiza el nombre (1–100 caracteres), recorta espacios y persiste en GET /auth/perfil', async () => {
+      const { body } = await ctx.api
+        .put('/auth/perfil')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({ nombre: '  Usuario A Editado  ' })
+        .expect(200);
+
+      assert.deepEqual(body, {
+        usuario: {
+          id: ctx.a.usuario.id,
+          nombre: 'Usuario A Editado',
+          email: ctx.a.usuario.email,
+        },
+      });
+
+      const perfil = await ctx.api
+        .get('/auth/perfil')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+      assert.equal(perfil.body.nombre, 'Usuario A Editado');
+
+      // El usuario B sigue intacto
+      const perfilB = await ctx.api
+        .get('/auth/perfil')
+        .auth(ctx.b.token, { type: 'bearer' })
+        .expect(200);
+      assert.equal(perfilB.body.nombre, ctx.b.usuario.nombre);
+    });
+
+    it('PUT /auth/perfil valida nombre entre 1 y 100 caracteres (400 NOMBRE_INVALIDO) y requiere token (401)', async () => {
+      for (const invalido of ['', '   ', null, 123, 'a'.repeat(101)]) {
+        expectError(
+          await ctx.api
+            .put('/auth/perfil')
+            .auth(ctx.a.token, { type: 'bearer' })
+            .send({ nombre: invalido }),
+          400,
+          'NOMBRE_INVALIDO'
+        );
+      }
+
+      expectError(
+        await ctx.api.put('/auth/perfil').send({ nombre: 'Valido' }),
+        401,
+        'NO_AUTORIZADO'
+      );
+    });
+
+    it('POST /auth/cambiar-contrasena rechaza contraseña actual incorrecta o nueva inválida sin modificar la cuenta, y permite iniciar sesión con la nueva', async () => {
+      // Contraseña actual incorrecta -> 400 CONTRASENA_ACTUAL_INCORRECTA
+      expectError(
+        await ctx.api
+          .post('/auth/cambiar-contrasena')
+          .auth(ctx.a.token, { type: 'bearer' })
+          .send({
+            contrasena_actual: 'Incorrecta123',
+            contrasena_nueva: 'NuevaSegura123',
+          }),
+        400,
+        'CONTRASENA_ACTUAL_INCORRECTA'
+      );
+
+      expectError(
+        await ctx.api
+          .post('/auth/cambiar-contrasena')
+          .auth(ctx.a.token, { type: 'bearer' })
+          .send({
+            contrasena_actual: '',
+            contrasena_nueva: 'NuevaSegura123',
+          }),
+        400,
+        'CONTRASENA_ACTUAL_INCORRECTA'
+      );
+
+      // Contraseña nueva inválida (< 8 chars o no string) -> 400 CONTRASENA_INVALIDA
+      for (const malaNueva of ['', '1234567', null, 12345678]) {
+        expectError(
+          await ctx.api
+            .post('/auth/cambiar-contrasena')
+            .auth(ctx.a.token, { type: 'bearer' })
+            .send({
+              contrasena_actual: ctx.password,
+              contrasena_nueva: malaNueva,
+            }),
+          400,
+          'CONTRASENA_INVALIDA'
+        );
+      }
+
+      // La contraseña original sigue funcionando tras los intentos fallidos
+      await ctx.api
+        .post('/auth/login')
+        .send({ email: ctx.a.usuario.email, password: ctx.password })
+        .expect(200);
+
+      // Cambio exitoso
+      const nuevaPass = 'MiNuevaContrasena99';
+      const { body } = await ctx.api
+        .post('/auth/cambiar-contrasena')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({
+          contrasena_actual: ctx.password,
+          contrasena_nueva: nuevaPass,
+        })
+        .expect(200);
+      assert.equal(body.actualizada, true);
+
+      // La anterior ya no sirve y la nueva permite iniciar sesión
+      expectError(
+        await ctx.api
+          .post('/auth/login')
+          .send({ email: ctx.a.usuario.email, password: ctx.password }),
+        401,
+        'CREDENCIALES_INVALIDAS'
+      );
+      await ctx.api
+        .post('/auth/login')
+        .send({ email: ctx.a.usuario.email, password: nuevaPass })
+        .expect(200);
+    });
+
+    it('GET /exportar mantiene el importe y la moneda originales en gastos y suscripciones', async () => {
+      await ctx.crearGasto(ctx.a, {
+        monto: 200,
+        moneda: 'USD',
+        monto_original: 10,
+        tipo_cambio: 20,
+        nota: 'Gasto en dolares',
+      });
+      await ctx.crearGasto(ctx.a, { monto: 85.5, nota: 'Gasto en pesos' });
+      await ctx.api
+        .post('/membresias')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({
+          nombre: 'Servicio en euros',
+          costo: 440,
+          moneda: 'EUR',
+          monto_original: 20,
+          tipo_cambio: 22,
+          frecuencia: 'mensual',
+          fecha_cobro: '2026-10-20',
+        })
+        .expect(201);
+
+      for (const query of ['?formato=csv', '?formato=csv&mes=2026-10']) {
+        const { text } = await ctx.api
+          .get(`/exportar${query}`)
+          .auth(ctx.a.token, { type: 'bearer' })
+          .expect(200);
+        assert.match(text, /gasto,2026-10-05,Gasto en dolares,Comida,10\.00,USD,efectivo/);
+        assert.match(text, /gasto,2026-10-05,Gasto en pesos,Comida,85\.50,MXN,efectivo/);
+        assert.match(text, /suscripcion,2026-10-20,Servicio en euros,mensual,20\.00,EUR,/);
+        assert.doesNotMatch(text, /200\.00,USD|440\.00,EUR/);
+      }
+
+      // Registros antiguos sin importe original conservan su valor convertido en MXN.
+      await ctx.pool.query('UPDATE gastos SET monto_original = NULL WHERE usuario_id = $1', [ctx.a.usuario.id]);
+      await ctx.pool.query('UPDATE membresias SET monto_original = NULL WHERE usuario_id = $1', [ctx.a.usuario.id]);
+      const { text } = await ctx.api
+        .get('/exportar?formato=csv')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+      assert.match(text, /Gasto en dolares,Comida,200\.00,MXN,/);
+      assert.match(text, /Servicio en euros,mensual,440\.00,MXN,/);
+    });
+
+    it('GET /exportar neutraliza formulas de Excel en las celdas de texto', async () => {
+      const casos = [
+        ['=1+1', "'=1+1"],
+        ['+1+1', "'+1+1"],
+        ['-1+1', "'-1+1"],
+        ['@SUM(1)', "'@SUM(1)"],
+        ['  =1+1', "'  =1+1"],
+        ['\t=1+1', "'\t=1+1"],
+        ['\r=1+1', `"'\r=1+1"`],
+        ['\n=1+1', `"'\n=1+1"`],
+        ['=IF(1=1,"si","no")', `"'=IF(1=1,""si"",""no"")"`],
+        ['Cafe, "manana"\nsegunda linea', `"Cafe, ""manana""\nsegunda linea"`],
+      ];
+      for (const [nota] of casos) {
+        await ctx.crearGasto(ctx.a, { nota });
+      }
+      await ctx.api
+        .post('/ingresos')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({ monto: 100, fecha: '2026-10-15', descripcion: '=2+2', fuente: '+Bono' })
+        .expect(201);
+      await ctx.api
+        .post('/membresias')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({ nombre: '@Servicio', costo: 199, frecuencia: 'mensual', fecha_cobro: '2026-10-20' })
+        .expect(201);
+
+      const { text } = await ctx.api
+        .get('/exportar?formato=csv')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+      for (const [, celdaEsperada] of casos) {
+        assert.ok(text.includes(`gasto,2026-10-05,${celdaEsperada},Comida,85.50,MXN,efectivo\r\n`));
+      }
+      assert.ok(text.includes("ingreso,2026-10-15,'=2+2,'+Bono,100.00,MXN,\r\n"));
+      assert.ok(text.includes("suscripcion,2026-10-20,'@Servicio,mensual,199.00,MXN,\r\n"));
+      const gastos = await ctx.listar(ctx.a);
+      assert.ok(gastos.some(gasto => gasto.nota === '=1+1'), 'La proteccion del CSV no modifica los datos guardados');
+    });
+
+    it('GET /exportar genera CSV en UTF-8 con BOM solo con los datos del usuario (con y sin filtro de mes)', async () => {
+      // Datos del usuario A en octubre y noviembre
+      await ctx.crearGasto(ctx.a, {
+        monto: 85.5,
+        fecha: '2026-10-05',
+        metodo_pago: 'efectivo',
+        nota: 'Tacos, salsa y "refresco"',
+      });
+      await ctx.crearGasto(ctx.a, {
+        monto: 200,
+        fecha: '2026-11-10',
+        metodo_pago: 'tarjeta',
+        nota: 'Gasolina noviembre',
+      });
+      await ctx.api
+        .post('/ingresos')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({
+          monto: 15000,
+          fecha: '2026-10-15',
+          descripcion: 'Quincena octubre',
+          fuente: 'Salario',
+        })
+        .expect(201);
+      await ctx.api
+        .post('/membresias')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .send({
+          nombre: 'Netflix',
+          costo: 199,
+          frecuencia: 'mensual',
+          fecha_cobro: '2026-10-20',
+        })
+        .expect(201);
+
+      // Datos del usuario B que NUNCA deben aparecer en el CSV de A
+      await ctx.crearGasto(ctx.b, {
+        monto: 999,
+        fecha: '2026-10-05',
+        nota: 'Secreto B',
+      });
+      await ctx.api
+        .post('/ingresos')
+        .auth(ctx.b.token, { type: 'bearer' })
+        .send({
+          monto: 88888,
+          fecha: '2026-10-15',
+          descripcion: 'Ingreso B',
+          fuente: 'Bono B',
+        })
+        .expect(201);
+
+      // 1) Exportar filtrado por mes=2026-10
+      const resOct = await ctx.api
+        .get('/exportar?formato=csv&mes=2026-10')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+
+      assert.match(resOct.headers['content-type'], /text\/csv/);
+      assert.match(resOct.headers['content-type'], /utf-8/i);
+      assert.ok(
+        resOct.text.startsWith('\uFEFF'),
+        'El CSV debe iniciar con BOM UTF-8 (\\uFEFF) para abrir bien en Excel'
+      );
+
+      const lineasOct = resOct.text
+        .slice(1)
+        .trim()
+        .split(/\r?\n/);
+      assert.equal(
+        lineasOct[0],
+        'tipo,fecha,descripción,categoría/fuente,monto,moneda,método de pago'
+      );
+      assert.equal(lineasOct.length, 4); // encabezado + 1 gasto + 1 ingreso + 1 suscripción de oct
+      assert.match(resOct.text, /"Tacos, salsa y ""refresco"""/);
+      assert.match(resOct.text, /ingreso,2026-10-15,Quincena octubre,Salario,15000\.00,MXN,/);
+      assert.match(resOct.text, /suscripcion,2026-10-20,Netflix,mensual,199\.00,MXN,/);
+      assert.doesNotMatch(resOct.text, /Gasolina noviembre/);
+      assert.doesNotMatch(resOct.text, /Secreto B/);
+      assert.doesNotMatch(resOct.text, /Ingreso B/);
+
+      // 2) Exportar sin mes incluye también noviembre de A, pero nada de B
+      const resTodo = await ctx.api
+        .get('/exportar?formato=csv')
+        .auth(ctx.a.token, { type: 'bearer' })
+        .expect(200);
+      assert.match(resTodo.text, /Gasolina noviembre/);
+      assert.doesNotMatch(resTodo.text, /Secreto B/);
+
+      // Validaciones de formato, mes y token
+      expectError(
+        await ctx.api
+          .get('/exportar?formato=pdf')
+          .auth(ctx.a.token, { type: 'bearer' }),
+        400,
+        'FORMATO_INVALIDO'
+      );
+      expectError(
+        await ctx.api
+          .get('/exportar?formato=csv&mes=2026-13')
+          .auth(ctx.a.token, { type: 'bearer' }),
+        400,
+        'MES_INVALIDO'
+      );
+      expectError(await ctx.api.get('/exportar?formato=csv'), 401, 'NO_AUTORIZADO');
+    });
+  });
 });

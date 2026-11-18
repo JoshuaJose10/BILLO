@@ -7,7 +7,7 @@ const FRECUENCIAS_INGRESO_VALIDAS = ['semanal', 'quincenal', 'mensual'];
  * Calcula la siguiente fecha de ingreso según la frecuencia ('semanal', 'quincenal', 'mensual').
  * En 'mensual' ajusta el fin de mes (31 -> 28, 29 o 30 según el mes destino).
  */
-const calcularSiguienteIngreso = (fechaStr, frecuencia) => {
+const calcularSiguienteIngreso = (fechaStr, frecuencia, diaOrigen) => {
   if (
     typeof fechaStr !== 'string' ||
     !/^\d{4}-\d{2}-\d{2}$/.test(fechaStr) ||
@@ -38,7 +38,7 @@ const calcularSiguienteIngreso = (fechaStr, frecuencia) => {
     nuevoAnio += 1;
   }
   const maxDias = diasEnMes(nuevoAnio, nuevoMes);
-  const diaAjustado = Math.min(dia, maxDias);
+  const diaAjustado = Math.min(diaOrigen ?? dia, maxDias);
   return `${String(nuevoAnio).padStart(4, '0')}-${String(nuevoMes).padStart(2, '0')}-${String(diaAjustado).padStart(2, '0')}`;
 };
 
@@ -65,14 +65,7 @@ const procesarIngresosRecurrentes = async ({
 
   try {
     const { rows: programados } = await pool.query(
-      `SELECT
-         id,
-         usuario_id,
-         monto,
-         descripcion,
-         fuente,
-         frecuencia,
-         TO_CHAR(proximo_ingreso, 'YYYY-MM-DD') AS proximo_ingreso
+      `SELECT id
        FROM ingresos
        WHERE frecuencia IS NOT NULL
          AND proximo_ingreso IS NOT NULL
@@ -83,8 +76,31 @@ const procesarIngresosRecurrentes = async ({
 
     for (const origen of programados) {
       resumen.revisados++;
+      let client;
       try {
-        let fechaPendiente = origen.proximo_ingreso;
+        client = await pool.connect();
+        await client.query('BEGIN');
+        // La misma fila serializa el job con PUT, DELETE y otros procesos diarios.
+        // Releer bajo bloqueo evita generar con una recurrencia ya cancelada.
+        const { rows: [actual] } = await client.query(
+          `SELECT id, usuario_id, monto, descripcion, fuente, frecuencia,
+                  EXTRACT(DAY FROM fecha)::int AS dia_origen,
+                  TO_CHAR(proximo_ingreso, 'YYYY-MM-DD') AS proximo_ingreso
+           FROM ingresos
+           WHERE id = $1
+             AND frecuencia IS NOT NULL
+             AND proximo_ingreso IS NOT NULL
+             AND proximo_ingreso <= $2
+           FOR UPDATE`,
+          [origen.id, hoyStr]
+        );
+        if (!actual) {
+          await client.query('COMMIT');
+          continue;
+        }
+        let generados = 0;
+        let omitidosPorDuplicado = 0;
+        let fechaPendiente = actual.proximo_ingreso;
         let iteraciones = 0;
         const maxIteraciones = 500;
 
@@ -94,7 +110,7 @@ const procesarIngresosRecurrentes = async ({
           iteraciones < maxIteraciones
         ) {
           iteraciones++;
-          const insertRes = await pool.query(
+          const insertRes = await client.query(
             `INSERT INTO ingresos (
                usuario_id,
                monto,
@@ -112,38 +128,45 @@ const procesarIngresosRecurrentes = async ({
                DO NOTHING
              RETURNING id`,
             [
-              origen.usuario_id,
-              origen.monto,
+              actual.usuario_id,
+              actual.monto,
               fechaPendiente,
-              origen.descripcion,
-              origen.fuente,
-              origen.id,
+              actual.descripcion,
+              actual.fuente,
+              actual.id,
             ]
           );
 
           if (insertRes.rowCount > 0) {
-            resumen.generados++;
+            generados++;
           } else {
-            resumen.omitidosPorDuplicado++;
+            omitidosPorDuplicado++;
           }
 
           fechaPendiente = calcularSiguienteIngreso(
             fechaPendiente,
-            origen.frecuencia
+            actual.frecuencia,
+            actual.dia_origen
           );
         }
 
         if (fechaPendiente) {
-          await pool.query(
+          await client.query(
             'UPDATE ingresos SET proximo_ingreso = $1 WHERE id = $2',
             [fechaPendiente, origen.id]
           );
         }
+        await client.query('COMMIT');
+        resumen.generados += generados;
+        resumen.omitidosPorDuplicado += omitidosPorDuplicado;
       } catch (errItem) {
+        if (client) await client.query('ROLLBACK').catch(() => {});
         resumen.errores++;
         logger.error(
           `[ingresos-recurrentes] Error al procesar ingreso ${origen.id}: ${errItem.message}`
         );
+      } finally {
+        if (client) client.release();
       }
     }
   } catch (errGlobal) {
