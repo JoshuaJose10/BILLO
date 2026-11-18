@@ -1,5 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 
+import { crearAlmacenWidget } from '../utils/almacenWidget';
 import { mesActual } from '../utils/fechas';
 import { CLAVE_SALDO_OCULTO } from '../utils/preferencias';
 import { crearDatoWidget, leerDatoGuardado, vistaWidget } from '../utils/widgetResumen';
@@ -9,10 +10,18 @@ import { crearDatoWidget, leerDatoGuardado, vistaWidget } from '../utils/widgetR
 // en el spike HU-23). Es el mismo almacén que la sesión: al cerrar sesión se borra con
 // limpiarDatoWidget.
 const CLAVE_DATO_WIDGET = 'billo_widget_resumen';
+const almacenWidget = crearAlmacenWidget({
+  leer: async () => leerDatoGuardado(await SecureStore.getItemAsync(CLAVE_DATO_WIDGET)),
+  guardar: (dato) => SecureStore.setItemAsync(CLAVE_DATO_WIDGET, JSON.stringify(dato)),
+  borrar: () => SecureStore.deleteItemAsync(CLAVE_DATO_WIDGET),
+  leerSesion: () => SecureStore.getItemAsync('billo_token'),
+});
+
+export const establecerSesionWidget = almacenWidget.establecerSesion;
 
 export async function leerDatoWidget() {
   try {
-    return leerDatoGuardado(await SecureStore.getItemAsync(CLAVE_DATO_WIDGET));
+    return await almacenWidget.leer();
   } catch {
     return null;
   }
@@ -30,16 +39,15 @@ export async function leerVistaWidget() {
 }
 
 // datos de Inicio ({ resumen, gastos, ingresos, membresias, categorias }) → guarda el dato.
-export async function guardarDatoWidget(datos, mes) {
+export async function guardarDatoWidget(datos, mes, sesion) {
   const dato = crearDatoWidget(datos, mes);
   if (!dato) return null;
-  await SecureStore.setItemAsync(CLAVE_DATO_WIDGET, JSON.stringify(dato));
-  return dato;
+  return almacenWidget.guardar(dato, sesion);
 }
 
 export async function limpiarDatoWidget() {
   try {
-    await SecureStore.deleteItemAsync(CLAVE_DATO_WIDGET);
+    await almacenWidget.limpiar();
   } catch {
     // Sin dato guardado no hay nada que borrar.
   }

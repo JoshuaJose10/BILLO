@@ -58,7 +58,7 @@ const ALTURA_BARRA_MIN = 6;
 
 // Reportes (RF6, RF8; HU-37, HU-81 y Reportes › Ingresos y Balance):
 // Vistas: Gastos, Ingresos y Balance, compartiendo el selector de mes con flechas.
-export default function ReportesScreen({ navigation }) {
+export default function ReportesScreen({ navigation, route }) {
   const alturaNavbar = useAlturaNavbar();
   const { obtenerResumen, obtenerIngresos, obtenerBalance } = useReportesService();
   const { listarGastos } = useGastosService();
@@ -72,6 +72,12 @@ export default function ReportesScreen({ navigation }) {
 
   const [mes, setMes] = useState(mesActual);
   const [vista, setVista] = useState('gastos');
+  const { solicitud, vista: vistaPedida } = route?.params ?? {};
+  const [solicitudAplicada, setSolicitudAplicada] = useState(null);
+  if (solicitud && solicitud !== solicitudAplicada) {
+    setSolicitudAplicada(solicitud);
+    if (VISTAS.some((v) => v.valor === vistaPedida)) setVista(vistaPedida);
+  }
   // Última respuesta válida, junta para no mezclar dos meses:
   // { mes, resumen, gastos, reporteIngresos, ingresos, balance, anterior, presupuestos }.
   const [datos, setDatos] = useState(null);

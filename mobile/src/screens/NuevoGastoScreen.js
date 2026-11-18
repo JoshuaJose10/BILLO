@@ -358,6 +358,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
           fuente,
         };
         await (editando ? actualizarIngreso(ingresoEditado.id, datos) : crearIngreso(datos));
+        actualizarWidgetResumen();
       } else {
         const datos = prepararDatosGasto({
           montoOriginal: montoNum,
@@ -393,6 +394,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
     try {
       if (esIngreso) {
         await eliminarIngreso(ingresoEditado.id);
+        actualizarWidgetResumen();
       } else {
         await eliminarGasto(gastoEditado.id);
         actualizarWidgetResumen(); // HU-58: sin esperar

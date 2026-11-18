@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Boton from '../components/Boton';
+import { useAuth } from '../context/AuthContext';
 import { radios, temas } from '../theme/colors';
 import { fonts } from '../theme/fonts';
 import { cargarVoz, cargarWidget } from './modulosNativos';
@@ -112,6 +113,7 @@ function PruebaVoz() {
 }
 
 function PruebaWidget() {
+  const { token } = useAuth();
   const widget = cargarWidget();
   const [dato, setDato] = useState('1234.5');
   const [estado, setEstado] = useState('');
@@ -140,7 +142,7 @@ function PruebaWidget() {
   const actualizar = async () => {
     try {
       // El monto entra como un ingreso del mes: el widget lo muestra como saldo disponible.
-      await actualizarWidget({ ingresos: [{ monto: Number(dato) }] }, mesActual());
+      await actualizarWidget({ ingresos: [{ monto: Number(dato) }] }, mesActual(), token);
       setEstado('Dato guardado y widget actualizado (si ya lo agregaste a la pantalla de inicio).');
     } catch (e) {
       setEstado(`Error: ${e.message}`);

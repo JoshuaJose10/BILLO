@@ -15,6 +15,7 @@ import { apiFetch, setAlNoAutorizado, setModoVisitante } from '../services/api';
 import * as authService from '../services/auth';
 import { vinculoPush } from '../services/tokenPush';
 import { entradaTrasCierre } from '../utils/flujoInicio';
+import { establecerSesionWidget } from '../widget/datoWidget';
 import { limpiarWidget } from '../widget/sincronizar';
 
 const CLAVE_TOKEN = 'billo_token';
@@ -77,6 +78,7 @@ export function AuthProvider({ children }) {
 
         if (activo && visto) setOnboardingVisto(true);
         if (activo && tokenGuardado) {
+          establecerSesionWidget(tokenGuardado);
           setToken(tokenGuardado);
           setUsuario(usuarioGuardado ? JSON.parse(usuarioGuardado) : null);
         }
@@ -99,6 +101,7 @@ export function AuthProvider({ children }) {
   const guardarSesion = useCallback(async (nuevoToken, nuevoUsuario) => {
     await almacen.guardar(CLAVE_TOKEN, nuevoToken);
     await almacen.guardar(CLAVE_USUARIO, JSON.stringify(nuevoUsuario ?? null));
+    establecerSesionWidget(nuevoToken);
     setMotivoCierre(null);
     setEntradaAuth('Entrada');
     setUsuario(nuevoUsuario ?? null);

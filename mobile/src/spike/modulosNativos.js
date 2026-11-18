@@ -13,8 +13,8 @@ const existeModuloWidget = () =>
   Platform.OS === 'android' &&
   (TurboModuleRegistry.get('AndroidWidget') ?? NativeModules.AndroidWidget) != null;
 
-// Devuelve { requestWidgetUpdate, ResumenMesWidget } o null fuera de Android o sin el módulo
-// nativo (react-native-android-widget lanza un error al importarse en Expo Go).
+// Devuelve { requestWidgetUpdate, ResumenMesWidget, BalanceMesWidget, DonaCategoriasWidget, ProximoCobroWidget }
+// o null fuera de Android o sin el módulo nativo (react-native-android-widget lanza un error al importarse en Expo Go).
 export function cargarWidget() {
   if (widget !== undefined) return widget;
   widget = null;
@@ -23,6 +23,9 @@ export function cargarWidget() {
     widget = {
       requestWidgetUpdate: require('react-native-android-widget').requestWidgetUpdate,
       ResumenMesWidget: require('../widget/ResumenMesWidget').default,
+      BalanceMesWidget: require('../widget/BalanceMesWidget').default,
+      DonaCategoriasWidget: require('../widget/DonaCategoriasWidget').default,
+      ProximoCobroWidget: require('../widget/ProximoCobroWidget').default,
     };
   } catch {
     widget = null;

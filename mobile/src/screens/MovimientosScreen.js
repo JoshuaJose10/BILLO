@@ -121,10 +121,10 @@ export default function MovimientosScreen({ navigation }) {
   const filas = useFilasDeslizables();
   const editar = (m) => navigation.navigate(...rutaMovimiento(m, membresias));
   const eliminado = (m) => {
+    actualizarWidgetResumen(); // HU-58: sin esperar
     if (m.tipo === 'ingreso') {
       setIngresos((lista) => lista.filter((i) => i.id !== m.id));
     } else {
-      actualizarWidgetResumen(); // HU-58: sin esperar
       setGastos((lista) => lista.filter((g) => g.id !== m.id));
     }
     cargar();

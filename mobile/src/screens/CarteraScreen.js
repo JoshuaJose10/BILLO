@@ -23,6 +23,7 @@ import SelectorSegmentado from '../components/SelectorSegmentado';
 import TarjetaPresupuesto from '../components/TarjetaPresupuesto';
 import { useMembresiasService } from '../services/membresias';
 import { usePresupuestosService } from '../services/presupuestos';
+import { useActualizarWidget } from '../widget/useActualizarWidget';
 import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
@@ -90,6 +91,7 @@ export default function CarteraScreen({ navigation, route }) {
   const reducirMovimiento = useReducedMotion();
   const { listarPresupuestos, eliminarPresupuesto, copiarPresupuestos } = usePresupuestosService();
   const { listarMembresias, eliminarMembresia } = useMembresiasService();
+  const actualizarWidgetResumen = useActualizarWidget();
 
   const [seccion, setSeccion] = useState('presupuestos');
   const enPresupuestos = seccion === 'presupuestos';
@@ -233,6 +235,7 @@ export default function CarteraScreen({ navigation, route }) {
   const membresiaEliminada = (id) => {
     setMembresias((lista) => lista.filter((m) => m.id !== id));
     cargarMembresias();
+    actualizarWidgetResumen();
   };
 
   // Resumen de Presupuestos
