@@ -190,6 +190,15 @@ export function AuthProvider({ children }) {
     [guardarSesion, usuario],
   );
 
+  // Actualiza los datos públicos del usuario en memoria y en SecureStore (p. ej. tras PUT /auth/perfil).
+  const actualizarUsuario = useCallback(
+    (cambios) => {
+      if (!tokenRef.current) return Promise.resolve();
+      return guardarSesion(tokenRef.current, { ...usuario, ...cambios });
+    },
+    [guardarSesion, usuario],
+  );
+
   // Registro del hook global para 401: si un endpoint con token responde 401, se cierra la sesión
   // solo si la petición se hizo con el token que sigue activo (evita que una petición vieja cierre
   // una sesión recién iniciada).
@@ -215,6 +224,7 @@ export function AuthProvider({ children }) {
       iniciarSesion,
       registrarse,
       marcarCategoriasConfiguradas,
+      actualizarUsuario,
       cerrarSesion,
       limpiarMotivoCierre,
       explorarSinCuenta,
@@ -232,6 +242,7 @@ export function AuthProvider({ children }) {
       iniciarSesion,
       registrarse,
       marcarCategoriasConfiguradas,
+      actualizarUsuario,
       cerrarSesion,
       limpiarMotivoCierre,
       explorarSinCuenta,

@@ -28,5 +28,9 @@ describe('textosError', () => {
       titulo: 'El mes no es válido.',
       mensaje: null,
     });
+    assert.deepEqual(textosError({ code: 'CONTRASENA_ACTUAL_INCORRECTA', status: 400 }), {
+      titulo: 'La contraseña actual es incorrecta.',
+      mensaje: null,
+    });
   });
 });
