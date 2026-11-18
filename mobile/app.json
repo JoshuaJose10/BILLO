@@ -2,6 +2,7 @@
   "expo": {
     "name": "Billo",
     "slug": "billo",
+    "scheme": "billo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -43,16 +44,60 @@
       [
         "react-native-android-widget",
         {
+          "fonts": [
+            "./node_modules/@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf",
+            "./node_modules/@expo-google-fonts/inter/500Medium/Inter_500Medium.ttf",
+            "./node_modules/@expo-google-fonts/inter/600SemiBold/Inter_600SemiBold.ttf",
+            "./node_modules/@expo-google-fonts/inter/700Bold/Inter_700Bold.ttf",
+            "./node_modules/@expo-google-fonts/jetbrains-mono/400Regular/JetBrainsMono_400Regular.ttf",
+            "./node_modules/@expo-google-fonts/jetbrains-mono/500Medium/JetBrainsMono_500Medium.ttf",
+            "./node_modules/@expo-google-fonts/jetbrains-mono/600SemiBold/JetBrainsMono_600SemiBold.ttf",
+            "./node_modules/@expo-google-fonts/jetbrains-mono/700Bold/JetBrainsMono_700Bold.ttf"
+          ],
           "widgets": [
             {
               "name": "ResumenMes",
-              "label": "Billo",
-              "description": "Total del mes",
-              "minWidth": "250dp",
+              "label": "Resumen del mes",
+              "description": "Total gastado este mes",
+              "previewImage": "./assets/widgets/resumenmes_preview.png",
+              "minWidth": "110dp",
               "minHeight": "110dp",
               "targetCellWidth": 4,
               "targetCellHeight": 2,
-              "resizeMode": "horizontal"
+              "resizeMode": "horizontal|vertical"
+            },
+            {
+              "name": "BalanceMes",
+              "label": "Balance del mes",
+              "description": "Ingresos, gastos y balance del mes",
+              "previewImage": "./assets/widgets/balancemes_preview.png",
+              "minWidth": "110dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical"
+            },
+            {
+              "name": "DonaCategorias",
+              "label": "Dona por categoría",
+              "description": "Categorías del mes con el total al centro",
+              "previewImage": "./assets/widgets/donacategorias_preview.png",
+              "minWidth": "110dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical"
+            },
+            {
+              "name": "ProximoCobro",
+              "label": "Próximo cobro",
+              "description": "Servicio, monto y días para tu siguiente cobro",
+              "previewImage": "./assets/widgets/proximocobro_preview.png",
+              "minWidth": "110dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical"
             }
           ]
         }

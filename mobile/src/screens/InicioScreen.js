@@ -104,8 +104,18 @@ export default function InicioScreen({ navigation }) {
       setMesCargado(mes);
       setEstado('listo');
       setHayDatos(true);
-      // HU-58: el widget de Android muestra el mismo total del mes que acaba de cargar Inicio.
-      actualizarWidget(datos.resumen, mes);
+      // HU-58 y feature/widgets-billo: los 4 widgets de Android muestran los mismos datos de Inicio.
+      const listaCat = todasCategorias?.length ? todasCategorias : categorias;
+      actualizarWidget(
+        {
+          resumen: datos.resumen,
+          gastos: datos.gastos,
+          ingresos: datos.ingresos,
+          membresias: datos.membresias,
+          nombresCategoria: Object.fromEntries((listaCat || []).map((c) => [c.id, c.nombre])),
+        },
+        mes,
+      );
       return true;
     } catch (error) {
       if (peticion !== ultimaPeticion.current) return;
@@ -113,7 +123,15 @@ export default function InicioScreen({ navigation }) {
       setEstado('error');
       return false;
     }
-  }, [obtenerResumen, listarGastos, listarIngresos, listarPresupuestos, listarMembresias]);
+  }, [
+    obtenerResumen,
+    listarGastos,
+    listarIngresos,
+    listarPresupuestos,
+    listarMembresias,
+    todasCategorias,
+    categorias,
+  ]);
 
   // Recarga cada vez que Inicio gana foco (por ejemplo al cerrar la hoja de Nuevo gasto).
   useFocusEffect(

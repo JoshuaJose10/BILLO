@@ -27,6 +27,7 @@ import SelectorSegmentado from '../components/SelectorSegmentado';
 import TecladoNumerico from '../components/TecladoNumerico';
 import { guardarUltimoTipoCambio, useDivisasService } from '../services/divisas';
 import { useMembresiasService } from '../services/membresias';
+import { useActualizarWidget } from '../widget/useActualizarWidget';
 import { espacios, radios } from '../theme/colors';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { fonts } from '../theme/fonts';
@@ -103,6 +104,7 @@ export default function MembresiaScreen({ navigation, route }) {
     marcarPagada,
     listarPagos,
   } = useMembresiasService();
+  const actualizarWidgetResumen = useActualizarWidget();
 
   const membresiaEditada = route.params?.membresia;
   const editando = Boolean(membresiaEditada);
@@ -403,6 +405,7 @@ export default function MembresiaScreen({ navigation, route }) {
       } else {
         await crearMembresia(payload);
       }
+      actualizarWidgetResumen();
       route.params?.onGuardado?.();
       enviando.current = false;
       hojaRef.current?.cerrar();
@@ -425,6 +428,7 @@ export default function MembresiaScreen({ navigation, route }) {
       } else {
         await pausarMembresia(membresiaEditada.id);
       }
+      actualizarWidgetResumen();
       enviando.current = false;
       hojaRef.current?.cerrar();
     } catch (error) {
@@ -442,6 +446,7 @@ export default function MembresiaScreen({ navigation, route }) {
 
     try {
       await eliminarMembresia(membresiaEditada.id);
+      actualizarWidgetResumen();
       route.params?.onGuardado?.();
       enviando.current = false;
       hojaRef.current?.cerrar();
@@ -472,6 +477,7 @@ export default function MembresiaScreen({ navigation, route }) {
           setErrorApi('');
           try {
             await marcarPagada(membresiaEditada.id);
+            actualizarWidgetResumen();
             enviando.current = false;
             hojaRef.current?.cerrar();
           } catch (error) {
