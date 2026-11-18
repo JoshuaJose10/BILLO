@@ -2,6 +2,7 @@
   "expo": {
     "name": "Billo",
     "slug": "billo",
+    "scheme": "billo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -47,12 +48,24 @@
             {
               "name": "ResumenMes",
               "label": "Billo",
-              "description": "Total del mes",
-              "minWidth": "250dp",
+              "description": "Saldo del mes y accesos rápidos a gasto, ingreso y voz",
+              "minWidth": "110dp",
               "minHeight": "110dp",
-              "targetCellWidth": 4,
+              "targetCellWidth": 2,
               "targetCellHeight": 2,
-              "resizeMode": "horizontal"
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widget-resumen-preview.png"
+            },
+            {
+              "name": "RegistrarVoz",
+              "label": "Registrar por voz",
+              "description": "Registra un gasto o ingreso hablando",
+              "minWidth": "110dp",
+              "minHeight": "40dp",
+              "targetCellWidth": 2,
+              "targetCellHeight": 1,
+              "resizeMode": "horizontal",
+              "previewImage": "./assets/widget-registrar-voz-preview.png"
             }
           ]
         }
