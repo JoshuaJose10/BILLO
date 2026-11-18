@@ -6,35 +6,27 @@ import { useIngresosService } from '../services/ingresos';
 import { useMembresiasService } from '../services/membresias';
 import { useReportesService } from '../services/reportes';
 import { mesActual } from '../utils/fechas';
+import { cargarDatosInicio } from '../utils/inicio';
 import { actualizarWidget } from './sincronizar';
 
-// HU-58 (RF13) y feature/widgets-billo: devuelve una función que pide el resumen, los gastos,
-// los ingresos y las suscripciones del mes y actualiza el almacén compartido de los 4 widgets.
-// Se llama sin esperar (al registrar, editar o borrar gastos, ingresos y suscripciones) y nunca
-// lanza errores.
+// HU-58 (RF13): devuelve una función que pide los datos de Inicio del mes (sin presupuestos) y
+// actualiza el widget. Se llama sin esperar (nuevo gasto, editar, eliminar) y nunca lanza errores.
 export function useActualizarWidget() {
   const { obtenerResumen } = useReportesService();
   const { listarGastos } = useGastosService();
   const { listarIngresos } = useIngresosService();
   const { listarMembresias } = useMembresiasService();
-  const { todasCategorias, categorias } = useCategorias();
-
+  const { todasCategorias } = useCategorias();
   return useCallback(async () => {
     try {
       const mes = mesActual();
-      const [resumen, gastos, ingresos, membresias] = await Promise.all([
-        obtenerResumen(mes),
-        listarGastos({ mes }).catch(() => []),
-        listarIngresos({ mes }).catch(() => []),
-        listarMembresias().catch(() => []),
-      ]);
-      const listaCategorias = todasCategorias?.length ? todasCategorias : categorias;
-      const nombresCategoria = Object.fromEntries(
-        (listaCategorias || []).map((c) => [c.id, c.nombre]),
+      const datos = await cargarDatosInicio(
+        { obtenerResumen, listarGastos, listarIngresos, listarMembresias },
+        mes,
       );
-      await actualizarWidget({ resumen, gastos, ingresos, membresias, nombresCategoria }, mes);
+      await actualizarWidget({ ...datos, categorias: todasCategorias }, mes);
     } catch {
       // Sin red el widget conserva lo último que mostró.
     }
-  }, [obtenerResumen, listarGastos, listarIngresos, listarMembresias, todasCategorias, categorias]);
+  }, [obtenerResumen, listarGastos, listarIngresos, listarMembresias, todasCategorias]);
 }

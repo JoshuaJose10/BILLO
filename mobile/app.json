@@ -57,47 +57,58 @@
           "widgets": [
             {
               "name": "ResumenMes",
-              "label": "Resumen del mes",
-              "description": "Total gastado este mes",
-              "previewImage": "./assets/widgets/resumenmes_preview.png",
+              "label": "Billo",
+              "description": "Saldo del mes y accesos rápidos a gasto, ingreso y voz",
               "minWidth": "110dp",
               "minHeight": "110dp",
-              "targetCellWidth": 4,
+              "targetCellWidth": 2,
               "targetCellHeight": 2,
-              "resizeMode": "horizontal|vertical"
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widget-resumen-preview.png"
+            },
+            {
+              "name": "RegistrarVoz",
+              "label": "Registrar por voz",
+              "description": "Registra un gasto o ingreso hablando",
+              "minWidth": "110dp",
+              "minHeight": "40dp",
+              "targetCellWidth": 2,
+              "targetCellHeight": 1,
+              "resizeMode": "horizontal",
+              "previewImage": "./assets/widget-registrar-voz-preview.png"
             },
             {
               "name": "BalanceMes",
               "label": "Balance del mes",
               "description": "Ingresos, gastos y balance del mes",
-              "previewImage": "./assets/widgets/balancemes_preview.png",
               "minWidth": "110dp",
               "minHeight": "110dp",
               "targetCellWidth": 4,
               "targetCellHeight": 2,
-              "resizeMode": "horizontal|vertical"
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widgets/balancemes_preview.png"
             },
             {
               "name": "DonaCategorias",
               "label": "Dona por categoría",
               "description": "Categorías del mes con el total al centro",
-              "previewImage": "./assets/widgets/donacategorias_preview.png",
               "minWidth": "110dp",
               "minHeight": "110dp",
               "targetCellWidth": 4,
               "targetCellHeight": 2,
-              "resizeMode": "horizontal|vertical"
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widgets/donacategorias_preview.png"
             },
             {
               "name": "ProximoCobro",
               "label": "Próximo cobro",
               "description": "Servicio, monto y días para tu siguiente cobro",
-              "previewImage": "./assets/widgets/proximocobro_preview.png",
               "minWidth": "110dp",
               "minHeight": "110dp",
               "targetCellWidth": 4,
               "targetCellHeight": 2,
-              "resizeMode": "horizontal|vertical"
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widgets/proximocobro_preview.png"
             }
           ]
         }

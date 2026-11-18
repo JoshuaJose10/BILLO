@@ -1,20 +1,20 @@
+// Datos de los widgets de Android (HU-58 / RF13 y feature/widgets-billo). Sin imports de React
+// Native para poder probarlo con node --test. La app guarda el dato al cargar Inicio y los widgets
+// lo dibujan sin red.
 import { colorCategoria } from '../theme/categorias.js';
 import { arcosDona } from './dona.js';
-import {
-  calcularDiasParaCobro,
-  estiloServicio,
-  proximoCobro,
-  textoProximoCobro,
-} from './membresias.js';
+import { formatearMonto, formatearMontoCorto, MONEDA, partesMonto } from './formato.js';
+import { saldoDelMes, totalIngresos } from './ingresos.js';
+import { estiloServicio, proximoCobro, textoProximoCobro } from './membresias.js';
 import { repartirPorcentajes } from './reportes.js';
+import { gastoPorCategoria } from './resumenMes.js';
 
-// Datos y modelos de vista de los 4 widgets de Android (HU-58 / RF13 y feature/widgets-billo):
-// - ResumenMes («Resumen del mes»)
-// - BalanceMes («Balance del mes»)
-// - DonaCategorias («Dona por categoría»)
-// - ProximoCobro («Próximo cobro»)
-// Sin imports de React Native para poder probarlo con node --test.
+export const TEXTO_SIN_DATOS = 'Abre Billo para ver tu saldo';
+export const TEXTO_SIN_DATOS_CORTO = 'Abre Billo';
+export const OCULTO = '••••';
+export const MAX_SEGMENTOS_DONA_WIDGET = 5;
 
+const TOP_CATEGORIAS = 3;
 const MESES = [
   'ENERO',
   'FEBRERO',
@@ -29,7 +29,6 @@ const MESES = [
   'NOVIEMBRE',
   'DICIEMBRE',
 ];
-
 const MESES_CORTOS = [
   'ENE',
   'FEB',
@@ -45,17 +44,13 @@ const MESES_CORTOS = [
   'DIC',
 ];
 
-const formatoMoneda = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
-const formatoMonedaSinDecimales = new Intl.NumberFormat('es-MX', {
-  style: 'currency',
-  currency: 'MXN',
-  maximumFractionDigits: 0,
-});
-
-export const TEXTO_SIN_DATOS = 'Abre Billo';
-export const MAX_SEGMENTOS_DONA_WIDGET = 5;
-
-export const NOMBRES_WIDGETS = ['ResumenMes', 'BalanceMes', 'DonaCategorias', 'ProximoCobro'];
+export const NOMBRES_WIDGETS = [
+  'ResumenMes',
+  'RegistrarVoz',
+  'BalanceMes',
+  'DonaCategorias',
+  'ProximoCobro',
+];
 
 export const URIS_WIDGETS = {
   ResumenMes: 'billo://inicio',
@@ -64,13 +59,8 @@ export const URIS_WIDGETS = {
   ProximoCobro: 'billo://cobro',
 };
 
+const esNumero = (n) => typeof n === 'number' && Number.isFinite(n);
 const redondear2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
-
-function formatearCompacto(monto) {
-  const num = Number(monto) || 0;
-  if (Math.abs(num) >= 10000) return formatoMonedaSinDecimales.format(Math.round(num));
-  return formatoMoneda.format(num);
-}
 
 // Agrupa los gastos o categorías del mes de mayor a menor en máximo 5 segmentos; si hay más de 5
 // categorías con gasto, las primeras 4 se conservan y el resto se agrupa en «Otras».
@@ -115,157 +105,17 @@ export function agruparCategoriasWidget(
     0,
   );
 
-  return segmentos.map((s, i) => ({
-    nombre: s.nombre,
-    total: s.total,
-    porcentaje: porcentajes[i],
-    ...(s.esOtras ? { esOtras: true } : {}),
-  }));
-}
-
-// GET /reportes/resumen (o instantánea completa de Inicio) → dato que se guarda para los widgets.
-// Conserva compatibilidad exacta con `{ mes, total }` cuando solo se pasa el resumen.
-export function crearDatoWidget(entrada, mes) {
-  if (!entrada || typeof entrada !== 'object') return null;
-
-  // Caso extendido: se pasa `{ resumen, gastos, ingresos, membresias, nombresCategoria }`
-  const resumenFuente =
-    entrada.resumen && typeof entrada.resumen === 'object' ? entrada.resumen : entrada;
-  const total = Number(resumenFuente?.total);
-  const mesDato = resumenFuente?.mes ?? entrada?.mes ?? mes;
-  if (!Number.isFinite(total) || !/^\d{4}-\d{2}$/.test(mesDato ?? '')) return null;
-
-  const tieneExtras =
-    entrada.resumen != null ||
-    entrada.gastos != null ||
-    entrada.ingresos != null ||
-    entrada.membresias != null ||
-    entrada.categorias != null ||
-    entrada.proximo_cobro !== undefined ||
-    entrada.balance != null;
-
-  if (!tieneExtras) {
-    return { mes: mesDato, total: redondear2(total) };
-  }
-
-  const gastoVariable = Number.isFinite(Number(resumenFuente?.gasto_variable))
-    ? redondear2(resumenFuente.gasto_variable)
-    : redondear2(total);
-  const gastoFijo = Number.isFinite(Number(resumenFuente?.gasto_fijo))
-    ? redondear2(resumenFuente.gasto_fijo)
-    : 0;
-
-  let ingresosTotal = 0;
-  if (Array.isArray(entrada.ingresos)) {
-    ingresosTotal = redondear2(
-      entrada.ingresos.reduce((acc, i) => acc + (Number(i?.monto) || 0), 0),
-    );
-  } else if (Number.isFinite(Number(entrada.ingresos))) {
-    ingresosTotal = redondear2(entrada.ingresos);
-  }
-
-  const gastosTotal = Number.isFinite(Number(entrada.gastos))
-    ? redondear2(entrada.gastos)
-    : redondear2(total);
-
-  const balanceTotal = Number.isFinite(Number(entrada.balance))
-    ? redondear2(entrada.balance)
-    : redondear2(ingresosTotal - gastosTotal);
-
-  const categorias = Array.isArray(entrada.categorias)
-    ? agruparCategoriasWidget(entrada.categorias)
-    : Array.isArray(entrada.gastos)
-      ? agruparCategoriasWidget(entrada.gastos, entrada.nombresCategoria)
-      : [];
-
-  let cobro = null;
-  if (entrada.proximo_cobro && typeof entrada.proximo_cobro === 'object') {
-    const c = entrada.proximo_cobro;
-    if (c.nombre && Number.isFinite(Number(c.costo))) {
-      cobro = {
-        id: c.id ?? 1,
-        nombre: String(c.nombre),
-        costo: redondear2(c.costo),
-        frecuencia: c.frecuencia || 'mensual',
-        fecha_cobro: c.fecha_cobro || null,
-        dias_para_cobro: Number.isFinite(Number(c.dias_para_cobro)) ? Number(c.dias_para_cobro) : 0,
-      };
-    }
-  } else if (Array.isArray(entrada.membresias)) {
-    const resultado = proximoCobro(entrada.membresias);
-    const sig = resultado?.membresia ?? resultado;
-    if (sig && sig.nombre) {
-      cobro = {
-        id: sig.id ?? 1,
-        nombre: String(sig.nombre),
-        costo: redondear2(sig.costo),
-        frecuencia: sig.frecuencia || 'mensual',
-        fecha_cobro: sig.fecha_cobro || null,
-        dias_para_cobro: Number(resultado?.dias ?? sig.dias_para_cobro) || 0,
-      };
-    }
-  }
-
-  return {
-    mes: mesDato,
-    total: redondear2(total),
-    gasto_variable: gastoVariable,
-    gasto_fijo: gastoFijo,
-    ingresos: ingresosTotal,
-    gastos: gastosTotal,
-    balance: balanceTotal,
-    categorias,
-    proximo_cobro: cobro,
-  };
-}
-
-// Lee lo guardado (texto JSON) sin fallar con datos dañados.
-export function leerDatoGuardado(texto) {
-  if (!texto) return null;
-  try {
-    const dato = JSON.parse(texto);
-    return crearDatoWidget(dato, dato?.mes);
-  } catch {
-    return null;
-  }
-}
-
-// 1. Resumen del mes: { titulo, monto } o { titulo, monto: null } («Abre Billo»)
-export function textoWidget(dato, mesActual) {
-  if (!dato || dato.mes !== mesActual) return { titulo: 'BILLO', monto: null };
-  return {
-    titulo: `BILLO · ${MESES[Number(dato.mes.slice(5, 7)) - 1]}`,
-    monto: formatoMoneda.format(dato.total),
-  };
-}
-
-// 2. Balance del mes: ingresos, gastos y balance (positivo → verde, negativo → rojo)
-export function datosBalanceWidget(dato, mesActual) {
-  if (!dato || dato.mes !== mesActual) {
+  return segmentos.map((s, i) => {
+    const claveColor = s.nombre === 'Otras' ? 'Otros' : s.nombre;
     return {
-      vacio: true,
-      titulo: 'BILLO · BALANCE',
-      textoVacio: TEXTO_SIN_DATOS,
+      nombre: s.nombre,
+      total: s.total,
+      porcentaje: porcentajes[i],
+      claro: colorCategoria(claveColor, false),
+      oscuro: colorCategoria(claveColor, true),
+      ...(s.esOtras ? { esOtras: true } : {}),
     };
-  }
-  const indiceMes = Number(dato.mes.slice(5, 7)) - 1;
-  const ingresosNum = Number(dato.ingresos) || 0;
-  const gastosNum = Number(dato.gastos ?? dato.total) || 0;
-  const balanceNum =
-    dato.balance != null ? Number(dato.balance) : redondear2(ingresosNum - gastosNum);
-  const estado = balanceNum > 0 ? 'positivo' : balanceNum < 0 ? 'negativo' : 'neutro';
-  const signo = balanceNum > 0 ? '+' : balanceNum < 0 ? '−' : '';
-
-  return {
-    vacio: false,
-    titulo: `BALANCE · ${MESES[indiceMes]}`,
-    mesCorto: MESES_CORTOS[indiceMes],
-    ingresos: `+${formatearCompacto(ingresosNum)}`,
-    gastos: `-${formatearCompacto(gastosNum)}`,
-    balance: `${signo}${formatoMoneda.format(Math.abs(balanceNum))}`,
-    balanceCompacto: `${signo}${formatearCompacto(Math.abs(balanceNum))}`,
-    estado,
-  };
+  });
 }
 
 // Genera el SVG de la dona para SvgWidget (react-native-android-widget).
@@ -288,7 +138,9 @@ export function generarSvgDonaWidget(
     .map((arco) => {
       const seg = segmentos[arco.indice];
       const color =
-        seg?.color || colorCategoria(seg?.nombre === 'Otras' ? 'Otros' : seg?.nombre, esOscuro);
+        seg?.color ||
+        (esOscuro ? seg?.oscuro : seg?.claro) ||
+        colorCategoria(seg?.nombre === 'Otras' ? 'Otros' : seg?.nombre, esOscuro);
       const largo = arco.completo
         ? circunferencia
         : arco.punto
@@ -303,54 +155,147 @@ export function generarSvgDonaWidget(
   return `<svg width="${lado}" height="${lado}" viewBox="0 0 ${lado} ${lado}" xmlns="http://www.w3.org/2000/svg"><circle cx="${centro}" cy="${centro}" r="${radio}" fill="none" stroke="${colorPista}" stroke-width="${grosor}"/>${trazos}</svg>`;
 }
 
-// 3. Dona por categoría: máximo 5 segmentos y «Otras», con el total al centro.
+// Lo mismo que muestra Inicio → dato que se guarda:
+// { mes, saldo, ingresos, gastos, gasto_variable, categorias, dona, cobro }.
+export function crearDatoWidget({ resumen, gastos, ingresos, membresias, categorias } = {}, mes) {
+  if (!/^\d{4}-\d{2}$/.test(mes ?? '')) return null;
+  const nombres = Object.fromEntries((categorias || []).map((c) => [c.id, c.nombre]));
+  const proximo = proximoCobro(membresias);
+  const porCat = gastoPorCategoria(gastos, nombres);
+  const sumaGastos = redondear2(porCat.reduce((acc, c) => acc + c.total, 0));
+  const gastoVariable = esNumero(Number(resumen?.gasto_variable))
+    ? redondear2(resumen.gasto_variable)
+    : sumaGastos;
+  const gastosTotal = esNumero(Number(resumen?.total)) ? redondear2(resumen.total) : gastoVariable;
+
+  return {
+    mes,
+    saldo: saldoDelMes(ingresos, resumen?.gasto_variable),
+    ingresos: totalIngresos(ingresos),
+    gastos: gastosTotal,
+    gasto_variable: gastoVariable,
+    categorias: porCat
+      .filter((c) => c.nombre)
+      .slice(0, TOP_CATEGORIAS)
+      .map(({ nombre }) => ({
+        nombre,
+        claro: colorCategoria(nombre, false),
+        oscuro: colorCategoria(nombre, true),
+      })),
+    dona: agruparCategoriasWidget(porCat),
+    cobro: proximo
+      ? {
+          nombre: proximo.membresia.nombre,
+          dias: proximo.dias,
+          monto: Number(proximo.membresia.costo),
+        }
+      : null,
+  };
+}
+
+// Lee lo guardado (texto JSON) sin fallar con datos dañados o de una versión anterior.
+export function leerDatoGuardado(texto) {
+  if (!texto) return null;
+  try {
+    const dato = JSON.parse(texto);
+    const valido =
+      /^\d{4}-\d{2}$/.test(dato?.mes ?? '') &&
+      (dato.saldo === null || esNumero(dato.saldo)) &&
+      esNumero(dato.ingresos) &&
+      Array.isArray(dato.categorias);
+    return valido ? dato : null;
+  } catch {
+    return null;
+  }
+}
+
+// Modelo para el widget «Balance del mes»: ingresos, gastos y balance (positivo → verde, negativo → rojo).
+export function datosBalanceWidget(dato, mesActual, oculto = false) {
+  if (!dato || dato.mes !== mesActual) {
+    return {
+      vacio: true,
+      titulo: 'BILLO · BALANCE',
+      textoVacio: TEXTO_SIN_DATOS_CORTO,
+    };
+  }
+  const indiceMes = Number(dato.mes.slice(5, 7)) - 1;
+  const ingresosNum = Number(dato.ingresos) || 0;
+  const gastosNum = Number(dato.gastos ?? dato.gasto_variable ?? 0) || 0;
+  const balanceNum =
+    dato.balance != null ? Number(dato.balance) : redondear2(ingresosNum - gastosNum);
+  const estado = balanceNum > 0 ? 'positivo' : balanceNum < 0 ? 'negativo' : 'neutro';
+  const signo = balanceNum > 0 ? '+' : balanceNum < 0 ? '−' : '';
+
+  if (oculto) {
+    return {
+      vacio: false,
+      titulo: `BALANCE · ${MESES[indiceMes]}`,
+      mesCorto: MESES_CORTOS[indiceMes],
+      ingresos: OCULTO,
+      gastos: OCULTO,
+      balance: OCULTO,
+      balanceCompacto: OCULTO,
+      estado: 'neutro',
+    };
+  }
+
+  return {
+    vacio: false,
+    titulo: `BALANCE · ${MESES[indiceMes]}`,
+    mesCorto: MESES_CORTOS[indiceMes],
+    ingresos: `+${formatearMontoCorto(ingresosNum)}`,
+    gastos: `-${formatearMontoCorto(gastosNum)}`,
+    balance: `${signo}${formatearMonto(Math.abs(balanceNum))}`,
+    balanceCompacto: `${signo}${formatearMontoCorto(Math.abs(balanceNum))}`,
+    estado,
+  };
+}
+
+// Modelo para el widget «Dona por categoría»: máximo 5 segmentos y «Otras», con el total al centro.
 export function datosDonaWidget(dato, mesActual, esOscuro = true) {
   if (!dato || dato.mes !== mesActual) {
     return {
       vacio: true,
       titulo: 'BILLO · CATEGORÍAS',
-      textoVacio: TEXTO_SIN_DATOS,
+      textoVacio: TEXTO_SIN_DATOS_CORTO,
       segmentos: [],
       svg: null,
     };
   }
   const indiceMes = Number(dato.mes.slice(5, 7)) - 1;
-  const baseCategorias = agruparCategoriasWidget(dato.categorias || []);
+  const baseCategorias = agruparCategoriasWidget(dato.dona ?? dato.categorias ?? []);
   const segmentos = baseCategorias.map((c) => ({
     ...c,
-    color: colorCategoria(c.nombre === 'Otras' ? 'Otros' : c.nombre, esOscuro),
-    montoTexto: formatearCompacto(c.total),
+    color: esOscuro ? c.oscuro : c.claro,
+    montoTexto: formatearMontoCorto(c.total),
   }));
   const sumaCategorias = redondear2(segmentos.reduce((s, c) => s + c.total, 0));
   const totalMes =
-    sumaCategorias > 0 ? sumaCategorias : Number(dato.gasto_variable ?? dato.total) || 0;
+    sumaCategorias > 0 ? sumaCategorias : Number(dato.gasto_variable ?? dato.gastos ?? 0) || 0;
 
   return {
     vacio: false,
     titulo: `CATEGORÍAS · ${MESES[indiceMes]}`,
     mesCorto: MESES_CORTOS[indiceMes],
-    total: formatoMoneda.format(totalMes),
-    totalCompacto: formatearCompacto(totalMes),
+    total: formatearMonto(totalMes),
+    totalCompacto: formatearMontoCorto(totalMes),
     segmentos,
     svg: generarSvgDonaWidget(segmentos, { esOscuro }),
   };
 }
 
-// 4. Próximo cobro: servicio, monto y días que faltan para el siguiente cobro.
-export function datosProximoCobroWidget(dato, hoyISO = null) {
-  const cobro = dato?.proximo_cobro;
+// Modelo para el widget «Próximo cobro»: servicio, monto y días que faltan para el siguiente cobro.
+export function datosProximoCobroWidget(dato) {
+  const cobro = dato?.cobro ?? dato?.proximo_cobro;
   if (!dato || !cobro || !cobro.nombre) {
     return {
       vacio: true,
       titulo: 'PRÓXIMO COBRO',
-      textoVacio: TEXTO_SIN_DATOS,
+      textoVacio: TEXTO_SIN_DATOS_CORTO,
     };
   }
-
-  const dias =
-    hoyISO && cobro.fecha_cobro
-      ? calcularDiasParaCobro(cobro.fecha_cobro, hoyISO)
-      : Number(cobro.dias_para_cobro) || 0;
+  const dias = Number(cobro.dias ?? cobro.dias_para_cobro) || 0;
+  const montoNum = Number(cobro.monto ?? cobro.costo) || 0;
   const estilo = estiloServicio(cobro.nombre);
   const textoDias = textoProximoCobro(dias);
   const cuando = textoDias.charAt(0).toUpperCase() + textoDias.slice(1);
@@ -359,8 +304,8 @@ export function datosProximoCobroWidget(dato, hoyISO = null) {
     vacio: false,
     titulo: 'PRÓXIMO COBRO',
     servicio: cobro.nombre,
-    monto: formatoMoneda.format(Number(cobro.costo) || 0),
-    montoCompacto: formatearCompacto(Number(cobro.costo) || 0),
+    monto: formatearMonto(montoNum),
+    montoCompacto: `${formatearMontoCorto(montoNum)} ${MONEDA}`,
     dias,
     cuando,
     urgente: dias <= 3,
@@ -386,4 +331,33 @@ export function destinoWidget(entrada) {
     return { screen: 'Cartera', params: { seccion: 'suscripciones' } };
   }
   return null;
+}
+
+// Qué dibuja el widget, o null («Abre Billo para ver tu saldo») sin dato o si es de otro mes.
+// Con `oculto` (ojito de Inicio, HU-82) el saldo es «••••» y no se muestran los ingresos.
+//   { saldo: { entero, centavos } | null, ingresos: '+$X' | null, categorias, cobro: { texto, monto } | null, balance, donaClaro, donaOscuro, proximoCobro }
+export function vistaWidget(dato, mesActual, oculto) {
+  if (!dato || dato.mes !== mesActual) return null;
+  let saldo = null;
+  if (oculto) {
+    saldo = { entero: OCULTO, centavos: '' };
+  } else if (esNumero(dato.saldo)) {
+    const partes = partesMonto(Math.abs(dato.saldo));
+    saldo = { ...partes, entero: dato.saldo < 0 ? `−${partes.entero}` : partes.entero };
+  }
+  return {
+    saldo,
+    ingresos: !oculto && dato.ingresos > 0 ? `+${formatearMontoCorto(dato.ingresos)}` : null,
+    categorias: dato.categorias,
+    cobro: dato.cobro
+      ? {
+          texto: `${dato.cobro.nombre} ${textoProximoCobro(dato.cobro.dias).toLowerCase()}`,
+          monto: `${formatearMontoCorto(dato.cobro.monto)} ${MONEDA}`,
+        }
+      : null,
+    balance: datosBalanceWidget(dato, mesActual, oculto),
+    donaClaro: datosDonaWidget(dato, mesActual, false),
+    donaOscuro: datosDonaWidget(dato, mesActual, true),
+    proximoCobro: datosProximoCobroWidget(dato),
+  };
 }

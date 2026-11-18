@@ -122,8 +122,8 @@ function PruebaWidget() {
     leerDatoWidget()
       .then((guardado) => {
         if (guardado) {
-          setDato(String(guardado.total));
-          setEstado(`Dato guardado actualmente: ${guardado.mes} · $${guardado.total}`);
+          setDato(String(guardado.saldo ?? ''));
+          setEstado(`Dato guardado actualmente: ${guardado.mes} · saldo $${guardado.saldo}`);
         } else {
           setEstado('No hay dato guardado todavía');
         }
@@ -139,7 +139,8 @@ function PruebaWidget() {
 
   const actualizar = async () => {
     try {
-      await actualizarWidget({ mes: mesActual(), total: Number(dato) });
+      // El monto entra como un ingreso del mes: el widget lo muestra como saldo disponible.
+      await actualizarWidget({ ingresos: [{ monto: Number(dato) }] }, mesActual());
       setEstado('Dato guardado y widget actualizado (si ya lo agregaste a la pantalla de inicio).');
     } catch (e) {
       setEstado(`Error: ${e.message}`);
@@ -148,7 +149,7 @@ function PruebaWidget() {
 
   return (
     <>
-      <Text style={styles.texto}>Total del mes que mostrará el widget:</Text>
+      <Text style={styles.texto}>Saldo que mostrará el widget:</Text>
       <TextInput
         value={dato}
         onChangeText={setDato}

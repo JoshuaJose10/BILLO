@@ -12,132 +12,115 @@ import {
   generarSvgDonaWidget,
   leerDatoGuardado,
   MAX_SEGMENTOS_DONA_WIDGET,
-  NOMBRES_WIDGETS,
-  TEXTO_SIN_DATOS,
-  textoWidget,
+  OCULTO,
+  TEXTO_SIN_DATOS_CORTO,
+  vistaWidget,
 } from './widgetResumen.js';
 
+const MES = '2026-11';
+const datosInicio = {
+  resumen: { gasto_variable: 400, gasto_fijo: 219, total: 619 },
+  gastos: [
+    { categoria_id: 1, monto: 250 },
+    { categoria_id: 2, monto: 100 },
+    { categoria_id: 3, monto: 30 },
+    { categoria_id: 4, monto: 20 },
+  ],
+  ingresos: [{ monto: 1000.5 }],
+  membresias: [
+    { id: 1, nombre: 'Netflix', costo: 219, dias_para_cobro: 9 },
+    { id: 2, nombre: 'Spotify', costo: 129, dias_para_cobro: 3 },
+  ],
+  categorias: [
+    { id: 1, nombre: 'Comida' },
+    { id: 2, nombre: 'Transporte' },
+    { id: 3, nombre: 'Servicios' },
+    { id: 4, nombre: 'Salud' },
+  ],
+};
+
 describe('crearDatoWidget', () => {
-  it('toma mes y total del resumen', () => {
-    assert.deepEqual(crearDatoWidget({ mes: '2026-11', total: 1250.5 }), {
-      mes: '2026-11',
-      total: 1250.5,
-    });
+  const dato = crearDatoWidget(datosInicio, MES);
+  it('saldo e ingresos como TarjetaSaldo', () => {
+    assert.equal(dato.saldo, 600.5);
+    assert.equal(dato.ingresos, 1000.5);
   });
-
-  it('acepta el mes de respaldo y el total como texto', () => {
-    assert.deepEqual(crearDatoWidget({ total: '100' }, '2026-11'), { mes: '2026-11', total: 100 });
-  });
-
-  it('sin total o sin mes válido no hay dato', () => {
-    assert.equal(crearDatoWidget(null, '2026-11'), null);
-    assert.equal(crearDatoWidget({ total: 'x' }, '2026-11'), null);
-    assert.equal(crearDatoWidget({ total: 5 }, 'noviembre'), null);
-  });
-
-  it('arma el dato completo para los 4 widgets a partir de resumen, gastos, ingresos y membresías', () => {
-    const hoy = new Date(2026, 10, 10);
-    const dato = crearDatoWidget(
-      {
-        resumen: { mes: '2026-11', gasto_variable: 1500, gasto_fijo: 299, total: 1799 },
-        gastos: [
-          { id: 1, categoria_id: 1, monto: 900 },
-          { id: 2, categoria_id: 2, monto: 600 },
-        ],
-        ingresos: [
-          { id: 1, monto: 5000 },
-          { id: 2, monto: 1500 },
-        ],
-        membresias: [
-          {
-            id: 1,
-            nombre: 'Netflix',
-            costo: 299,
-            frecuencia: 'mensual',
-            fecha_cobro: '2026-11-12',
-            dias_para_cobro: 2,
-          },
-        ],
-        nombresCategoria: { 1: 'Comida', 2: 'Transporte' },
-        hoy,
-      },
-      '2026-11',
+  it('las 3 categorías de más gasto, con color por tema', () => {
+    assert.deepEqual(
+      dato.categorias.map((c) => c.nombre),
+      ['Comida', 'Transporte', 'Servicios'],
     );
-
-    assert.equal(dato.mes, '2026-11');
-    assert.equal(dato.total, 1799);
-    assert.equal(dato.gasto_variable, 1500);
-    assert.equal(dato.gasto_fijo, 299);
-    assert.equal(dato.ingresos, 6500);
-    assert.equal(dato.gastos, 1799);
-    assert.equal(dato.balance, 4701);
-    assert.equal(dato.categorias.length, 2);
-    assert.equal(dato.categorias[0].nombre, 'Comida');
-    assert.equal(dato.proximo_cobro.nombre, 'Netflix');
-    assert.equal(dato.proximo_cobro.costo, 299);
-
-    // Persistencia y lectura desde JSON
-    const recuperado = leerDatoGuardado(JSON.stringify(dato));
-    assert.deepEqual(recuperado, dato);
+    assert.match(dato.categorias[0].claro, /^#/);
+    assert.match(dato.categorias[0].oscuro, /^#/);
+  });
+  it('el próximo cobro', () => {
+    assert.deepEqual(dato.cobro, { nombre: 'Spotify', dias: 3, monto: 129 });
+  });
+  it('sin movimientos ni membresías: saldo null y sin cobro', () => {
+    const vacio = crearDatoWidget({}, MES);
+    assert.equal(vacio.saldo, null);
+    assert.equal(vacio.cobro, null);
+    assert.deepEqual(vacio.categorias, []);
+  });
+  it('mes inválido: sin dato', () => {
+    assert.equal(crearDatoWidget(datosInicio, 'noviembre'), null);
   });
 });
 
 describe('leerDatoGuardado', () => {
-  it('lee el JSON guardado', () => {
-    assert.deepEqual(leerDatoGuardado('{"mes":"2026-11","total":99}'), {
-      mes: '2026-11',
-      total: 99,
-    });
+  it('lee lo que guarda crearDatoWidget', () => {
+    const dato = crearDatoWidget(datosInicio, MES);
+    assert.deepEqual(leerDatoGuardado(JSON.stringify(dato)), dato);
   });
-
-  it('con texto vacío o dañado devuelve null', () => {
-    assert.equal(leerDatoGuardado(null), null);
-    assert.equal(leerDatoGuardado(''), null);
+  it('JSON dañado o de la versión anterior ({ mes, total }): sin dato', () => {
     assert.equal(leerDatoGuardado('{no es json'), null);
-    assert.equal(leerDatoGuardado('{"mes":"2026-11"}'), null);
+    assert.equal(leerDatoGuardado('{"mes":"2026-11","total":99}'), null);
+    assert.equal(leerDatoGuardado(null), null);
   });
 });
 
-describe('textoWidget (Resumen del mes)', () => {
-  it('muestra el total del mes actual con formato', () => {
-    const t = textoWidget({ mes: '2026-11', total: 1234.5 }, '2026-11');
-    assert.equal(t.titulo, 'BILLO · NOVIEMBRE');
-    assert.equal(t.monto, '$1,234.50');
+describe('vistaWidget', () => {
+  const dato = crearDatoWidget(datosInicio, MES);
+  it('saldo con centavos aparte, chip de ingresos y cobro', () => {
+    const vista = vistaWidget(dato, MES, false);
+    assert.deepEqual(vista.saldo, { entero: '$600', centavos: '.50' });
+    assert.equal(vista.ingresos, '+$1,000.50');
+    assert.deepEqual(vista.cobro, { texto: 'Spotify en 3 días', monto: '$129 MXN' });
   });
-
-  it('sin dato (sesión cerrada, reinicio sin datos) muestra «Abre Billo»', () => {
-    assert.deepEqual(textoWidget(null, '2026-11'), { titulo: 'BILLO', monto: null });
+  it('saldo negativo con «−»', () => {
+    const vista = vistaWidget({ ...dato, saldo: -20 }, MES, false);
+    assert.equal(vista.saldo.entero, '−$20');
   });
-
-  it('un dato de otro mes no se muestra', () => {
-    assert.equal(textoWidget({ mes: '2026-10', total: 500 }, '2026-11').monto, null);
+  it('oculto: «••••» y sin ingresos', () => {
+    const vista = vistaWidget(dato, MES, true);
+    assert.deepEqual(vista.saldo, { entero: OCULTO, centavos: '' });
+    assert.equal(vista.ingresos, null);
+  });
+  it('sin dato o de otro mes: null', () => {
+    assert.equal(vistaWidget(null, MES, false), null);
+    assert.equal(vistaWidget(dato, '2026-12', false), null);
   });
 });
 
 describe('datosBalanceWidget (Balance del mes)', () => {
+  const dato = crearDatoWidget(datosInicio, MES);
   it('calcula ingresos, gastos y balance positivo o negativo', () => {
-    const pos = datosBalanceWidget(
-      { mes: '2026-11', ingresos: 8000, gastos: 3000, balance: 5000 },
-      '2026-11',
-    );
+    const pos = datosBalanceWidget(dato, MES);
     assert.equal(pos.vacio, false);
     assert.equal(pos.estado, 'positivo');
-    assert.equal(pos.balance, '+$5,000.00');
-    assert.equal(pos.ingresos, '+$8,000.00');
-    assert.equal(pos.gastos, '-$3,000.00');
+    assert.equal(pos.ingresos, '+$1,000.50');
+    assert.equal(pos.gastos, '-$619');
+    assert.equal(pos.balance, '+$381.50');
 
-    const neg = datosBalanceWidget(
-      { mes: '2026-11', ingresos: 1000, gastos: 2500, balance: -1500 },
-      '2026-11',
-    );
+    const neg = datosBalanceWidget({ ...dato, ingresos: 200, gastos: 619 }, MES);
     assert.equal(neg.estado, 'negativo');
-    assert.equal(neg.balance, '−$1,500.00');
+    assert.equal(neg.balance, '−$419.00');
   });
 
   it('sin sesión o con mes distinto devuelve estado vacío «Abre Billo»', () => {
-    assert.equal(datosBalanceWidget(null, '2026-11').vacio, true);
-    assert.equal(datosBalanceWidget(null, '2026-11').textoVacio, TEXTO_SIN_DATOS);
-    assert.equal(datosBalanceWidget({ mes: '2026-10', total: 100 }, '2026-11').vacio, true);
+    assert.equal(datosBalanceWidget(null, MES).vacio, true);
+    assert.equal(datosBalanceWidget(null, MES).textoVacio, TEXTO_SIN_DATOS_CORTO);
+    assert.equal(datosBalanceWidget(dato, '2026-12').vacio, true);
   });
 });
 
@@ -162,21 +145,13 @@ describe('agruparCategoriasWidget y datosDonaWidget (Dona por categoría)', () =
   });
 
   it('genera el SVG de la dona y el total al centro en claro y oscuro', () => {
-    const dato = {
-      mes: '2026-11',
-      total: 1000,
-      gasto_variable: 1000,
-      categorias: [
-        { nombre: 'Comida', total: 600 },
-        { nombre: 'Transporte', total: 400 },
-      ],
-    };
-    const oscuro = datosDonaWidget(dato, '2026-11', true);
-    const claro = datosDonaWidget(dato, '2026-11', false);
+    const dato = crearDatoWidget(datosInicio, MES);
+    const oscuro = datosDonaWidget(dato, MES, true);
+    const claro = datosDonaWidget(dato, MES, false);
 
     assert.equal(oscuro.vacio, false);
-    assert.equal(oscuro.total, '$1,000.00');
-    assert.equal(oscuro.segmentos.length, 2);
+    assert.equal(oscuro.total, '$400.00');
+    assert.equal(oscuro.segmentos.length, 4);
     assert.match(oscuro.svg, /^<svg /);
     assert.match(claro.svg, /^<svg /);
     assert.notEqual(oscuro.segmentos[1].color, claro.segmentos[1].color);
@@ -186,30 +161,19 @@ describe('agruparCategoriasWidget y datosDonaWidget (Dona por categoría)', () =
   });
 
   it('sin datos devuelve estado vacío «Abre Billo»', () => {
-    const vacio = datosDonaWidget(null, '2026-11', true);
+    const vacio = datosDonaWidget(null, MES, true);
     assert.equal(vacio.vacio, true);
-    assert.equal(vacio.textoVacio, TEXTO_SIN_DATOS);
+    assert.equal(vacio.textoVacio, TEXTO_SIN_DATOS_CORTO);
   });
 });
 
 describe('datosProximoCobroWidget (Próximo cobro)', () => {
   it('formatea servicio, monto y días restantes del próximo cobro', () => {
-    const dato = {
-      mes: '2026-11',
-      total: 299,
-      proximo_cobro: {
-        id: 1,
-        nombre: 'Netflix',
-        costo: 299,
-        frecuencia: 'mensual',
-        fecha_cobro: '2026-11-15',
-        dias_para_cobro: 3,
-      },
-    };
-    const cobro = datosProximoCobroWidget(dato, '2026-11-12');
+    const dato = crearDatoWidget(datosInicio, MES);
+    const cobro = datosProximoCobroWidget(dato);
     assert.equal(cobro.vacio, false);
-    assert.equal(cobro.servicio, 'Netflix');
-    assert.equal(cobro.monto, '$299.00');
+    assert.equal(cobro.servicio, 'Spotify');
+    assert.equal(cobro.monto, '$129.00');
     assert.equal(cobro.dias, 3);
     assert.equal(cobro.cuando, 'En 3 días');
     assert.equal(cobro.urgente, true);
@@ -217,17 +181,13 @@ describe('datosProximoCobroWidget (Próximo cobro)', () => {
 
   it('sin sesión o sin suscripciones activas muestra «Abre Billo»', () => {
     assert.equal(datosProximoCobroWidget(null).vacio, true);
-    assert.equal(datosProximoCobroWidget(null).textoVacio, TEXTO_SIN_DATOS);
-    assert.equal(
-      datosProximoCobroWidget({ mes: '2026-11', total: 0, proximo_cobro: null }).vacio,
-      true,
-    );
+    assert.equal(datosProximoCobroWidget(null).textoVacio, TEXTO_SIN_DATOS_CORTO);
+    assert.equal(datosProximoCobroWidget(crearDatoWidget({}, MES)).vacio, true);
   });
 });
 
 describe('destinoWidget', () => {
-  it('dirige cada uno de los 4 widgets a su pantalla correspondiente', () => {
-    assert.equal(NOMBRES_WIDGETS.length, 4);
+  it('dirige cada widget a su pantalla correspondiente', () => {
     assert.deepEqual(destinoWidget('ResumenMes'), { screen: 'Inicio', params: undefined });
     assert.deepEqual(destinoWidget('billo://inicio'), { screen: 'Inicio', params: undefined });
     assert.deepEqual(destinoWidget('BalanceMes'), {

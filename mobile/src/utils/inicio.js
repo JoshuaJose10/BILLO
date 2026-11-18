@@ -33,7 +33,9 @@ export async function cargarDatosInicio(
   { obtenerResumen, listarGastos, listarIngresos, listarPresupuestos, listarMembresias },
   mes,
 ) {
-  const presupuestos = listarPresupuestos(mes).catch(() => null);
+  const presupuestos = listarPresupuestos
+    ? listarPresupuestos(mes).catch(() => null)
+    : Promise.resolve(null);
   const membresias = listarMembresias
     ? listarMembresias().catch(() => null)
     : Promise.resolve(null);
