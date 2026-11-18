@@ -53,9 +53,13 @@ module.exports = (getContext) =>
           'created_at',
           'descripcion',
           'fecha',
+          'frecuencia',
           'fuente',
           'id',
+          'ingreso_origen_id',
           'monto',
+          'proximo_ingreso',
+          'recurrente',
           'usuario_id',
         ]
       );
@@ -110,6 +114,9 @@ module.exports = (getContext) =>
         fecha: '2026-11-05',
         descripcion: 'Proyecto web',
         fuente: 'Freelance',
+        frecuencia: null,
+        proximo_ingreso: null,
+        recurrente: false,
       });
       assert.deepEqual(nov2, {
         id: nov2.id,
@@ -117,6 +124,9 @@ module.exports = (getContext) =>
         fecha: '2026-11-15',
         descripcion: null,
         fuente: null,
+        frecuencia: null,
+        proximo_ingreso: null,
+        recurrente: false,
       });
 
       const listaNov = await listar('2026-11');
@@ -144,6 +154,9 @@ module.exports = (getContext) =>
         fecha: '2026-11-20',
         descripcion: 'Proyecto web + bono',
         fuente: 'Freelance',
+        frecuencia: null,
+        proximo_ingreso: null,
+        recurrente: false,
       });
 
       const borrado = await call('delete', `/ingresos/${nov1.id}`).expect(200);
@@ -332,4 +345,172 @@ module.exports = (getContext) =>
         });
       }
     }
+
+    describe('Ingresos recurrentes (feature/ingresos-recurrentes / Migración 022)', () => {
+      it('Migración 022 es idempotente y POST/PUT /ingresos aceptan frecuencia (semanal, quincenal, mensual) y rechazan valores inválidos', async () => {
+        const sql022 = fs.readFileSync(
+          path.resolve(
+            __dirname,
+            '../../migrations/022_ingresos_recurrentes.sql'
+          ),
+          'utf8'
+        );
+        await ctx.pool.query(sql022);
+        await ctx.pool.query(sql022);
+
+        const semanal = await crear({
+          fecha: '2026-11-01',
+          frecuencia: 'semanal',
+        });
+        assert.equal(semanal.frecuencia, 'semanal');
+        assert.equal(semanal.proximo_ingreso, '2026-11-08');
+        assert.equal(semanal.recurrente, false);
+
+        const quincenal = await crear({
+          fecha: '2026-11-01',
+          frecuencia: 'quincenal',
+        });
+        assert.equal(quincenal.frecuencia, 'quincenal');
+        assert.equal(quincenal.proximo_ingreso, '2026-11-16');
+
+        // Fin de mes en mensual (31 de enero -> 28 de febrero en 2026)
+        const mensual = await crear({
+          fecha: '2026-01-31',
+          frecuencia: 'mensual',
+        });
+        assert.equal(mensual.frecuencia, 'mensual');
+        assert.equal(mensual.proximo_ingreso, '2026-02-28');
+
+        for (const frecInvalida of ['diaria', 'anual', '', 123, true]) {
+          expectError(
+            await call(
+              'post',
+              '/ingresos',
+              baseIngreso({ frecuencia: frecInvalida })
+            ),
+            400,
+            'FRECUENCIA_INVALIDA'
+          );
+          expectError(
+            await call(
+              'put',
+              `/ingresos/${semanal.id}`,
+              baseIngreso({ frecuencia: frecInvalida })
+            ),
+            400,
+            'FRECUENCIA_INVALIDA'
+          );
+        }
+      });
+
+      it('proceso diario genera el ingreso con recurrente: true una sola vez por fecha aunque corra dos veces el mismo día', async () => {
+        const {
+          procesarIngresosRecurrentes,
+        } = require('../../src/jobs/ingresosRecurrentes');
+
+        const base = await crear({
+          monto: 15000,
+          fecha: '2026-11-01',
+          descripcion: 'Quincena nómina',
+          fuente: 'Salario',
+          frecuencia: 'quincenal',
+        });
+        assert.equal(base.proximo_ingreso, '2026-11-16');
+
+        // Antes de la fecha programada no genera nada
+        const antes = await procesarIngresosRecurrentes({
+          fechaReferencia: '2026-11-15',
+          pool: ctx.pool,
+        });
+        assert.equal(antes.generados, 0);
+
+        // El día 2026-11-16 genera exactamente 1 ingreso y avanza proximo_ingreso a 2026-12-01
+        const primera = await procesarIngresosRecurrentes({
+          fechaReferencia: '2026-11-16',
+          pool: ctx.pool,
+        });
+        assert.equal(primera.revisados, 1);
+        assert.equal(primera.generados, 1);
+        assert.equal(primera.errores, 0);
+
+        // Si el proceso corre una segunda vez el mismo día, no duplica
+        const segunda = await procesarIngresosRecurrentes({
+          fechaReferencia: '2026-11-16',
+          pool: ctx.pool,
+        });
+        assert.equal(segunda.generados, 0);
+
+        // Incluso forzando proximo_ingreso de nuevo a 2026-11-16, la restricción única impide duplicar esa fecha
+        await ctx.pool.query(
+          "UPDATE ingresos SET proximo_ingreso = '2026-11-16' WHERE id = $1",
+          [base.id]
+        );
+        const forzada = await procesarIngresosRecurrentes({
+          fechaReferencia: '2026-11-16',
+          pool: ctx.pool,
+        });
+        assert.equal(forzada.generados, 0);
+        assert.equal(forzada.omitidosPorDuplicado, 1);
+
+        // GET /ingresos muestra el original (recurrente: false) y el generado (recurrente: true)
+        const lista = await listar('2026-11');
+        assert.equal(lista.length, 2);
+        const generado = lista.find((i) => i.fecha === '2026-11-16');
+        const original = lista.find((i) => i.fecha === '2026-11-01');
+        assert.ok(generado);
+        assert.equal(generado.recurrente, true);
+        assert.equal(generado.frecuencia, null);
+        assert.equal(generado.monto, 15000);
+        assert.equal(original.recurrente, false);
+        assert.equal(original.frecuencia, 'quincenal');
+        assert.equal(original.proximo_ingreso, '2026-12-01');
+      });
+
+      it('cancelar la recurrencia detiene futuras generaciones pero NO borra los ingresos ya generados', async () => {
+        const {
+          procesarIngresosRecurrentes,
+        } = require('../../src/jobs/ingresosRecurrentes');
+
+        const base = await crear({
+          monto: 8000,
+          fecha: '2026-11-01',
+          descripcion: 'Sueldo semanal',
+          fuente: 'Salario',
+          frecuencia: 'semanal',
+        });
+
+        // Generar el ingreso del 2026-11-08
+        const gen = await procesarIngresosRecurrentes({
+          fechaReferencia: '2026-11-08',
+          pool: ctx.pool,
+        });
+        assert.equal(gen.generados, 1);
+
+        // Cancelar la recurrencia con PUT /ingresos/:id enviando frecuencia: null
+        const { body: cancelado } = await call('put', `/ingresos/${base.id}`, {
+          monto: 8000,
+          fecha: '2026-11-01',
+          descripcion: 'Sueldo semanal',
+          fuente: 'Salario',
+          frecuencia: null,
+        }).expect(200);
+        assert.equal(cancelado.ingreso.frecuencia, null);
+        assert.equal(cancelado.ingreso.proximo_ingreso, null);
+
+        // En el siguiente periodo (2026-11-15) ya no genera otro ingreso
+        const posterior = await procesarIngresosRecurrentes({
+          fechaReferencia: '2026-11-15',
+          pool: ctx.pool,
+        });
+        assert.equal(posterior.generados, 0);
+
+        // El ingreso generado el 2026-11-08 se conserva intacto con recurrente: true
+        const lista = await listar('2026-11');
+        assert.equal(lista.length, 2);
+        const generado = lista.find((i) => i.fecha === '2026-11-08');
+        assert.ok(generado);
+        assert.equal(generado.recurrente, true);
+        assert.equal(generado.monto, 8000);
+      });
+    });
   });
