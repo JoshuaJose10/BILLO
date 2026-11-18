@@ -1,4 +1,4 @@
-# Contrato de API — Billo (v1.8)
+# Contrato de API — Billo (v1.9)
 
 Estado: **esquema de BD congelado desde el 2026-10-13** (ver «Congelamiento del esquema»). Cualquier cambio al contrato o al esquema se acuerda con el equipo y se anota en el **Registro de cambios**.
 
@@ -13,8 +13,10 @@ Verificado con `curl` contra el backend de `develop` (commit `ec43600`), Postgre
 | Ruta | Implementada | ¿Cumple el contrato? |
 |---|---|---|
 | `POST /auth/register`, `POST /auth/login` | Sí | Sí (`{ usuario, token }`; incluye `usuario.categorias_configuradas`; correo sin distinguir mayúsculas). Detalle: el registro sin cuerpo responde `NOMBRE_REQUERIDO`, no `CAMPOS_REQUERIDOS` |
-| `GET /auth/perfil` | Sí | Sí |
+| `GET /auth/perfil`, `PUT /auth/perfil` | Sí (S1/S3) | Sí (consulta y edición de `nombre` entre 1 y 100 caracteres) |
+| `POST /auth/cambiar-contrasena` | Sí (S3) | Sí (`contrasena_actual` y `contrasena_nueva` ≥ 8; errores `CONTRASENA_ACTUAL_INCORRECTA`, `CONTRASENA_INVALIDA`) |
 | `DELETE /auth/cuenta` | Sí (S3) | Sí (HU-68: requiere token y contraseña, borra en transacción ingresos, gastos, presupuestos, membresías, tarjetas y usuario) |
+| `GET /exportar?formato=csv&mes=YYYY-MM` | Sí (S3) | Sí (CSV UTF-8 con BOM con gastos, ingresos y suscripciones del usuario) |
 | `GET /categorias?tipo=gasto`, `GET /categorias/predefinidas`, `PUT /categorias/seleccion`, `POST/PUT/DELETE /categorias` | Sí (S1/S3) | Sí (incluye `tipo`, `es_predefinida`, `propia` y `color`; selección por usuario y CRUD de categorías propias) |
 | `POST/GET/PUT/DELETE /tarjetas` y `GET /tarjetas/:id/resumen?mes=YYYY-MM` | Sí (S3) | Sí (CRUD de tarjetas del usuario, resumen mensual y asociación opcional `tarjeta_id` en gastos y membresías) |
 | `POST/GET/PUT/DELETE /gastos` | Sí (S1/S3) | Sí (validación de monto, moneda, `monto_original × tipo_cambio = monto` y categoría; JSON malformado → `JSON_INVALIDO`) |
@@ -100,6 +102,22 @@ Ruta oficial. **Alias temporal:** `GET /auth/profile` responde igual mientras la
 Ejemplo 401 → { "error": { "code": "NO_AUTORIZADO", "message": "Token no proporcionado o formato inválido" } }
 
 > **Diferencia histórica (corregida en HU-18):** `/auth/perfil` aún no existe y responde 404 HTML `Cannot GET /auth/perfil`; solo está `/auth/profile`, que responde el 200 de arriba. HU-18 agrega `/auth/perfil` y deja `/auth/profile` como alias. Token inválido o vencido → `TOKEN_INVALIDO` (ver «Errores de autenticación»).
+
+### PUT /auth/perfil  (requiere token) (S3)
+Actualiza el nombre visible del usuario autenticado (`nombre` de 1 a 100 caracteres tras recortar espacios). Alias aceptado: `PUT /auth/profile`.
+Body: { "nombre": "Ana García" }
+- 200 → { "usuario": { "id": 7, "nombre": "Ana García", "email": "ana@correo.com" } }
+- 400 → NOMBRE_INVALIDO
+- 401 → NO_AUTORIZADO
+- 404 → USUARIO_NO_ENCONTRADO
+
+### POST /auth/cambiar-contrasena  (requiere token) (S3)
+Cambia la contraseña del usuario autenticado validando primero `contrasena_actual`. Si `contrasena_actual` no coincide, no modifica nada en la base de datos.
+Body: { "contrasena_actual": "Segura123", "contrasena_nueva": "NuevaSegura456" }
+- 200 → { "actualizada": true, "message": "Contraseña actualizada correctamente" }
+- 400 → CONTRASENA_ACTUAL_INCORRECTA, CONTRASENA_INVALIDA (menos de 8 caracteres o no textual)
+- 401 → NO_AUTORIZADO
+- 404 → USUARIO_NO_ENCONTRADO
 
 ### POST /auth/olvide-contrasena  (público) (S3)
 Solicita un código/token de recuperación de un solo uso por correo (mediante la API HTTP de Brevo). Alias aceptado: `POST /auth/olvide`.
@@ -434,6 +452,20 @@ Consulta el tipo de cambio hacia `MXN` desde Frankfurter (BCE) y lo guarda en ca
 - 400 → MONEDA_INVALIDA
 - 502 → FUENTE_NO_DISPONIBLE
 
+## Exportación de datos (requiere token) (S3)
+
+### GET /exportar?formato=csv&mes=2026-10  (requiere token)
+Descarga un archivo CSV en codificación UTF-8 con BOM (`\uFEFF`) para abrir correctamente acentos y caracteres especiales en Excel, incluyendo únicamente los gastos, ingresos y suscripciones del usuario autenticado.
+- Query opcional:
+  - `formato`: `csv` (por defecto `csv`; cualquier otro valor responde 400 `FORMATO_INVALIDO`).
+  - `mes`: `YYYY-MM` opcional (si se envía, filtra gastos, ingresos y suscripciones de ese mes; si es inválido responde 400 `MES_INVALIDO`).
+- Columnas del CSV: `tipo,fecha,descripción,categoría/fuente,monto,moneda,método de pago`.
+- En gastos y suscripciones con moneda extranjera, `monto` contiene el importe original (`monto_original`) y `moneda` su código original; por ejemplo, 10 USD convertidos a 200 MXN se exportan como `10.00,USD`. Si no hay importe original, se exporta el importe convertido con `MXN`. Los ingresos se exportan en `MXN`.
+- Los textos que empiezan por `=`, `+`, `-` o `@` (incluso tras espacios), o por tabulación/salto de línea, se prefijan con un apóstrofo para evitar que Excel los interprete como fórmulas. Esto solo afecta al archivo exportado, sin modificar los datos guardados. Las comas, comillas y saltos de línea se escapan como CSV.
+- 200 → `text/csv; charset=utf-8` (con encabezado `Content-Disposition: attachment`)
+- 400 → FORMATO_INVALIDO, MES_INVALIDO
+- 401 → NO_AUTORIZADO
+
 ## Modo exploración (RF10)
 
 No usa la API: la app muestra datos de ejemplo guardados en el propio teléfono, sin llamar al servidor y sin crear usuario. Así no existen rutas públicas con datos de ejemplo.
@@ -502,3 +534,4 @@ Pendiente en la colección Postman (**HU-22**, Luis Dorian): agregar las asercio
 - 2026-11-16 — v1.6 — Tarjetas por usuario (migración 021). Se crea la tabla `tarjetas` (`ON DELETE CASCADE` desde `usuarios`) y se agrega `tarjeta_id` (`ON DELETE SET NULL`) en `gastos` y `membresias`. Se implementan `POST /tarjetas`, `GET /tarjetas`, `PUT /tarjetas/:id`, `DELETE /tarjetas/:id` y `GET /tarjetas/:id/resumen?mes=YYYY-MM` con códigos `TARJETA_INVALIDA`, `ULTIMOS4_INVALIDOS` y `TARJETA_NO_ENCONTRADA`. `DELETE /auth/cuenta` elimina también las tarjetas del usuario. Render ejecuta las migraciones automáticamente al desplegar.
 - 2026-11-16 — v1.7 — Reportes de ingresos y balance mensual. Se agregan `GET /reportes/ingresos?mes=YYYY-MM` (total del mes, desglose por fuente con porcentaje, total del mes anterior y variación) y `GET /reportes/balance?mes=YYYY-MM` (ingresos, gasto variable, gasto fijo excluyendo suscripciones pausadas, gastos totales, balance y serie de los últimos 6 meses). Meses sin datos devuelven ceros. Los porcentajes por fuente se distribuyen con restos mayores para sumar 100 sin valores negativos, incluso con más de 100 fuentes.
 - 2026-11-17 — v1.8 — HU-95: `POST /membresias` acepta `fecha_ultimo_pago` opcional (`YYYY-MM-DD`, hoy o antes; si no, 400 `FECHA_INVALIDA`) y, en la misma transacción del alta, registra en `pagos_membresia` un pago por ciclo desde esa fecha hasta hoy (máximo los 24 más recientes). Sin el campo, el comportamiento no cambia. Sin cambios en el esquema. Autor: Fernando.
+- 2026-11-17 — v1.9 — Edición de perfil, cambio de contraseña y exportación CSV. Se agregan `PUT /auth/perfil` (`nombre` de 1 a 100 caracteres → `{ usuario }`), `POST /auth/cambiar-contrasena` (`contrasena_actual` y `contrasena_nueva` ≥ 8; errores `CONTRASENA_ACTUAL_INCORRECTA` y `CONTRASENA_INVALIDA`) y `GET /exportar?formato=csv&mes=YYYY-MM` (CSV UTF-8 con BOM con gastos, ingresos y suscripciones del usuario). El CSV mantiene la correspondencia entre importe y moneda originales y neutraliza fórmulas de Excel.
