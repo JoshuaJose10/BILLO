@@ -57,6 +57,7 @@
           "widgets": [
             {
               "name": "ResumenMes",
+              "updatePeriodMillis": 1800000,
               "label": "Billo",
               "description": "Saldo del mes y accesos rápidos a gasto, ingreso y voz",
               "minWidth": "110dp",
@@ -79,6 +80,7 @@
             },
             {
               "name": "BalanceMes",
+              "updatePeriodMillis": 1800000,
               "label": "Balance del mes",
               "description": "Ingresos, gastos y balance del mes",
               "minWidth": "110dp",
@@ -90,6 +92,7 @@
             },
             {
               "name": "DonaCategorias",
+              "updatePeriodMillis": 1800000,
               "label": "Dona por categoría",
               "description": "Categorías del mes con el total al centro",
               "minWidth": "110dp",
@@ -101,6 +104,7 @@
             },
             {
               "name": "ProximoCobro",
+              "updatePeriodMillis": 1800000,
               "label": "Próximo cobro",
               "description": "Servicio, monto y días para tu siguiente cobro",
               "minWidth": "110dp",

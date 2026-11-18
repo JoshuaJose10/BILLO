@@ -18,6 +18,7 @@ import {
 } from './widgetResumen.js';
 
 const MES = '2026-11';
+const HOY = '2026-11-17';
 const datosInicio = {
   resumen: { gasto_variable: 400, gasto_fijo: 219, total: 619 },
   gastos: [
@@ -28,8 +29,8 @@ const datosInicio = {
   ],
   ingresos: [{ monto: 1000.5 }],
   membresias: [
-    { id: 1, nombre: 'Netflix', costo: 219, dias_para_cobro: 9 },
-    { id: 2, nombre: 'Spotify', costo: 129, dias_para_cobro: 3 },
+    { id: 1, nombre: 'Netflix', costo: 219, fecha_cobro: '2026-11-26' },
+    { id: 2, nombre: 'Spotify', costo: 129, fecha_cobro: '2026-11-20' },
   ],
   categorias: [
     { id: 1, nombre: 'Comida' },
@@ -40,7 +41,7 @@ const datosInicio = {
 };
 
 describe('crearDatoWidget', () => {
-  const dato = crearDatoWidget(datosInicio, MES);
+  const dato = crearDatoWidget(datosInicio, MES, HOY);
   it('saldo e ingresos como TarjetaSaldo', () => {
     assert.equal(dato.saldo, 600.5);
     assert.equal(dato.ingresos, 1000.5);
@@ -77,12 +78,35 @@ describe('leerDatoGuardado', () => {
     assert.equal(leerDatoGuardado('{"mes":"2026-11","total":99}'), null);
     assert.equal(leerDatoGuardado(null), null);
   });
+  it('rechaza el formato de develop que tenía saldo y categorías sin totales', () => {
+    const anterior = {
+      mes: MES,
+      saldo: 600,
+      ingresos: 1000,
+      categorias: [{ nombre: 'Comida', claro: '#fff', oscuro: '#fff' }],
+      cobro: { nombre: 'Spotify', monto: 129, dias: 3 },
+    };
+    const dato = leerDatoGuardado(JSON.stringify(anterior));
+    assert.equal(dato, null);
+    assert.equal(vistaWidget(dato, MES, false), null);
+  });
+  it('rechaza el formato del PR previo a guardar fechas y versiones', () => {
+    const { version, ...anterior } = crearDatoWidget(datosInicio, MES, HOY);
+    assert.equal(version, 2);
+    assert.equal(leerDatoGuardado(JSON.stringify(anterior)), null);
+  });
+  it('rechaza importes ausentes o no numéricos en el formato nuevo', () => {
+    const dato = crearDatoWidget(datosInicio, MES, HOY);
+    for (const cambio of [{ gastos: undefined }, { gasto_variable: '400' }, { dona: [{}] }]) {
+      assert.equal(leerDatoGuardado(JSON.stringify({ ...dato, ...cambio })), null);
+    }
+  });
 });
 
 describe('vistaWidget', () => {
   const dato = crearDatoWidget(datosInicio, MES);
   it('saldo con centavos aparte, chip de ingresos y cobro', () => {
-    const vista = vistaWidget(dato, MES, false);
+    const vista = vistaWidget(dato, MES, false, HOY);
     assert.deepEqual(vista.saldo, { entero: '$600', centavos: '.50' });
     assert.equal(vista.ingresos, '+$1,000.50');
     assert.deepEqual(vista.cobro, { texto: 'Spotify en 3 días', monto: '$129 MXN' });
@@ -96,9 +120,12 @@ describe('vistaWidget', () => {
     assert.deepEqual(vista.saldo, { entero: OCULTO, centavos: '' });
     assert.equal(vista.ingresos, null);
   });
-  it('sin dato o de otro mes: null', () => {
+  it('sin dato: null; otro mes: solo conserva el próximo cobro recalculado', () => {
     assert.equal(vistaWidget(null, MES, false), null);
-    assert.equal(vistaWidget(dato, '2026-12', false), null);
+    const vista = vistaWidget(dato, '2026-12', false, '2026-12-01');
+    assert.deepEqual(Object.keys(vista), ['proximoCobro']);
+    assert.equal(vista.proximoCobro.servicio, 'Spotify');
+    assert.equal(vista.proximoCobro.dias, 19);
   });
 });
 
@@ -170,13 +197,48 @@ describe('agruparCategoriasWidget y datosDonaWidget (Dona por categoría)', () =
 describe('datosProximoCobroWidget (Próximo cobro)', () => {
   it('formatea servicio, monto y días restantes del próximo cobro', () => {
     const dato = crearDatoWidget(datosInicio, MES);
-    const cobro = datosProximoCobroWidget(dato);
+    const cobro = datosProximoCobroWidget(dato, HOY);
     assert.equal(cobro.vacio, false);
     assert.equal(cobro.servicio, 'Spotify');
     assert.equal(cobro.monto, '$129.00');
     assert.equal(cobro.dias, 3);
     assert.equal(cobro.cuando, 'En 3 días');
     assert.equal(cobro.urgente, true);
+  });
+
+  it('recalcula mañana y hoy sin volver a guardar ni consultar la red', () => {
+    const dato = crearDatoWidget(datosInicio, MES, HOY);
+    assert.equal(datosProximoCobroWidget(dato, '2026-11-19').cuando, 'Mañana');
+    assert.equal(datosProximoCobroWidget(dato, '2026-11-20').cuando, 'Hoy');
+    const vista = vistaWidget(dato, MES, false, '2026-11-19');
+    assert.equal(vista.cobro.texto, 'Spotify mañana');
+    assert.equal(vista.proximoCobro.dias, 1);
+  });
+
+  it('elige el siguiente servicio cuando el primer cobro ya pasó', () => {
+    const dato = crearDatoWidget(datosInicio, MES, HOY);
+    const cobro = datosProximoCobroWidget(dato, '2026-11-21');
+    assert.equal(cobro.servicio, 'Netflix');
+    assert.equal(cobro.dias, 5);
+  });
+
+  it('excluye pausadas y fechas desconocidas, y conserva ciclos anuales y meses cortos', () => {
+    const dato = crearDatoWidget(
+      {
+        membresias: [
+          { nombre: 'Pausada', costo: 10, estado: 'pausada', fecha_cobro: '2026-02-01' },
+          { nombre: 'Sin fecha', costo: 10 },
+          { nombre: 'Mensual', costo: 129, fecha_cobro: '2026-01-31', frecuencia: 'mensual' },
+          { nombre: 'Anual', costo: 999, fecha_cobro: '2026-02-01', frecuencia: 'anual' },
+        ],
+      },
+      '2026-01',
+      '2026-01-30',
+    );
+    assert.equal(dato.cobros.length, 2);
+    assert.equal(datosProximoCobroWidget(dato, '2026-02-01').servicio, 'Anual');
+    assert.equal(datosProximoCobroWidget(dato, '2026-02-02').dias, 26);
+    assert.equal(datosProximoCobroWidget(dato, '2026-03-01').dias, 30);
   });
 
   it('sin sesión o sin suscripciones activas muestra «Abre Billo»', () => {

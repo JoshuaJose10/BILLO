@@ -3,9 +3,15 @@
 // lo dibujan sin red.
 import { colorCategoria } from '../theme/categorias.js';
 import { arcosDona } from './dona.js';
+import { fechaLocalISO } from './fechas.js';
 import { formatearMonto, formatearMontoCorto, MONEDA, partesMonto } from './formato.js';
 import { saldoDelMes, totalIngresos } from './ingresos.js';
-import { estiloServicio, proximoCobro, textoProximoCobro } from './membresias.js';
+import {
+  ajustarAlSiguienteCiclo,
+  estiloServicio,
+  proximoCobro,
+  textoProximoCobro,
+} from './membresias.js';
 import { repartirPorcentajes } from './reportes.js';
 import { gastoPorCategoria } from './resumenMes.js';
 
@@ -13,6 +19,7 @@ export const TEXTO_SIN_DATOS = 'Abre Billo para ver tu saldo';
 export const TEXTO_SIN_DATOS_CORTO = 'Abre Billo';
 export const OCULTO = '••••';
 export const MAX_SEGMENTOS_DONA_WIDGET = 5;
+const VERSION_DATO_WIDGET = 2;
 
 const TOP_CATEGORIAS = 3;
 const MESES = [
@@ -61,6 +68,21 @@ export const URIS_WIDGETS = {
 
 const esNumero = (n) => typeof n === 'number' && Number.isFinite(n);
 const redondear2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+
+function proximoCobroGuardado(cobros, hoy) {
+  return proximoCobro(
+    cobros.map((m) => {
+      const ajustada = ajustarAlSiguienteCiclo(m, hoy);
+      // proximoCobro ordena por el ciclo original cuando existe. Aquí interesa el ciclo
+      // recalculado, manteniendo intacta la fecha guardada como ancla para futuros meses.
+      return {
+        ...m,
+        fecha_cobro: ajustada.fecha_cobro,
+        dias_para_cobro: ajustada.dias_para_cobro,
+      };
+    }),
+  );
+}
 
 // Agrupa los gastos o categorías del mes de mayor a menor en máximo 5 segmentos; si hay más de 5
 // categorías con gasto, las primeras 4 se conservan y el resto se agrupa en «Otras».
@@ -157,10 +179,24 @@ export function generarSvgDonaWidget(
 
 // Lo mismo que muestra Inicio → dato que se guarda:
 // { mes, saldo, ingresos, gastos, gasto_variable, categorias, dona, cobro }.
-export function crearDatoWidget({ resumen, gastos, ingresos, membresias, categorias } = {}, mes) {
+export function crearDatoWidget(
+  { resumen, gastos, ingresos, membresias, categorias } = {},
+  mes,
+  hoy = fechaLocalISO(),
+) {
   if (!/^\d{4}-\d{2}$/.test(mes ?? '')) return null;
   const nombres = Object.fromEntries((categorias || []).map((c) => [c.id, c.nombre]));
-  const proximo = proximoCobro(membresias);
+  // Se conservan todos los servicios activos: cuando pasa el cobro más cercano, otro puede
+  // convertirse en el siguiente sin necesidad de consultar la red.
+  const cobros = (membresias || [])
+    .filter((m) => m.estado !== 'pausada' && /^\d{4}-\d{2}-\d{2}$/.test(m.fecha_cobro ?? ''))
+    .map((m) => ({
+      nombre: m.nombre,
+      costo: Number(m.costo),
+      fecha_cobro: m.fecha_cobro_original ?? m.fecha_cobro,
+      frecuencia: m.frecuencia || 'mensual',
+    }));
+  const proximo = proximoCobroGuardado(cobros, hoy);
   const porCat = gastoPorCategoria(gastos, nombres);
   const sumaGastos = redondear2(porCat.reduce((acc, c) => acc + c.total, 0));
   const gastoVariable = esNumero(Number(resumen?.gasto_variable))
@@ -169,6 +205,7 @@ export function crearDatoWidget({ resumen, gastos, ingresos, membresias, categor
   const gastosTotal = esNumero(Number(resumen?.total)) ? redondear2(resumen.total) : gastoVariable;
 
   return {
+    version: VERSION_DATO_WIDGET,
     mes,
     saldo: saldoDelMes(ingresos, resumen?.gasto_variable),
     ingresos: totalIngresos(ingresos),
@@ -183,6 +220,7 @@ export function crearDatoWidget({ resumen, gastos, ingresos, membresias, categor
         oscuro: colorCategoria(nombre, true),
       })),
     dona: agruparCategoriasWidget(porCat),
+    cobros,
     cobro: proximo
       ? {
           nombre: proximo.membresia.nombre,
@@ -199,10 +237,23 @@ export function leerDatoGuardado(texto) {
   try {
     const dato = JSON.parse(texto);
     const valido =
+      dato?.version === VERSION_DATO_WIDGET &&
       /^\d{4}-\d{2}$/.test(dato?.mes ?? '') &&
       (dato.saldo === null || esNumero(dato.saldo)) &&
       esNumero(dato.ingresos) &&
-      Array.isArray(dato.categorias);
+      esNumero(dato.gastos) &&
+      esNumero(dato.gasto_variable) &&
+      Array.isArray(dato.categorias) &&
+      Array.isArray(dato.dona) &&
+      dato.dona.every((c) => typeof c?.nombre === 'string' && esNumero(c.total) && c.total > 0) &&
+      Array.isArray(dato.cobros) &&
+      dato.cobros.every(
+        (c) =>
+          typeof c?.nombre === 'string' &&
+          esNumero(c.costo) &&
+          /^\d{4}-\d{2}-\d{2}$/.test(c.fecha_cobro ?? '') &&
+          ['mensual', 'anual'].includes(c.frecuencia),
+      );
     return valido ? dato : null;
   } catch {
     return null;
@@ -285,8 +336,9 @@ export function datosDonaWidget(dato, mesActual, esOscuro = true) {
 }
 
 // Modelo para el widget «Próximo cobro»: servicio, monto y días que faltan para el siguiente cobro.
-export function datosProximoCobroWidget(dato) {
-  const cobro = dato?.cobro ?? dato?.proximo_cobro;
+export function datosProximoCobroWidget(dato, hoy = fechaLocalISO()) {
+  const proximo = proximoCobroGuardado(dato?.cobros || [], hoy);
+  const cobro = proximo?.membresia;
   if (!dato || !cobro || !cobro.nombre) {
     return {
       vacio: true,
@@ -294,8 +346,8 @@ export function datosProximoCobroWidget(dato) {
       textoVacio: TEXTO_SIN_DATOS_CORTO,
     };
   }
-  const dias = Number(cobro.dias ?? cobro.dias_para_cobro) || 0;
-  const montoNum = Number(cobro.monto ?? cobro.costo) || 0;
+  const dias = proximo.dias;
+  const montoNum = cobro.costo;
   const estilo = estiloServicio(cobro.nombre);
   const textoDias = textoProximoCobro(dias);
   const cuando = textoDias.charAt(0).toUpperCase() + textoDias.slice(1);
@@ -333,11 +385,15 @@ export function destinoWidget(entrada) {
   return null;
 }
 
-// Qué dibuja el widget, o null («Abre Billo para ver tu saldo») sin dato o si es de otro mes.
+// Qué dibuja el widget, o null («Abre Billo para ver tu saldo») sin dato. De otro mes solo
+// conserva Próximo cobro; los importes mensuales quedan vacíos hasta volver a sincronizar.
 // Con `oculto` (ojito de Inicio, HU-82) el saldo es «••••» y no se muestran los ingresos.
 //   { saldo: { entero, centavos } | null, ingresos: '+$X' | null, categorias, cobro: { texto, monto } | null, balance, donaClaro, donaOscuro, proximoCobro }
-export function vistaWidget(dato, mesActual, oculto) {
-  if (!dato || dato.mes !== mesActual) return null;
+export function vistaWidget(dato, mesActual, oculto, hoy = fechaLocalISO()) {
+  if (!dato) return null;
+  const proximoCobro = datosProximoCobroWidget(dato, hoy);
+  // Los importes mensuales caducan; las fechas de suscripciones siguen siendo válidas.
+  if (dato.mes !== mesActual) return { proximoCobro };
   let saldo = null;
   if (oculto) {
     saldo = { entero: OCULTO, centavos: '' };
@@ -349,15 +405,15 @@ export function vistaWidget(dato, mesActual, oculto) {
     saldo,
     ingresos: !oculto && dato.ingresos > 0 ? `+${formatearMontoCorto(dato.ingresos)}` : null,
     categorias: dato.categorias,
-    cobro: dato.cobro
+    cobro: !proximoCobro.vacio
       ? {
-          texto: `${dato.cobro.nombre} ${textoProximoCobro(dato.cobro.dias).toLowerCase()}`,
-          monto: `${formatearMontoCorto(dato.cobro.monto)} ${MONEDA}`,
+          texto: `${proximoCobro.servicio} ${proximoCobro.cuando.toLowerCase()}`,
+          monto: proximoCobro.montoCompacto,
         }
       : null,
     balance: datosBalanceWidget(dato, mesActual, oculto),
     donaClaro: datosDonaWidget(dato, mesActual, false),
     donaOscuro: datosDonaWidget(dato, mesActual, true),
-    proximoCobro: datosProximoCobroWidget(dato),
+    proximoCobro,
   };
 }

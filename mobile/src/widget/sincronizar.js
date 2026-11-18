@@ -19,15 +19,14 @@ export async function redibujarWidget() {
   try {
     const widget = cargarWidget();
     if (!widget) return;
-    const vista = await leerVistaWidget();
     await Promise.all(
       WIDGETS_CON_DATOS.map(([widgetName, claveComponente]) => {
         const Componente = widget[claveComponente];
         if (!Componente) return Promise.resolve();
         return widget.requestWidgetUpdate({
           widgetName,
-          renderWidget: ({ width, height }) =>
-            conTemas(Componente, { vista, ancho: width, alto: height }),
+          renderWidget: async ({ width, height }) =>
+            conTemas(Componente, { vista: await leerVistaWidget(), ancho: width, alto: height }),
           widgetNotFound: () => {},
         });
       }),
@@ -39,9 +38,9 @@ export async function redibujarWidget() {
 
 // Guarda lo que cargó Inicio ({ resumen, gastos, ingresos, membresias, categorias }) y actualiza
 // todos los widgets.
-export async function actualizarWidget(datos, mes = mesActual()) {
+export async function actualizarWidget(datos, mes = mesActual(), sesion) {
   try {
-    await guardarDatoWidget(datos, mes);
+    if (!(await guardarDatoWidget(datos, mes, sesion))) return;
     await redibujarWidget();
   } catch {
     // El widget conserva lo último que mostró.

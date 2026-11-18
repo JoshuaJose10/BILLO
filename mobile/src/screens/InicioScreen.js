@@ -53,7 +53,7 @@ const CHIPS_CATEGORIA = 3;
 // Los nombres de las categorías salen de la caché de la sesión (useCategorias).
 export default function InicioScreen({ navigation }) {
   const alturaNavbar = useAlturaNavbar();
-  const { usuario } = useAuth();
+  const { usuario, token } = useAuth();
   const { listarGastos, eliminarGasto } = useGastosService();
   const { listarIngresos, eliminarIngreso } = useIngresosService();
   const { listarPresupuestos } = usePresupuestosService();
@@ -138,7 +138,7 @@ export default function InicioScreen({ navigation }) {
   // HU-58: el widget «Billo» muestra el mismo saldo, categorías y próximo cobro que Inicio. Va en un
   // efecto para usar los nombres de categoría aunque lleguen después de los datos.
   useEffect(() => {
-    if (!mesCargado) return;
+    if (!mesCargado || !token) return;
     actualizarWidget(
       {
         resumen,
@@ -148,8 +148,9 @@ export default function InicioScreen({ navigation }) {
         categorias: todasCategorias || categorias,
       },
       mesCargado,
+      token,
     );
-  }, [mesCargado, resumen, gastosMes, ingresosMes, membresias, todasCategorias, categorias]);
+  }, [token, mesCargado, resumen, gastosMes, ingresosMes, membresias, todasCategorias, categorias]);
 
   const porCategoria = useMemo(
     () => gastoPorCategoria(gastosMes, nombresCategoria),
