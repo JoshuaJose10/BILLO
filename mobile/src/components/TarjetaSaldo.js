@@ -187,6 +187,7 @@ export default function TarjetaSaldo({
 const OCULTO = '••••••';
 const MAX_PILA = 3;
 const PASO_PILA = 12; // top 0 / 12 / 24
+const DESBORDE_PILA = 56; // -right-14: lo que la pila sale del bloque y se recorta
 const ANCHO_MIN_PILA = 360;
 
 const crearEstilos = (colors) =>
@@ -289,10 +290,14 @@ const crearEstilos = (colors) =>
       color: colors.text,
     },
     // Pila de tarjetas (Stitch 07_inicio_*_fondo_1): el bloque recorta lo que sale a la derecha
-    // (overflow hidden, min-h-[170px]) y el saldo se queda en el 62 % izquierdo.
+    // (overflow hidden, min-h-[170px]) y el saldo se queda en el 62 % izquierdo. Se estira hasta
+    // el borde de la pantalla (margen lateral de la lista de Inicio) y lo compensa con padding,
+    // así el recorte cae en el borde real y el saldo no se mueve.
     bloqueConPila: {
       overflow: 'hidden',
       minHeight: 170,
+      marginRight: -espacios.margen,
+      paddingRight: espacios.margen,
     },
     conPila: {
       maxWidth: '62%',
@@ -300,7 +305,7 @@ const crearEstilos = (colors) =>
     // absolute -right-14 top-2 bottom-2 w-44, columna: tarjetas arriba, íconos abajo
     pila: {
       position: 'absolute',
-      right: -56,
+      right: -DESBORDE_PILA,
       top: 8,
       bottom: 8,
       width: 176,
@@ -327,8 +332,8 @@ const crearEstilos = (colors) =>
       height: '100%',
       borderRadius: 20,
     },
-    // flex -space-x-3 pr-1
+    // Bajo lo visible de la tarjeta de enfrente (no en los 56 px recortados), con el pr-1 de Stitch
     avataresPila: {
-      paddingRight: espacios.xs,
+      paddingRight: DESBORDE_PILA + espacios.xs,
     },
   });
