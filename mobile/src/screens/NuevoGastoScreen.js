@@ -48,6 +48,7 @@ import {
   FUENTES,
   normalizarFrecuencia,
   OPCIONES_FRECUENCIA,
+  prepararRecurrenciaIngreso,
 } from '../utils/ingresos';
 import { aplicarTecla, montoDesdeTexto, textoDesdeMonto } from '../utils/monto';
 import { resolverMonedaInicialGasto } from '../utils/preferencias';
@@ -142,9 +143,13 @@ export default function NuevoGastoScreen({ navigation, route }) {
   );
   // En Ingreso es la `descripcion`.
   const [nota, setNota] = useState(gastoEditado?.nota ?? ingresoEditado?.descripcion ?? '');
-  // Ingreso recurrente (contrato v1.9): null = único; al editar, la del ingreso.
+  // Ingreso recurrente (contrato v1.10): null = único; al editar, la del ingreso.
   const [frecuencia, setFrecuencia] = useState(() =>
     normalizarFrecuencia(ingresoEditado?.frecuencia),
+  );
+  const recurrenciaIngreso = prepararRecurrenciaIngreso(
+    { fecha: fechaLocalISO(fecha), frecuencia },
+    ingresoEditado,
   );
   const [panel, setPanel] = useState(null); // 'metodo' | 'fecha' | 'nota' | 'moneda'
   // Aviso del dictado por voz (permiso negado, monto no entendido…); la captura manual sigue.
@@ -365,8 +370,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
           fecha: fechaLocalISO(fecha),
           descripcion: nota.trim() || null,
           fuente,
-          // Al crear sin repetir no se manda (igual que antes); al editar, null cancela.
-          ...(frecuencia || editando ? { frecuencia } : {}),
+          ...recurrenciaIngreso,
         };
         await (editando ? actualizarIngreso(ingresoEditado.id, datos) : crearIngreso(datos));
         actualizarWidgetResumen();
@@ -592,9 +596,9 @@ export default function NuevoGastoScreen({ navigation, route }) {
             onCambiar={setFrecuencia}
             accessibilityLabel="Repetir ingreso"
           />
-          {frecuencia && ingresoEditado?.proximo_ingreso ? (
+          {recurrenciaIngreso.proximo_ingreso ? (
             <Text style={styles.textoRepetir}>
-              Próximo: {fechaRelativa(ingresoEditado.proximo_ingreso)}
+              Próximo: {fechaRelativa(recurrenciaIngreso.proximo_ingreso)}
             </Text>
           ) : null}
         </View>
