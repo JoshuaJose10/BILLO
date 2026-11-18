@@ -80,9 +80,9 @@ export function useTarjetasService() {
 
         const resumenes = await Promise.all(
           normalizadas.map((t) =>
-            api(`/tarjetas/${encodeURIComponent(t.id)}/resumen?mes=${encodeURIComponent(mes)}`)
-              .then(normalizarResumenTarjeta)
-              .catch(() => ({ gasto_variable: 0, gasto_fijo: 0, total: 0 })),
+            api(
+              `/tarjetas/${encodeURIComponent(t.id)}/resumen?mes=${encodeURIComponent(mes)}`,
+            ).then(normalizarResumenTarjeta),
           ),
         );
 

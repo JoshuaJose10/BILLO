@@ -149,19 +149,34 @@ export default function MembresiaScreen({ navigation, route }) {
   const [servicioId, setServicioId] = useState(() => membresiaEditada?.servicio_id ?? null);
   const [tarjetaId, setTarjetaId] = useState(() => membresiaEditada?.tarjeta_id ?? null);
   const [tarjetas, setTarjetas] = useState([]);
+  const [estadoTarjetas, setEstadoTarjetas] = useState('cargando');
+  const [errorTarjetas, setErrorTarjetas] = useState(null);
+  const [intentoTarjetas, setIntentoTarjetas] = useState(0);
   const [panel, setPanel] = useState(null); // 'nombre' | 'frecuencia' | 'fecha' | 'moneda' | 'tarjeta'
+  const tarjetaElegida = tarjetas.find((t) => t.id === tarjetaId);
+  const reintentarTarjetas = () => {
+    setEstadoTarjetas('cargando');
+    setIntentoTarjetas((intento) => intento + 1);
+  };
 
   useEffect(() => {
     let activo = true;
     listarTarjetas()
       .then((lista) => {
-        if (activo) setTarjetas(lista);
+        if (!activo) return;
+        setTarjetas(lista);
+        setErrorTarjetas(null);
+        setEstadoTarjetas('listo');
       })
-      .catch(() => {});
+      .catch((error) => {
+        if (!activo) return;
+        setErrorTarjetas(error);
+        setEstadoTarjetas('error');
+      });
     return () => {
       activo = false;
     };
-  }, [listarTarjetas]);
+  }, [listarTarjetas, intentoTarjetas]);
 
   // Si editamos una suscripción con moneda extranjera, guardamos su tipo de cambio como último conocido
   useEffect(() => {
@@ -375,7 +390,6 @@ export default function MembresiaScreen({ navigation, route }) {
       return;
     }
 
-    const tarjetaValidaId = tarjetas.some((t) => t.id === tarjetaId) ? tarjetaId : null;
     const payload = {
       ...prepararDatosMembresia({
         servicioId,
@@ -385,7 +399,7 @@ export default function MembresiaScreen({ navigation, route }) {
         tipoCambio,
         frecuencia,
         fechaCobro: fechaCobroISO,
-        tarjetaId: tarjetaValidaId,
+        tarjetaId,
       }),
       // HU-95: el backend llena el historial desde el pago (solo al crear con «Ya la pagué»).
       ...(conPago ? { fecha_ultimo_pago: fechaISO } : {}),
@@ -585,23 +599,25 @@ export default function MembresiaScreen({ navigation, route }) {
             onPress={abrirFecha}
             accessibilityLabel={`${tituloFecha}: ${formatearDiaMes(fechaISO)}`}
           />
-          {tarjetas.length > 0 ? (
-            <ChipSelector
-              icono="credit-card-chip-outline"
-              etiqueta={
-                tarjetas.find((t) => t.id === tarjetaId)
-                  ? etiquetaTarjeta(tarjetas.find((t) => t.id === tarjetaId))
+          <ChipSelector
+            icono="credit-card-chip-outline"
+            etiqueta={
+              tarjetaElegida
+                ? etiquetaTarjeta(tarjetaElegida)
+                : tarjetaId != null
+                  ? 'Tarjeta seleccionada'
                   : 'Tarjeta (opcional)'
-              }
-              chevron
-              onPress={() => setPanel('tarjeta')}
-              accessibilityLabel={
-                tarjetas.find((t) => t.id === tarjetaId)
-                  ? `Tarjeta: ${etiquetaTarjeta(tarjetas.find((t) => t.id === tarjetaId))}`
+            }
+            chevron
+            onPress={() => setPanel('tarjeta')}
+            accessibilityLabel={
+              tarjetaElegida
+                ? `Tarjeta: ${etiquetaTarjeta(tarjetaElegida)}`
+                : tarjetaId != null
+                  ? 'Tarjeta seleccionada'
                   : 'Tarjeta: sin especificar'
-              }
-            />
-          ) : null}
+            }
+          />
         </ScrollView>
         {conPago ? (
           <Text style={styles.notaCampo}>Próximo cobro: {formatearDiaMes(proximoCobroISO)}</Text>
@@ -911,13 +927,24 @@ export default function MembresiaScreen({ navigation, route }) {
 
       {panel === 'tarjeta' ? (
         <PanelHoja titulo="Tarjeta" onCerrar={() => setPanel(null)}>
+          {estadoTarjetas !== 'listo' ? (
+            <EstadoPantalla
+              estado={estadoTarjetas}
+              error={errorTarjetas}
+              titulo="Cargando tarjetas…"
+              onReintentar={reintentarTarjetas}
+              compacta
+            />
+          ) : tarjetas.length === 0 ? (
+            <EstadoPantalla estado="vacio" titulo="Sin tarjetas guardadas" compacta />
+          ) : null}
           <Pressable
             onPress={() => {
               setTarjetaId(null);
               setPanel(null);
             }}
             accessibilityRole="button"
-            accessibilityState={{ selected: !tarjetas.some((t) => t.id === tarjetaId) }}
+            accessibilityState={{ selected: tarjetaId == null }}
             style={({ pressed }) => [styles.opcion, pressed ? styles.opcionPresionada : null]}
           >
             <MaterialCommunityIcons
@@ -926,7 +953,7 @@ export default function MembresiaScreen({ navigation, route }) {
               color={colors.textSecondary}
             />
             <Text style={styles.opcionTexto}>Sin especificar</Text>
-            {!tarjetas.some((t) => t.id === tarjetaId) ? (
+            {tarjetaId == null ? (
               <MaterialCommunityIcons name="check" size={22} color={colors.text} />
             ) : null}
           </Pressable>
