@@ -1,4 +1,5 @@
 const { pool } = require('../db');
+const { gastoFijoMensual } = require('../utils/membresias');
 
 const TIPOS_TARJETA_VALIDOS = ['credito', 'debito'];
 const MAX_LONGITUD_NOMBRE = 100;
@@ -343,7 +344,7 @@ const obtenerResumenTarjeta = async (req, res) => {
         [usuarioId, tarjetaId, mes]
       ),
       pool.query(
-        `SELECT costo, frecuencia
+        `SELECT costo, frecuencia, personas
          FROM membresias
          WHERE usuario_id = $1
            AND tarjeta_id = $2
@@ -356,12 +357,7 @@ const obtenerResumenTarjeta = async (req, res) => {
     const gastoVariable =
       Math.round((sumaVariable + Number.EPSILON) * 100) / 100;
 
-    const sumaFijo = membresiasResult.rows.reduce((acc, row) => {
-      const costo = Number(row.costo);
-      const mensual = row.frecuencia === 'anual' ? costo / 12 : costo;
-      return acc + mensual;
-    }, 0);
-    const gastoFijo = Math.round((sumaFijo + Number.EPSILON) * 100) / 100;
+    const gastoFijo = gastoFijoMensual(membresiasResult.rows);
 
     const total =
       Math.round((gastoVariable + gastoFijo + Number.EPSILON) * 100) / 100;

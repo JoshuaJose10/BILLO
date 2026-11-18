@@ -381,6 +381,11 @@ module.exports = (getContext) =>
           'Disney+ se cobra en 1 día: $219.50'
         );
       });
+
+      it('HU-76: compartida avisa tu parte y el total de referencia; con 1 persona no cambia', () => {
+        assert.equal(construirMensajeCobro('Spotify', 129, 0, 2), 'Spotify se cobra hoy: $64.50 de $129');
+        assert.equal(construirMensajeCobro('Spotify', 129, 0, 1), 'Spotify se cobra hoy: $129');
+      });
     });
 
     describe('Proceso diario procesarAvisosCobro (RF7)', () => {

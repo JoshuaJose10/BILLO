@@ -1,4 +1,6 @@
-const EXPO_PUSH_URL_DEFAULT = 'https://exp.host/--/api/v2/push/send';
+const { costoPropio } = require('../utils/membresias');
+
+const EXPO_PUSH_URL_DEFAULT ='https://exp.host/--/api/v2/push/send';
 const TIEMPO_MAXIMO_PUSH_MS = 5000;
 const INTERVALO_DIARIO_MS = 24 * 60 * 60 * 1000;
 const DIAS_ANTICIPACION_AVISO = 3;
@@ -168,9 +170,12 @@ const formatearMontoAviso = (costo) => {
   return Number.isInteger(num) ? `$${num}` : `$${num.toFixed(2)}`;
 };
 
-// Construye el texto del aviso («Netflix se cobra en 2 días: $199»)
-const construirMensajeCobro = (nombre, costo, diasParaCobro) => {
-  const montoTexto = formatearMontoAviso(costo);
+// Construye el texto del aviso («Netflix se cobra en 2 días: $199»). Compartida (HU-76):
+// tu parte y el total de referencia («Spotify se cobra hoy: $64.50 de $129»).
+const construirMensajeCobro = (nombre, costo, diasParaCobro, personas = 1) => {
+  const montoTexto =
+    formatearMontoAviso(costoPropio(costo, personas)) +
+    (personas > 1 ? ` de ${formatearMontoAviso(costo)}` : '');
   if (diasParaCobro === 0) {
     return `${nombre} se cobra hoy: ${montoTexto}`;
   }
@@ -254,6 +259,7 @@ const procesarAvisosCobro = async ({
         m.usuario_id,
         m.nombre,
         m.costo,
+        m.personas,
         m.frecuencia,
         TO_CHAR(m.fecha_cobro, 'YYYY-MM-DD') AS fecha_cobro,
         TO_CHAR(m.ultima_notificacion, 'YYYY-MM-DD') AS ultima_notificacion,
@@ -302,7 +308,8 @@ const procesarAvisosCobro = async ({
         const textoAviso = construirMensajeCobro(
           m.nombre,
           m.costo,
-          calculo.dias_para_cobro
+          calculo.dias_para_cobro,
+          m.personas
         );
 
         await enviarPushExpo(

@@ -1,4 +1,5 @@
 const { pool } = require('../db');
+const { costoPropio } = require('../utils/membresias');
 
 const BOM_UTF8 = '\uFEFF';
 const ENCABEZADO_CSV = [
@@ -100,6 +101,7 @@ const exportarDatos = async (req, res) => {
            nombre AS descripcion,
            frecuencia AS categoria_fuente,
            COALESCE(monto_original, costo) AS monto,
+           personas,
            CASE WHEN monto_original IS NULL THEN 'MXN'
                 ELSE COALESCE(moneda, 'MXN') END AS moneda,
            CASE WHEN tarjeta_id IS NOT NULL THEN 'tarjeta' ELSE '' END AS metodo_pago
@@ -135,7 +137,7 @@ const exportarDatos = async (req, res) => {
         fecha: r.fecha,
         descripcion: r.descripcion,
         categoria_fuente: r.categoria_fuente,
-        monto: Number(r.monto).toFixed(2),
+        monto: costoPropio(r.monto, r.personas).toFixed(2),
         moneda: r.moneda,
         metodo_pago: r.metodo_pago,
       })),

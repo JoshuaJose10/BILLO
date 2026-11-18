@@ -1,4 +1,5 @@
 const { pool } = require('../db');
+const { gastoFijoMensual } = require('../utils/membresias');
 
 const esMesValido = (mesStr) => {
   return typeof mesStr === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(mesStr);
@@ -20,20 +21,14 @@ const desplazarMes = (mesStr, deltaMeses) => {
 // Reutiliza el cálculo de gasto fijo de membresías activas (las pausadas no cuentan).
 const calcularGastoFijoActivas = async (usuarioId) => {
   const { rows } = await pool.query(
-    `SELECT costo, frecuencia
+    `SELECT costo, frecuencia, personas
      FROM membresias
      WHERE usuario_id = $1
        AND estado = 'activa'`,
     [usuarioId]
   );
 
-  const sumaFijo = rows.reduce((acc, row) => {
-    const costo = Number(row.costo);
-    const mensual = row.frecuencia === 'anual' ? costo / 12 : costo;
-    return acc + mensual;
-  }, 0);
-
-  return redondear2(sumaFijo);
+  return gastoFijoMensual(rows);
 };
 
 const calcularResumenMensual = async (usuarioId, mes) => {
