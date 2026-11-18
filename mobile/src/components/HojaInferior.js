@@ -5,6 +5,9 @@ import { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'r
 import {
   Animated,
   Easing,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -39,9 +42,22 @@ export default function HojaInferior({
   const styles = useEstilos(crearEstilos);
   const { height } = useWindowDimensions();
   const cerrando = useRef(false);
+  const [altoDisponible, setAltoDisponible] = useState(0);
+  const [tecladoVisible, setTecladoVisible] = useState(false);
 
   // 0 = hoja oculta abajo, 1 = hoja visible.
   const [progreso] = useState(() => new Animated.Value(0));
+
+  useEffect(() => {
+    const eventoMostrar = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const eventoOcultar = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const subMostrar = Keyboard.addListener(eventoMostrar, () => setTecladoVisible(true));
+    const subOcultar = Keyboard.addListener(eventoOcultar, () => setTecladoVisible(false));
+    return () => {
+      subMostrar.remove();
+      subOcultar.remove();
+    };
+  }, []);
 
   useEffect(() => {
     Animated.timing(progreso, {
@@ -70,6 +86,11 @@ export default function HojaInferior({
   };
 
   const translateY = progreso.interpolate({ inputRange: [0, 1], outputRange: [height, 0] });
+  const altoMaximoBase = height * 0.92;
+  const topeAlto =
+    altoDisponible > 0
+      ? Math.min(altoMaximoBase, Math.max(200, altoDisponible - insets.top - 8))
+      : altoMaximoBase;
 
   return (
     <View style={styles.pantalla}>
@@ -87,39 +108,51 @@ export default function HojaInferior({
         />
       </Animated.View>
 
-      <Animated.View
-        style={[
-          styles.hoja,
-          {
-            maxHeight: height * 0.92,
-            paddingBottom: insets.bottom + 12,
-            transform: [{ translateY }],
-          },
-        ]}
+      <KeyboardAvoidingView
+        style={styles.contenedorTeclado}
+        behavior="padding"
+        pointerEvents="box-none"
       >
-        {/* Tinte de color arriba que se funde con la hoja (08_nuevo_gasto_referencia) */}
-        <LinearGradient
-          colors={[colors.tinteHoja, colors.tinteHojaFin]}
-          style={styles.tinte}
-          pointerEvents="none"
-        />
-        <View style={styles.jalador} />
-
-        <View style={styles.cabecera}>
-          <Text style={styles.titulo}>{titulo}</Text>
-          <Pressable
-            onPress={cerrarPorUsuario}
-            hitSlop={10}
-            style={styles.botonCerrar}
-            accessibilityRole="button"
-            accessibilityLabel="Cerrar"
+        <View
+          style={styles.espacioDisponible}
+          pointerEvents="box-none"
+          onLayout={(e) => setAltoDisponible(e.nativeEvent.layout.height)}
+        >
+          <Animated.View
+            style={[
+              styles.hoja,
+              {
+                maxHeight: topeAlto,
+                paddingBottom: tecladoVisible ? 12 : insets.bottom + 12,
+                transform: [{ translateY }],
+              },
+            ]}
           >
-            <MaterialCommunityIcons name="close" size={18} color={colors.textChip} />
-          </Pressable>
-        </View>
+            {/* Tinte de color arriba que se funde con la hoja (08_nuevo_gasto_referencia) */}
+            <LinearGradient
+              colors={[colors.tinteHoja, colors.tinteHojaFin]}
+              style={styles.tinte}
+              pointerEvents="none"
+            />
+            <View style={styles.jalador} />
 
-        {children}
-      </Animated.View>
+            <View style={styles.cabecera}>
+              <Text style={styles.titulo}>{titulo}</Text>
+              <Pressable
+                onPress={cerrarPorUsuario}
+                hitSlop={10}
+                style={styles.botonCerrar}
+                accessibilityRole="button"
+                accessibilityLabel="Cerrar"
+              >
+                <MaterialCommunityIcons name="close" size={18} color={colors.textChip} />
+              </Pressable>
+            </View>
+
+            {children}
+          </Animated.View>
+        </View>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -127,6 +160,12 @@ export default function HojaInferior({
 const crearEstilos = (colors) =>
   StyleSheet.create({
     pantalla: {
+      flex: 1,
+    },
+    contenedorTeclado: {
+      flex: 1,
+    },
+    espacioDisponible: {
       flex: 1,
       justifyContent: 'flex-end',
     },

@@ -13,7 +13,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Boton from '../components/Boton';
 import ChipSelector from '../components/ChipSelector';
@@ -69,25 +68,6 @@ const OPCIONES_FRECUENCIA = [
 
 // Límite de la columna membresias.nombre (VARCHAR(255)).
 const NOMBRE_MAX = 255;
-
-// Alto del teclado del sistema (0 si está oculto). iOS avisa antes de mostrarlo; Android, después.
-function useAlturaTeclado() {
-  const [altura, setAltura] = useState(0);
-  useEffect(() => {
-    const ios = Platform.OS === 'ios';
-    const mostrar = Keyboard.addListener(ios ? 'keyboardWillShow' : 'keyboardDidShow', (e) =>
-      setAltura(e.endCoordinates?.height ?? 0),
-    );
-    const ocultar = Keyboard.addListener(ios ? 'keyboardWillHide' : 'keyboardDidHide', () =>
-      setAltura(0),
-    );
-    return () => {
-      mostrar.remove();
-      ocultar.remove();
-    };
-  }, []);
-  return altura;
-}
 
 // Hoja para agregar o editar una membresía / suscripción (RF5). Mismo esquema que Nuevo gasto
 // (HU-81): chips de nombre, frecuencia y fecha arriba, el costo con MontoGrande y el teclado
@@ -268,13 +248,10 @@ export default function MembresiaScreen({ navigation, route }) {
 
   const vistaCatalogo = vistaLista(estadoCatalogo, catalogo);
 
-  // Buscador del catálogo (HU-72). Mientras el campo tiene el foco, el teclado del sistema ocupa
-  // el lugar del teclado numérico y del botón: la hoja reserva su alto para que no tape el campo
-  // ni los resultados.
+  // Buscador del catálogo (HU-72). Mientras el campo tiene el foco, ocultamos el teclado numérico
+  // y el botón principal para priorizar la barra de búsqueda y los resultados sobre el teclado del sistema.
   const [busqueda, setBusqueda] = useState('');
   const [buscando, setBuscando] = useState(false);
-  const insets = useSafeAreaInsets();
-  const alturaTeclado = useAlturaTeclado();
   const catalogoFiltrado = useMemo(() => filtrarCatalogo(catalogo, busqueda), [catalogo, busqueda]);
   // Sugerencias al escribir el nombre (HU-85): solo con el catálogo ya cargado.
   const sugerencias = useMemo(
@@ -716,10 +693,7 @@ export default function MembresiaScreen({ navigation, route }) {
           </View>
         ) : null}
 
-        {buscando ? (
-          // El teclado del sistema ocupa el lugar del numérico: la hoja sube por encima de él.
-          <View style={{ height: Math.max(0, alturaTeclado - insets.bottom - 12) }} />
-        ) : (
+        {buscando ? null : (
           <>
             <View style={styles.zonaTeclado}>
               <TecladoNumerico onTecla={alPulsarTecla} disabled={ocupado} />
@@ -924,7 +898,7 @@ export default function MembresiaScreen({ navigation, route }) {
                 <Text style={styles.simboloMonedaTexto}>{m.simbolo}</Text>
               </View>
               <View style={styles.monedaInfoColumna}>
-                <Text style={styles.opcionTexto}>{m.codigo}</Text>
+                <Text style={styles.opcionTitulo}>{m.codigo}</Text>
                 <Text style={styles.nombreMonedaSubtexto}>{m.nombre}</Text>
               </View>
               {m.codigo === moneda ? (
@@ -973,7 +947,7 @@ export default function MembresiaScreen({ navigation, route }) {
                 color={colors.text}
               />
               <View style={styles.monedaInfoColumna}>
-                <Text style={styles.opcionTexto}>{etiquetaTarjeta(t)}</Text>
+                <Text style={styles.opcionTitulo}>{etiquetaTarjeta(t)}</Text>
                 <Text style={styles.nombreMonedaSubtexto}>{etiquetaTipoTarjeta(t.tipo)}</Text>
               </View>
               {t.id === tarjetaId ? (
@@ -1068,6 +1042,12 @@ const crearEstilos = (colors) =>
       flex: 1,
       color: colors.text,
     },
+    opcionTitulo: {
+      fontFamily: fonts.sansSemiBold,
+      color: colors.text,
+      fontSize: 15,
+      lineHeight: 20,
+    },
     inputNombre: {
       ...tipografia.bodyLg,
       height: 48,
@@ -1122,6 +1102,7 @@ const crearEstilos = (colors) =>
       backgroundColor: colors.surfaceLow,
       alignItems: 'center',
       justifyContent: 'center',
+      flexShrink: 0,
     },
     simboloMonedaTexto: {
       fontFamily: fonts.monoMedium,
@@ -1130,10 +1111,12 @@ const crearEstilos = (colors) =>
     },
     monedaInfoColumna: {
       flex: 1,
+      gap: 2,
     },
     nombreMonedaSubtexto: {
       fontFamily: fonts.sans,
       fontSize: 12,
+      lineHeight: 16,
       color: colors.textSecondary,
     },
     zonaHistorial: {

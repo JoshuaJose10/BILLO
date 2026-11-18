@@ -461,213 +461,225 @@ export default function NuevoGastoScreen({ navigation, route }) {
       }}
       bloqueada={ocupado}
     >
-      {/* Al editar no se cambia de tipo: un gasto no se convierte en ingreso. */}
-      {editando ? null : (
-        <SelectorSegmentado
-          opciones={TIPOS}
-          valor={tipo}
-          onCambiar={cambiarTipo}
-          accessibilityLabel="Tipo de movimiento"
-          style={styles.selectorTipo}
-        />
-      )}
       <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filaScroll}
-        contentContainerStyle={styles.filaChips}
+        style={styles.cuerpoScroll}
+        contentContainerStyle={styles.cuerpoContenido}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        bounces={false}
       >
-        {esIngreso ? null : (
-          <>
-            <ChipSelector
-              icono="cash-multiple"
-              etiqueta={moneda}
-              chevron
-              onPress={() => setPanel('moneda')}
-              accessibilityLabel={`Moneda: ${moneda}`}
-            />
-            <ChipSelector
-              icono={metodoActual.icono}
-              etiqueta={metodoActual.etiqueta}
-              chevron
-              onPress={() => setPanel('metodo')}
-              accessibilityLabel={`Método de pago: ${metodoActual.etiqueta}`}
-            />
-            {metodo === 'tarjeta' && tarjetas.length > 0 ? (
-              <ChipSelector
-                icono="credit-card-chip-outline"
-                etiqueta={tarjetaElegida ? etiquetaTarjeta(tarjetaElegida) : 'Tarjeta (opcional)'}
-                chevron
-                onPress={() => setPanel('tarjeta')}
-                accessibilityLabel={
-                  tarjetaElegida
-                    ? `Tarjeta: ${etiquetaTarjeta(tarjetaElegida)}`
-                    : 'Tarjeta: sin especificar'
-                }
-              />
-            ) : null}
-          </>
+        {/* Al editar no se cambia de tipo: un gasto no se convierte en ingreso. */}
+        {editando ? null : (
+          <SelectorSegmentado
+            opciones={TIPOS}
+            valor={tipo}
+            onCambiar={cambiarTipo}
+            accessibilityLabel="Tipo de movimiento"
+            style={styles.selectorTipo}
+          />
         )}
-        <ChipSelector
-          icono="calendar-blank-outline"
-          etiqueta={fechaTexto}
-          chevron
-          onPress={abrirFecha}
-          accessibilityLabel={`Fecha: ${fechaTexto}`}
-        />
-        <ChipSelector
-          icono="note-edit-outline"
-          etiqueta={nota.trim() ? resumirTexto(nota) : 'Nota'}
-          onPress={() => setPanel('nota')}
-        />
-      </ScrollView>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filaScroll}
+          contentContainerStyle={styles.filaChips}
+        >
+          {esIngreso ? null : (
+            <>
+              <ChipSelector
+                icono="cash-multiple"
+                etiqueta={moneda}
+                chevron
+                onPress={() => setPanel('moneda')}
+                accessibilityLabel={`Moneda: ${moneda}`}
+              />
+              <ChipSelector
+                icono={metodoActual.icono}
+                etiqueta={metodoActual.etiqueta}
+                chevron
+                onPress={() => setPanel('metodo')}
+                accessibilityLabel={`Método de pago: ${metodoActual.etiqueta}`}
+              />
+              {metodo === 'tarjeta' && tarjetas.length > 0 ? (
+                <ChipSelector
+                  icono="credit-card-chip-outline"
+                  etiqueta={tarjetaElegida ? etiquetaTarjeta(tarjetaElegida) : 'Tarjeta (opcional)'}
+                  chevron
+                  onPress={() => setPanel('tarjeta')}
+                  accessibilityLabel={
+                    tarjetaElegida
+                      ? `Tarjeta: ${etiquetaTarjeta(tarjetaElegida)}`
+                      : 'Tarjeta: sin especificar'
+                  }
+                />
+              ) : null}
+            </>
+          )}
+          <ChipSelector
+            icono="calendar-blank-outline"
+            etiqueta={fechaTexto}
+            chevron
+            onPress={abrirFecha}
+            accessibilityLabel={`Fecha: ${fechaTexto}`}
+          />
+          <ChipSelector
+            icono="note-edit-outline"
+            etiqueta={nota.trim() ? resumirTexto(nota) : 'Nota'}
+            onPress={() => setPanel('nota')}
+          />
+        </ScrollView>
 
-      <View style={styles.zonaMonto}>
-        <MontoGrande
-          texto={texto}
-          error={!!errores.monto}
-          etiqueta={monedaCaptura === 'MXN' ? 'Importe' : `Importe en ${monedaCaptura}`}
-          moneda={monedaCaptura}
-        />
-        {esIngreso ? null : cargandoTipoCambio ? (
-          <View style={styles.filaEquivalente}>
-            <ActivityIndicator size="small" color={colors.textSecondary} />
-            <Text style={styles.textoTasa}>Consultando tipo de cambio...</Text>
-          </View>
-        ) : tipoCambio && montoIngresado > 0 ? (
-          <View style={styles.filaEquivalente}>
-            <MaterialCommunityIcons name="swap-horizontal" size={16} color={colors.textSecondary} />
-            <Text style={styles.textoEquivalente}>≈ {formatearMonto(equivalenteMxn)} MXN</Text>
-            <Text style={styles.textoTasa}>
-              (1 {moneda} = ${tipoCambio.toFixed(4)} MXN)
-            </Text>
-          </View>
-        ) : tipoCambio ? (
-          <View style={styles.filaEquivalente}>
-            <Text style={styles.textoTasa}>
-              Tipo de cambio: 1 {moneda} = ${tipoCambio.toFixed(4)} MXN
-            </Text>
+        <View style={styles.zonaMonto}>
+          <MontoGrande
+            texto={texto}
+            error={!!errores.monto}
+            etiqueta={monedaCaptura === 'MXN' ? 'Importe' : `Importe en ${monedaCaptura}`}
+            moneda={monedaCaptura}
+          />
+          {esIngreso ? null : cargandoTipoCambio ? (
+            <View style={styles.filaEquivalente}>
+              <ActivityIndicator size="small" color={colors.textSecondary} />
+              <Text style={styles.textoTasa}>Consultando tipo de cambio...</Text>
+            </View>
+          ) : tipoCambio && montoIngresado > 0 ? (
+            <View style={styles.filaEquivalente}>
+              <MaterialCommunityIcons
+                name="swap-horizontal"
+                size={16}
+                color={colors.textSecondary}
+              />
+              <Text style={styles.textoEquivalente}>≈ {formatearMonto(equivalenteMxn)} MXN</Text>
+              <Text style={styles.textoTasa}>
+                (1 {moneda} = ${tipoCambio.toFixed(4)} MXN)
+              </Text>
+            </View>
+          ) : tipoCambio ? (
+            <View style={styles.filaEquivalente}>
+              <Text style={styles.textoTasa}>
+                Tipo de cambio: 1 {moneda} = ${tipoCambio.toFixed(4)} MXN
+              </Text>
+            </View>
+          ) : null}
+        </View>
+        {avisoTipoCambio && !esIngreso ? (
+          <View style={styles.avisoTipoCambioContenedor}>
+            <MaterialCommunityIcons name="information-outline" size={16} color={colors.alerta} />
+            <Text style={styles.avisoTipoCambioTexto}>{avisoTipoCambio}</Text>
           </View>
         ) : null}
-      </View>
-      {avisoTipoCambio && !esIngreso ? (
-        <View style={styles.avisoTipoCambioContenedor}>
-          <MaterialCommunityIcons name="information-outline" size={16} color={colors.alerta} />
-          <Text style={styles.avisoTipoCambioTexto}>{avisoTipoCambio}</Text>
-        </View>
-      ) : null}
-      {errores.monto ? <Text style={styles.errorCampo}>{errores.monto}</Text> : null}
+        {errores.monto ? <Text style={styles.errorCampo}>{errores.monto}</Text> : null}
 
-      <View style={styles.zonaCategorias}>
-        {esIngreso ? (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.filaScroll}
-            contentContainerStyle={styles.filaCategorias}
-          >
-            {FUENTES.map((f) => (
-              <ChipCategoria
-                key={f.nombre}
-                nombre={f.nombre}
-                icono={f.icono}
-                exito
-                seleccionado={f.nombre === fuente}
-                error={!!errores.categoria}
-                onPress={() => elegirFuente(f.nombre)}
-              />
-            ))}
-          </ScrollView>
-        ) : vistaCategorias !== 'lista' ? (
-          <EstadoPantalla
-            estado={vistaCategorias}
-            titulo={TEXTO_ESTADO_CATEGORIAS[vistaCategorias]}
-            onReintentar={reintentarCategorias}
-            compacta
-          />
-        ) : (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.filaScroll}
-            contentContainerStyle={styles.filaCategorias}
-          >
-            {categorias.map((c) => (
-              <ChipCategoria
-                key={c.id}
-                nombre={c.nombre}
-                seleccionado={c.id === categoriaElegida}
-                error={!!errores.categoria}
-                onPress={() => elegirCategoria(c.id)}
-              />
-            ))}
-          </ScrollView>
-        )}
-      </View>
-      {errores.categoria ? <Text style={styles.errorCampo}>{errores.categoria}</Text> : null}
-
-      <View style={styles.zonaTeclado}>
-        {dictando ? (
-          <EscuchaVoz
-            estado={dictado.estado}
-            transcripcion={dictado.transcripcion}
-            onDetener={dictado.detener}
-          />
-        ) : (
-          <TecladoNumerico onTecla={alPulsarTecla} disabled={ocupado} />
-        )}
-      </View>
-
-      {avisoVoz || cambioVoz ? (
-        <View style={styles.avisoVoz} accessibilityRole="alert">
-          <MaterialCommunityIcons
-            name={cambioVoz ? 'swap-horizontal' : 'microphone-off'}
-            size={16}
-            color={colors.textSecondary}
-          />
-          {cambioVoz ? (
-            <EnlaceAuth
-              pregunta={[avisoVoz, `Lo cambié a ${esIngreso ? 'Ingreso' : 'Gasto'} ·`]
-                .filter(Boolean)
-                .join(' ')}
-              accion="Deshacer"
-              onPress={deshacerCambio}
-              style={styles.avisoVozTexto}
+        <View style={styles.zonaCategorias}>
+          {esIngreso ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.filaScroll}
+              contentContainerStyle={styles.filaCategorias}
+            >
+              {FUENTES.map((f) => (
+                <ChipCategoria
+                  key={f.nombre}
+                  nombre={f.nombre}
+                  icono={f.icono}
+                  exito
+                  seleccionado={f.nombre === fuente}
+                  error={!!errores.categoria}
+                  onPress={() => elegirFuente(f.nombre)}
+                />
+              ))}
+            </ScrollView>
+          ) : vistaCategorias !== 'lista' ? (
+            <EstadoPantalla
+              estado={vistaCategorias}
+              titulo={TEXTO_ESTADO_CATEGORIAS[vistaCategorias]}
+              onReintentar={reintentarCategorias}
+              compacta
             />
           ) : (
-            <Text style={styles.avisoVozTexto}>{avisoVoz}</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.filaScroll}
+              contentContainerStyle={styles.filaCategorias}
+            >
+              {categorias.map((c) => (
+                <ChipCategoria
+                  key={c.id}
+                  nombre={c.nombre}
+                  seleccionado={c.id === categoriaElegida}
+                  error={!!errores.categoria}
+                  onPress={() => elegirCategoria(c.id)}
+                />
+              ))}
+            </ScrollView>
           )}
         </View>
-      ) : null}
-      {errorApi ? <Text style={styles.errorApi}>{errorApi}</Text> : null}
-      <View style={styles.filaConfirmar}>
-        {/* Sin el módulo nativo (Expo Go) no hay micrófono: solo la captura manual. */}
-        {dictado.disponible && !dictando ? (
-          <BotonMicrofono onPress={dictar} disabled={ocupado} />
+        {errores.categoria ? <Text style={styles.errorCampo}>{errores.categoria}</Text> : null}
+
+        <View style={styles.zonaTeclado}>
+          {dictando ? (
+            <EscuchaVoz
+              estado={dictado.estado}
+              transcripcion={dictado.transcripcion}
+              onDetener={dictado.detener}
+            />
+          ) : (
+            <TecladoNumerico onTecla={alPulsarTecla} disabled={ocupado} />
+          )}
+        </View>
+
+        {avisoVoz || cambioVoz ? (
+          <View style={styles.avisoVoz} accessibilityRole="alert">
+            <MaterialCommunityIcons
+              name={cambioVoz ? 'swap-horizontal' : 'microphone-off'}
+              size={16}
+              color={colors.textSecondary}
+            />
+            {cambioVoz ? (
+              <EnlaceAuth
+                pregunta={[avisoVoz, `Lo cambié a ${esIngreso ? 'Ingreso' : 'Gasto'} ·`]
+                  .filter(Boolean)
+                  .join(' ')}
+                accion="Deshacer"
+                onPress={deshacerCambio}
+                style={styles.avisoVozTexto}
+              />
+            ) : (
+              <Text style={styles.avisoVozTexto}>{avisoVoz}</Text>
+            )}
+          </View>
         ) : null}
-        <View style={styles.confirmar}>
-          <Boton
-            titulo={editando ? 'Guardar cambios' : `Confirmar ${nombreTipo}`}
-            icono={editando ? 'check' : 'arrow-right'}
-            onPress={confirmar}
-            cargando={guardando}
-            disabled={eliminando || dictando}
-            compacto
-          />
+        {errorApi ? <Text style={styles.errorApi}>{errorApi}</Text> : null}
+        <View style={styles.filaConfirmar}>
+          {/* Sin el módulo nativo (Expo Go) no hay micrófono: solo la captura manual. */}
+          {dictado.disponible && !dictando ? (
+            <BotonMicrofono onPress={dictar} disabled={ocupado} />
+          ) : null}
+          <View style={styles.confirmar}>
+            <Boton
+              titulo={editando ? 'Guardar cambios' : `Confirmar ${nombreTipo}`}
+              icono={editando ? 'check' : 'arrow-right'}
+              onPress={confirmar}
+              cargando={guardando}
+              disabled={eliminando || dictando}
+              compacto
+            />
+          </View>
         </View>
-      </View>
-      {editando ? (
-        <View style={styles.zonaEliminar}>
-          <Boton
-            titulo={`Eliminar ${nombreTipo}`}
-            icono="trash-can-outline"
-            onPress={confirmarEliminar}
-            cargando={eliminando}
-            disabled={guardando}
-            destructivo
-          />
-        </View>
-      ) : null}
+        {editando ? (
+          <View style={styles.zonaEliminar}>
+            <Boton
+              titulo={`Eliminar ${nombreTipo}`}
+              icono="trash-can-outline"
+              onPress={confirmarEliminar}
+              cargando={eliminando}
+              disabled={guardando}
+              destructivo
+            />
+          </View>
+        ) : null}
+      </ScrollView>
 
       {panel === 'metodo' ? (
         <PanelHoja titulo="Método de pago" onCerrar={() => setPanel(null)}>
@@ -731,7 +743,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
                 color={colors.text}
               />
               <View style={styles.monedaInfoColumna}>
-                <Text style={styles.opcionTexto}>{etiquetaTarjeta(t)}</Text>
+                <Text style={styles.opcionTitulo}>{etiquetaTarjeta(t)}</Text>
                 <Text style={styles.nombreMonedaSubtexto}>{etiquetaTipoTarjeta(t.tipo)}</Text>
               </View>
               {t.id === tarjetaElegida?.id ? (
@@ -800,7 +812,7 @@ export default function NuevoGastoScreen({ navigation, route }) {
                 <Text style={styles.simboloMonedaTexto}>{m.simbolo}</Text>
               </View>
               <View style={styles.monedaInfoColumna}>
-                <Text style={styles.opcionTexto}>{m.codigo}</Text>
+                <Text style={styles.opcionTitulo}>{m.codigo}</Text>
                 <Text style={styles.nombreMonedaSubtexto}>{m.nombre}</Text>
               </View>
               {m.codigo === moneda ? (
@@ -928,6 +940,12 @@ const crearEstilos = (colors) =>
       color: colors.text,
       fontSize: 16,
     },
+    opcionTitulo: {
+      fontFamily: fonts.sansSemiBold,
+      color: colors.text,
+      fontSize: 15,
+      lineHeight: 20,
+    },
     inputNota: {
       fontFamily: fonts.sans,
       height: 48,
@@ -990,6 +1008,7 @@ const crearEstilos = (colors) =>
       backgroundColor: colors.surfaceLow,
       alignItems: 'center',
       justifyContent: 'center',
+      flexShrink: 0,
     },
     simboloMonedaTexto: {
       fontFamily: fonts.monoMedium,
@@ -998,10 +1017,21 @@ const crearEstilos = (colors) =>
     },
     monedaInfoColumna: {
       flex: 1,
+      gap: 2,
     },
     nombreMonedaSubtexto: {
       fontFamily: fonts.sans,
       fontSize: 12,
+      lineHeight: 16,
       color: colors.textSecondary,
+    },
+    cuerpoScroll: {
+      flexGrow: 0,
+      flexShrink: 1,
+      marginHorizontal: -20,
+    },
+    cuerpoContenido: {
+      paddingHorizontal: 20,
+      paddingBottom: 6,
     },
   });

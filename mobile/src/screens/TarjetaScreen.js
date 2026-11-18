@@ -1,14 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRef, useState } from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import Boton from '../components/Boton';
 import Etiqueta from '../components/Etiqueta';
@@ -144,152 +136,149 @@ export default function TarjetaScreen({ navigation, route }) {
       bloqueada={guardando || eliminando}
       onCerrada={() => navigation.goBack()}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      <ScrollView
         style={styles.teclado}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        bounces={false}
+        contentContainerStyle={styles.contenido}
       >
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={styles.contenido}
-        >
-          {/* Vista previa en vivo de la tarjeta */}
-          <View style={styles.tarjetaPrevia}>
-            <View style={styles.previaFilaSuperior}>
-              <View
-                style={[
-                  styles.previaSquircle,
-                  { backgroundColor: colorPrevia, shadowColor: colorPrevia },
-                ]}
+        {/* Vista previa en vivo de la tarjeta */}
+        <View style={styles.tarjetaPrevia}>
+          <View style={styles.previaFilaSuperior}>
+            <View
+              style={[
+                styles.previaSquircle,
+                { backgroundColor: colorPrevia, shadowColor: colorPrevia },
+              ]}
+            >
+              <MaterialCommunityIcons
+                name={tipo === 'credito' ? 'credit-card-chip-outline' : 'credit-card-outline'}
+                size={22}
+                color={colors.textoSobreColor}
+              />
+            </View>
+            <View style={styles.previaTextos}>
+              <Text
+                style={[styles.previaNombre, !nombre.trim() ? styles.previaNombreVacio : null]}
+                numberOfLines={1}
               >
-                <MaterialCommunityIcons
-                  name={tipo === 'credito' ? 'credit-card-chip-outline' : 'credit-card-outline'}
-                  size={22}
-                  color={colors.textoSobreColor}
-                />
-              </View>
-              <View style={styles.previaTextos}>
-                <Text
-                  style={[styles.previaNombre, !nombre.trim() ? styles.previaNombreVacio : null]}
-                  numberOfLines={1}
-                >
-                  {vistaPrevia.nombre}
-                </Text>
-                <Text style={styles.previaSubtitulo} numberOfLines={1}>
-                  {`${etiquetaTipoTarjeta(tipo)} · ·· ${vistaPrevia.ultimos4}`}
-                </Text>
-              </View>
+                {vistaPrevia.nombre}
+              </Text>
+              <Text style={styles.previaSubtitulo} numberOfLines={1}>
+                {`${etiquetaTipoTarjeta(tipo)} · ·· ${vistaPrevia.ultimos4}`}
+              </Text>
             </View>
-            {fechasPrevia ? (
-              <View style={styles.previaPildora}>
-                <MaterialCommunityIcons
-                  name="calendar-clock-outline"
-                  size={13}
-                  color={colors.textSecondary}
-                />
-                <Text style={styles.previaFechas}>{fechasPrevia}</Text>
-              </View>
-            ) : null}
           </View>
+          {fechasPrevia ? (
+            <View style={styles.previaPildora}>
+              <MaterialCommunityIcons
+                name="calendar-clock-outline"
+                size={13}
+                color={colors.textSecondary}
+              />
+              <Text style={styles.previaFechas}>{fechasPrevia}</Text>
+            </View>
+          ) : null}
+        </View>
 
-          <View style={styles.bloqueTipo}>
-            <Etiqueta style={styles.etiquetaSeccion}>TIPO DE TARJETA</Etiqueta>
-            <SelectorSegmentado
-              opciones={TIPOS_TARJETA}
-              valor={tipo}
-              onCambiar={(nuevo) => {
-                setTipo(nuevo);
-                limpiarErrorCampo('tipo');
+        <View style={styles.bloqueTipo}>
+          <Etiqueta style={styles.etiquetaSeccion}>TIPO DE TARJETA</Etiqueta>
+          <SelectorSegmentado
+            opciones={TIPOS_TARJETA}
+            valor={tipo}
+            onCambiar={(nuevo) => {
+              setTipo(nuevo);
+              limpiarErrorCampo('tipo');
+            }}
+            accessibilityLabel="Tipo de tarjeta"
+          />
+        </View>
+
+        <Input
+          etiqueta="NOMBRE DE LA TARJETA"
+          icono="credit-card-outline"
+          placeholder="Ej. BBVA Azul, Nu, Santander"
+          value={nombre}
+          onChangeText={(v) => {
+            setNombre(v);
+            limpiarErrorCampo('nombre');
+          }}
+          maxLength={NOMBRE_TARJETA_MAX}
+          limpiable
+          error={errores.nombre}
+        />
+
+        <Input
+          etiqueta="ÚLTIMOS 4 DÍGITOS"
+          icono="numeric"
+          placeholder="4821"
+          value={ultimos4}
+          onChangeText={(v) => {
+            setUltimos4(v.replace(/\D/g, '').slice(0, 4));
+            limpiarErrorCampo('ultimos4');
+          }}
+          keyboardType="number-pad"
+          maxLength={4}
+          error={errores.ultimos4}
+        />
+
+        <View style={styles.filaDias}>
+          <View style={styles.columnaDia}>
+            <Input
+              etiqueta="DÍA DE CORTE (OPC.)"
+              icono="calendar-month-outline"
+              placeholder="1–31"
+              value={diaCorteTexto}
+              onChangeText={(v) => {
+                setDiaCorteTexto(v.replace(/\D/g, '').slice(0, 2));
+                limpiarErrorCampo('dia_corte');
               }}
-              accessibilityLabel="Tipo de tarjeta"
+              keyboardType="number-pad"
+              maxLength={2}
+              error={errores.dia_corte}
             />
           </View>
-
-          <Input
-            etiqueta="NOMBRE DE LA TARJETA"
-            icono="credit-card-outline"
-            placeholder="Ej. BBVA Azul, Nu, Santander"
-            value={nombre}
-            onChangeText={(v) => {
-              setNombre(v);
-              limpiarErrorCampo('nombre');
-            }}
-            maxLength={NOMBRE_TARJETA_MAX}
-            limpiable
-            error={errores.nombre}
-          />
-
-          <Input
-            etiqueta="ÚLTIMOS 4 DÍGITOS"
-            icono="numeric"
-            placeholder="4821"
-            value={ultimos4}
-            onChangeText={(v) => {
-              setUltimos4(v.replace(/\D/g, '').slice(0, 4));
-              limpiarErrorCampo('ultimos4');
-            }}
-            keyboardType="number-pad"
-            maxLength={4}
-            error={errores.ultimos4}
-          />
-
-          <View style={styles.filaDias}>
-            <View style={styles.columnaDia}>
-              <Input
-                etiqueta="DÍA DE CORTE (OPC.)"
-                icono="calendar-month-outline"
-                placeholder="1–31"
-                value={diaCorteTexto}
-                onChangeText={(v) => {
-                  setDiaCorteTexto(v.replace(/\D/g, '').slice(0, 2));
-                  limpiarErrorCampo('dia_corte');
-                }}
-                keyboardType="number-pad"
-                maxLength={2}
-                error={errores.dia_corte}
-              />
-            </View>
-            <View style={styles.columnaDia}>
-              <Input
-                etiqueta="DÍA DE PAGO (OPC.)"
-                icono="calendar-check-outline"
-                placeholder="1–31"
-                value={diaPagoTexto}
-                onChangeText={(v) => {
-                  setDiaPagoTexto(v.replace(/\D/g, '').slice(0, 2));
-                  limpiarErrorCampo('dia_pago');
-                }}
-                keyboardType="number-pad"
-                maxLength={2}
-                error={errores.dia_pago}
-              />
-            </View>
+          <View style={styles.columnaDia}>
+            <Input
+              etiqueta="DÍA DE PAGO (OPC.)"
+              icono="calendar-check-outline"
+              placeholder="1–31"
+              value={diaPagoTexto}
+              onChangeText={(v) => {
+                setDiaPagoTexto(v.replace(/\D/g, '').slice(0, 2));
+                limpiarErrorCampo('dia_pago');
+              }}
+              keyboardType="number-pad"
+              maxLength={2}
+              error={errores.dia_pago}
+            />
           </View>
+        </View>
 
-          {errorServidor ? <TextoError formulario>{errorServidor}</TextoError> : null}
+        {errorServidor ? <TextoError formulario>{errorServidor}</TextoError> : null}
 
-          <View style={styles.acciones}>
+        <View style={styles.acciones}>
+          <Boton
+            titulo={editando ? 'Guardar cambios' : 'Guardar tarjeta'}
+            icono="check-circle"
+            compacto
+            cargando={guardando}
+            disabled={eliminando}
+            onPress={guardar}
+          />
+          {editando ? (
             <Boton
-              titulo={editando ? 'Guardar cambios' : 'Guardar tarjeta'}
-              icono="check-circle"
-              compacto
-              cargando={guardando}
-              disabled={eliminando}
-              onPress={guardar}
+              titulo="Eliminar tarjeta"
+              icono="trash-can-outline"
+              destructivo
+              cargando={eliminando}
+              disabled={guardando}
+              onPress={confirmarEliminar}
             />
-            {editando ? (
-              <Boton
-                titulo="Eliminar tarjeta"
-                icono="trash-can-outline"
-                destructivo
-                cargando={eliminando}
-                disabled={guardando}
-                onPress={confirmarEliminar}
-              />
-            ) : null}
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          ) : null}
+        </View>
+      </ScrollView>
     </HojaInferior>
   );
 }
@@ -297,6 +286,7 @@ export default function TarjetaScreen({ navigation, route }) {
 const crearEstilos = (colors) =>
   StyleSheet.create({
     teclado: {
+      flexGrow: 0,
       flexShrink: 1,
     },
     contenido: {
