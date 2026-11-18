@@ -284,15 +284,23 @@ export function normalizarBusqueda(texto) {
 // Buscador del catálogo de la hoja Nueva suscripción (HU-72). Ignora mayúsculas y acentos; cada
 // palabra de la consulta debe aparecer en el nombre, que incluye el plan ("Spotify Duo"), así que
 // "spo" deja los planes de Spotify y "duo spotify" también encuentra "Spotify Duo". Consulta vacía:
-// el catálogo completo, en su orden.
+// el catálogo completo, en su orden. Primero los que empiezan con la consulta (HU-85).
 export function filtrarCatalogo(catalogo = [], consulta = '') {
   const lista = Array.isArray(catalogo) ? catalogo : [];
-  const palabras = normalizarBusqueda(consulta).split(/\s+/).filter(Boolean);
+  const texto = normalizarBusqueda(consulta);
+  const palabras = texto.split(/\s+/).filter(Boolean);
   if (palabras.length === 0) return lista;
-  return lista.filter((item) => {
+  const coincidencias = lista.filter((item) => {
     const nombre = normalizarBusqueda(item?.nombre);
     return palabras.every((p) => nombre.includes(p));
   });
+  const empieza = (item) => normalizarBusqueda(item?.nombre).startsWith(texto);
+  return [...coincidencias.filter(empieza), ...coincidencias.filter((item) => !empieza(item))];
+}
+
+// Sugerencias bajo el campo «Nombre del servicio» (HU-85): campo vacío → ninguna.
+export function sugerenciasCatalogo(catalogo, texto, max = 6) {
+  return normalizarBusqueda(texto) ? filtrarCatalogo(catalogo, texto).slice(0, max) : [];
 }
 
 // Criterios para ordenar la lista de Suscripciones de Cartera (HU-72).
