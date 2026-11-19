@@ -1,0 +1,12 @@
+{
+  "id": 47,
+  "monto": 185.76,
+  "moneda": "USD",
+  "monto_original": 10,
+  "tipo_cambio": 18.5759,
+  "categoria_id": 2,
+  "tarjeta_id": null,
+  "fecha": "2026-11-19",
+  "metodo_pago": "efectivo",
+  "nota": null
+}

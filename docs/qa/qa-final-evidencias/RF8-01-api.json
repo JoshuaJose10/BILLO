@@ -1,0 +1,20 @@
+[
+  {
+    "categoria_id": 2,
+    "categoria": "Comida",
+    "total": 600,
+    "porcentaje": 60
+  },
+  {
+    "categoria_id": 3,
+    "categoria": "Transporte",
+    "total": 300,
+    "porcentaje": 30
+  },
+  {
+    "categoria_id": 1,
+    "categoria": "Entretenimiento",
+    "total": 100,
+    "porcentaje": 10
+  }
+]

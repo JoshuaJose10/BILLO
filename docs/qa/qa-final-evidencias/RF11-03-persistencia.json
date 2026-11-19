@@ -1,0 +1,17 @@
+[
+  {
+    "id": 19,
+    "servicio_id": null,
+    "tarjeta_id": 5,
+    "nombre": "Netflix",
+    "costo": 185.76,
+    "moneda": "USD",
+    "monto_original": 10,
+    "tipo_cambio": 18.5759,
+    "frecuencia": "mensual",
+    "fecha_cobro": "2026-11-29",
+    "estado": "activa",
+    "personas": 1,
+    "dias_para_cobro": 10
+  }
+]

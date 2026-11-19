@@ -1,5 +1,10 @@
 # QA de entrega — RF7, RF9 y RF10 (APK HU-53)
 
+> Seguimiento del 2026-11-19: [QA final integral](qa-final-reporte.md).
+> La reprueba CP-RF9-01 sigue bloqueada por falta de cuenta administradora de QA;
+> no se sustituye por la gestión de categorías personales. Las verificaciones
+> nuevas y sus capturas se registran allí, sin alterar esta evidencia histórica.
+
 Formato de evidencia manual actualizado el **2026-11-15** por indicación del
 usuario: **solo SS PNG/JPG** por caso, variante y paso. Incorporar las nuevas
 capturas en las filas correspondientes y describir las acciones y resultados

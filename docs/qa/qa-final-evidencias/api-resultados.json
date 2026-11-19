@@ -1,0 +1,77 @@
+[
+  {
+    "id": "CP-RF2-02",
+    "name": "Monto no numérico rechazado",
+    "result": "Pasa"
+  },
+  {
+    "id": "CP-RF3-02",
+    "name": "Presupuesto negativo rechazado",
+    "result": "Pasa"
+  },
+  {
+    "id": "CP-RF9-02",
+    "name": "Usuario normal no puede escribir catálogo",
+    "result": "Pasa"
+  },
+  {
+    "id": "CP-FINAL-TAR-02",
+    "name": "Tarjeta rechaza últimos cuatro inválidos",
+    "result": "Pasa"
+  },
+  {
+    "id": "CP-FINAL-TAR-01",
+    "name": "Tarjeta de crédito creada y editable",
+    "result": "Pasa"
+  },
+  {
+    "id": "CP-FINAL-TAR-03",
+    "name": "Asociación y resumen mensual por tarjeta",
+    "result": "Pasa",
+    "note": "Corrida válida: método de pago tarjeta; intento previo inválido no es defecto del producto"
+  },
+  {
+    "id": "CP-FINAL-TAR-04",
+    "name": "Borrar tarjeta conserva historial sin asociación",
+    "result": "Pasa",
+    "note": "Corrida válida: método de pago tarjeta; intento previo inválido no es defecto del producto"
+  },
+  {
+    "id": "CP-FINAL-REC-01",
+    "name": "Programación semanal, quincenal y mensual y cancelación",
+    "result": "Pasa"
+  },
+  {
+    "id": "CP-FINAL-REP-01",
+    "name": "Reporte de ingresos por fuente y comparación mensual",
+    "result": "Pasa"
+  },
+  {
+    "id": "CP-FINAL-REP-02",
+    "name": "Balance concilia ingresos y gastos",
+    "result": "Pasa",
+    "note": "Corrida válida: método de pago tarjeta; intento previo inválido no es defecto del producto"
+  },
+  {
+    "id": "CP-FINAL-EXP-01",
+    "name": "CSV UTF-8, encabezados, comillas y datos propios",
+    "result": "Pasa",
+    "note": "Corrida válida: método de pago tarjeta; intento previo inválido no es defecto del producto"
+  },
+  {
+    "id": "CP-FINAL-EXP-02",
+    "name": "Exportación filtrada por mes",
+    "result": "Pasa"
+  },
+  {
+    "id": "CP-RF6-01",
+    "name": "Resumen variable, fijo y total coherentes",
+    "result": "Pasa",
+    "note": "Corrida válida: método de pago tarjeta; intento previo inválido no es defecto del producto"
+  },
+  {
+    "id": "CP-RF4-04-07",
+    "name": "Límites 79.99, 80, 100 y 100.01 en POST y PUT",
+    "result": "Pasa"
+  }
+]

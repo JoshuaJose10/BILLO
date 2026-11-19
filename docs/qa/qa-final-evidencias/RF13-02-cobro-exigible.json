@@ -1,0 +1,25 @@
+{
+  "membresias": [
+    {
+      "id": 20,
+      "servicio_id": null,
+      "tarjeta_id": null,
+      "nombre": "QA Widget Exigible",
+      "costo": 100,
+      "moneda": "MXN",
+      "monto_original": null,
+      "tipo_cambio": null,
+      "frecuencia": "mensual",
+      "fecha_cobro": "2026-11-19",
+      "estado": "activa",
+      "personas": 1,
+      "dias_para_cobro": 0
+    }
+  ],
+  "resumen": {
+    "mes": "2026-11",
+    "gasto_variable": 266.26,
+    "gasto_fijo": 100,
+    "total": 366.26
+  }
+}

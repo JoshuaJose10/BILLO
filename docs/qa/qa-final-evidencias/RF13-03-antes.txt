@@ -1,0 +1,1124 @@
+2026-11-19T09:16:57.450Z
+UPTIME
+193905.46 321079.90
+
+NetworkFactories for: Ethernet PhoneSwitcherNetworkRequstListener WIFI TelephonyNetworkFactory[0] WIFI_UT WIFI_P2P
+
+Active default network: none
+
+Current Networks:
+  NetworkAgentInfo{ ni{[type: WIFI_P2P[], state: DISCONNECTED/DISCONNECTED, reason: (unspecified), extra: (none), failover: false, available: false, roaming: false]}  network{601}  nethandle{2584681041933}  lp{{LinkAddresses: []  Routes: [] DnsAddresses: [] UsePrivateDns: false PrivateDnsServerName: null Domains: null MTU: 0 TcpBufferSizes: 524288,1048576,4525824,524288,1048576,4525824}}  nc{[ Transports: WIFI Capabilities: WIFI_P2P&NOT_RESTRICTED&TRUSTED&NOT_VPN&FOREGROUND&NOT_SUSPENDED Unwanted:  LinkUpBandwidth>=1048576Kbps LinkDnBandwidth>=1048576Kbps]}  Score{20}  everValidated{false}  lastValidated{false}  created{false} lingering{false} explicitlySelected{false} acceptUnvalidated{false} everCaptivePortalDetected{false} lastCaptivePortalDetected{false} clat{null} }
+    Requests: REQUEST:0 LISTEN:0 BACKGROUND_REQUEST:0 total:0
+    Lingered:
+
+Network Requests:
+  uid/pid:10020/29436 NetworkRequest [ LISTEN id=1294, [ Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 10020] ]
+  uid/pid:1010033/7083 NetworkRequest [ TRACK_DEFAULT id=680, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010033] ]
+  uid/pid:1000/3572 NetworkRequest [ REQUEST id=1, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted: ] ]
+  uid/pid:1010053/4742 NetworkRequest [ TRACK_DEFAULT id=1361, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  uid/pid:1010033/7083 NetworkRequest [ LISTEN id=925, [ Transports: WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 1010033] ]
+  uid/pid:1000/3572 NetworkRequest [ LISTEN id=4, [ Transports: CELLULAR Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 1000] ]
+  uid/pid:10112/26120 NetworkRequest [ TRACK_DEFAULT id=1275, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10112] ]
+  uid/pid:1010033/7083 NetworkRequest [ LISTEN id=677, [ Transports: WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 1010033] ]
+  uid/pid:10033/7856 NetworkRequest [ LISTEN id=695, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10033] ]
+  uid/pid:10053/4438 NetworkRequest [ TRACK_DEFAULT id=1356, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  uid/pid:10096/11369 NetworkRequest [ TRACK_DEFAULT id=915, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10096] ]
+  uid/pid:10033/7856 NetworkRequest [ LISTEN id=691, [ Transports: WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 10033] ]
+  uid/pid:1010033/7083 NetworkRequest [ TRACK_DEFAULT id=683, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010033] ]
+  uid/pid:1010033/7083 NetworkRequest [ LISTEN id=752, [ Transports: WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 1010033] ]
+  uid/pid:1010053/4742 NetworkRequest [ TRACK_DEFAULT id=1364, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  uid/pid:1000/3572 NetworkRequest [ LISTEN id=3, [] ]
+  uid/pid:10033/31760 NetworkRequest [ LISTEN id=1310, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10033] ]
+  uid/pid:10112/26120 NetworkRequest [ TRACK_DEFAULT id=1282, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10112] ]
+  uid/pid:10053/4438 NetworkRequest [ LISTEN id=1357, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  uid/pid:10033/7856 NetworkRequest [ LISTEN id=686, [ Transports: WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 10033] ]
+  uid/pid:10033/7856 NetworkRequest [ TRACK_DEFAULT id=688, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10033] ]
+  uid/pid:10096/11369 NetworkRequest [ TRACK_DEFAULT id=916, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10096] ]
+  uid/pid:10072/9074 NetworkRequest [ TRACK_DEFAULT id=11, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10072] ]
+  uid/pid:1010033/7083 NetworkRequest [ LISTEN id=684, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010033] ]
+  uid/pid:1000/9406 NetworkRequest [ LISTEN id=12, [ Transports: WIFI Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 1000] ]
+  uid/pid:10033/7856 NetworkRequest [ LISTEN id=689, [ Capabilities: INTERNET&TRUSTED Unwanted:  Uid: 10033] ]
+  uid/pid:10112/26120 NetworkRequest [ LISTEN id=1276, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10112] ]
+  uid/pid:1000/3572 NetworkRequest [ LISTEN id=7, [ Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 1000] ]
+  uid/pid:10072/9074 NetworkRequest [ LISTEN id=13, [] ]
+  uid/pid:10033/31760 NetworkRequest [ TRACK_DEFAULT id=1309, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10033] ]
+  uid/pid:10033/7856 NetworkRequest [ TRACK_DEFAULT id=697, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10033] ]
+  uid/pid:10033/7856 NetworkRequest [ LISTEN id=692, [ Transports: CELLULAR|WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 10033] ]
+  uid/pid:1000/3572 NetworkRequest [ LISTEN id=6, [ Transports: WIFI Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted: ] ]
+  uid/pid:10033/7856 NetworkRequest [ LISTEN id=687, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN&VALIDATED Unwanted:  Uid: 10033] ]
+  uid/pid:10033/7856 NetworkRequest [ LISTEN id=693, [ Transports: WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 10033] ]
+  uid/pid:10096/11369 NetworkRequest [ LISTEN id=917, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10096] ]
+  uid/pid:1000/9406 NetworkRequest [ TRACK_DEFAULT id=15, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1000] ]
+  uid/pid:10072/9074 NetworkRequest [ LISTEN id=10, [ Transports: WIFI Capabilities: NOT_VPN Unwanted: ] ]
+  uid/pid:10033/7856 NetworkRequest [ LISTEN id=750, [ Transports: WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 10033] ]
+  uid/pid:1010033/7083 NetworkRequest [ TRACK_DEFAULT id=1272, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010033] ]
+  uid/pid:10053/23371 NetworkRequest [ TRACK_DEFAULT id=1413, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  uid/pid:10033/7856 NetworkRequest [ TRACK_DEFAULT id=694, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10033] ]
+  uid/pid:10096/11369 NetworkRequest [ LISTEN id=1120, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN&VALIDATED&NOT_SUSPENDED Unwanted:  Uid: 10096] ]
+  uid/pid:1000/3572 NetworkRequest [ LISTEN id=9, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&VALIDATED Unwanted:  Uid: 1000] ]
+  uid/pid:10112/26120 NetworkRequest [ LISTEN id=1281, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10112] ]
+  uid/pid:1000/3572 NetworkRequest [ TRACK_DEFAULT id=8, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1000] ]
+  uid/pid:1000/3572 NetworkRequest [ LISTEN id=5, [ Transports: CELLULAR Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted: ] ]
+  uid/pid:1010033/7083 NetworkRequest [ LISTEN id=676, [ Transports: WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 1010033] ]
+  uid/pid:10033/7856 NetworkRequest [ TRACK_DEFAULT id=690, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10033] ]
+  uid/pid:1000/9406 NetworkRequest [ LISTEN id=14, [ Transports: WIFI Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 1000] ]
+  uid/pid:10112/26120 NetworkRequest [ TRACK_DEFAULT id=1280, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10112] ]
+
+mLegacyTypeTracker:
+  Supported types: 0 1 2 3 4 5 7 9 10 11 12 13 14 15 17 23 24 27 28 30 32
+  Current state:
+    13 NetworkAgentInfo [WIFI_P2P () - 601] DISCONNECTED/DISCONNECTED
+
+
+Tethering:
+  Configuration:
+    tetherableUsbRegexs: [usb\d, rndis\d, ncm\d]
+    tetherableWifiRegexs: [swlan0]
+    tetherableBluetoothRegexs: [bt-pan]
+    isDunRequired: false
+    preferredUpstreamIfaceTypes: [ETHERNET, WIFI, BLUETOOTH, MOBILE]
+    dhcpRanges: [192.168.42.2, 192.168.42.254, 192.168.43.2, 192.168.43.254, 192.168.44.2, 192.168.44.254, 192.168.45.2, 192.168.45.254, 192.168.46.2, 192.168.46.254, 192.168.47.2, 192.168.47.254, 192.168.48.2, 192.168.48.254, 192.168.49.2, 192.168.49.254, 192.168.60.2, 192.168.60.254]
+    defaultIPv4DNS: [8.8.4.4, 8.8.8.8]
+    provisioningApp: []
+    provisioningAppNoUi:
+  Tether state:
+    Upstream wanted: false
+    Current upstream interface(s): null
+  Hardware offload:
+    Offload disabled
+  Log:
+    2026-11-17T16:28:11.227 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:28:23.841 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:28:23.852 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:28:23.859 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:28:23.870 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:28:23.877 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:29:47.243 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:29:47.254 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:29:47.273 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:29:47.289 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:29:47.294 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:30:02.616 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:30:02.624 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:30:02.636 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:30:02.641 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:30:02.644 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:30:06.126 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:30:06.129 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:30:06.135 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:30:06.139 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:30:06.143 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:30:39.619 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:30:39.626 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:30:39.632 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:30:39.651 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:30:39.655 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:11.428 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:11.431 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:11.435 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:11.446 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:11.450 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:18.290 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:18.296 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:18.299 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:18.302 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:18.314 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:42.149 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:42.153 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:42.160 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:42.169 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:42.173 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:45.013 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:45.026 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:45.029 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:45.032 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:45.039 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:47.864 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:47.868 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:47.886 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:47.891 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:47.897 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:50.806 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:50.814 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:50.820 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:50.831 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:31:50.835 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:32:05.412 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:32:05.419 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:32:05.423 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:32:05.468 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:32:05.473 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:32:12.629 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:32:12.638 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:32:12.651 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:32:12.658 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:32:12.662 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:32:38.277 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:32:38.286 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:32:38.291 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:32:38.295 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:32:38.299 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:34:03.816 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:34:03.820 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:34:03.828 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:34:03.836 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:34:03.848 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:34:13.124 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:34:13.138 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:34:13.147 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:34:13.150 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:34:13.156 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:36:24.454 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:36:24.457 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:36:24.464 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:36:24.479 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:36:24.486 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:36:31.414 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:36:31.419 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:36:31.427 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:36:31.434 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:36:31.438 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:42:38.675 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:42:38.688 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:42:38.693 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:42:38.700 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:42:38.709 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:44:18.166 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:44:18.173 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:44:18.180 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:44:18.186 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:44:18.194 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:46:03.279 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:46:03.290 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:46:03.296 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:46:03.316 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:46:03.323 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:49:44.759 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:49:44.765 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:49:44.772 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:49:44.790 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:49:44.799 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:52:12.627 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:52:12.638 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:52:12.645 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:52:12.654 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:52:12.665 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:52:32.193 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:52:32.201 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:52:32.207 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:52:32.213 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:52:32.218 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:53:08.074 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:53:08.086 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:53:08.099 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:53:08.108 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:53:08.115 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:53:50.890 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:54:35.574 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:54:35.583 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:54:35.589 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:54:35.596 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:54:35.601 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:54:38.586 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:54:38.593 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:54:38.599 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:54:38.605 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:54:38.613 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:34.674 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:34.680 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:34.684 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:34.691 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:34.696 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:37.485 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:37.495 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:37.501 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:37.508 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:37.520 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:41.641 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:41.647 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:41.654 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:41.658 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:41.663 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:52.185 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:52.192 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:52.204 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:52.213 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:56:52.228 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:57:23.134 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:57:23.140 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:57:23.144 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:57:23.154 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:57:23.157 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:57:54.448 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:57:54.457 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:57:54.464 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:57:54.470 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:57:54.477 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:58:52.431 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:58:52.440 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:58:52.446 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:58:52.457 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:58:52.464 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:58:57.804 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:58:57.811 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:58:57.815 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:58:57.818 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:58:57.826 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:59:00.596 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:59:00.599 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:59:00.603 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:59:00.605 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:59:00.613 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:59:02.917 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:59:17.751 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:59:17.758 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:59:17.767 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:59:17.773 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:59:17.778 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:59:42.492 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:59:42.498 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:59:42.504 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:59:42.507 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:59:42.510 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T16:59:54.825 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:01:57.244 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:03:59.498 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:05:12.104 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:06:01.478 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:08:03.790 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:10:06.221 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:14:08.770 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:16:10.914 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:18:12.796 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:20:14.945 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:22:17.124 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:24:19.067 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:29:05.289 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:38:56.083 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:38:56.088 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:38:56.093 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:38:56.104 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:38:56.121 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:38:59.328 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:38:59.335 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:38:59.341 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:38:59.350 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:38:59.360 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:48:20.294 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:50:22.848 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:52:24.974 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:54:27.397 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:56:29.768 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:58:31.866 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T17:59:07.552 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:00:34.249 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:02:36.413 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:04:38.718 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:06:40.885 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:08:43.115 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:14:06.640 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:25:47.188 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:27:49.807 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:29:52.132 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:31:54.447 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:33:56.807 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:35:59.180 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:41:01.730 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:43:03.948 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:45:06.312 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:47:08.519 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:49:10.944 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:51:13.233 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:58:20.496 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:58:20.502 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:58:20.509 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:58:20.526 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:58:20.534 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:58:38.445 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:58:38.448 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:58:38.451 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:58:38.454 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:58:38.458 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:59:10.967 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:59:13.789 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:59:13.799 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:59:13.813 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:59:13.819 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T18:59:13.837 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:00:09.584 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:00:09.591 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:00:09.598 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:00:09.608 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:00:09.615 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:01:13.211 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:01:56.077 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:01:56.083 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:01:56.100 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:01:56.107 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:01:56.122 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:01:58.813 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:01:58.819 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:01:58.824 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:01:58.832 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:01:58.844 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:03:18.174 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:03:36.199 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:03:36.207 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:03:36.212 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:03:36.217 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:03:36.221 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:05:18.428 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:06:56.264 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:06:56.271 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:06:56.275 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:06:56.280 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:06:56.289 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:07:02.859 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:07:02.865 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:07:02.872 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:07:02.878 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:07:02.884 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:07:22.608 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:07:22.619 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:07:22.625 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:07:22.629 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:07:22.640 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:07:25.580 - InitialState got CMD_UPSTREAM_CHANGED
+    2026-11-17T19:27:48.251 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:27:48.406 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:27:48.417 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:27:48.424 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:27:48.439 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:27:50.817 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:27:50.823 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:27:50.832 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:27:50.837 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:27:50.848 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:27:52.206 - InitialState got CMD_UPSTREAM_CHANGED
+    2026-11-17T19:28:20.076 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:28:20.085 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:28:20.089 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:28:20.093 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:28:20.100 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:29:50.204 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:31:52.289 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:33:53.711 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:35:55.354 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:37:29.170 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:37:39.083 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:37:39.100 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:37:39.104 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:37:39.109 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:37:39.114 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:37:43.618 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:38:05.075 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:38:05.079 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:38:05.083 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:38:05.088 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:38:05.108 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:39:45.087 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:39:58.190 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:39:58.196 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:39:58.199 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:39:58.203 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:40:00.224 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:40:31.549 - InitialState got CMD_UPSTREAM_CHANGED
+    2026-11-17T19:43:50.648 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:43:50.794 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:43:50.798 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:43:50.802 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:43:51.025 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:43:51.576 - InitialState got CMD_UPSTREAM_CHANGED
+    2026-11-17T19:45:52.153 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:47:53.501 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:57:00.210 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T19:59:01.537 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:01:02.735 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:03:04.301 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:05:06.591 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:07:07.967 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:07:30.471 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:14:05.215 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:26:04.276 - InitialState got CMD_UPSTREAM_CHANGED
+    2026-11-17T20:28:29.500 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:28:29.511 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:28:29.515 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:28:29.518 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:28:29.543 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:28:30.017 - InitialState got CMD_UPSTREAM_CHANGED
+    2026-11-17T20:29:39.577 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:31:41.333 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:33:44.394 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:35:45.746 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:37:31.725 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:37:47.116 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:41:31.806 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:43:33.241 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:45:34.459 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:47:36.449 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T20:49:38.071 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T21:00:51.114 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T21:02:53.393 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T21:04:55.446 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T21:06:58.079 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T21:07:33.406 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T21:08:59.331 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T21:11:02.308 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T22:14:07.035 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T22:26:42.480 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T22:56:43.966 - wlan0 is not a tetherable iface, ignoring
+    2026-11-17T23:09:07.367 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T00:14:07.539 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T01:09:13.373 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T01:21:45.010 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T01:38:27.959 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T01:51:46.383 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T02:09:56.932 - USB bcast connected:true configured:false rndis:false
+    2026-11-18T02:09:57.268 - USB bcast connected:true configured:true rndis:false
+    2026-11-18T02:09:59.283 - USB bcast connected:true configured:false rndis:false
+    2026-11-18T02:09:59.321 - USB bcast connected:true configured:true rndis:false
+    2026-11-18T02:10:06.400 - USB bcast connected:true configured:true rndis:false
+    2026-11-18T02:10:06.516 - USB bcast connected:true configured:true rndis:false
+    2026-11-18T02:10:06.760 - USB bcast connected:true configured:false rndis:false
+    2026-11-18T02:10:06.802 - USB bcast connected:true configured:true rndis:false
+    2026-11-18T02:12:19.391 - USB bcast connected:true configured:false rndis:false
+    2026-11-18T02:12:19.436 - USB bcast connected:true configured:true rndis:false
+    2026-11-18T02:12:27.296 - USB bcast connected:true configured:true rndis:false
+    2026-11-18T02:12:27.413 - USB bcast connected:true configured:true rndis:false
+    2026-11-18T02:12:27.781 - USB bcast connected:true configured:false rndis:false
+    2026-11-18T02:12:27.809 - USB bcast connected:true configured:true rndis:false
+    2026-11-18T02:12:29.268 - USB bcast connected:true configured:false rndis:false
+    2026-11-18T02:12:29.324 - USB bcast connected:true configured:true rndis:false
+    2026-11-18T02:12:31.672 - USB bcast connected:true configured:true rndis:false
+    2026-11-18T02:12:31.834 - USB bcast connected:true configured:true rndis:false
+    2026-11-18T02:12:32.056 - USB bcast connected:true configured:false rndis:false
+    2026-11-18T02:12:32.110 - USB bcast connected:true configured:true rndis:false
+    2026-11-18T02:13:31.760 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T02:14:09.243 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T02:19:25.214 - USB bcast connected:true configured:false rndis:false
+    2026-11-18T02:19:25.256 - USB bcast connected:true configured:true rndis:false
+    2026-11-18T02:19:29.068 - USB bcast connected:true configured:true rndis:false
+    2026-11-18T02:19:29.224 - USB bcast connected:true configured:true rndis:false
+    2026-11-18T02:19:29.441 - USB bcast connected:true configured:false rndis:false
+    2026-11-18T02:19:29.500 - USB bcast connected:true configured:true rndis:false
+    2026-11-18T02:21:48.030 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T02:37:40 - USB bcast connected:true configured:false rndis:false
+    2026-11-18T02:37:40.040 - USB bcast connected:true configured:true rndis:false
+    2026-11-18T02:48:34.090 - USB bcast connected:false configured:false rndis:false
+    2026-11-18T03:09:31.156 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T04:00:21.029 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T04:47:52.969 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T06:44:43.822 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T06:48:13.618 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T10:47:54.778 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T16:37:25.910 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T16:37:31.435 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T21:11:53.717 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T21:11:58.860 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T21:14:47.735 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T21:44:49.532 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T22:14:35.160 - wlan0 is not a tetherable iface, ignoring
+    2026-11-18T23:14:30.945 - wlan0 is not a tetherable iface, ignoring
+    2026-11-19T01:15:46.692 - wlan0 is not a tetherable iface, ignoring
+    2026-11-19T01:53:47.456 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T01:53:47.734 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T01:53:54.129 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T01:53:54.466 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T01:53:54.573 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T01:53:54.663 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T01:57:48.737 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T01:57:48.800 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T01:57:52.040 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T01:57:52.261 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T01:57:52.480 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T01:57:52.537 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:00:11.342 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T02:00:11.472 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:00:13.688 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:00:13.891 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:00:14.142 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T02:00:14.220 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:00:14.570 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T02:00:14.938 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:03:39.734 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T02:03:39.875 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:03:42.157 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:03:42.321 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:03:42.611 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T02:03:42.728 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:33:08.897 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T02:33:09.004 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:33:47.242 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:33:47.364 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:33:47.602 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T02:33:47.694 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:37:34.812 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T02:37:34.959 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:39:21.257 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:39:21.371 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:39:21.611 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T02:39:21.671 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:45:25.959 - InitialState got CMD_UPSTREAM_CHANGED
+    2026-11-19T02:46:36.543 - wlan0 is not a tetherable iface, ignoring
+    2026-11-19T02:46:36.693 - wlan0 is not a tetherable iface, ignoring
+    2026-11-19T02:46:36.697 - wlan0 is not a tetherable iface, ignoring
+    2026-11-19T02:46:36.700 - wlan0 is not a tetherable iface, ignoring
+    2026-11-19T02:46:36.724 - wlan0 is not a tetherable iface, ignoring
+    2026-11-19T02:46:37.356 - InitialState got CMD_UPSTREAM_CHANGED
+    2026-11-19T02:46:44.051 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T02:46:44.176 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:47:35.318 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:47:35.446 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:47:35.679 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T02:47:35.763 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:50:52.629 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T02:50:52.729 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:51:30.497 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:51:30.667 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T02:51:30.898 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T02:51:30.955 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T03:08:01.383 - wlan0 is not a tetherable iface, ignoring
+    2026-11-19T03:08:38.257 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T03:08:38.364 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T03:08:42.933 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T03:08:43.051 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T03:08:43.303 - USB bcast connected:true configured:false rndis:false
+    2026-11-19T03:08:43.422 - USB bcast connected:true configured:true rndis:false
+    2026-11-19T03:15:47.388 - wlan0 is not a tetherable iface, ignoring
+    2026-11-19T03:15:52.131 - wlan0 is not a tetherable iface, ignoring
+    2026-11-19T03:16:53.008 - InitialState got CMD_UPSTREAM_CHANGED
+
+Packet keepalives:
+
+Bad Wi-Fi avoidance: unrestricted
+
+MultipathPolicyTracker:
+
+mValidationLogs (most recent first):
+611 - "CuartoD"
+610 - "CuartoD"
+609 - "Megacable_5G_AF0A"
+608 - "CuartoD"
+607 - "PonysITM"
+606 - "PonysITM"
+605 - "PonysITM"
+604 - "PonysITM"
+603 - "Megacable_5G_AF0A"
+602 - "CuartoD"
+
+mNetworkRequestInfoLogs (most recent first):
+  2026-11-19T03:16:54.344 - RELEASE uid/pid:10096/21951 NetworkRequest [ LISTEN id=1410, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10096] ]
+  2026-11-19T03:16:54.342 - RELEASE uid/pid:10096/21951 NetworkRequest [ TRACK_DEFAULT id=1409, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10096] ]
+  2026-11-19T03:16:53.253 - RELEASE uid/pid:10033/7856 NetworkRequest [ LISTEN id=1402, [ Transports: WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 10033] ]
+  2026-11-19T03:15:44.059 - REGISTER uid/pid:10053/23371 NetworkRequest [ TRACK_DEFAULT id=1413, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T03:14:12.517 - RELEASE uid/pid:10024/22735 NetworkRequest [ LISTEN id=1411, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 10024] ]
+  2026-11-19T03:14:12.515 - RELEASE uid/pid:10024/22735 NetworkRequest [ TRACK_DEFAULT id=1412, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10024] ]
+  2026-11-19T03:14:11.814 - REGISTER uid/pid:10024/22735 NetworkRequest [ TRACK_DEFAULT id=1412, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10024] ]
+  2026-11-19T03:14:01.733 - REGISTER uid/pid:10024/22735 NetworkRequest [ LISTEN id=1411, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 10024] ]
+  2026-11-19T03:11:40.260 - REGISTER uid/pid:10096/21951 NetworkRequest [ LISTEN id=1410, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10096] ]
+  2026-11-19T03:11:40.248 - REGISTER uid/pid:10096/21951 NetworkRequest [ TRACK_DEFAULT id=1409, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10096] ]
+  2026-11-19T03:08:38.939 - RELEASE uid/pid:10096/19436 NetworkRequest [ TRACK_DEFAULT id=1406, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10096] ]
+  2026-11-19T03:08:36.134 - RELEASE uid/pid:1010053/19510 NetworkRequest [ LISTEN id=1405, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T03:08:36.132 - RELEASE uid/pid:1010053/19510 NetworkRequest [ TRACK_DEFAULT id=1404, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T03:07:21.038 - RELEASE uid/pid:10147/17190 NetworkRequest [ TRACK_DEFAULT id=1403, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10147] ]
+  2026-11-19T03:06:13.116 - RELEASE uid/pid:10024/20264 NetworkRequest [ TRACK_DEFAULT id=1408, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10024] ]
+  2026-11-19T03:06:13.114 - RELEASE uid/pid:10024/20264 NetworkRequest [ LISTEN id=1407, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 10024] ]
+  2026-11-19T03:06:12.510 - REGISTER uid/pid:10024/20264 NetworkRequest [ TRACK_DEFAULT id=1408, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10024] ]
+  2026-11-19T03:06:02.427 - REGISTER uid/pid:10024/20264 NetworkRequest [ LISTEN id=1407, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 10024] ]
+  2026-11-19T03:03:35.350 - REGISTER uid/pid:10096/19436 NetworkRequest [ TRACK_DEFAULT id=1406, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10096] ]
+  2026-11-19T03:03:33.377 - REGISTER uid/pid:1010053/19510 NetworkRequest [ LISTEN id=1405, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T03:03:33.370 - REGISTER uid/pid:1010053/19510 NetworkRequest [ TRACK_DEFAULT id=1404, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T02:54:03.250 - RELEASE uid/pid:1010053/10585 NetworkRequest [ LISTEN id=1392, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T02:54:03.249 - RELEASE uid/pid:1010053/10585 NetworkRequest [ TRACK_DEFAULT id=1391, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T02:54:02.204 - REGISTER uid/pid:10147/17190 NetworkRequest [ TRACK_DEFAULT id=1403, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10147] ]
+  2026-11-19T02:46:37.801 - REGISTER uid/pid:10033/7856 NetworkRequest [ LISTEN id=1402, [ Transports: WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 10033] ]
+  2026-11-19T02:45:48.889 - RELEASE uid/pid:10147/13207 NetworkRequest [ TRACK_DEFAULT id=1395, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10147] ]
+  2026-11-19T02:45:32.253 - RELEASE uid/pid:10096/13622 NetworkRequest [ TRACK_DEFAULT id=1399, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10096] ]
+  2026-11-19T02:45:32.251 - RELEASE uid/pid:10096/13622 NetworkRequest [ TRACK_DEFAULT id=1400, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10096] ]
+  2026-11-19T02:45:32.251 - RELEASE uid/pid:10096/13622 NetworkRequest [ LISTEN id=1401, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10096] ]
+  2026-11-19T02:45:26.836 - RELEASE uid/pid:10172/13220 NetworkRequest [ TRACK_DEFAULT id=1393, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:45:26.834 - RELEASE uid/pid:10172/13220 NetworkRequest [ TRACK_DEFAULT id=1396, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:45:26.834 - RELEASE uid/pid:10172/13220 NetworkRequest [ LISTEN id=1394, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:45:26.832 - RELEASE uid/pid:10172/13220 NetworkRequest [ TRACK_DEFAULT id=1397, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:45:26.085 - RELEASE uid/pid:10033/7856 NetworkRequest [ LISTEN id=1389, [ Transports: WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 10033] ]
+  2026-11-19T02:28:11.553 - RELEASE uid/pid:10096/13622 NetworkRequest [ TRACK_DEFAULT id=1398, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10096] ]
+  2026-11-19T02:28:10.464 - REGISTER uid/pid:10096/13622 NetworkRequest [ LISTEN id=1401, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10096] ]
+  2026-11-19T02:28:10.439 - REGISTER uid/pid:10096/13622 NetworkRequest [ TRACK_DEFAULT id=1400, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10096] ]
+  2026-11-19T02:28:04.294 - REGISTER uid/pid:10096/13622 NetworkRequest [ TRACK_DEFAULT id=1399, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10096] ]
+  2026-11-19T02:28:02.557 - REGISTER uid/pid:10096/13622 NetworkRequest [ TRACK_DEFAULT id=1398, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10096] ]
+  2026-11-19T02:25:45.267 - REGISTER uid/pid:10172/13220 NetworkRequest [ TRACK_DEFAULT id=1397, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:25:43.253 - REGISTER uid/pid:10172/13220 NetworkRequest [ TRACK_DEFAULT id=1396, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:25:43.101 - REGISTER uid/pid:10147/13207 NetworkRequest [ TRACK_DEFAULT id=1395, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10147] ]
+  2026-11-19T02:25:41.708 - REGISTER uid/pid:10172/13220 NetworkRequest [ LISTEN id=1394, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:25:41.647 - REGISTER uid/pid:10172/13220 NetworkRequest [ TRACK_DEFAULT id=1393, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:24:12.224 - RELEASE uid/pid:10053/8876 NetworkRequest [ TRACK_DEFAULT id=1390, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:16:47.038 - REGISTER uid/pid:1010053/10585 NetworkRequest [ LISTEN id=1392, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T02:16:47.005 - REGISTER uid/pid:1010053/10585 NetworkRequest [ TRACK_DEFAULT id=1391, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T02:14:25.367 - RELEASE uid/pid:5009/2032 NetworkRequest [ LISTEN id=1334, [ Transports: CELLULAR|WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 5009] ]
+  2026-11-19T02:14:24.983 - RELEASE uid/pid:10147/6966 NetworkRequest [ TRACK_DEFAULT id=1367, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10147] ]
+  2026-11-19T02:14:24.981 - RELEASE uid/pid:10147/6966 NetworkRequest [ TRACK_DEFAULT id=1377, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10147] ]
+  2026-11-19T02:14:24.981 - RELEASE uid/pid:10147/6966 NetworkRequest [ LISTEN id=1378, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10147] ]
+  2026-11-19T02:14:21.241 - REGISTER uid/pid:10053/8876 NetworkRequest [ TRACK_DEFAULT id=1390, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:14:18.598 - REGISTER uid/pid:10033/7856 NetworkRequest [ LISTEN id=1389, [ Transports: WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 10033] ]
+  2026-11-19T02:14:18.579 - RELEASE uid/pid:10033/7856 NetworkRequest [ LISTEN id=1271, [ Transports: WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 10033] ]
+  2026-11-19T02:12:45.214 - RELEASE uid/pid:1010135/6657 NetworkRequest [ LISTEN id=1388, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010135] ]
+  2026-11-19T02:12:45.211 - RELEASE uid/pid:1010135/6657 NetworkRequest [ TRACK_DEFAULT id=1387, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010135] ]
+  2026-11-19T02:12:45.211 - RELEASE uid/pid:1010135/6657 NetworkRequest [ LISTEN id=1380, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010135] ]
+  2026-11-19T02:12:45.209 - RELEASE uid/pid:1010135/6657 NetworkRequest [ TRACK_DEFAULT id=1379, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010135] ]
+  2026-11-19T02:12:45.208 - RELEASE uid/pid:1010135/6657 NetworkRequest [ TRACK_DEFAULT id=1375, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010135] ]
+  2026-11-19T02:12:37.441 - RELEASE uid/pid:10172/7041 NetworkRequest [ TRACK_DEFAULT id=1376, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:12:37.439 - RELEASE uid/pid:10172/7041 NetworkRequest [ TRACK_DEFAULT id=1368, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:12:37.438 - RELEASE uid/pid:10172/7041 NetworkRequest [ LISTEN id=1369, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:12:37.436 - RELEASE uid/pid:10172/7041 NetworkRequest [ TRACK_DEFAULT id=1371, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:12:22.866 - RELEASE uid/pid:10257/6778 NetworkRequest [ LISTEN id=1373, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&FOREGROUND Unwanted:  Uid: 10257] ]
+  2026-11-19T02:12:22.864 - RELEASE uid/pid:10257/6778 NetworkRequest [ TRACK_DEFAULT id=1372, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10257] ]
+  2026-11-19T02:12:14.712 - RELEASE uid/pid:9510033/12903 NetworkRequest [ LISTEN id=1161, [ Transports: WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 9510033] ]
+  2026-11-19T02:12:14.710 - RELEASE uid/pid:9510033/12903 NetworkRequest [ TRACK_DEFAULT id=1187, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 9510033] ]
+  2026-11-19T02:12:14.710 - RELEASE uid/pid:9510033/12903 NetworkRequest [ LISTEN id=1160, [ Transports: CELLULAR|WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 9510033] ]
+  2026-11-19T02:12:14.709 - RELEASE uid/pid:9510033/12903 NetworkRequest [ LISTEN id=1162, [ Transports: WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 9510033] ]
+  2026-11-19T02:12:14.708 - RELEASE uid/pid:9510033/12903 NetworkRequest [ LISTEN id=1188, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 9510033] ]
+  2026-11-19T02:12:14.698 - RELEASE uid/pid:9510033/12903 NetworkRequest [ TRACK_DEFAULT id=1185, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 9510033] ]
+  2026-11-19T02:12:14.698 - RELEASE uid/pid:9510033/12903 NetworkRequest [ LISTEN id=1256, [ Transports: WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 9510033] ]
+  2026-11-19T02:11:08.872 - REGISTER uid/pid:1010135/6657 NetworkRequest [ LISTEN id=1388, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010135] ]
+  2026-11-19T02:11:08.859 - REGISTER uid/pid:1010135/6657 NetworkRequest [ TRACK_DEFAULT id=1387, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010135] ]
+  2026-11-19T02:11:07.923 - RELEASE uid/pid:10172/7041 NetworkRequest [ LISTEN id=1384, [ Capabilities: INTERNET&TRUSTED&VALIDATED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:11:07.537 - RELEASE uid/pid:10172/7041 NetworkRequest [ LISTEN id=1386, [ Capabilities: INTERNET&TRUSTED&VALIDATED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:11:07.515 - RELEASE uid/pid:10172/7041 NetworkRequest [ LISTEN id=1385, [ Capabilities: NOT_METERED&INTERNET&TRUSTED&VALIDATED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:11:06.696 - REGISTER uid/pid:10172/7041 NetworkRequest [ LISTEN id=1386, [ Capabilities: INTERNET&TRUSTED&VALIDATED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:11:06.693 - REGISTER uid/pid:10172/7041 NetworkRequest [ LISTEN id=1385, [ Capabilities: NOT_METERED&INTERNET&TRUSTED&VALIDATED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:11:06.690 - REGISTER uid/pid:10172/7041 NetworkRequest [ LISTEN id=1384, [ Capabilities: INTERNET&TRUSTED&VALIDATED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:11:06.673 - RELEASE uid/pid:10172/7041 NetworkRequest [ LISTEN id=1383, [ Capabilities: NOT_METERED&INTERNET&TRUSTED&VALIDATED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:11:06.661 - REGISTER uid/pid:10172/7041 NetworkRequest [ LISTEN id=1383, [ Capabilities: NOT_METERED&INTERNET&TRUSTED&VALIDATED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:11:06.628 - RELEASE uid/pid:10172/7041 NetworkRequest [ LISTEN id=1382, [ Capabilities: INTERNET&TRUSTED&VALIDATED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:11:06.600 - REGISTER uid/pid:10172/7041 NetworkRequest [ LISTEN id=1382, [ Capabilities: INTERNET&TRUSTED&VALIDATED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:11:06.534 - RELEASE uid/pid:10172/7041 NetworkRequest [ LISTEN id=1381, [ Capabilities: INTERNET&TRUSTED&VALIDATED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:11:06.526 - REGISTER uid/pid:10172/7041 NetworkRequest [ LISTEN id=1381, [ Capabilities: INTERNET&TRUSTED&VALIDATED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:11:03.390 - RELEASE uid/pid:1010135/6657 NetworkRequest [ LISTEN id=1374, [ Capabilities: INTERNET&TRUSTED&VALIDATED Unwanted:  Uid: 1010135] ]
+  2026-11-19T02:10:57.424 - REGISTER uid/pid:1010135/6657 NetworkRequest [ LISTEN id=1380, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010135] ]
+  2026-11-19T02:10:57.336 - REGISTER uid/pid:1010135/6657 NetworkRequest [ TRACK_DEFAULT id=1379, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010135] ]
+  2026-11-19T02:10:55.315 - RELEASE uid/pid:10053/4586 NetworkRequest [ TRACK_DEFAULT id=1365, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:10:55.315 - RELEASE uid/pid:10053/4586 NetworkRequest [ LISTEN id=1363, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:10:55.314 - RELEASE uid/pid:10053/4586 NetworkRequest [ TRACK_DEFAULT id=1358, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:10:55.275 - RELEASE uid/pid:10053/4586 NetworkRequest [ TRACK_DEFAULT id=1362, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:10:51.501 - REGISTER uid/pid:10147/6966 NetworkRequest [ LISTEN id=1378, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10147] ]
+  2026-11-19T02:10:51.458 - REGISTER uid/pid:10147/6966 NetworkRequest [ TRACK_DEFAULT id=1377, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10147] ]
+  2026-11-19T02:10:49.520 - REGISTER uid/pid:10172/7041 NetworkRequest [ TRACK_DEFAULT id=1376, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:10:49.385 - REGISTER uid/pid:1010135/6657 NetworkRequest [ TRACK_DEFAULT id=1375, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010135] ]
+  2026-11-19T02:10:48.734 - REGISTER uid/pid:1010135/6657 NetworkRequest [ LISTEN id=1374, [ Capabilities: INTERNET&TRUSTED&VALIDATED Unwanted:  Uid: 1010135] ]
+  2026-11-19T02:10:48.600 - RELEASE uid/pid:10257/6778 NetworkRequest [ LISTEN id=1370, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10257] ]
+  2026-11-19T02:10:45.881 - REGISTER uid/pid:10257/6778 NetworkRequest [ LISTEN id=1373, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&FOREGROUND Unwanted:  Uid: 10257] ]
+  2026-11-19T02:10:45.863 - REGISTER uid/pid:10257/6778 NetworkRequest [ TRACK_DEFAULT id=1372, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10257] ]
+  2026-11-19T02:10:44.894 - REGISTER uid/pid:10172/7041 NetworkRequest [ TRACK_DEFAULT id=1371, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:10:44.891 - REGISTER uid/pid:10257/6778 NetworkRequest [ LISTEN id=1370, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10257] ]
+  2026-11-19T02:10:44.859 - RELEASE uid/pid:10257/6778 NetworkRequest [ LISTEN id=1366, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10257] ]
+  2026-11-19T02:10:42.846 - REGISTER uid/pid:10172/7041 NetworkRequest [ LISTEN id=1369, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:10:42.783 - REGISTER uid/pid:10172/7041 NetworkRequest [ TRACK_DEFAULT id=1368, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:10:42.454 - REGISTER uid/pid:10147/6966 NetworkRequest [ TRACK_DEFAULT id=1367, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10147] ]
+  2026-11-19T02:10:36.909 - REGISTER uid/pid:10257/6778 NetworkRequest [ LISTEN id=1366, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10257] ]
+  2026-11-19T02:10:16.596 - RELEASE uid/pid:1010053/4626 NetworkRequest [ TRACK_DEFAULT id=1359, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T02:10:16.595 - RELEASE uid/pid:1010053/4626 NetworkRequest [ LISTEN id=1360, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T02:06:56.386 - REGISTER uid/pid:10053/4586 NetworkRequest [ TRACK_DEFAULT id=1365, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:06:31.785 - REGISTER uid/pid:1010053/4742 NetworkRequest [ TRACK_DEFAULT id=1364, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T02:06:31.451 - REGISTER uid/pid:10053/4586 NetworkRequest [ LISTEN id=1363, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:06:31.438 - REGISTER uid/pid:10053/4586 NetworkRequest [ TRACK_DEFAULT id=1362, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:06:20.443 - REGISTER uid/pid:1010053/4742 NetworkRequest [ TRACK_DEFAULT id=1361, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T02:06:15.289 - REGISTER uid/pid:1010053/4626 NetworkRequest [ LISTEN id=1360, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T02:06:15.135 - REGISTER uid/pid:1010053/4626 NetworkRequest [ TRACK_DEFAULT id=1359, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T02:06:14.970 - REGISTER uid/pid:10053/4586 NetworkRequest [ TRACK_DEFAULT id=1358, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:06:10.992 - REGISTER uid/pid:10053/4438 NetworkRequest [ LISTEN id=1357, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:06:10.900 - REGISTER uid/pid:10053/4438 NetworkRequest [ TRACK_DEFAULT id=1356, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:06:06.640 - RELEASE uid/pid:1010053/3941 NetworkRequest [ TRACK_DEFAULT id=1354, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T02:06:06.037 - RELEASE uid/pid:10053/3934 NetworkRequest [ TRACK_DEFAULT id=1355, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:05:47.400 - REGISTER uid/pid:10053/3934 NetworkRequest [ TRACK_DEFAULT id=1355, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:05:43.874 - REGISTER uid/pid:1010053/3941 NetworkRequest [ TRACK_DEFAULT id=1354, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T02:05:12.297 - RELEASE uid/pid:10053/31628 NetworkRequest [ LISTEN id=1308, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:05:12.296 - RELEASE uid/pid:10053/31628 NetworkRequest [ TRACK_DEFAULT id=1307, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:05:12.284 - RELEASE uid/pid:1010053/2684 NetworkRequest [ TRACK_DEFAULT id=1351, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T02:05:12.282 - RELEASE uid/pid:10053/3556 NetworkRequest [ TRACK_DEFAULT id=1352, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:05:12.281 - RELEASE uid/pid:10053/3556 NetworkRequest [ TRACK_DEFAULT id=1353, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:04:20.635 - RELEASE uid/pid:10127/833 NetworkRequest [ TRACK_DEFAULT id=1325, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10127] ]
+  2026-11-19T02:04:20.633 - RELEASE uid/pid:10127/833 NetworkRequest [ TRACK_DEFAULT id=1324, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10127] ]
+  2026-11-19T02:04:20.631 - RELEASE uid/pid:10127/833 NetworkRequest [ TRACK_DEFAULT id=1323, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10127] ]
+  2026-11-19T02:04:16.137 - REGISTER uid/pid:10053/3556 NetworkRequest [ TRACK_DEFAULT id=1353, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:04:13.062 - REGISTER uid/pid:10053/3556 NetworkRequest [ TRACK_DEFAULT id=1352, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:03:42.172 - RELEASE uid/pid:10135/726 NetworkRequest [ LISTEN id=1331, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10135] ]
+  2026-11-19T02:03:42.171 - RELEASE uid/pid:10135/726 NetworkRequest [ TRACK_DEFAULT id=1327, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10135] ]
+  2026-11-19T02:03:42.169 - RELEASE uid/pid:10135/726 NetworkRequest [ TRACK_DEFAULT id=1330, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10135] ]
+  2026-11-19T02:03:38.679 - RELEASE uid/pid:10053/32226 NetworkRequest [ TRACK_DEFAULT id=1314, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:03:38.678 - RELEASE uid/pid:10053/32226 NetworkRequest [ TRACK_DEFAULT id=1320, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:03:38.678 - RELEASE uid/pid:10053/32226 NetworkRequest [ LISTEN id=1318, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:03:38.676 - RELEASE uid/pid:10053/32226 NetworkRequest [ TRACK_DEFAULT id=1317, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10053] ]
+  2026-11-19T02:03:34.243 - RELEASE uid/pid:10257/2220 NetworkRequest [ LISTEN id=1337, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10257] ]
+  2026-11-19T02:03:34.242 - RELEASE uid/pid:10257/2220 NetworkRequest [ LISTEN id=1350, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&FOREGROUND Unwanted:  Uid: 10257] ]
+  2026-11-19T02:03:34.241 - RELEASE uid/pid:10257/2220 NetworkRequest [ TRACK_DEFAULT id=1349, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10257] ]
+  2026-11-19T02:03:29.719 - RELEASE uid/pid:10183/2158 NetworkRequest [ TRACK_DEFAULT id=1347, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10183] ]
+  2026-11-19T02:03:29.719 - RELEASE uid/pid:10183/2158 NetworkRequest [ LISTEN id=1342, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10183] ]
+  2026-11-19T02:03:29.719 - RELEASE uid/pid:10183/2158 NetworkRequest [ LISTEN id=1348, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&FOREGROUND Unwanted:  Uid: 10183] ]
+  2026-11-19T02:03:29.719 - RELEASE uid/pid:10183/2158 NetworkRequest [ LISTEN id=1338, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10183] ]
+  2026-11-19T02:03:29.718 - RELEASE uid/pid:10183/2158 NetworkRequest [ LISTEN id=1344, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10183] ]
+  2026-11-19T02:03:29.718 - RELEASE uid/pid:10183/2158 NetworkRequest [ LISTEN id=1340, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10183] ]
+  2026-11-19T02:03:29.717 - RELEASE uid/pid:10183/2158 NetworkRequest [ LISTEN id=1339, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10183] ]
+  2026-11-19T02:03:28.830 - RELEASE uid/pid:10172/1852 NetworkRequest [ TRACK_DEFAULT id=1332, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:03:28.829 - RELEASE uid/pid:10172/1852 NetworkRequest [ LISTEN id=1333, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:03:28.824 - RELEASE uid/pid:10172/1852 NetworkRequest [ TRACK_DEFAULT id=1335, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:03:28.822 - RELEASE uid/pid:10172/1852 NetworkRequest [ TRACK_DEFAULT id=1336, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:03:28.137 - REGISTER uid/pid:1010053/2684 NetworkRequest [ TRACK_DEFAULT id=1351, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T02:03:24.765 - REGISTER uid/pid:10257/2220 NetworkRequest [ LISTEN id=1350, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&FOREGROUND Unwanted:  Uid: 10257] ]
+  2026-11-19T02:03:24.742 - REGISTER uid/pid:10257/2220 NetworkRequest [ TRACK_DEFAULT id=1349, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10257] ]
+  2026-11-19T02:03:23.427 - RELEASE uid/pid:10147/891 NetworkRequest [ TRACK_DEFAULT id=1326, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10147] ]
+  2026-11-19T02:03:23.425 - RELEASE uid/pid:10147/891 NetworkRequest [ TRACK_DEFAULT id=1328, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10147] ]
+  2026-11-19T02:03:23.425 - RELEASE uid/pid:10147/891 NetworkRequest [ LISTEN id=1329, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10147] ]
+  2026-11-19T02:03:21.592 - RELEASE uid/pid:10191/2353 NetworkRequest [ TRACK_DEFAULT id=1345, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10191] ]
+  2026-11-19T02:03:21.588 - RELEASE uid/pid:10191/2353 NetworkRequest [ LISTEN id=1346, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10191] ]
+  2026-11-19T02:03:20.574 - REGISTER uid/pid:10183/2158 NetworkRequest [ LISTEN id=1348, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&FOREGROUND Unwanted:  Uid: 10183] ]
+  2026-11-19T02:03:20.553 - REGISTER uid/pid:10183/2158 NetworkRequest [ TRACK_DEFAULT id=1347, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10183] ]
+  2026-11-19T02:03:20.385 - REGISTER uid/pid:10191/2353 NetworkRequest [ LISTEN id=1346, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10191] ]
+  2026-11-19T02:03:20.369 - REGISTER uid/pid:10191/2353 NetworkRequest [ TRACK_DEFAULT id=1345, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10191] ]
+  2026-11-19T02:03:16.766 - RELEASE uid/pid:10183/2158 NetworkRequest [ LISTEN id=1343, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10183] ]
+  2026-11-19T02:03:16.413 - REGISTER uid/pid:10183/2158 NetworkRequest [ LISTEN id=1344, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10183] ]
+  2026-11-19T02:03:15.889 - RELEASE uid/pid:10183/2158 NetworkRequest [ LISTEN id=1341, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10183] ]
+  2026-11-19T02:03:15.149 - REGISTER uid/pid:10183/2158 NetworkRequest [ LISTEN id=1343, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10183] ]
+  2026-11-19T02:03:13.886 - REGISTER uid/pid:10183/2158 NetworkRequest [ LISTEN id=1342, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10183] ]
+  2026-11-19T02:03:13.880 - REGISTER uid/pid:10183/2158 NetworkRequest [ LISTEN id=1341, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10183] ]
+  2026-11-19T02:03:13.875 - REGISTER uid/pid:10183/2158 NetworkRequest [ LISTEN id=1340, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10183] ]
+  2026-11-19T02:03:13.870 - REGISTER uid/pid:10183/2158 NetworkRequest [ LISTEN id=1339, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10183] ]
+  2026-11-19T02:03:13.866 - REGISTER uid/pid:10183/2158 NetworkRequest [ LISTEN id=1338, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10183] ]
+  2026-11-19T02:03:12.959 - REGISTER uid/pid:10257/2220 NetworkRequest [ LISTEN id=1337, [ Capabilities: INTERNET&TRUSTED&VALIDATED&FOREGROUND Unwanted:  Uid: 10257] ]
+  2026-11-19T02:03:09.180 - REGISTER uid/pid:10172/1852 NetworkRequest [ TRACK_DEFAULT id=1336, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:03:07.510 - REGISTER uid/pid:10172/1852 NetworkRequest [ TRACK_DEFAULT id=1335, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:03:07.450 - REGISTER uid/pid:5009/2032 NetworkRequest [ LISTEN id=1334, [ Transports: CELLULAR|WIFI Capabilities: NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 5009] ]
+  2026-11-19T02:03:05.326 - REGISTER uid/pid:10172/1852 NetworkRequest [ LISTEN id=1333, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:03:05.312 - REGISTER uid/pid:10172/1852 NetworkRequest [ TRACK_DEFAULT id=1332, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10172] ]
+  2026-11-19T02:02:56.797 - REGISTER uid/pid:10135/726 NetworkRequest [ LISTEN id=1331, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10135] ]
+  2026-11-19T02:02:56.765 - REGISTER uid/pid:10135/726 NetworkRequest [ TRACK_DEFAULT id=1330, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10135] ]
+  2026-11-19T02:02:56.045 - REGISTER uid/pid:10147/891 NetworkRequest [ LISTEN id=1329, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10147] ]
+  2026-11-19T02:02:56.031 - REGISTER uid/pid:10147/891 NetworkRequest [ TRACK_DEFAULT id=1328, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10147] ]
+  2026-11-19T02:02:50.045 - RELEASE uid/pid:1010053/32532 NetworkRequest [ TRACK_DEFAULT id=1319, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 1010053] ]
+  2026-11-19T02:02:46.750 - REGISTER uid/pid:10135/726 NetworkRequest [ TRACK_DEFAULT id=1327, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10135] ]
+  2026-11-19T02:02:46.497 - REGISTER uid/pid:10147/891 NetworkRequest [ TRACK_DEFAULT id=1326, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10147] ]
+  2026-11-19T02:02:45.289 - REGISTER uid/pid:10127/833 NetworkRequest [ TRACK_DEFAULT id=1325, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10127] ]
+  2026-11-19T02:02:40.663 - REGISTER uid/pid:10127/833 NetworkRequest [ TRACK_DEFAULT id=1324, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10127] ]
+  2026-11-19T02:02:40.191 - REGISTER uid/pid:10127/833 NetworkRequest [ TRACK_DEFAULT id=1323, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10127] ]
+  2026-11-19T02:02:39.192 - RELEASE uid/pid:10191/661 NetworkRequest [ TRACK_DEFAULT id=1321, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10191] ]
+  2026-11-19T02:02:39.191 - RELEASE uid/pid:10191/661 NetworkRequest [ LISTEN id=1322, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10191] ]
+  2026-11-19T02:02:37.388 - RELEASE uid/pid:10244/30272 NetworkRequest [ LISTEN id=1301, [ Transports: CELLULAR Capabilities: INTERNET&TRUSTED&VALIDATED Unwanted:  Uid: 10244] ]
+  2026-11-19T02:02:37.388 - RELEASE uid/pid:10244/30272 NetworkRequest [ LISTEN id=1303, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN Unwanted:  Uid: 10244] ]
+  2026-11-19T02:02:37.387 - RELEASE uid/pid:10244/30272 NetworkRequest [ TRACK_DEFAULT id=1297, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10244] ]
+  2026-11-19T02:02:37.385 - RELEASE uid/pid:10244/30272 NetworkRequest [ TRACK_DEFAULT id=1299, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10244] ]
+  2026-11-19T02:02:37.384 - RELEASE uid/pid:10244/30272 NetworkRequest [ TRACK_DEFAULT id=1298, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10244] ]
+  2026-11-19T02:02:35.753 - REGISTER uid/pid:10191/661 NetworkRequest [ LISTEN id=1322, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED Unwanted:  Uid: 10191] ]
+
+mNetworkInfoBlockingLogs (most recent first):
+  2026-11-19T03:06:00.776 - UNBLOCKED 10024
+  2026-11-19T02:25:40.593 - UNBLOCKED 10028
+  2026-11-19T02:14:24.597 - BLOCKED 10028
+  2026-11-19T02:12:21.101 - BLOCKED 1010135
+  2026-11-19T02:11:01.211 - UNBLOCKED 1010135
+  2026-11-19T02:10:43.046 - UNBLOCKED 10172
+  2026-11-19T02:10:41.703 - UNBLOCKED 10147
+  2026-11-19T02:10:38.470 - UNBLOCKED 10195
+  2026-11-19T02:10:37.006 - UNBLOCKED 10257
+  2026-11-19T02:10:35.687 - UNBLOCKED 10028
+  2026-11-19T02:01:51.656 - UNBLOCKED 10127
+  2026-11-19T02:00:50.089 - BLOCKED 10028
+  2026-11-19T01:55:15.027 - UNBLOCKED 10112
+  2026-11-19T01:53:52.804 - UNBLOCKED 1010053
+  2026-11-19T01:53:47.200 - UNBLOCKED 10173
+  2026-11-19T01:35:11.882 - BLOCKED 1010053
+  2026-11-19T01:16:52.201 - BLOCKED 10173
+  2026-11-19T01:15:52.422 - UNBLOCKED 10065
+  2026-11-19T01:15:51.667 - UNBLOCKED 1010053
+  2026-11-19T01:15:49.046 - UNBLOCKED 10053
+  2026-11-19T01:15:48.107 - UNBLOCKED 10173
+  2026-11-18T23:43:39.940 - BLOCKED 10053
+  2026-11-18T23:36:38.711 - BLOCKED 1010053
+  2026-11-18T23:14:36.361 - UNBLOCKED 10208
+  2026-11-18T23:14:30.931 - UNBLOCKED 1010053
+  2026-11-18T22:15:03.155 - BLOCKED 1010053
+  2026-11-18T22:14:25.202 - BLOCKED 10208
+  2026-11-18T22:13:23.399 - UNBLOCKED 1010053
+  2026-11-18T22:06:22.836 - BLOCKED 1010053
+  2026-11-18T21:51:24.556 - UNBLOCKED 1010053
+  2026-11-18T21:44:31.745 - BLOCKED 1010053
+  2026-11-18T21:35:05.370 - UNBLOCKED 1010053
+  2026-11-18T21:35:05.090 - UNBLOCKED 10053
+  2026-11-18T21:31:01.728 - BLOCKED 1010053
+  2026-11-18T21:29:03.563 - BLOCKED 10173
+  2026-11-18T21:27:02.024 - BLOCKED 10053
+  2026-11-18T21:24:02.883 - UNBLOCKED 10173
+  2026-11-18T21:20:27.838 - BLOCKED 10173
+  2026-11-18T21:16:40.006 - BLOCKED 10127
+  2026-11-18T21:15:18.141 - UNBLOCKED 10208
+  2026-11-18T21:15:09.419 - UNBLOCKED 10127
+  2026-11-18T21:13:22.418 - BLOCKED 10127
+  2026-11-18T21:13:16.499 - UNBLOCKED 10028
+  2026-11-18T21:13:10.050 - UNBLOCKED 10127
+  2026-11-18T21:12:26.504 - BLOCKED 10208
+  2026-11-18T21:12:24.687 - BLOCKED 10257
+  2026-11-18T21:12:00.627 - UNBLOCKED 10173
+  2026-11-18T21:11:51.726 - UNBLOCKED 10053
+  2026-11-18T20:31:25.041 - BLOCKED 10195
+  2026-11-18T20:31:22.554 - BLOCKED 10065
+  2026-11-18T18:37:58.320 - UNBLOCKED 10208
+  2026-11-18T16:40:39.044 - BLOCKED 10053
+  2026-11-18T16:38:40.555 - BLOCKED 10173
+  2026-11-18T16:37:34.765 - UNBLOCKED 10173
+  2026-11-18T16:37:27.815 - UNBLOCKED 10053
+  2026-11-18T16:37:27.047 - UNBLOCKED 1010053
+  2026-11-18T16:37:26.857 - BLOCKED 10208
+  2026-11-18T10:57:06.853 - BLOCKED 1010053
+  2026-11-18T10:54:56.315 - BLOCKED 10053
+  2026-11-18T10:50:01.453 - BLOCKED 10028
+  2026-11-18T10:48:55.719 - BLOCKED 10173
+  2026-11-18T10:48:42.421 - BLOCKED 10244
+  2026-11-18T10:48:02.902 - UNBLOCKED 10173
+  2026-11-18T10:47:58.631 - UNBLOCKED 10053
+  2026-11-18T10:47:55.396 - UNBLOCKED 1010053
+  2026-11-18T09:41:12.146 - BLOCKED 10147
+  2026-11-18T07:28:20.727 - BLOCKED 1010053
+  2026-11-18T07:00:42.394 - BLOCKED 10053
+  2026-11-18T06:52:42.722 - BLOCKED 10173
+  2026-11-18T06:47:51.072 - BLOCKED 9510208
+  2026-11-18T06:45:05.026 - UNBLOCKED 1010053
+  2026-11-18T06:44:44.412 - UNBLOCKED 10053
+  2026-11-18T05:17:05.913 - BLOCKED 10053
+  2026-11-18T05:07:15.265 - BLOCKED 10172
+  2026-11-18T04:48:40.516 - BLOCKED 1010053
+  2026-11-18T04:48:16.006 - BLOCKED 10127
+  2026-11-18T04:47:49.749 - UNBLOCKED 1010053
+  2026-11-18T04:47:46.885 - UNBLOCKED 10208
+  2026-11-18T04:30:09.227 - BLOCKED 1010053
+  2026-11-18T04:00:19.021 - BLOCKED 10208
+  2026-11-18T04:00:15.312 - UNBLOCKED 10053
+  2026-11-18T04:00:12.898 - UNBLOCKED 1010053
+  2026-11-18T03:42:47.123 - BLOCKED 10053
+  2026-11-18T03:42:12.314 - BLOCKED 1010053
+  2026-11-18T03:24:42.041 - UNBLOCKED 1010053
+  2026-11-18T03:21:29.273 - BLOCKED 1010053
+  2026-11-18T03:10:30.319 - BLOCKED 1010135
+  2026-11-18T03:09:29.672 - UNBLOCKED 1010053
+  2026-11-18T02:59:41.319 - BLOCKED 1010053
+  2026-11-18T02:20:07.773 - UNBLOCKED 10257
+  2026-11-18T02:00:27.923 - UNBLOCKED 9510208
+  2026-11-18T01:20:32.726 - UNBLOCKED 10244
+  2026-11-18T00:00:12.890 - BLOCKED 9510208
+  2026-11-17T22:11:56.697 - UNBLOCKED 9510208
+  2026-11-17T21:47:42.941 - BLOCKED 10185
+  2026-11-17T21:30:44.478 - BLOCKED 10130
+  2026-11-17T21:30:19.368 - UNBLOCKED 10147
+  2026-11-17T21:29:19.071 - UNBLOCKED 10185
+  2026-11-17T21:28:49.531 - UNBLOCKED 1010135
+  2026-11-17T21:27:58.498 - UNBLOCKED 10265
+  2026-11-17T21:27:58.248 - UNBLOCKED 10195
+  2026-11-17T21:27:57.400 - UNBLOCKED 10172
+  2026-11-17T21:27:51.268 - UNBLOCKED 10127
+  2026-11-17T21:27:46.705 - UNBLOCKED 10028
+  2026-11-17T21:27:45.847 - UNBLOCKED 10065
+  2026-11-17T20:55:02.686 - BLOCKED 1010135
+  2026-11-17T20:46:36.241 - UNBLOCKED 10135
+  2026-11-17T20:42:03.722 - BLOCKED 10195
+  2026-11-17T20:42:03.605 - BLOCKED 10172
+  2026-11-17T20:41:02.312 - UNBLOCKED 1010053
+  2026-11-17T20:40:33.122 - UNBLOCKED 10173
+  2026-11-17T20:37:53.040 - BLOCKED 10173
+  2026-11-17T20:34:01.298 - UNBLOCKED 10173
+  2026-11-17T20:33:09.022 - BLOCKED 10173
+  2026-11-17T20:31:02.284 - BLOCKED 1010053
+  2026-11-17T20:28:44.421 - UNBLOCKED 10053
+  2026-11-17T20:28:39.099 - UNBLOCKED 1010053
+  2026-11-17T20:28:30.402 - UNBLOCKED 10173
+  2026-11-17T20:28:30.402 - UNBLOCKED 10208
+  2026-11-17T20:28:30.196 - BLOCKED 10208
+  2026-11-17T20:28:30.010 - BLOCKED 10053
+  2026-11-17T19:59:08.954 - BLOCKED 10173
+  2026-11-17T19:57:09.056 - UNBLOCKED 10053
+  2026-11-17T19:57:06.631 - UNBLOCKED 10173
+  2026-11-17T19:52:59.670 - BLOCKED 10053
+  2026-11-17T19:50:34.851 - BLOCKED 1010053
+  2026-11-17T19:50:11.616 - BLOCKED 10173
+  2026-11-17T19:49:13.808 - UNBLOCKED 10173
+  2026-11-17T19:49:08.342 - UNBLOCKED 10208
+  2026-11-17T19:33:56.921 - BLOCKED 10173
+  2026-11-17T19:32:42.446 - UNBLOCKED 10053
+  2026-11-17T19:32:37.092 - UNBLOCKED 10173
+  2026-11-17T19:07:22.823 - BLOCKED 10053
+  2026-11-17T19:03:38.823 - UNBLOCKED 1010053
+  2026-11-17T19:03:20.053 - UNBLOCKED 10053
+  2026-11-17T18:56:23.272 - BLOCKED 1010053
+  2026-11-17T18:55:22.393 - UNBLOCKED 1010053
+  2026-11-17T18:39:30.653 - BLOCKED 1010053
+  2026-11-17T18:38:10.573 - UNBLOCKED 1010053
+  2026-11-17T18:11:16.021 - BLOCKED 10208
+  2026-11-17T18:07:09.321 - BLOCKED 10053
+  2026-11-17T18:05:04.350 - UNBLOCKED 10053
+  2026-11-17T17:54:51.143 - BLOCKED 10053
+  2026-11-17T17:50:04.072 - BLOCKED 1010053
+  2026-11-17T17:46:59.951 - UNBLOCKED 1010053
+  2026-11-17T17:46:27.343 - UNBLOCKED 10053
+  2026-11-17T17:37:42.209 - BLOCKED 1010053
+  2026-11-17T17:36:59.657 - BLOCKED 10053
+  2026-11-17T17:36:33.778 - UNBLOCKED 1010053
+  2026-11-17T17:36:33.137 - UNBLOCKED 10053
+  2026-11-17T17:28:53.461 - BLOCKED 10053
+  2026-11-17T17:26:21.629 - UNBLOCKED 10053
+  2026-11-17T17:24:00.950 - BLOCKED 10135
+  2026-11-17T17:21:28.067 - BLOCKED 1010053
+  2026-11-17T17:20:28.860 - BLOCKED 10053
+  2026-11-17T17:20:09.759 - UNBLOCKED 1010053
+  2026-11-17T17:19:04.041 - UNBLOCKED 10053
+  2026-11-17T17:19:00.264 - UNBLOCKED 10135
+  2026-11-17T17:13:46.204 - BLOCKED 1010053
+  2026-11-17T17:09:10.013 - UNBLOCKED 10208
+  2026-11-17T17:08:09.615 - BLOCKED 10053
+  2026-11-17T17:07:14.033 - UNBLOCKED 10053
+  2026-11-17T17:02:43.732 - BLOCKED 10173
+  2026-11-17T17:02:33.399 - BLOCKED 10053
+  2026-11-17T16:58:27.395 - UNBLOCKED 1010053
+  2026-11-17T16:57:57.378 - UNBLOCKED 10173
+  2026-11-17T16:52:16.095 - BLOCKED 1010053
+  2026-11-17T16:51:43.699 - BLOCKED 10173
+  2026-11-17T16:51:22.834 - UNBLOCKED 10053
+  2026-11-17T16:51:14.923 - UNBLOCKED 10173
+  2026-11-17T16:51:13.692 - UNBLOCKED 1010053
+  2026-11-17T16:32:39.905 - BLOCKED 1010053
+  2026-11-17T16:32:30.425 - BLOCKED 10053
+  2026-11-17T16:32:29.365 - BLOCKED 10173
+  2026-11-17T16:31:24.925 - UNBLOCKED 10053
+  2026-11-17T16:31:14.945 - UNBLOCKED 10173
+  2026-11-17T16:09:16.931 - BLOCKED 10208
+  2026-11-17T16:02:41.439 - BLOCKED 10053
+  2026-11-17T15:52:09.158 - UNBLOCKED 1010053
+  2026-11-17T15:48:48.353 - BLOCKED 1010053
+  2026-11-17T15:45:23.984 - UNBLOCKED 10208
+  2026-11-17T15:44:14.307 - UNBLOCKED 1010053
+  2026-11-17T15:37:22.109 - BLOCKED 1010053
+  2026-11-17T15:36:10.203 - UNBLOCKED 1010053
+  2026-11-17T15:36:08.884 - UNBLOCKED 10053
+  2026-11-17T15:14:11.732 - BLOCKED 1010053
+  2026-11-17T15:14:06.750 - UNBLOCKED 1010053
+  2026-11-17T15:09:39.711 - BLOCKED 10208
+  2026-11-17T14:18:44.188 - BLOCKED 10053
+  2026-11-17T14:17:11.206 - BLOCKED 1010053
+  2026-11-17T14:12:38.844 - UNBLOCKED 10053
+  2026-11-17T13:46:14.538 - UNBLOCKED 10208
+  2026-11-17T13:32:47.748 - BLOCKED 10135
+  2026-11-17T13:21:11.903 - BLOCKED 10208
+  2026-11-17T13:20:05.437 - UNBLOCKED 10208
+  2026-11-17T13:20:05.336 - BLOCKED 10265
+  2026-11-17T13:20:05.201 - BLOCKED 10053
+  2026-11-17T12:17:14.899 - UNBLOCKED 1010053
+  2026-11-17T12:06:22.048 - BLOCKED 1010053
+  2026-11-17T12:06:16.024 - UNBLOCKED 1010053
+  2026-11-17T11:16:45.710 - UNBLOCKED 10053
+  2026-11-17T11:10:44.309 - BLOCKED 1010053
+  2026-11-17T11:10:44.142 - BLOCKED 10053
+  2026-11-17T11:05:34.289 - BLOCKED 10183
+  2026-11-17T11:04:56.242 - BLOCKED 10208
+  2026-11-17T11:04:47.217 - UNBLOCKED 1010053
+  2026-11-17T11:04:44 - UNBLOCKED 10053
+  2026-11-17T07:00:00.691 - BLOCKED 10053
+  2026-11-17T06:35:46.165 - BLOCKED 1010053
+  2026-11-17T06:26:05.385 - UNBLOCKED 1010053
+  2026-11-17T02:32:26.391 - BLOCKED 1010053
+  2026-11-17T02:27:53.452 - BLOCKED 10028
+  2026-11-17T02:26:44.081 - UNBLOCKED 1010053
+  2026-11-17T02:26:35.605 - BLOCKED 10024
+  2026-11-17T00:40:04.649 - BLOCKED 10147
+  2026-11-17T00:38:54.520 - BLOCKED 1010053
+  2026-11-17T00:35:24.468 - BLOCKED 10127
+  2026-11-17T00:33:28.481 - UNBLOCKED 10147
+  2026-11-17T00:33:20.212 - UNBLOCKED 10053
+  2026-11-17T00:33:17.991 - UNBLOCKED 10028
+  2026-11-17T00:33:10.030 - UNBLOCKED 1010053
+  2026-11-17T00:33:08.725 - UNBLOCKED 10127
+  2026-11-16T23:45:16.612 - BLOCKED 1010053
+  2026-11-16T23:35:29.816 - UNBLOCKED 10208
+  2026-11-16T23:35:23.539 - UNBLOCKED 1010053
+  2026-11-16T23:23:57.016 - BLOCKED 10208
+  2026-11-16T23:23:53.548 - BLOCKED 1010053
+  2026-11-16T23:23:36.203 - BLOCKED 10053
+  2026-11-16T23:20:19.652 - UNBLOCKED 10053
+  2026-11-16T23:20:18.317 - UNBLOCKED 10172
+  2026-11-16T23:10:10.632 - BLOCKED 10147
+  2026-11-16T23:05:16.575 - BLOCKED 10172
+  2026-11-16T23:05:16.510 - BLOCKED 10053
+  2026-11-16T23:03:27.852 - UNBLOCKED 10053
+  2026-11-16T23:03:27.596 - UNBLOCKED 10172
+  2026-11-16T22:51:55.294 - BLOCKED 10053
+  2026-11-16T22:48:38.922 - UNBLOCKED 10053
+  2026-11-16T22:43:18.528 - BLOCKED 10053
+  2026-11-16T22:43:04.745 - BLOCKED 10185
+  2026-11-16T22:39:54.543 - UNBLOCKED 10147
+  2026-11-16T22:39:30.512 - BLOCKED 10221
+  2026-11-16T22:39:25.533 - BLOCKED 10180
+  2026-11-16T22:38:34.634 - UNBLOCKED 10123
+  2026-11-16T22:38:31.773 - UNBLOCKED 10208
+  2026-11-16T22:35:30.293 - BLOCKED 10147
+  2026-11-16T22:33:33.540 - BLOCKED 10123
+  2026-11-16T22:33:33.502 - BLOCKED 10208
+  2026-11-16T22:28:42.794 - BLOCKED 10112
+  2026-11-16T22:22:33.548 - UNBLOCKED 10053
+  2026-11-16T22:20:29.367 - BLOCKED 10053
+  2026-11-16T22:17:17.748 - UNBLOCKED 10208
+  2026-11-16T22:14:56.840 - UNBLOCKED 10147
+  2026-11-16T22:13:36.526 - BLOCKED 10182
+  2026-11-16T22:13:35.340 - UNBLOCKED 1010053
+  2026-11-16T22:07:33.547 - BLOCKED 10173
+  2026-11-16T22:07:32.724 - BLOCKED 1010053
+  2026-11-16T22:03:20.154 - BLOCKED 10172
+  2026-11-16T22:02:27.318 - UNBLOCKED 1010053
+  2026-11-16T22:02:24.054 - UNBLOCKED 10173
+  2026-11-16T21:52:39.734 - BLOCKED 10173
+  2026-11-16T21:52:16.261 - BLOCKED 10065
+  2026-11-16T21:52:16.214 - BLOCKED 1010053
+  2026-11-16T21:52:10.378 - BLOCKED 10200
+  2026-11-16T21:51:58.592 - UNBLOCKED 10053
+  2026-11-16T21:51:54.190 - UNBLOCKED 10123
+  2026-11-16T21:51:52.888 - UNBLOCKED 1010053
+  2026-11-16T21:51:45.322 - UNBLOCKED 10173
+  2026-11-16T21:48:46.554 - UNBLOCKED 10065
+  2026-11-16T21:48:43.799 - BLOCKED 10065
+  2026-11-16T21:47:45.334 - BLOCKED 10053
+  2026-11-16T21:47:28.598 - UNBLOCKED 10053
+  2026-11-16T21:47:27.117 - BLOCKED 1010053
+  2026-11-16T21:46:29.738 - BLOCKED 10147
+  2026-11-16T21:46:24.847 - BLOCKED 10123
+  2026-11-16T21:46:15.186 - BLOCKED 10053
+  2026-11-16T21:45:55.676 - BLOCKED 10208
+  2026-11-16T21:45:45.227 - BLOCKED 10127
+  2026-11-16T21:45:45.227 - BLOCKED 10173
+  2026-11-16T21:45:24.384 - BLOCKED 10273
+  2026-11-16T21:44:27.921 - BLOCKED 10244
+  2026-11-16T21:43:35.528 - BLOCKED 10257
+  2026-11-16T21:39:28.468 - UNBLOCKED 10247
+  2026-11-16T21:39:23.747 - BLOCKED 10247
+  2026-11-16T21:33:08.645 - BLOCKED 10028
+  2026-11-16T21:33:08.570 - BLOCKED 9510208
+  2026-11-16T21:31:58.664 - BLOCKED 10219
+
+NetTransition WakeLock activity (most recent first):
+  total acquisitions: 8
+  total releases: 8
+  cumulative duration: 0s
+  longest duration: 0s
+  2026-11-19T03:16:53.055 - RELEASE (EVENT_EXPIRE_NET_TRANSITION_WAKELOCK)
+  2026-11-19T03:16:52.994 - ACQUIRE for NetworkAgentInfo [WIFI () - 611]
+  2026-11-19T02:45:25.991 - RELEASE (EVENT_EXPIRE_NET_TRANSITION_WAKELOCK)
+  2026-11-19T02:45:25.922 - ACQUIRE for NetworkAgentInfo [WIFI () - 610]
+  2026-11-17T20:26:04.296 - RELEASE (EVENT_EXPIRE_NET_TRANSITION_WAKELOCK)
+  2026-11-17T20:26:04.258 - ACQUIRE for NetworkAgentInfo [WIFI () - 609]
+  2026-11-17T19:40:31.565 - RELEASE (EVENT_EXPIRE_NET_TRANSITION_WAKELOCK)
+  2026-11-17T19:40:31.539 - ACQUIRE for NetworkAgentInfo [WIFI () - 608]
+  2026-11-17T19:07:25.635 - RELEASE (EVENT_EXPIRE_NET_TRANSITION_WAKELOCK)
+  2026-11-17T19:07:25.571 - ACQUIRE for NetworkAgentInfo [WIFI () - 607]
+  2026-11-17T14:38:30.756 - RELEASE (EVENT_EXPIRE_NET_TRANSITION_WAKELOCK)
+  2026-11-17T14:38:30.728 - ACQUIRE for NetworkAgentInfo [WIFI () - 606]
+  2026-11-17T12:18:44.256 - RELEASE (EVENT_EXPIRE_NET_TRANSITION_WAKELOCK)
+  2026-11-17T12:18:44.221 - ACQUIRE for NetworkAgentInfo [WIFI () - 603]
+  2026-11-17T11:07:01.978 - RELEASE (EVENT_EXPIRE_NET_TRANSITION_WAKELOCK)
+  2026-11-17T11:07:01.927 - ACQUIRE for NetworkAgentInfo [WIFI () - 602]
+Network Callbacks:
+  mCallbackLogs (most recent first):
+
+tcp window buffer size for:
+  lte:1048576,3145728,4194304,524288,1572864,2097152

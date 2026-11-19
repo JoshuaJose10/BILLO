@@ -1,5 +1,10 @@
 # QA — Cambio de moneda, voz y widget (RF11, RF12, RF13)
 
+> Reejecución independiente del 2026-11-19: consultar
+> [QA final integral](qa-final-reporte.md), sobre APK release identificado por hash
+> y commit. Este documento conserva el historial del 15 de noviembre; sus
+> aprobaciones por declaración no se trasladan al dictamen nuevo.
+
 Fecha de preparación: **2026-11-14**, America/Mexico_City.
 Actualización de resultados y capturas: **2026-11-15**.
 Responsable de QA: **Luis Dorian**. Prioridad: **alta**.

@@ -1,0 +1,6 @@
+tipo,fecha,descripción,categoría/fuente,monto,moneda,método de pago
+gasto,2026-11-19,,Comida,10.00,USD,efectivo
+gasto,2026-11-19,,Comida,80.50,MXN,tarjeta
+ingreso,2026-11-19,QA Final comparación,Freelance,500.00,MXN,
+ingreso,2026-11-19,,Sueldo,1000.00,MXN,
+ingreso,2026-10-19,QA Final mes anterior,Sueldo,200.00,MXN,

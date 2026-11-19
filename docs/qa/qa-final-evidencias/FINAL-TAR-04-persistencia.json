@@ -1,0 +1,87 @@
+{
+  "gastos": [
+    {
+      "id": 52,
+      "monto": 140.74,
+      "moneda": "MXN",
+      "monto_original": null,
+      "tipo_cambio": null,
+      "categoria_id": 2,
+      "tarjeta_id": null,
+      "fecha": "2026-11-19",
+      "metodo_pago": "efectivo",
+      "nota": "QA completar RF6 500"
+    },
+    {
+      "id": 50,
+      "monto": 85,
+      "moneda": "MXN",
+      "monto_original": null,
+      "tipo_cambio": null,
+      "categoria_id": 2,
+      "tarjeta_id": null,
+      "fecha": "2026-11-19",
+      "metodo_pago": "efectivo",
+      "nota": null
+    },
+    {
+      "id": 49,
+      "monto": 8,
+      "moneda": "MXN",
+      "monto_original": null,
+      "tipo_cambio": null,
+      "categoria_id": 2,
+      "tarjeta_id": null,
+      "fecha": "2026-11-19",
+      "metodo_pago": "efectivo",
+      "nota": "Sustituirlos o etiquetarlos"
+    },
+    {
+      "id": 47,
+      "monto": 185.76,
+      "moneda": "USD",
+      "monto_original": 10,
+      "tipo_cambio": 18.5759,
+      "categoria_id": 2,
+      "tarjeta_id": null,
+      "fecha": "2026-11-19",
+      "metodo_pago": "efectivo",
+      "nota": null
+    },
+    {
+      "id": 46,
+      "monto": 80.5,
+      "moneda": "MXN",
+      "monto_original": null,
+      "tipo_cambio": null,
+      "categoria_id": 2,
+      "tarjeta_id": null,
+      "fecha": "2026-11-19",
+      "metodo_pago": "tarjeta",
+      "nota": null
+    }
+  ],
+  "membresias": [
+    {
+      "id": 21,
+      "servicio_id": null,
+      "tarjeta_id": null,
+      "nombre": "QA Fijo 300",
+      "costo": 300,
+      "moneda": "MXN",
+      "monto_original": null,
+      "tipo_cambio": null,
+      "frecuencia": "mensual",
+      "fecha_cobro": "2026-11-19",
+      "estado": "activa",
+      "personas": 1,
+      "dias_para_cobro": 0
+    }
+  ],
+  "resumen": {
+    "mes": "2026-11",
+    "gasto_variable": 500,
+    "gasto_fijo": 300,
+    "total": 800
+  }
+}

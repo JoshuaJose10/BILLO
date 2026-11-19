@@ -1,0 +1,852 @@
+{
+  "fecha": "2026-11-19",
+  "normalizacion": "PNG: bytes exactos. Texto UTF-8: CRLF se normaliza a LF antes de medir bytes y SHA-256, para permitir checkout Windows/Linux.",
+  "archivos": [
+    {
+      "archivo": "API-CP-FINAL-EXP-01.png",
+      "bytes": 39679,
+      "sha256": "2b4382c624b9383a915b498e24f12d57c24807afec38dbfc9240522b3726faa8",
+      "tipo": "resumen HTTP generado"
+    },
+    {
+      "archivo": "API-CP-FINAL-EXP-02.png",
+      "bytes": 65267,
+      "sha256": "92bfd6e4d246f6da433cadcccc195892baeb9a82ebef24b8d54ce249db5d8a2a",
+      "tipo": "resumen HTTP generado"
+    },
+    {
+      "archivo": "API-CP-FINAL-PER-02.png",
+      "bytes": 17834,
+      "sha256": "27a127458e4e940069b58fdf2026acd60ace395006621847b5e52327a757b751",
+      "tipo": "resumen HTTP generado"
+    },
+    {
+      "archivo": "API-CP-FINAL-REC-01.png",
+      "bytes": 79420,
+      "sha256": "b7ffea8ef764e68f86ae0c03fccb25939b95df1c9d9042db09c2c9e79cd0a2f9",
+      "tipo": "resumen HTTP generado"
+    },
+    {
+      "archivo": "API-CP-FINAL-REP-01.png",
+      "bytes": 32401,
+      "sha256": "953e779be00f1d58dee7742e8d8fe997f4f1898f7c7be0c0d319e37596797f75",
+      "tipo": "resumen HTTP generado"
+    },
+    {
+      "archivo": "API-CP-FINAL-REP-02.png",
+      "bytes": 111540,
+      "sha256": "57d6e7684fe2fae7ef4169174ca93430affa759dee70019f02490f0f783b2e44",
+      "tipo": "resumen HTTP generado"
+    },
+    {
+      "archivo": "API-CP-FINAL-TAR-01.png",
+      "bytes": 31599,
+      "sha256": "0ab728083b80acea7e098fe4da742d98fe9be41b95527159da7a78327010ea9d",
+      "tipo": "resumen HTTP generado"
+    },
+    {
+      "archivo": "API-CP-FINAL-TAR-02.png",
+      "bytes": 27960,
+      "sha256": "6ab517e3dd0be4c93570735f737b23aa1e6f7439223a097910aed8f1f8f16bc3",
+      "tipo": "resumen HTTP generado"
+    },
+    {
+      "archivo": "API-CP-FINAL-TAR-03.png",
+      "bytes": 55499,
+      "sha256": "fc3f056a590b031a0d19cb3cafddc3a3a3bac8162eda89d2f6b7ea8482b12114",
+      "tipo": "resumen HTTP generado"
+    },
+    {
+      "archivo": "API-CP-FINAL-TAR-04.png",
+      "bytes": 84306,
+      "sha256": "70ee446f6ac85535200a88ad1005ba6d057cfe4689cd38282041ddbae485714f",
+      "tipo": "resumen HTTP generado"
+    },
+    {
+      "archivo": "API-CP-FINAL-TAR-05.png",
+      "bytes": 32124,
+      "sha256": "160e5cef556d0e63ec45c2893610c87a1c8e9926f279d5bb9d32c01264db83ee",
+      "tipo": "resumen HTTP generado"
+    },
+    {
+      "archivo": "API-CP-RF1-03.png",
+      "bytes": 18064,
+      "sha256": "040f530607607294c1ef78448e2d28281ea5d984c777b7bddb4028a1e8e7b611",
+      "tipo": "resumen HTTP generado"
+    },
+    {
+      "archivo": "API-CP-RF2-02.png",
+      "bytes": 18212,
+      "sha256": "e0e0d023e965da24494256f741e74e23e472d3b2e28f46f839deccfa8974f4c2",
+      "tipo": "resumen HTTP generado"
+    },
+    {
+      "archivo": "API-CP-RF3-02.png",
+      "bytes": 17857,
+      "sha256": "c972b6a8a04989df14389069d7ec86ac77ac2a1116c4f24163c6538377b780dd",
+      "tipo": "resumen HTTP generado"
+    },
+    {
+      "archivo": "API-CP-RF4-04-07.png",
+      "bytes": 75838,
+      "sha256": "03b7d6b05189229ed3f64235520cc66631f1fb19bcf51e73ee00b30fd8b3f4bb",
+      "tipo": "resumen HTTP generado"
+    },
+    {
+      "archivo": "API-CP-RF5-04.png",
+      "bytes": 19122,
+      "sha256": "1c2162e7055f9624ef4584cd543c530567619f384942b73d8f2b9558283978ca",
+      "tipo": "resumen HTTP generado"
+    },
+    {
+      "archivo": "API-CP-RF9-02.png",
+      "bytes": 30120,
+      "sha256": "713710d28a7df151427a65b576c61c3830f9d8ef4b94f6971558773bfbd03281",
+      "tipo": "resumen HTTP generado"
+    },
+    {
+      "archivo": "FINAL-EXP-01-compartir-csv.png",
+      "bytes": 259339,
+      "sha256": "faac88c22feb9025be1ef96d8196a4094f55f2fd58a568bf4ac6f663b83b9f08",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-PER-01-03-persistencia-reinicio.png",
+      "bytes": 347565,
+      "sha256": "23c1dbcfd712535bc68ae0eadfd0ab312ce24835d291cd4ad9805c3d1149a7d3",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-PER-01-nombre-guardado.png",
+      "bytes": 227250,
+      "sha256": "00e84fa8f0762a9fed4b95aabb4ef2e4c6e078680024ed5ce2a6bc978aaebae6",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-PER-01-nombre-reabierto.png",
+      "bytes": 350725,
+      "sha256": "23ffd6d0f08e923fd7ddf84eb537122b82ae26f21c07e6346a3ca0f1ab3947a9",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-PER-02-password-actualizada.png",
+      "bytes": 208481,
+      "sha256": "877244da11635534a853f9b3cf0abe7da515439ab7b286e3720508de5a04b82d",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-PER-03-gasto-usd.png",
+      "bytes": 342051,
+      "sha256": "e1f13c603315dbe4090a9c0cbabb87671156db6d1c9dbeaa18107299f0c67748",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-PER-03-oscuro-usd.png",
+      "bytes": 335219,
+      "sha256": "b823c2cebf113f0e3b93b79db84defe513493175b095d5312822822e732bad66",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-PER-03-restablecido.png",
+      "bytes": 239063,
+      "sha256": "d1ac23a75f7d1ed5ef8c4ab214273acc842c0f8ba07befc517de546f9958f916",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-PER-04-B-eliminada.png",
+      "bytes": 376716,
+      "sha256": "4693f28344e53f20bb42249cd2d4a89a4086fec78566f3b998ed3a5923869041",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-PER-04-eliminar-B-confirmacion.png",
+      "bytes": 305043,
+      "sha256": "baa874cc83c1a5a6a3fbcaf5f856d073ef62c929cbeee20bdf8e7a4f1d3d81c4",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-REC-01-guardado.png",
+      "bytes": 306328,
+      "sha256": "9150e12745b23a51e5e4a327798df8866ebd7e86c6271d31f4f1652031015793",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-REC-01-ingreso-mensual.png",
+      "bytes": 198353,
+      "sha256": "c493da9ff62f1a3f79e6002a057e6ea9819643b40840664d9b5d93a1519bfc99",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-REP-01-ingresos.png",
+      "bytes": 272337,
+      "sha256": "714edfaf30c0c3c45bc2b1bda2bbff3573b8d677cae6ead68bf2fc48b5b4b18d",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-REP-01-octubre-200.png",
+      "bytes": 307951,
+      "sha256": "255f36ac7468bd4255aca17ea40b032a463b3f71998dfbadf2ce47c19e4d4040",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-REP-02-2026-10.json",
+      "bytes": 1058,
+      "sha256": "253d59c7d0082bd132c0b2960aa9b5b5aae34c61f8252e76ee90b2ebda954d4b",
+      "tipo": "registro"
+    },
+    {
+      "archivo": "FINAL-REP-02-2026-11.json",
+      "bytes": 1064,
+      "sha256": "b89f565af65875c6e0dedb2dbdf629937aa551277ef23a571c52e1467d398695",
+      "tipo": "registro"
+    },
+    {
+      "archivo": "FINAL-REP-02-balance.png",
+      "bytes": 272534,
+      "sha256": "590fe18236e4315533999a3f38f2f9d202f3ea151d333e764743b9c9317810b8",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-REP-02-noviembre-700.png",
+      "bytes": 264639,
+      "sha256": "449dca217c8329ff2bbebd2cea14cb19e2f1ba305491a3a8e4c510c0404d8ac4",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-REP-02-octubre-menos-100.png",
+      "bytes": 262027,
+      "sha256": "ef2aab2ee8bed5633c646543e9112f702aeedbec8dcd070ae90ca206ca77debf",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-REP-03-balance-cero.png",
+      "bytes": 236832,
+      "sha256": "7b2feba152c9ef1ede9e37ed6af4ed11252aaf7e50853c16b95a86093e003478",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-REP-03-sin-ingresos.png",
+      "bytes": 225217,
+      "sha256": "0c3ccc3d8792539bc3ddbfaf0a70cbd71996e72897c5a2a3be07fd09c800cbf3",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-TAR-01-creada.png",
+      "bytes": 319192,
+      "sha256": "b1db1e5072ed54fbe437e7bd9ab43e204bf1f87d28c9564f268aaa90935b600b",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-TAR-01-editada-debito.png",
+      "bytes": 315430,
+      "sha256": "0c1296f581c6deade2bf85475237357930aef3c681debec36789f70899ce777c",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-TAR-02-validacion.png",
+      "bytes": 201882,
+      "sha256": "bb0abaa5766267405dace77e26398fe7bbc266f8b2a5149684c69b767e763090",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-TAR-03-noviembre-380-50.png",
+      "bytes": 326206,
+      "sha256": "2bfff58b53edbe8620e43f32f3221a46accc48f5efedd46be172024034004547",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-TAR-03-octubre.png",
+      "bytes": 322242,
+      "sha256": "d337f277662f0dece37f63ba824aa4485e616226af82d7d9712130edb1f593e6",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-TAR-03-resumen.png",
+      "bytes": 325437,
+      "sha256": "a08a5689bb1aaaf2f35158d1f444e47820486323e86d5909d1959b7bf0ff5e74",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-TAR-04-confirmacion.png",
+      "bytes": 176817,
+      "sha256": "41e63dcd5e93c2dbe28692549a9aa0b10436073b700839f9ad5d37545225d0bb",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-TAR-04-movimientos-conservados.png",
+      "bytes": 268896,
+      "sha256": "754efe06db37415aac0f47cec21b6c3ebac09dfda5e97c592fd318070b24c39f",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-TAR-04-persistencia.json",
+      "bytes": 1856,
+      "sha256": "a892847a9de50626095adca4b0721afadfb752e2fcc1d1d73637b2be29422136",
+      "tipo": "registro"
+    },
+    {
+      "archivo": "FINAL-TAR-04-suscripcion-conservada.png",
+      "bytes": 265460,
+      "sha256": "a83b4e937b250c8ef1bb9e88586f5dd115368fdc820961a784196f9331a1ad91",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-TAR-04-tarjeta-eliminada.png",
+      "bytes": 245515,
+      "sha256": "a4ef3585bb3a41489a4cbc38e96c4c6ea70753ef0a0f1094583270f0ca0239e5",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "FINAL-TAR-04-total-conservado.png",
+      "bytes": 264167,
+      "sha256": "00a66fcffbae4f5dc0633860209bc5eaf91c65b0a549aac07657e83751234f2b",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF1-01-RF10-05-cuenta-vacia.png",
+      "bytes": 247061,
+      "sha256": "bba83f2822078bba1922b2c71e9a8dc3c65960d95eaec8fbd31eab23fc6315e7",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF1-01-registro.png",
+      "bytes": 253510,
+      "sha256": "06d9db12454dbcb223169c4c4fea6c78174fd45ccc03396f29e1c926d2ca0047",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF1-02-datos-restaurados-login.png",
+      "bytes": 353985,
+      "sha256": "c6afc3173d7d665b71174b00bd5db85d46270f081803bf62a64f7d23324a5c4b",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF1-04-credenciales-invalidas.png",
+      "bytes": 274486,
+      "sha256": "4c59bb8824a5ddf7f857a35efb004b910ca746d92939909049db6558c0e6225b",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF10-01-cartera.png",
+      "bytes": 301365,
+      "sha256": "b041a7bc5e8b7316df2eb2369582a54b19126a1e78db68113f90a2bd7ca69a31",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF10-01-inicio.png",
+      "bytes": 380190,
+      "sha256": "26a2b0e538a3e68b249a03cee5327f0e570420697e4bf89cce078d7b1864a14d",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF10-01-movimientos.png",
+      "bytes": 290616,
+      "sha256": "7e193c9d81351bc0e3854832a937d4175c92b7fb324e3bc362b8264a8e008f7c",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF10-01-reportes.png",
+      "bytes": 326515,
+      "sha256": "7a7bcfe397add2c4186cabd544198141bce562a5e9edf49aa0aadb8e3477d8cf",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF10-02-bloqueo-edicion-gasto.png",
+      "bytes": 402306,
+      "sha256": "2f1a09d64b9b88f93f98d4cbb3f11f478644c53dd04429645718c59904ba336e",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF10-02-bloqueo-edicion-presupuesto.png",
+      "bytes": 439738,
+      "sha256": "f9a04ee429daf7539611651101b6c3f5c859ff087aabfe5d49f0ea2600ac7480",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF10-02-bloqueo-edicion-suscripcion.png",
+      "bytes": 432304,
+      "sha256": "897b09735fa64b5ff7f3b6d683026bcd3720b04a4b75f2f930ffc50258a9d504",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF10-02-bloqueo-gasto.png",
+      "bytes": 289255,
+      "sha256": "046b3cdf72e4235d806813cc99585d73b8e3b2a0a9bd737d2853d356288e3846",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF10-02-bloqueo-presupuesto.png",
+      "bytes": 285342,
+      "sha256": "48a6fefa244ceaf3588f611ce0b8f64b1a75226b302b055b55e4f2d6df829353",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF10-02-bloqueo-suscripcion.png",
+      "bytes": 270849,
+      "sha256": "79723513f551fd3f447747268cb574ae230b88cc2fb751aa02dcc1adfb9d723d",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF10-03-acceso-explorar.png",
+      "bytes": 385220,
+      "sha256": "7cc156b02a440c2e6cfd6e8ec9268e2cd27f2e6cbbd8a5ff68fb0ba11c940827",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF10-03-bienvenida-sin-red.png",
+      "bytes": 286272,
+      "sha256": "8f4fc14c847b33ce0b6fad49d766ec0507b6cf3221aad2757cd6bf7b8424226d",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF10-04-cartera-sin-red.png",
+      "bytes": 300405,
+      "sha256": "79a8be0bc2999f8107b00f91e1e0669bdb7b07e49b6f6c2125ec115197e9bce8",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF10-04-conectividad.txt",
+      "bytes": 94404,
+      "sha256": "0e31842ef4ad8aa011b00d0cc98af50601319172ecd484a070921a8fda2f47b0",
+      "tipo": "registro"
+    },
+    {
+      "archivo": "RF10-04-filtro-sin-red.png",
+      "bytes": 417856,
+      "sha256": "298fe17a1b16ee47b8218ea4a73d2a226c7151c840400f2fb543e3f294bf5123",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF10-04-inicio-sin-red.png",
+      "bytes": 379022,
+      "sha256": "2283f0a55bc720e2fbcd1b6205418df8ddd87d8a778a1073ee82534e1f4798aa",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF10-04-mes-anterior-sin-red.png",
+      "bytes": 425852,
+      "sha256": "cf5b28ea24c39cbfc5767cedc757905c381bed49e1398a5aab5dbb3f2844c7f5",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF10-04-movimientos-sin-red.png",
+      "bytes": 289937,
+      "sha256": "156d76b82fadaa57edb99c1ef888d77ae6d3a69ddf40088a07d462a648bbf6be",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF10-04-reportes-sin-red.png",
+      "bytes": 325035,
+      "sha256": "1971661a5a878c89c0c6589f6c62716fcbf63e9d452037fecc3ea04e48285438",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF11-01-03-despues-omitir.png",
+      "bytes": 385515,
+      "sha256": "b815e58dbb71067add4e414102fc9fdd376a8628dbe72c1cca42ca527626560a",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF11-01-03-reapertura.png",
+      "bytes": 287635,
+      "sha256": "a4dbe98063266cf6e3c29d25746a6cc1172a9435684c5dd20374d3bde42ff0ee",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF11-01-gasto-usd-guardado.png",
+      "bytes": 270240,
+      "sha256": "a87a222d4cc49e76d492306d245e55fbc8bea8c309e68ca8e881b15c87dc0d7f",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF11-01-persistencia.json",
+      "bytes": 215,
+      "sha256": "a8d614e16d1e217cb41fe2f6db1b24d45db68c5a3e14c560f7df23e977e05b3f",
+      "tipo": "registro"
+    },
+    {
+      "archivo": "RF11-01-total-convertido.png",
+      "bytes": 270907,
+      "sha256": "d6b9eea2aeb9cfb60c4f630539d42eb71a1638910fcba536074dc1c1019177be",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF11-01-usd-conversion.png",
+      "bytes": 209817,
+      "sha256": "d7010e62223c2db3f5aa2a13258207ecf17fb82e86ed4382b97be2855ca1838f",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF11-03-persistencia.json",
+      "bytes": 323,
+      "sha256": "30246d3fd9304836c6de562793932450799a5e184fe9d68ec399284d66bf1236",
+      "tipo": "registro"
+    },
+    {
+      "archivo": "RF11-03-suscripcion-guardada.png",
+      "bytes": 268944,
+      "sha256": "de31947064291982bd66e9dbad2d1ec78d31836f92a85d159b05870f8188e61e",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF11-03-suscripcion-usd.png",
+      "bytes": 200361,
+      "sha256": "982c24ad1d760808fe3abf243c86dcdcadf033301a1c4bcb6897c21c1c002c75",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF11-06-persistencia.json",
+      "bytes": 319,
+      "sha256": "31771d3686ca736256b5b231beacb2decc0aad09624fbc8892c03ded745b089b",
+      "tipo": "registro"
+    },
+    {
+      "archivo": "RF11-06-regreso-mxn.png",
+      "bytes": 272615,
+      "sha256": "8bd3ce95ec35d2df9e2c22d04b222b331f14c5f7d6929211362160e2c445fbfa",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF11-tasa.json",
+      "bytes": 863,
+      "sha256": "69eb7e2b6b08cc9a90c3ad5cc46afca352af00dcbc844823a6e8289ab3db980d",
+      "tipo": "registro"
+    },
+    {
+      "archivo": "RF12-01-gasto-confirmado.png",
+      "bytes": 327809,
+      "sha256": "95ea6cc7342972651e8b27928b2a7cb8d6ac6574f9c1e75ac5cc2f419c02d928",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF12-01-resultado-dictado.png",
+      "bytes": 208993,
+      "sha256": "35e8d98701942b99ed3e6b1a52fddb567898786b24b03c3bfa5f3d40c6d3b8be",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF12-02-frase-escuchando.png",
+      "bytes": 201201,
+      "sha256": "558d0e4cdbc1ab73e70d66252ac452fa9d0c1607876681ae22959e07d5bf26ab",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF12-02-frase-resultado.png",
+      "bytes": 188302,
+      "sha256": "794436d44b80453cf36f248108e76c0aa39eedea6b517f968e96522b555807c9",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF12-02-guardado-manual-85.png",
+      "bytes": 480806,
+      "sha256": "813e3509ce41a402e0dccafcc9a24136a26438a947e326643f36fa12b2b908de",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF12-02-manual-85-formulario.png",
+      "bytes": 350531,
+      "sha256": "2af06ac6cf19d169dce4fb9d4fb2d7f23a545a0b147a48dc92137b91d23a57e2",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF12-02-ruido-escuchando.png",
+      "bytes": 207076,
+      "sha256": "8a9708a943b997b434a0ac812fffe4bab935f04b34afdcf2f8385c1e5c1a106a",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF12-02-ruido-resultado.png",
+      "bytes": 195160,
+      "sha256": "6a301128ef6cf335bac8ecad8a98a057a965ea24cc85c23fe3ca562636d66842",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF12-02-silencio-escuchando.png",
+      "bytes": 208401,
+      "sha256": "0ec7f8f9f9996d3cac1f9db3dc7bb9c71af8a25361a64269e8a1bcfa1a4ca553",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF12-02-silencio-resultado.png",
+      "bytes": 194920,
+      "sha256": "cc97703b36c880ae0a45de36d99e1f3b3e1c243e20635da6254eecf10186fb9d",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-01-inicio-base.png",
+      "bytes": 329348,
+      "sha256": "cba05e1edaffba66250d4d7174b7148a08cf0cbef08115785725069cd6cc3b03",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-01-toque-widget.png",
+      "bytes": 349075,
+      "sha256": "9ba63261b07724e1d72963d22818023bc4a1313d5f23b57ff2ffe2a1607bca7d",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-01-widget-base.png",
+      "bytes": 2264267,
+      "sha256": "cdb051c23e376b01c652bacd3b8458fdf42f070fc17c5971280192bda1f0f54e",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-02-cobro-exigible-formulario.png",
+      "bytes": 198402,
+      "sha256": "adac655dfc1cc22ea1c5907a7a0652e413677b81f38d1148f2e7d8f74a5e9ddc",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-02-cobro-exigible.json",
+      "bytes": 499,
+      "sha256": "1a0dde61b66a098afd73a666161d42b108490db4ac1b0e28912dca6b226be5c8",
+      "tipo": "registro"
+    },
+    {
+      "archivo": "RF13-02-inicio-cobro-exigible.png",
+      "bytes": 349075,
+      "sha256": "9ba63261b07724e1d72963d22818023bc4a1313d5f23b57ff2ffe2a1607bca7d",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-02-widget-editado-95-50.png",
+      "bytes": 2236809,
+      "sha256": "997dcedde7bbf26fb4cc45ed41d04fbdcffb263a1d311bba9b731b9915c36c25",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-02-widget-gasto-eliminado.png",
+      "bytes": 2237228,
+      "sha256": "cf03d8739cdde78873bc3fe6eff089eb8b46c80baa53b8bbe3cb9092f8cb1117",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-02-widget-mas-100.png",
+      "bytes": 2237014,
+      "sha256": "79ddc05aa6982ae8c9ab4df7b16fc7c72f62ed13b87609ce99c2e04b054568e9",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-02-widget-mas-80.png",
+      "bytes": 2235978,
+      "sha256": "550b8214341c9cf8a0d8b51190185072825e5567376cacdf94d1cfe851815a6f",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-02-widget-suscripcion-eliminada.png",
+      "bytes": 2237089,
+      "sha256": "d12aa38293a7ccdbf9b0d498098e3dc4de217e01ab60a08031d84d577f979e58",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-03-ajustes-sin-red.png",
+      "bytes": 160308,
+      "sha256": "59d99217f4f2a1533be8ecabf770157e8c50d0e94d20d37c271c5ba4cd7bd5b1",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-03-antes.txt",
+      "bytes": 93668,
+      "sha256": "0b203aa9f6d0a09a56028a027658c57dd6d9d4637d11740b9319da2a63aa70b1",
+      "tipo": "registro"
+    },
+    {
+      "archivo": "RF13-03-apertura-sin-red.png",
+      "bytes": 277943,
+      "sha256": "5a0218636d5b838f97d716b7f502a2add6bc6dc123653ccf8b3f5cbe9df56eb4",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-03-despues.txt",
+      "bytes": 9427,
+      "sha256": "d36857ca9d2a00a33c612d005a1d99997ede1ecb81074501461c370ef4b299b7",
+      "tipo": "registro"
+    },
+    {
+      "archivo": "RF13-03-widget-antes-sin-red.png",
+      "bytes": 2235479,
+      "sha256": "84e68d10873322a17d0024c50db4b4977eeb7ce65e88a606ec83fcc9a5bc5bff",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-03-widget-despues-reinicio.png",
+      "bytes": 2230709,
+      "sha256": "32b235a1dd97735215f7e55c3ce0a0926a0bee46943eb37b284bf2df3f43f66e",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-04-app-despues-logout-reinicio.png",
+      "bytes": 569906,
+      "sha256": "6505243371310e05b08fae759f0a0771906290a6c7b21caed45da242fcbbe306",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-04-inicio-B.png",
+      "bytes": 622994,
+      "sha256": "20f30c9e561c9bc10b2b7cb1e18a5710711a9ac507b06b15be83eb141224629b",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-04-widget-B.png",
+      "bytes": 2235077,
+      "sha256": "10c41d745af7b0d5db2deeb054d6b3a229d9612452e0abe30e8e00912b89de74",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-04-widget-logout-reinicio.png",
+      "bytes": 2499266,
+      "sha256": "11341c974b20855126c00317048cbd95dc7f2e3e0bebab1196bd2ae3166e4850",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF13-04-widget-logout.png",
+      "bytes": 2233054,
+      "sha256": "a0834338f61d6d751863e057e68f93b0e07d6f60836922c10b9448bc3be32893",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF2-01-RF10-05-gasto-persistido.png",
+      "bytes": 198692,
+      "sha256": "7f20d6e0823d9b167e56d6b9d605b67237e9a226f71b4b9c4b2cbec94158372d",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF2-01-TAR-03-formulario.png",
+      "bytes": 219925,
+      "sha256": "ef1f19dac7c3096c45c037c7ab150953c98c96fdf1b803d88a396ce84b911358",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF2-03-categoria-obligatoria.png",
+      "bytes": 207016,
+      "sha256": "2cb028c67eb54398aca6e9e0c7718e0c46be40eafc5e5cbbaf255bb7896eb1f7",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF3-01-presupuesto-2000.png",
+      "bytes": 217286,
+      "sha256": "00bd96409f9528260e78d5c4a4b7aca3706f6ed5e7d318254026ab2edd578430",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF4-01-alerta-800.png",
+      "bytes": 568566,
+      "sha256": "e024cfd633b70bd763cb0c48931491a7160136e3e50a2febc80ebe442fe2865a",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF4-02-alerta-1050.png",
+      "bytes": 583813,
+      "sha256": "d409e038235dbff7b9d7bb2632cb110f2208ac959a0fa6c342c48c0ae9dc8da3",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF4-03-sin-alerta-150.png",
+      "bytes": 622617,
+      "sha256": "4aac9b163d437e90508cebaf474bd329266f266046dcd8e8aee476653902c206",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF5-01-TAR-03-suscripcion-formulario.png",
+      "bytes": 199846,
+      "sha256": "cb2319de42adff3024e5d09e2a873a9bf8ac3cefceec225124b4e0eef287b198",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF5-01-suscripcion-guardada.png",
+      "bytes": 272579,
+      "sha256": "cc2ffa76636aadf282c2327ee32b23bc63e5a13ef3a7016ba5fd2ec25a863fbb",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF5-02-costo-editado.png",
+      "bytes": 270275,
+      "sha256": "43526f5a6a3a56edb7742554a4413624fa7e138cdbb96c9241bed1979900fa5b",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF5-02-suscripcion-eliminada.png",
+      "bytes": 256162,
+      "sha256": "67e1759ebf651042f9466fd27701aa3caffd16b56bf628d4393eb12e6f4f80ab",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF5-03-nombre-obligatorio.png",
+      "bytes": 199288,
+      "sha256": "c46a54007bb3644ff6d2a2960164dbf4ae7bf008d7f444152d1c886527c00655",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF6-01-variable-500-fijo-300-total-800.png",
+      "bytes": 302262,
+      "sha256": "21cad922c53dbbe39696b096da42a0fe04dc9c74b9915e9a067acdae1300ffdd",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF6-02-RF8-02-sin-gastos.png",
+      "bytes": 267159,
+      "sha256": "5c2c05eba3afae099acc46a068a9bfa6b9fc75ef9399dc3d4147fb5334487200",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF8-01-api.json",
+      "bytes": 309,
+      "sha256": "b04a4fecc534909f07b52925fcadc3b5cd7b22fd40baa51c4ec22563ce9b8609",
+      "tipo": "registro"
+    },
+    {
+      "archivo": "RF8-01-desglose.png",
+      "bytes": 312483,
+      "sha256": "15dfc93352db34cbcdefbdd1e03b14e83edb37a6a7b2d82d74cb558ca7a8f0d0",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "RF8-01-reparto-60-30-10.png",
+      "bytes": 310379,
+      "sha256": "041861b974f976081e9e337f969760b58397d1ffce71a3d31f2ce250809cc2b5",
+      "tipo": "captura Android"
+    },
+    {
+      "archivo": "ambiente.json",
+      "bytes": 1184,
+      "sha256": "2f8734c1046b7d96f969bc575f2ba91b911037d27d540dd0981e34d0015250b6",
+      "tipo": "registro"
+    },
+    {
+      "archivo": "api-resultados.json",
+      "bytes": 2147,
+      "sha256": "e2f5f5af12b09f93b27fec9ae959a2c65ea0be4d6777d194243f95de4c45f7dd",
+      "tipo": "registro"
+    },
+    {
+      "archivo": "api.jsonl",
+      "bytes": 51323,
+      "sha256": "6fb11d8e2a2fd3d33097e99b11d7e742f9d45195eab39d6939c9df565dfa87d0",
+      "tipo": "registro"
+    },
+    {
+      "archivo": "bitacora-capturas.jsonl",
+      "bytes": 7736,
+      "sha256": "3a906e8eaba3d21337e927f96d5e394c6b3167429eb9dfab3364a2fab76543c4",
+      "tipo": "registro"
+    },
+    {
+      "archivo": "casos.json",
+      "bytes": 18786,
+      "sha256": "336ac1de8285ac37c8b0d4d545959b634b27b5c96945313763d25c9581cdc6fd",
+      "tipo": "registro"
+    },
+    {
+      "archivo": "exportacion-a.csv",
+      "bytes": 321,
+      "sha256": "0cb37c40e3a33f0023e3f6f0b2cbe58412a78541719f8868b9fe899e8593afaa",
+      "tipo": "registro"
+    },
+    {
+      "archivo": "exportacion-b.csv",
+      "bytes": 369,
+      "sha256": "8292e8a7682d6f54dd2fb11cbd39cbe55fef95c9ab32cbe6c39a4d58dbb0de5f",
+      "tipo": "registro"
+    }
+  ]
+}
