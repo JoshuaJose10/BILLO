@@ -1,4 +1,5 @@
 import { aNumero } from './formato.js';
+import { calcularTotalMensual } from './membresias.js';
 
 // Lógica pura de tarjetas (sin React Native, se prueba con node --test).
 
@@ -48,22 +49,59 @@ export function subtituloTarjeta(tarjeta) {
   return partes.join(' · ');
 }
 
+// Día de corte o de pago válido (1 a 31) o null.
+const diaTarjeta = (valor) => {
+  const dia = valor === null || valor === undefined ? NaN : Number(valor);
+  return Number.isInteger(dia) && dia >= 1 && dia <= 31 ? dia : null;
+};
+
 export function textoFechasTarjeta(tarjeta) {
   if (!tarjeta || typeof tarjeta !== 'object') return null;
-  const corte =
-    tarjeta.dia_corte !== null && tarjeta.dia_corte !== undefined
-      ? Number(tarjeta.dia_corte)
-      : null;
-  const pago =
-    tarjeta.dia_pago !== null && tarjeta.dia_pago !== undefined ? Number(tarjeta.dia_pago) : null;
-  const partes = [];
-  if (Number.isInteger(corte) && corte >= 1 && corte <= 31) {
-    partes.push(`Corte día ${corte}`);
-  }
-  if (Number.isInteger(pago) && pago >= 1 && pago <= 31) {
-    partes.push(`Pago día ${pago}`);
-  }
+  const corte = diaTarjeta(tarjeta.dia_corte);
+  const pago = diaTarjeta(tarjeta.dia_pago);
+  const partes = [corte && `Corte día ${corte}`, pago && `Pago día ${pago}`].filter(Boolean);
   return partes.length > 0 ? partes.join(' · ') : null;
+}
+
+// Cara de la tarjeta (TarjetaVisual), en lugar del «VENCE 08/29» de Stitch: crédito
+// «CORTE 12 · PAGO 2» (lo que exista, o null) y débito «DÉBITO».
+export function lineaCaraTarjeta(tarjeta) {
+  if (tarjeta?.tipo === 'debito') return 'DÉBITO';
+  const corte = diaTarjeta(tarjeta?.dia_corte);
+  const pago = diaTarjeta(tarjeta?.dia_pago);
+  return [corte && `CORTE ${corte}`, pago && `PAGO ${pago}`].filter(Boolean).join(' · ') || null;
+}
+
+// Titular de la cara: el usuario de la sesión en mayúsculas, como en Stitch («FERNANDO M.»).
+export function titularTarjeta(nombreUsuario) {
+  const [nombre = '', apellido = ''] = String(nombreUsuario ?? '')
+    .trim()
+    .split(/\s+/);
+  return (apellido ? `${nombre} ${apellido[0]}.` : nombre).toUpperCase();
+}
+
+// «Tarjeta de crédito Banorte terminada en 0435» (lectores de pantalla).
+export function etiquetaAccesibleTarjeta(tarjeta) {
+  const tipo = tarjeta?.tipo === 'debito' ? 'débito' : 'crédito';
+  const nombre = String(tarjeta?.nombre ?? '').trim();
+  const ultimos4 = formatearUltimos4(tarjeta?.ultimos4).replace('·· ', '');
+  return [`Tarjeta de ${tipo}`, nombre, ultimos4 && `terminada en ${ultimos4}`]
+    .filter(Boolean)
+    .join(' ');
+}
+
+// Fila resumen bajo la tarjeta en Cartera: sus suscripciones, «N suscripciones» o «Sin
+// suscripciones» y el total al mes (calcularTotalMensual: tu parte, sin pausadas).
+export function suscripcionesDeTarjeta(membresias, tarjetaId) {
+  const vinculadas = (Array.isArray(membresias) ? membresias : []).filter(
+    (m) => m?.tarjeta_id != null && Number(m.tarjeta_id) === Number(tarjetaId),
+  );
+  const n = vinculadas.length;
+  return {
+    vinculadas,
+    texto: n === 0 ? 'Sin suscripciones' : `${n} ${n === 1 ? 'suscripción' : 'suscripciones'}`,
+    totalMensual: calcularTotalMensual(vinculadas),
+  };
 }
 
 export function colorTarjeta(tarjeta) {

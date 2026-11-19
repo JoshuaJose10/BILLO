@@ -5,55 +5,46 @@ import { espacios, radios } from '../theme/colors';
 import { fonts } from '../theme/fonts';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { tipografia } from '../theme/tipografia';
-import { formatearMonto } from '../utils/formato';
-import { colorTarjeta, subtituloTarjeta, textoFechasTarjeta } from '../utils/tarjetas';
+import { formatearMonto, formatearMontoCorto, MONEDA } from '../utils/formato';
+import { colorTarjeta } from '../utils/tarjetas';
+import AvataresServicios from './AvataresServicios';
 
-// Tarjeta individual en Cartera → Tarjetas (HU-89): squircle con el color de marca/tipo,
-// nombre, tipo + ·· últimos 4, total gastado del mes en tipografía mono y píldora opcional
-// con día de corte y día de pago.
-export default function ItemTarjeta({ tarjeta, opaca = false }) {
+// Fila resumen bajo la cara de la tarjeta en Cartera → Tarjetas (HU-89, Stitch
+// 14_cartera_tarjetas_*): avatares de las suscripciones vinculadas (o el squircle de la tarjeta si
+// no hay), nombre, «N suscripciones · $X gastado» del mes y el total de suscripciones al mes.
+// `suscripciones` sale de suscripcionesDeTarjeta (utils/tarjetas.js).
+export default function ItemTarjeta({ tarjeta, suscripciones, opaca = false }) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
 
   const colorMarca = colorTarjeta(tarjeta);
   const icono = tarjeta?.tipo === 'credito' ? 'credit-card-chip-outline' : 'credit-card-outline';
-  const fechas = textoFechasTarjeta(tarjeta);
-  const totalMes = Number(tarjeta?.total_mes) || 0;
+  const vinculadas = suscripciones?.vinculadas ?? [];
+  const gastado = `${formatearMontoCorto(Number(tarjeta?.total_mes) || 0)} gastado`;
 
   return (
     <View style={[styles.tarjeta, opaca ? styles.tarjetaOpaca : null]}>
-      <View style={styles.filaSuperior}>
+      {vinculadas.length > 0 ? (
+        <AvataresServicios membresias={vinculadas} />
+      ) : (
         <View style={[styles.squircle, { backgroundColor: colorMarca, shadowColor: colorMarca }]}>
           <MaterialCommunityIcons name={icono} size={22} color={colors.textoSobreColor} />
         </View>
-        <View style={styles.textos}>
-          <Text style={styles.nombre} numberOfLines={1}>
-            {tarjeta?.nombre}
-          </Text>
-          <Text style={styles.subtitulo} numberOfLines={1}>
-            {subtituloTarjeta(tarjeta)}
-          </Text>
-        </View>
+      )}
+      <View style={styles.textos}>
+        <Text style={styles.nombre} numberOfLines={1}>
+          {tarjeta?.nombre}
+        </Text>
+        <Text style={styles.subtitulo} numberOfLines={1}>
+          {[suscripciones?.texto, gastado].filter(Boolean).join(' · ')}
+        </Text>
+      </View>
+      {vinculadas.length > 0 ? (
         <View style={styles.columnaMonto}>
           <Text style={styles.monto} numberOfLines={1}>
-            {formatearMonto(totalMes)}
+            {formatearMonto(suscripciones.totalMensual)}
           </Text>
-          <Text style={styles.etiquetaMes}>este mes</Text>
-        </View>
-      </View>
-
-      {fechas ? (
-        <View style={styles.filaInferior}>
-          <View style={styles.pildora}>
-            <MaterialCommunityIcons
-              name="calendar-clock-outline"
-              size={13}
-              color={colors.textSecondary}
-            />
-            <Text style={styles.textoFechas} numberOfLines={1}>
-              {fechas}
-            </Text>
-          </View>
+          <Text style={styles.etiquetaMes}>{MONEDA} / mes</Text>
         </View>
       ) : null}
     </View>
@@ -63,21 +54,18 @@ export default function ItemTarjeta({ tarjeta, opaca = false }) {
 const crearEstilos = (colors) =>
   StyleSheet.create({
     tarjeta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: espacios.sm + 4,
       borderRadius: radios['2xl'],
       padding: espacios.md,
       backgroundColor: colors.surfaceLow,
       borderWidth: 1,
       borderColor: colors.border,
       borderTopColor: colors.borderTop,
-      gap: espacios.sm + 4,
     },
     tarjetaOpaca: {
       backgroundColor: colors.card,
-    },
-    filaSuperior: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: espacios.sm + 4,
     },
     squircle: {
       width: 42,
@@ -101,7 +89,6 @@ const crearEstilos = (colors) =>
     },
     subtitulo: {
       ...tipografia.bodySm,
-      fontFamily: fonts.monoMedium,
       color: colors.textSecondary,
     },
     columnaMonto: {
@@ -114,30 +101,8 @@ const crearEstilos = (colors) =>
     },
     etiquetaMes: {
       ...tipografia.bodySm,
+      fontFamily: fonts.mono,
       fontSize: 11,
-      color: colors.textSecondary,
-    },
-    filaInferior: {
-      flexDirection: 'row',
-      paddingTop: espacios.sm + 4,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
-    },
-    pildora: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      paddingHorizontal: 10,
-      paddingVertical: espacios.xs,
-      borderRadius: radios.full,
-      backgroundColor: colors.glass05,
-      borderWidth: 1,
-      borderColor: colors.borderStrong,
-    },
-    textoFechas: {
-      ...tipografia.labelCaps,
-      textTransform: 'none',
-      letterSpacing: 0,
       color: colors.textSecondary,
     },
   });

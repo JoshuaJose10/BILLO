@@ -21,6 +21,8 @@ import { useAlturaNavbar } from '../components/NavbarFlotante';
 import SelectorMes from '../components/SelectorMes';
 import SelectorSegmentado from '../components/SelectorSegmentado';
 import TarjetaPresupuesto from '../components/TarjetaPresupuesto';
+import TarjetaVisual from '../components/TarjetaVisual';
+import { useAuth } from '../context/AuthContext';
 import { useMembresiasService } from '../services/membresias';
 import { usePresupuestosService } from '../services/presupuestos';
 import { useTarjetasService } from '../services/tarjetas';
@@ -47,7 +49,13 @@ import {
 } from '../utils/membresias';
 import { gastoPorCategoriaDePresupuestos, resumenPresupuestos } from '../utils/presupuestos';
 import { etiquetaBarraMes, nivelPorcentaje, resumenGastoMes } from '../utils/resumenMes';
-import { nombreTarjetaPorId, resumenGeneralTarjetas } from '../utils/tarjetas';
+import {
+  etiquetaAccesibleTarjeta,
+  nombreTarjetaPorId,
+  resumenGeneralTarjetas,
+  suscripcionesDeTarjeta,
+  titularTarjeta,
+} from '../utils/tarjetas';
 
 // Secciones de Cartera: Presupuestos (RF3), Suscripciones / Membresías (RF5) y Tarjetas (HU-89).
 const SECCIONES = [
@@ -86,6 +94,7 @@ export default function CarteraScreen({ navigation, route }) {
   const { listarPresupuestos, eliminarPresupuesto, copiarPresupuestos } = usePresupuestosService();
   const { listarMembresias, eliminarMembresia } = useMembresiasService();
   const { listarTarjetasConResumen, eliminarTarjeta } = useTarjetasService();
+  const { usuario } = useAuth();
   const actualizarWidgetResumen = useActualizarWidget();
 
   const [seccion, setSeccion] = useState('presupuestos');
@@ -152,8 +161,13 @@ export default function CarteraScreen({ navigation, route }) {
   const cargarTarjetas = useCallback(async () => {
     const peticion = ++ultimaPeticionTarjetas.current;
     try {
-      const lista = await listarTarjetasConResumen(mes);
+      // Las suscripciones van en la fila resumen de cada tarjeta (opcionales si fallan).
+      const [lista, listaMembresias] = await Promise.all([
+        listarTarjetasConResumen(mes),
+        listarMembresias().catch(() => null),
+      ]);
       if (peticion !== ultimaPeticionTarjetas.current) return;
+      if (Array.isArray(listaMembresias)) setMembresias(listaMembresias);
       setTarjetas(lista);
       setMesTarjetasCargado(mes);
       setEstadoTarjetas('listo');
@@ -164,7 +178,7 @@ export default function CarteraScreen({ navigation, route }) {
       setEstadoTarjetas('error');
       return false;
     }
-  }, [listarTarjetasConResumen, mes]);
+  }, [listarTarjetasConResumen, listarMembresias, mes]);
 
   const cargarMembresias = useCallback(async () => {
     const peticion = ++ultimaPeticionMembresias.current;
@@ -782,12 +796,19 @@ export default function CarteraScreen({ navigation, route }) {
                   codigoNoExiste="TARJETA_NO_ENCONTRADA"
                   mensajeNoExiste="Esta tarjeta ya no existe"
                 >
+                  {/* Cara de Stitch y debajo la fila resumen con sus suscripciones */}
                   <Pressable
                     onPress={() => editarTarjeta(item)}
                     accessibilityRole="button"
-                    accessibilityLabel={`Editar tarjeta ${item.nombre}`}
+                    accessibilityLabel={`Editar ${etiquetaAccesibleTarjeta(item).toLowerCase()}`}
+                    style={styles.tarjetaConResumen}
                   >
-                    <ItemTarjeta tarjeta={item} opaca />
+                    <TarjetaVisual tarjeta={item} titular={titularTarjeta(usuario?.nombre)} />
+                    <ItemTarjeta
+                      tarjeta={item}
+                      suscripciones={suscripcionesDeTarjeta(membresias, item.id)}
+                      opaca
+                    />
                   </Pressable>
                 </FilaDeslizable>
               </Animated.View>
@@ -1063,6 +1084,11 @@ const crearEstilos = (colors) =>
     },
     separador: {
       height: 8,
+    },
+    // Cara de la tarjeta y su fila resumen (Stitch gap-space-sm)
+    tarjetaConResumen: {
+      gap: espacios.sm,
+      marginBottom: espacios.md,
     },
     atenuado: {
       opacity: 0.45,

@@ -1,13 +1,17 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { useSaldoOculto } from '../hooks/useSaldoOculto';
 import { espacios, radios } from '../theme/colors';
+import { degradadoTarjeta } from '../theme/tarjetas';
 import { useEstilos, useTema } from '../theme/TemaContext';
 import { tipografia } from '../theme/tipografia';
 import { formatearMonto, MONEDA, partesMonto } from '../utils/formato';
+import { etiquetaAccesibleTarjeta, suscripcionesDeTarjeta } from '../utils/tarjetas';
+import AvataresServicios from './AvataresServicios';
 import Etiqueta from './Etiqueta';
+import TarjetaVisual from './TarjetaVisual';
 
 // Bloque "Saldo disponible" de Inicio (Stitch 07_inicio_*_fondo_1), entre el saludo y la tarjeta
 // del mes. `saldo` = ingresos − gastos del mes (HU-82): sin él (null: mes sin movimientos) muestra
@@ -17,10 +21,27 @@ import Etiqueta from './Etiqueta';
 // Al final, la pastilla de acción «↓ Ingreso» llama a `onRegistrarIngreso` (sin él no se dibuja:
 // la maqueta del onboarding).
 // El ojo oculta saldo, aviso e ingresos ("••••••" con el mismo estilo, para que el layout no
-// salte); la preferencia se recuerda (useSaldoOculto). Sin la pila de tarjetas (Próximamente).
-export default function TarjetaSaldo({ saldo, ingresos = 0, onRegistrarIngreso }) {
+// salte); la preferencia se recuerda (useSaldoOculto).
+// A la derecha, la pila de hasta 3 `tarjetas` (TarjetaVisual 'mini' escalonadas, recortadas por el
+// bloque como en Stitch) y debajo hasta 3 íconos de las `membresias` pagadas con ellas; tocarla
+// llama a `onAbrirTarjetas`. El saldo se limita al 62 % del ancho para no quedar debajo; sin
+// tarjetas o en pantallas angostas no se dibuja.
+export default function TarjetaSaldo({
+  saldo,
+  ingresos = 0,
+  onRegistrarIngreso,
+  tarjetas = [],
+  membresias = [],
+  onAbrirTarjetas,
+}) {
   const { colors } = useTema();
   const styles = useEstilos(crearEstilos);
+  const { width } = useWindowDimensions();
+  const pila =
+    onAbrirTarjetas && width >= ANCHO_MIN_PILA ? (tarjetas || []).slice(0, MAX_PILA) : [];
+  const vinculadas = pila.length
+    ? (tarjetas || []).flatMap((t) => suscripcionesDeTarjeta(membresias, t.id).vinculadas)
+    : [];
   const conSaldo = typeof saldo === 'number' && Number.isFinite(saldo);
   const negativo = conSaldo && saldo < 0;
   // El signo va con "−" (menos tipográfico), no con el guion de Intl.
@@ -39,7 +60,7 @@ export default function TarjetaSaldo({ saldo, ingresos = 0, onRegistrarIngreso }
   };
 
   return (
-    <View style={styles.bloque}>
+    <View style={[styles.bloque, pila.length > 0 ? styles.bloqueConPila : null]}>
       <View style={styles.etiquetaFila}>
         <Etiqueta style={styles.etiqueta}>Saldo disponible</Etiqueta>
         <Pressable
@@ -58,6 +79,7 @@ export default function TarjetaSaldo({ saldo, ingresos = 0, onRegistrarIngreso }
 
       <View
         accessible
+        style={pila.length > 0 ? styles.conPila : null}
         accessibilityLabel={
           oculto
             ? 'Saldo oculto'
@@ -118,11 +140,54 @@ export default function TarjetaSaldo({ saldo, ingresos = 0, onRegistrarIngreso }
           <Text style={styles.pastillaTexto}>Ingreso</Text>
         </Pressable>
       ) : null}
+
+      {pila.length > 0 ? (
+        <Pressable
+          onPress={onAbrirTarjetas}
+          accessibilityRole="button"
+          accessibilityLabel={`Tus tarjetas: ${pila.map(etiquetaAccesibleTarjeta).join(', ')}`}
+          accessibilityHint="Abre tus tarjetas en Cartera"
+          style={styles.pila}
+        >
+          {/* La primera tarjeta va al frente (se dibuja al final, top 24); las de atrás solo con
+              su gradiente. La sombra va en el envoltorio (con el overflow de la cara no saldría
+              en iOS) y crece hacia el frente. */}
+          <View style={styles.tarjetasPila}>
+            {[...pila].reverse().map((t, i, lista) => (
+              <View
+                key={t.id}
+                style={[
+                  styles.mini,
+                  i === lista.length - 1 ? styles.miniFrente : null,
+                  {
+                    top: i * PASO_PILA,
+                    backgroundColor: degradadoTarjeta(t)[0],
+                    elevation: 6 + 3 * i,
+                  },
+                ]}
+              >
+                <TarjetaVisual
+                  tarjeta={t}
+                  tamano="mini"
+                  soloFondo={i < lista.length - 1}
+                  style={styles.caraMini}
+                />
+              </View>
+            ))}
+          </View>
+          {/* Como en Stitch: hasta 3 suscripciones pagadas con esas tarjetas */}
+          <AvataresServicios membresias={vinculadas} style={styles.avataresPila} />
+        </Pressable>
+      ) : null}
     </View>
   );
 }
 
 const OCULTO = '••••••';
+const MAX_PILA = 3;
+const PASO_PILA = 12; // top 0 / 12 / 24
+const DESBORDE_PILA = 56; // -right-14: lo que la pila sale del bloque y se recorta
+const ANCHO_MIN_PILA = 360;
 
 const crearEstilos = (colors) =>
   StyleSheet.create({
@@ -222,5 +287,61 @@ const crearEstilos = (colors) =>
     pastillaTexto: {
       ...tipografia.labelAccion,
       color: colors.text,
+    },
+    // Pila de tarjetas (Stitch 07_inicio_*_fondo_1): el bloque recorta lo que sale a la derecha
+    // (overflow hidden, min-h-[170px]) y el saldo se queda en el 62 % izquierdo. Se estira hasta
+    // el borde de la pantalla (margen lateral de la lista de Inicio) y lo compensa con padding,
+    // así el recorte cae en el borde real y el saldo no se mueve.
+    bloqueConPila: {
+      overflow: 'hidden',
+      minHeight: 170,
+      marginRight: -espacios.margen,
+      paddingRight: espacios.margen,
+    },
+    conPila: {
+      maxWidth: '62%',
+    },
+    // absolute -right-14 top-2 bottom-2 w-44, columna: tarjetas arriba, íconos abajo
+    pila: {
+      position: 'absolute',
+      right: -DESBORDE_PILA,
+      top: 8,
+      bottom: 8,
+      width: 176,
+      justifyContent: 'space-between',
+      alignItems: 'flex-end',
+    },
+    // relative w-36 h-28
+    tarjetasPila: {
+      width: 144,
+      height: 112,
+    },
+    // w-32 h-[100px] rounded-[20px] absolute right-0, sombra hacia izquierda-abajo
+    mini: {
+      position: 'absolute',
+      right: 0,
+      width: 128,
+      height: 100,
+      borderRadius: 20,
+      // Sombra de iOS solo hacia izquierda-abajo: el desplazamiento vertical supera al radio,
+      // así el difuminado no asoma por el borde superior. Suave en las de atrás.
+      shadowColor: colors.sombra,
+      shadowOffset: { width: -4, height: 6 },
+      shadowRadius: 4,
+      shadowOpacity: 0.2,
+    },
+    miniFrente: {
+      shadowOffset: { width: -6, height: 8 },
+      shadowRadius: 6,
+      shadowOpacity: 0.35,
+    },
+    caraMini: {
+      width: '100%',
+      height: '100%',
+      borderRadius: 20,
+    },
+    // Bajo lo visible de la tarjeta de enfrente (no en los 56 px recortados), con el pr-1 de Stitch
+    avataresPila: {
+      paddingRight: DESBORDE_PILA + espacios.xs,
     },
   });
