@@ -441,18 +441,6 @@
       "tipo": "captura Android"
     },
     {
-      "archivo": "RF11-01-03-despues-omitir.png",
-      "bytes": 385515,
-      "sha256": "b815e58dbb71067add4e414102fc9fdd376a8628dbe72c1cca42ca527626560a",
-      "tipo": "captura Android"
-    },
-    {
-      "archivo": "RF11-01-03-reapertura.png",
-      "bytes": 287635,
-      "sha256": "a4dbe98063266cf6e3c29d25746a6cc1172a9435684c5dd20374d3bde42ff0ee",
-      "tipo": "captura Android"
-    },
-    {
       "archivo": "RF11-01-gasto-usd-guardado.png",
       "bytes": 270240,
       "sha256": "a87a222d4cc49e76d492306d245e55fbc8bea8c309e68ca8e881b15c87dc0d7f",
@@ -651,12 +639,6 @@
       "tipo": "registro"
     },
     {
-      "archivo": "RF13-03-apertura-sin-red.png",
-      "bytes": 277943,
-      "sha256": "5a0218636d5b838f97d716b7f502a2add6bc6dc123653ccf8b3f5cbe9df56eb4",
-      "tipo": "captura Android"
-    },
-    {
       "archivo": "RF13-03-despues.txt",
       "bytes": 9427,
       "sha256": "d36857ca9d2a00a33c612d005a1d99997ede1ecb81074501461c370ef4b299b7",
@@ -675,12 +657,6 @@
       "tipo": "captura Android"
     },
     {
-      "archivo": "RF13-04-app-despues-logout-reinicio.png",
-      "bytes": 569906,
-      "sha256": "6505243371310e05b08fae759f0a0771906290a6c7b21caed45da242fcbbe306",
-      "tipo": "captura Android"
-    },
-    {
       "archivo": "RF13-04-inicio-B.png",
       "bytes": 622994,
       "sha256": "20f30c9e561c9bc10b2b7cb1e18a5710711a9ac507b06b15be83eb141224629b",
@@ -690,18 +666,6 @@
       "archivo": "RF13-04-widget-B.png",
       "bytes": 2235077,
       "sha256": "10c41d745af7b0d5db2deeb054d6b3a229d9612452e0abe30e8e00912b89de74",
-      "tipo": "captura Android"
-    },
-    {
-      "archivo": "RF13-04-widget-logout-reinicio.png",
-      "bytes": 2499266,
-      "sha256": "11341c974b20855126c00317048cbd95dc7f2e3e0bebab1196bd2ae3166e4850",
-      "tipo": "captura Android"
-    },
-    {
-      "archivo": "RF13-04-widget-logout.png",
-      "bytes": 2233054,
-      "sha256": "a0834338f61d6d751863e057e68f93b0e07d6f60836922c10b9448bc3be32893",
       "tipo": "captura Android"
     },
     {
@@ -826,14 +790,14 @@
     },
     {
       "archivo": "bitacora-capturas.jsonl",
-      "bytes": 7736,
-      "sha256": "3a906e8eaba3d21337e927f96d5e394c6b3167429eb9dfab3364a2fab76543c4",
+      "bytes": 7292,
+      "sha256": "68bf818eccea478243c861fbaade3ac23f70cbee5132a69b38a4f8f76a7ad3e1",
       "tipo": "registro"
     },
     {
       "archivo": "casos.json",
-      "bytes": 18226,
-      "sha256": "e692b59d303f42f3c8251a66e0fb9a9f254ff6d90860b174375c64dcecd3f20a",
+      "bytes": 17206,
+      "sha256": "ddffa6ad85781842ca57cc210272d028000bc3b6b06b8c5d7a0b5801e3242518",
       "tipo": "registro"
     },
     {

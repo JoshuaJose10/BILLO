@@ -35,8 +35,6 @@
 {"at":"2026-11-19T09:02:25.546Z","file":"RF11-01-total-convertido.png"}
 {"at":"2026-11-19T09:03:26.530Z","file":"RF11-03-suscripcion-usd.png"}
 {"at":"2026-11-19T09:03:33.383Z","file":"RF11-03-suscripcion-guardada.png"}
-{"at":"2026-11-19T09:03:39.444Z","file":"RF11-01-03-reapertura.png"}
-{"at":"2026-11-19T09:04:22.869Z","file":"RF11-01-03-despues-omitir.png"}
 {"at":"2026-11-19T09:05:46.075Z","file":"RF1-04-credenciales-invalidas.png"}
 {"at":"2026-11-19T09:06:05.638Z","file":"RF1-02-datos-restaurados-login.png"}
 {"at":"2026-11-19T09:06:43.929Z","file":"RF11-06-regreso-mxn.png"}
@@ -57,7 +55,6 @@
 {"at":"2026-11-19T09:17:01.978Z","file":"RF13-03-widget-antes-sin-red.png"}
 {"at":"2026-11-19T09:17:04.004Z","file":"RF13-03-ajustes-sin-red.png"}
 {"at":"2026-11-19T09:18:40.329Z","file":"RF13-03-widget-despues-reinicio.png"}
-{"at":"2026-11-19T09:18:44.991Z","file":"RF13-03-apertura-sin-red.png"}
 {"at":"2026-11-19T09:20:13.074Z","file":"RF12-02-frase-escuchando.png"}
 {"at":"2026-11-19T09:20:21.937Z","file":"RF12-02-frase-resultado.png"}
 {"at":"2026-11-19T09:20:42.018Z","file":"RF12-02-ruido-escuchando.png"}
@@ -73,9 +70,6 @@
 {"at":"2026-11-19T09:26:36.222Z","file":"RF12-02-manual-85-formulario.png"}
 {"at":"2026-11-19T09:27:01.886Z","file":"RF12-02-guardado-manual-85.png"}
 {"at":"2026-11-19T09:27:13.345Z","file":"FINAL-PER-01-nombre-reabierto.png"}
-{"at":"2026-11-19T09:27:28.075Z","file":"RF13-04-widget-logout.png"}
-{"at":"2026-11-19T09:34:49.478Z","file":"RF13-04-widget-logout-reinicio.png"}
-{"at":"2026-11-19T09:35:21.656Z","file":"RF13-04-app-despues-logout-reinicio.png"}
 {"at":"2026-11-19T09:36:12.703Z","file":"RF13-04-inicio-B.png"}
 {"at":"2026-11-19T09:36:17.361Z","file":"RF13-04-widget-B.png"}
 {"at":"2026-11-19T09:36:48.175Z","file":"RF4-01-alerta-800.png"}

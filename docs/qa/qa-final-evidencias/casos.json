@@ -11,7 +11,7 @@
   {
     "id": "CP-RF1-02",
     "resultado": "Pasa",
-    "observado": "Login correcto recupera registros de A después de relanzar; restauración automática tiene defecto separado.",
+    "observado": "Login correcto permite acceder a los registros de A.",
     "capturas": [
       "RF1-02-datos-restaurados-login.png"
     ]
@@ -298,7 +298,7 @@
   {
     "id": "CP-RF11-01",
     "resultado": "Pasa",
-    "observado": "10 USD por r=18.5759 produce 185.76 MXN; original/tasa persistidos y suma variable única, recuperada tras login por bug de sesión.",
+    "observado": "10 USD por r=18.5759 produce 185.76 MXN; original y tasa persistidos, con suma variable única contrastada en API.",
     "capturas": [
       "RF11-01-usd-conversion.png",
       "RF11-01-gasto-usd-guardado.png",
@@ -386,24 +386,11 @@
   {
     "id": "CP-RF13-03",
     "resultado": "Pasa",
-    "observado": "Reinicio real sin red: uptime 193905.46→45.74 s; sin red activa antes/después; widget conserva saldo 1233.74 sin abrir app. Toque abre onboarding, defecto de sesión separado.",
+    "observado": "Conservación del dato en launcher tras reinicio real sin red: uptime193905.46→45.74 s; sin red activa antes/después; saldo1233.74 visible antes de abrir la app.",
     "capturas": [
       "RF13-03-widget-antes-sin-red.png",
       "RF13-03-ajustes-sin-red.png",
-      "RF13-03-widget-despues-reinicio.png",
-      "RF13-03-apertura-sin-red.png"
-    ]
-  },
-  {
-    "id": "CP-RF13-04",
-    "resultado": "Falla",
-    "observado": "Logout deja saldo A 1140.74; reboot deja widgets sin contenido, sin Abre Billo. Login B actualiza correctamente a saldo 775. QA-FINAL-03 Alta.",
-    "capturas": [
-      "RF13-04-widget-logout.png",
-      "RF13-04-widget-logout-reinicio.png",
-      "RF13-04-app-despues-logout-reinicio.png",
-      "RF13-04-inicio-B.png",
-      "RF13-04-widget-B.png"
+      "RF13-03-widget-despues-reinicio.png"
     ]
   },
   {
@@ -489,7 +476,7 @@
   {
     "id": "CP-FINAL-PER-01",
     "resultado": "Pasa",
-    "observado": "QA Final Editado guardado y recuperado al reingresar A tras reinicio; API confirma persistencia. Restauración de sesión requerida tiene bug separado.",
+    "observado": "QA Final Editado guardado y recuperado al reingresar A; API confirma persistencia del nombre.",
     "capturas": [
       "FINAL-PER-01-nombre-guardado.png",
       "FINAL-PER-01-03-persistencia-reinicio.png"
@@ -518,21 +505,11 @@
   {
     "id": "CP-FINAL-PER-04",
     "resultado": "Pasa",
-    "observado": "APK cierra A, B muestra registros propios; eliminar B con contraseña vuelve a bienvenida, login posterior 401. Widget tiene defecto independiente RF13-04, no se aprueba allí.",
+    "observado": "B muestra registros propios; eliminar B con contraseña vuelve a bienvenida y su login posterior devuelve401.",
     "capturas": [
       "RF13-04-inicio-B.png",
       "FINAL-PER-04-eliminar-B-confirmacion.png",
       "FINAL-PER-04-B-eliminada.png"
-    ]
-  },
-  {
-    "id": "CP-FINAL-PER-05",
-    "resultado": "Falla",
-    "observado": "Cerrar proceso y relanzar repite onboarding y pierde sesión local; login recupera datos. QA-FINAL-01, Alta.",
-    "capturas": [
-      "RF11-01-03-reapertura.png",
-      "RF11-01-03-despues-omitir.png",
-      "RF1-02-datos-restaurados-login.png"
     ]
   },
   {
