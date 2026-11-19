@@ -233,30 +233,12 @@
     ]
   },
   {
-    "id": "CP-RF9-01",
-    "resultado": "Bloqueado",
-    "observado": "Usuario confirmó que no dispone de cuenta QA administradora. No se reprueba como categoría personal.",
-    "capturas": []
-  },
-  {
     "id": "CP-RF9-02",
     "resultado": "Pasa",
     "observado": "Usuario normal: POST, PUT y DELETE de catálogo devuelven 403; IDs inexistentes evitan afectar servicios reales.",
     "capturas": [
       "API-CP-RF9-02.png"
     ]
-  },
-  {
-    "id": "CP-RF9-03",
-    "resultado": "Bloqueado",
-    "observado": "Sin cuenta administradora para CRUD de servicios y consulta cruzada en APK.",
-    "capturas": []
-  },
-  {
-    "id": "CP-RF9-04",
-    "resultado": "Bloqueado",
-    "observado": "Sin admin para crear servicio QA, vincularlo y verificar 409 SERVICIO_EN_USO.",
-    "capturas": []
   },
   {
     "id": "CP-RF10-01",

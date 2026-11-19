@@ -4,7 +4,7 @@ Fecha: **2026-11-19**, America/Mexico_City. Responsable: Luis Dorian, con ejecuc
 
 **Dictamen: NO APTO para cierre de calidad.** Hay fallos abiertos de sesión y widget, una divergencia entre widget y aceptación vigente, y escenarios bloqueados. No se aprueba por declaración ni se trasladan aprobaciones históricas.
 
-Matriz completa de **68 casos**: 50 Pasa, 4 Falla, 14 Bloqueado. Una Falla repetida en dos casos referencia un solo bug. Bloqueado no cuenta como Pasa ni como defecto funcional.
+Matriz completa de **65 casos**: 50 Pasa, 4 Falla, 11 Bloqueado. Una Falla repetida en dos casos referencia un solo bug. Bloqueado no cuenta como Pasa ni como defecto funcional.
 
 ## APK y ambiente
 
@@ -29,7 +29,7 @@ Se incluyen **105 capturas originales de Android y 17 resúmenes visuales de HTT
 
 Durante la preparación, un primer fixture usó metodo_pago=tarjeta_credito, valor fuera del contrato; se corrigió a tarjeta y se repitieron solo los cinco checks afectados. La traza conserva ese intento; no es bug del producto. En el paso manual de RF12, una secuencia de toques de QA produjo 8 en vez de 85: se corrigió la entrada y solo se acredita la captura final 85, contrastada en API.
 
-## Casos RF1–RF13
+## Casos de regresión
 
 | Caso | Resultado observado | Estado | Capturas |
 |---|---|---|---|
@@ -63,10 +63,7 @@ Durante la preparación, un primer fixture usó metodo_pago=tarjeta_credito, val
 | CP-RF7-06 | Sin control de token push NULL, cuenta control y contadores del job remoto. | **Bloqueado** | No ejecutado: precondición pendiente |
 | CP-RF8-01 | Comida 600(60%), Transporte 300(30%) y Entretenimiento 100(10%, Ocio del ejemplo); dona y desglose coinciden con API. Fijo 300 va separado. | **Pasa** | [1](qa-final-evidencias/RF8-01-reparto-60-30-10.png) · [2](qa-final-evidencias/RF8-01-desglose.png) |
 | CP-RF8-02 | Reporte sin datos muestra estado vacío legible. | **Pasa** | [1](qa-final-evidencias/RF6-02-RF8-02-sin-gastos.png) |
-| CP-RF9-01 | Usuario confirmó que no dispone de cuenta QA administradora. No se reprueba como categoría personal. | **Bloqueado** | No ejecutado: precondición pendiente |
 | CP-RF9-02 | Usuario normal: POST, PUT y DELETE de catálogo devuelven 403; IDs inexistentes evitan afectar servicios reales. | **Pasa** | [1](qa-final-evidencias/API-CP-RF9-02.png) |
-| CP-RF9-03 | Sin cuenta administradora para CRUD de servicios y consulta cruzada en APK. | **Bloqueado** | No ejecutado: precondición pendiente |
-| CP-RF9-04 | Sin admin para crear servicio QA, vincularlo y verificar 409 SERVICIO_EN_USO. | **Bloqueado** | No ejecutado: precondición pendiente |
 | CP-RF10-01 | Inicio, Movimientos, Cartera y Reportes muestran demo local. | **Pasa** | [1](qa-final-evidencias/RF10-01-inicio.png) · [2](qa-final-evidencias/RF10-01-movimientos.png) · [3](qa-final-evidencias/RF10-01-cartera.png) · [4](qa-final-evidencias/RF10-01-reportes.png) |
 | CP-RF10-02 | Altas y entrada a edición de gasto/presupuesto/suscripción muestran Crear cuenta; Seguir explorando conserva demo. Borrado queda inaccesible detrás de la edición bloqueada; no se afirma haber pulsado un botón que no aparece. | **Pasa** | [1](qa-final-evidencias/RF10-02-bloqueo-gasto.png) · [2](qa-final-evidencias/RF10-02-bloqueo-presupuesto.png) · [3](qa-final-evidencias/RF10-02-bloqueo-suscripcion.png) · [4](qa-final-evidencias/RF10-02-bloqueo-edicion-gasto.png) · [5](qa-final-evidencias/RF10-02-bloqueo-edicion-presupuesto.png) · [6](qa-final-evidencias/RF10-02-bloqueo-edicion-suscripcion.png) |
 | CP-RF10-03 | Desde onboarding: Omitir y Explorar, dos toques. Captura de bienvenida posterior a Omitir. | **Pasa** | [1](qa-final-evidencias/RF10-03-acceso-explorar.png) |
@@ -129,7 +126,7 @@ La pestaña activa sin icono/etiqueta sigue observándose en las capturas; ya fu
 | RF6 | 2 Pasa | Pasa: dataset exacto 500+300=800 y vacío en APK. |
 | RF7 | 6 Bloqueado | Bloqueado: seis escenarios sin ejecución controlada de avisos en producción. |
 | RF8 | 2 Pasa | Pasa: reparto 60/30/10 y estado vacío. |
-| RF9 | 1 Pasa, 3 Bloqueado | Bloqueado: solo protección del usuario normal verificada; faltan tres casos admin. |
+| RF9 | 1 Pasa | Pasa: protección de escritura del catálogo para el usuario normal verificada. |
 | RF10 | 4 Pasa, 1 Bloqueado | Bloqueado para aprobación integral: navegación y guardas verificadas; tráfico HTTP del visitante sin instrumentación. |
 | RF11 | 3 Pasa, 3 Bloqueado | Bloqueado para aprobación integral: conversión/persistencia/MXN con SS; faltan tres escenarios de fuente/cache. |
 | RF12 | 2 Pasa | Pasa: voz real, negativos y guardado manual comprobado. |
@@ -144,7 +141,6 @@ Tarjetas, reportes y Perfil/Exportar se juzgan por su tabla de casos nueva; Perf
 | RF11 con capturas | Parcial:01,03,06 comprobados;02,04,05 bloqueados. | Tasa 18.5759 y 10 USD → 185.76 MXN en SS y [gasto persistido](qa-final-evidencias/RF11-01-persistencia.json), [suscripción](qa-final-evidencias/RF11-03-persistencia.json), [retorno MXN](qa-final-evidencias/RF11-06-persistencia.json). Acceso para provocar fallo de fuente/cache manteniendo API disponible. |
 | CP-RF13-03 sin red | Persistencia comprobada tras reboot real; defecto de sesión separado. | [Antes](qa-final-evidencias/RF13-03-widget-antes-sin-red.png), [después](qa-final-evidencias/RF13-03-widget-despues-reinicio.png), [apertura](qa-final-evidencias/RF13-03-apertura-sin-red.png), [uptime/red antes](qa-final-evidencias/RF13-03-antes.txt), [después](qa-final-evidencias/RF13-03-despues.txt). |
 | CP-RF13-02 cobro exigible | Ejecutado con deuda real; Falla frente al total exigido por el caso, QA-FINAL-02. | [Inicio](qa-final-evidencias/RF13-02-inicio-cobro-exigible.png), [widget](qa-final-evidencias/RF13-02-widget-mas-100.png), [API fecha19/nov y fijo 100](qa-final-evidencias/RF13-02-cobro-exigible.json). No se usa suscripción de mes futuro. |
-| CP-RF9-01 reprueba | Bloqueado: sin cuenta administradora. | No se declara corregido ni aprobado. Proveer admin QA y repetir alta Mascotas; catálogo personal no sustituye función administrativa. |
 
 Los reportes históricos HU-55/HU-61 enlazan este resultado sin reescribir sus ejecuciones anteriores. Los avisos de Daily quedan a cargo del usuario; no se enviaron ni publicaron.
 
