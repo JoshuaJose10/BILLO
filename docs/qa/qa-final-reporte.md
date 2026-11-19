@@ -128,4 +128,4 @@ Se incluyen 99 capturas originales de Android y 17 resúmenes visuales generados
 - [Manifest SHA-256](qa-final-evidencias/manifest.json): PNG en bytes exactos y texto UTF-8 normalizado a LF.
 - Verificación documental: enlaces locales, JSON, integridad de PNG, hashes y ausencia de contraseñas/JWT. Las imágenes no se retocan; los logs normalizan finales de línea y espacios finales.
 
-El alcance de esta actualización es documental. El PR permanece cerrado y no se acredita aviso de Daily.
+El alcance de esta actualización es documental. Entrega preparada para revisión; los avisos de Daily quedan a cargo del usuario.
