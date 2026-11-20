@@ -1,0 +1,548 @@
+[
+  {
+    "id": "CP-RF1-01",
+    "resultado": "Pasa",
+    "observado": "Registro real de A desde la invitación de visitante; cuenta vacía.",
+    "capturas": [
+      "RF1-01-registro.png",
+      "RF1-01-RF10-05-cuenta-vacia.png"
+    ]
+  },
+  {
+    "id": "CP-RF1-02",
+    "resultado": "Pasa",
+    "observado": "Login correcto permite acceder a los registros de A.",
+    "capturas": [
+      "RF1-02-datos-restaurados-login.png"
+    ]
+  },
+  {
+    "id": "CP-RF1-03",
+    "resultado": "Pasa",
+    "observado": "Mismo correo desechable: HTTP 409, sin segunda cuenta (API).",
+    "capturas": [
+      "API-CP-RF1-03.png"
+    ]
+  },
+  {
+    "id": "CP-RF1-04",
+    "resultado": "Pasa",
+    "observado": "Contraseña incorrecta rechazada en APK, mensaje de credenciales inválidas.",
+    "capturas": [
+      "RF1-04-credenciales-invalidas.png"
+    ]
+  },
+  {
+    "id": "CP-RF2-01",
+    "resultado": "Pasa",
+    "observado": "80.50 MXN/Comida/hoy persistidos. Variante tarjeta QA 4242 para cruzar TAR-03; Efectivo se observa en RF12.",
+    "capturas": [
+      "RF2-01-TAR-03-formulario.png",
+      "RF2-01-RF10-05-gasto-persistido.png"
+    ]
+  },
+  {
+    "id": "CP-RF2-02",
+    "resultado": "Pasa",
+    "observado": "POST con monto ochenta devuelve 400 y no guarda (API).",
+    "capturas": [
+      "API-CP-RF2-02.png"
+    ]
+  },
+  {
+    "id": "CP-RF2-03",
+    "resultado": "Pasa",
+    "observado": "Formulario con 80.50 sin categoría impide guardar.",
+    "capturas": [
+      "RF2-03-categoria-obligatoria.png"
+    ]
+  },
+  {
+    "id": "CP-RF3-01",
+    "resultado": "Pasa",
+    "observado": "Comida, noviembre: presupuesto de 2000 creado en APK.",
+    "capturas": [
+      "RF3-01-presupuesto-2000.png"
+    ]
+  },
+  {
+    "id": "CP-RF3-02",
+    "resultado": "Pasa",
+    "observado": "Presupuesto -500 rechazado con 400 (API); teclado APK no ofrece signo negativo.",
+    "capturas": [
+      "API-CP-RF3-02.png"
+    ]
+  },
+  {
+    "id": "CP-RF4-01",
+    "resultado": "Pasa",
+    "observado": "B: Comida 700+100=800, límite 1000; toast y tarjeta Cerca del límite al 80%. Otra categoría 25 queda separada.",
+    "capturas": [
+      "RF4-01-alerta-800.png"
+    ]
+  },
+  {
+    "id": "CP-RF4-02",
+    "resultado": "Pasa",
+    "observado": "B: Comida 950+100=1050, límite 1000; toast y tarjeta Excedido al 105%.",
+    "capturas": [
+      "RF4-02-alerta-1050.png"
+    ]
+  },
+  {
+    "id": "CP-RF4-03",
+    "resultado": "Pasa",
+    "observado": "B: Comida 100+50=150,15%; gasto guardado sin toast de alerta ni tarjeta de riesgo.",
+    "capturas": [
+      "RF4-03-sin-alerta-150.png"
+    ]
+  },
+  {
+    "id": "CP-RF4-04",
+    "resultado": "Pasa",
+    "observado": "799.90: estado ok; ver secuencia POST y PUT independiente en traza API.",
+    "capturas": [
+      "API-CP-RF4-04-07.png"
+    ]
+  },
+  {
+    "id": "CP-RF4-05",
+    "resultado": "Pasa",
+    "observado": "800: estado alerta en POST y PUT (API).",
+    "capturas": [
+      "API-CP-RF4-04-07.png"
+    ]
+  },
+  {
+    "id": "CP-RF4-06",
+    "resultado": "Pasa",
+    "observado": "1000: alerta, todavía no excedido, POST y PUT (API).",
+    "capturas": [
+      "API-CP-RF4-04-07.png"
+    ]
+  },
+  {
+    "id": "CP-RF4-07",
+    "resultado": "Pasa",
+    "observado": "1000.10: excedido, POST y PUT (API).",
+    "capturas": [
+      "API-CP-RF4-04-07.png"
+    ]
+  },
+  {
+    "id": "CP-RF5-01",
+    "resultado": "Pasa",
+    "observado": "Netflix 199 mensual con cobro 29/nov, diez días después; lista y asociación a tarjeta correctas.",
+    "capturas": [
+      "RF5-01-TAR-03-suscripcion-formulario.png",
+      "RF5-01-suscripcion-guardada.png"
+    ]
+  },
+  {
+    "id": "CP-RF5-02",
+    "resultado": "Pasa",
+    "observado": "Costo modificado a 219 y posterior eliminación desde APK.",
+    "capturas": [
+      "RF5-02-costo-editado.png",
+      "RF5-02-suscripcion-eliminada.png"
+    ]
+  },
+  {
+    "id": "CP-RF5-03",
+    "resultado": "Pasa",
+    "observado": "Formulario sin nombre rechaza guardar.",
+    "capturas": [
+      "RF5-03-nombre-obligatorio.png"
+    ]
+  },
+  {
+    "id": "CP-RF5-04",
+    "resultado": "Pasa",
+    "observado": "POST costo abc devuelve 400 (API); teclado APK es numérico.",
+    "capturas": [
+      "API-CP-RF5-04.png"
+    ]
+  },
+  {
+    "id": "CP-RF6-01",
+    "resultado": "Pasa",
+    "observado": "APK y API: variable 500 + fijo 300 = total 800; captura antes de añadir fixture RF8.",
+    "capturas": [
+      "RF6-01-variable-500-fijo-300-total-800.png"
+    ]
+  },
+  {
+    "id": "CP-RF6-02",
+    "resultado": "Pasa",
+    "observado": "Cuenta nueva: variable, fijo y total cero.",
+    "capturas": [
+      "RF6-02-RF8-02-sin-gastos.png"
+    ]
+  },
+  {
+    "id": "CP-RF7-01",
+    "resultado": "Bloqueado",
+    "observado": "Sin acceso al job/despliegue para ejecutar aviso D+3 y registrar recepción real.",
+    "capturas": []
+  },
+  {
+    "id": "CP-RF7-02",
+    "resultado": "Bloqueado",
+    "observado": "Sin ejecución controlada del job con fecha D; ausencia de aviso por sí sola no prueba D+10.",
+    "capturas": []
+  },
+  {
+    "id": "CP-RF7-03",
+    "resultado": "Bloqueado",
+    "observado": "Sin job controlable para verificar exclusión de membresía eliminada.",
+    "capturas": []
+  },
+  {
+    "id": "CP-RF7-04",
+    "resultado": "Bloqueado",
+    "observado": "Sin job, token push/control de envío y contadores para D+2/deep link.",
+    "capturas": []
+  },
+  {
+    "id": "CP-RF7-05",
+    "resultado": "Bloqueado",
+    "observado": "Depende del primer envío comprobado y de ejecutar el job dos veces en D.",
+    "capturas": []
+  },
+  {
+    "id": "CP-RF7-06",
+    "resultado": "Bloqueado",
+    "observado": "Sin control de token push NULL, cuenta control y contadores del job remoto.",
+    "capturas": []
+  },
+  {
+    "id": "CP-RF8-01",
+    "resultado": "Pasa",
+    "observado": "Comida 600(60%), Transporte 300(30%) y Entretenimiento 100(10%, Ocio del ejemplo); dona y desglose coinciden con API. Fijo 300 va separado.",
+    "capturas": [
+      "RF8-01-reparto-60-30-10.png",
+      "RF8-01-desglose.png"
+    ]
+  },
+  {
+    "id": "CP-RF8-02",
+    "resultado": "Pasa",
+    "observado": "Reporte sin datos muestra estado vacío legible.",
+    "capturas": [
+      "RF6-02-RF8-02-sin-gastos.png"
+    ]
+  },
+  {
+    "id": "CP-RF9-02",
+    "resultado": "Pasa",
+    "observado": "Usuario normal: POST, PUT y DELETE de catálogo devuelven 403; IDs inexistentes evitan afectar servicios reales.",
+    "capturas": [
+      "API-CP-RF9-02.png"
+    ]
+  },
+  {
+    "id": "CP-RF10-01",
+    "resultado": "Pasa",
+    "observado": "Inicio, Movimientos, Cartera y Reportes muestran demo local.",
+    "capturas": [
+      "RF10-01-inicio.png",
+      "RF10-01-movimientos.png",
+      "RF10-01-cartera.png",
+      "RF10-01-reportes.png"
+    ]
+  },
+  {
+    "id": "CP-RF10-02",
+    "resultado": "Pasa",
+    "observado": "Altas y entrada a edición de gasto/presupuesto/suscripción muestran Crear cuenta; Seguir explorando conserva demo. Borrado queda inaccesible detrás de la edición bloqueada; no se afirma haber pulsado un botón que no aparece.",
+    "capturas": [
+      "RF10-02-bloqueo-gasto.png",
+      "RF10-02-bloqueo-presupuesto.png",
+      "RF10-02-bloqueo-suscripcion.png",
+      "RF10-02-bloqueo-edicion-gasto.png",
+      "RF10-02-bloqueo-edicion-presupuesto.png",
+      "RF10-02-bloqueo-edicion-suscripcion.png"
+    ]
+  },
+  {
+    "id": "CP-RF10-03",
+    "resultado": "Pasa",
+    "observado": "Desde onboarding: Omitir y Explorar, dos toques. Captura de bienvenida posterior a Omitir.",
+    "capturas": [
+      "RF10-03-acceso-explorar.png"
+    ]
+  },
+  {
+    "id": "CP-RF10-04",
+    "resultado": "Bloqueado",
+    "observado": "Parte visual comprobada: arranque en frío, cuatro pantallas, filtro Comida y mes anterior sin red. No se dispone de instrumentación HTTP del APK para acreditar ausencia de intentos de solicitud; no se aprueba esa parte por inferencia.",
+    "capturas": [
+      "RF10-04-inicio-sin-red.png",
+      "RF10-04-movimientos-sin-red.png",
+      "RF10-04-cartera-sin-red.png",
+      "RF10-04-reportes-sin-red.png",
+      "RF10-04-filtro-sin-red.png",
+      "RF10-04-mes-anterior-sin-red.png"
+    ]
+  },
+  {
+    "id": "CP-RF10-05",
+    "resultado": "Pasa",
+    "observado": "Crear cuenta desde invitación sale de demo; inicia en cero; gasto 80.50 permanece al volver a autenticarse.",
+    "capturas": [
+      "RF1-01-RF10-05-cuenta-vacia.png",
+      "RF2-01-RF10-05-gasto-persistido.png",
+      "RF1-02-datos-restaurados-login.png"
+    ]
+  },
+  {
+    "id": "CP-RF11-01",
+    "resultado": "Pasa",
+    "observado": "10 USD por r=18.5759 produce 185.76 MXN; original y tasa persistidos, con suma variable única contrastada en API.",
+    "capturas": [
+      "RF11-01-usd-conversion.png",
+      "RF11-01-gasto-usd-guardado.png",
+      "RF11-01-total-convertido.png"
+    ]
+  },
+  {
+    "id": "CP-RF11-02",
+    "resultado": "Bloqueado",
+    "observado": "No hay control de fuente/cache remota para producir 502 sin tasa manteniendo API accesible. Apagar el teléfono no simula ese caso.",
+    "capturas": []
+  },
+  {
+    "id": "CP-RF11-03",
+    "resultado": "Pasa",
+    "observado": "Suscripción 10 USD equivalente 185.76 MXN, frecuencia/fecha correctas, persistencia contrastada por API.",
+    "capturas": [
+      "RF11-03-suscripcion-usd.png",
+      "RF11-03-suscripcion-guardada.png"
+    ]
+  },
+  {
+    "id": "CP-RF11-04",
+    "resultado": "Bloqueado",
+    "observado": "Sin control de fallo de fuente remota y vaciado de cache para suscripción.",
+    "capturas": []
+  },
+  {
+    "id": "CP-RF11-05",
+    "resultado": "Bloqueado",
+    "observado": "Sin control de fallo de fuente después de obtener tasa; no se declara uso de cache sin provocarlo.",
+    "capturas": []
+  },
+  {
+    "id": "CP-RF11-06",
+    "resultado": "Pasa",
+    "observado": "Editar a 199 MXN deja monto_original y tipo_cambio NULL; costo reemplazado.",
+    "capturas": [
+      "RF11-06-regreso-mxn.png"
+    ]
+  },
+  {
+    "id": "CP-RF12-01",
+    "resultado": "Pasa",
+    "observado": "Voz real llena 80 y Comida; antes de confirmar seguían solo dos gastos en API; confirmación explícita guarda uno. Posteriormente editado/eliminado para RF13.",
+    "capturas": [
+      "RF12-01-resultado-dictado.png",
+      "RF12-01-gasto-confirmado.png"
+    ]
+  },
+  {
+    "id": "CP-RF12-02",
+    "resultado": "Pasa",
+    "observado": "Intentos de frase, ruido y silencio mantienen monto/categoría vacíos con aviso. Frase terminó No te escuché; otros No entendí el monto. Manual 85 verificado después de corregir entrada de QA.",
+    "capturas": [
+      "RF12-02-frase-resultado.png",
+      "RF12-02-ruido-resultado.png",
+      "RF12-02-silencio-resultado.png",
+      "RF12-02-manual-85-formulario.png",
+      "RF12-02-guardado-manual-85.png"
+    ]
+  },
+  {
+    "id": "CP-RF13-01",
+    "resultado": "Falla",
+    "observado": "Widget existente visible y abre desde encabezado; muestra saldo, sin mes/total mensual exigidos. QA-FINAL-02. Selector/alta no se usa para reemplazar ese criterio fallido.",
+    "capturas": [
+      "RF13-01-widget-base.png",
+      "RF13-01-toque-widget.png"
+    ]
+  },
+  {
+    "id": "CP-RF13-02",
+    "resultado": "Falla",
+    "observado": "80, edición 95.50 y borrado actualizan saldo; cobro exigible 100 suma total 366.26 en Inicio/API, widget conserva saldo 1233.74. Divergencia de contrato QA-FINAL-02.",
+    "capturas": [
+      "RF13-02-widget-mas-80.png",
+      "RF13-02-widget-editado-95-50.png",
+      "RF13-02-widget-gasto-eliminado.png",
+      "RF13-02-inicio-cobro-exigible.png",
+      "RF13-02-widget-mas-100.png",
+      "RF13-02-widget-suscripcion-eliminada.png"
+    ]
+  },
+  {
+    "id": "CP-RF13-03",
+    "resultado": "Pasa",
+    "observado": "Conservación del dato en launcher tras reinicio real sin red: uptime193905.46→45.74 s; sin red activa antes/después; saldo1233.74 visible antes de abrir la app.",
+    "capturas": [
+      "RF13-03-widget-antes-sin-red.png",
+      "RF13-03-ajustes-sin-red.png",
+      "RF13-03-widget-despues-reinicio.png"
+    ]
+  },
+  {
+    "id": "CP-FINAL-TAR-01",
+    "resultado": "Pasa",
+    "observado": "Crédito creado, editado a débito y renombrado; persistencia API/UI.",
+    "capturas": [
+      "FINAL-TAR-01-creada.png",
+      "FINAL-TAR-01-editada-debito.png",
+      "API-CP-FINAL-TAR-01.png"
+    ]
+  },
+  {
+    "id": "CP-FINAL-TAR-02",
+    "resultado": "Pasa",
+    "observado": "Vacío en APK muestra validaciones. API rechaza tres dígitos y día de corte 32 con 400.",
+    "capturas": [
+      "FINAL-TAR-02-validacion.png",
+      "API-CP-FINAL-TAR-02.png"
+    ]
+  },
+  {
+    "id": "CP-FINAL-TAR-03",
+    "resultado": "Pasa",
+    "observado": "Gasto 80.50 y suscripción 199 asociados:279.50 inicial. Con fixture fijo 300, noviembre 380.50 y octubre 300(var 0); selector APK coincide con resumen API por mes.",
+    "capturas": [
+      "FINAL-TAR-03-resumen.png",
+      "FINAL-TAR-03-noviembre-380-50.png",
+      "FINAL-TAR-03-octubre.png",
+      "API-CP-FINAL-TAR-03.png"
+    ]
+  },
+  {
+    "id": "CP-FINAL-TAR-04",
+    "resultado": "Pasa",
+    "observado": "Baja desde APK confirma conservar historial: gasto 80.50 y suscripción 300 siguen visibles, tarjeta_id NULL en API y total mensual 800 sin variación. Variante API B también correcta.",
+    "capturas": [
+      "FINAL-TAR-04-confirmacion.png",
+      "FINAL-TAR-04-tarjeta-eliminada.png",
+      "FINAL-TAR-04-suscripcion-conservada.png",
+      "FINAL-TAR-04-movimientos-conservados.png",
+      "FINAL-TAR-04-total-conservado.png",
+      "API-CP-FINAL-TAR-04.png"
+    ]
+  },
+  {
+    "id": "CP-FINAL-TAR-05",
+    "resultado": "Pasa",
+    "observado": "B no consulta/edita tarjeta A (404) ni registra gasto con ella (400).",
+    "capturas": [
+      "API-CP-FINAL-TAR-05.png"
+    ]
+  },
+  {
+    "id": "CP-FINAL-REP-01",
+    "resultado": "Pasa",
+    "observado": "Ingresos noviembre 1500, fuentes 1000/500, anterior 200 y variación 1300; selector octubre muestra 200; API coincide.",
+    "capturas": [
+      "FINAL-REP-01-ingresos.png",
+      "FINAL-REP-01-octubre-200.png",
+      "API-CP-FINAL-REP-01.png"
+    ]
+  },
+  {
+    "id": "CP-FINAL-REP-02",
+    "resultado": "Pasa",
+    "observado": "Dataset exacto: noviembre 1500−500−300=700; octubre 200−0−300=−100. Selector y serie de seis meses APK coinciden con API. Fijo normalizado 300 se aplica a ambos meses según contrato actual.",
+    "capturas": [
+      "FINAL-REP-02-noviembre-700.png",
+      "FINAL-REP-02-octubre-menos-100.png",
+      "API-CP-FINAL-REP-02.png"
+    ]
+  },
+  {
+    "id": "CP-FINAL-REP-03",
+    "resultado": "Pasa",
+    "observado": "Cuenta nueva/mes vacío: Ingresos y Balance sin NaN ni gráfica rota.",
+    "capturas": [
+      "FINAL-REP-03-sin-ingresos.png",
+      "FINAL-REP-03-balance-cero.png"
+    ]
+  },
+  {
+    "id": "CP-FINAL-PER-01",
+    "resultado": "Pasa",
+    "observado": "QA Final Editado guardado y recuperado al reingresar A; API confirma persistencia del nombre.",
+    "capturas": [
+      "FINAL-PER-01-nombre-guardado.png",
+      "FINAL-PER-01-03-persistencia-reinicio.png"
+    ]
+  },
+  {
+    "id": "CP-FINAL-PER-02",
+    "resultado": "Pasa",
+    "observado": "Cambio confirmado por APK; contraseña anterior 401 y nueva 200 en API. Credenciales omitidas.",
+    "capturas": [
+      "FINAL-PER-02-password-actualizada.png",
+      "API-CP-FINAL-PER-02.png"
+    ]
+  },
+  {
+    "id": "CP-FINAL-PER-03",
+    "resultado": "Pasa",
+    "observado": "Oscuro/USD se aplican a nuevo gasto y persisten tras reinicio; restablecidos Automático/MXN. Importes históricos sin conversión retroactiva.",
+    "capturas": [
+      "FINAL-PER-03-oscuro-usd.png",
+      "FINAL-PER-03-gasto-usd.png",
+      "FINAL-PER-01-03-persistencia-reinicio.png",
+      "FINAL-PER-03-restablecido.png"
+    ]
+  },
+  {
+    "id": "CP-FINAL-PER-04",
+    "resultado": "Pasa",
+    "observado": "B muestra registros propios; eliminar B con contraseña vuelve a bienvenida y su login posterior devuelve401.",
+    "capturas": [
+      "RF13-04-inicio-B.png",
+      "FINAL-PER-04-eliminar-B-confirmacion.png",
+      "FINAL-PER-04-B-eliminada.png"
+    ]
+  },
+  {
+    "id": "CP-FINAL-EXP-01",
+    "resultado": "Pasa",
+    "observado": "APK abre selector Android con CSV como texto; no se envió a terceros. API UTF-8/encabezados/escape de comas y comillas correctos. No se acredita archivo adjunto nativo .csv.",
+    "capturas": [
+      "FINAL-EXP-01-compartir-csv.png",
+      "API-CP-FINAL-EXP-01.png"
+    ]
+  },
+  {
+    "id": "CP-FINAL-EXP-02",
+    "resultado": "Pasa",
+    "observado": "Octubre solo ingreso 200; vacío solo encabezados; sin JWT 401; A/B sin mezcla (API).",
+    "capturas": [
+      "API-CP-FINAL-EXP-02.png"
+    ]
+  },
+  {
+    "id": "CP-FINAL-REC-01",
+    "resultado": "Pasa",
+    "observado": "APK mensual 1000 con próxima fecha 19/dic; API semanalD+7, quincenalD+15, mensualD+mes y 31/ene→28/feb; quitar repetición limpia próxima fecha.",
+    "capturas": [
+      "FINAL-REC-01-ingreso-mensual.png",
+      "FINAL-REC-01-guardado.png",
+      "API-CP-FINAL-REC-01.png"
+    ]
+  },
+  {
+    "id": "CP-FINAL-REC-02",
+    "resultado": "Bloqueado",
+    "observado": "Sin acceso al job remoto ni fecha controlada para generación/idempotencia/cancelación. Programar una fecha no acredita generación automática.",
+    "capturas": []
+  }
+]

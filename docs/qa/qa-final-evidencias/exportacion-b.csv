@@ -1,0 +1,6 @@
+tipo,fecha,descripción,categoría/fuente,monto,moneda,método de pago
+gasto,2026-11-19,"QA, ""comisión""",Entretenimiento,25.00,MXN,tarjeta
+ingreso,2026-11-19,QA Final ingreso,Freelance,500.00,MXN,
+ingreso,2026-11-19,QA Final ingreso,Salario,1000.00,MXN,
+ingreso,2026-10-19,QA Final ingreso,Salario,200.00,MXN,
+suscripcion,2026-11-19,QA Final API,mensual,100.00,MXN,

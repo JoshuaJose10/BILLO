@@ -235,3 +235,45 @@ casos; solo marcar los aprobados en la [lista de requisitos](lista-requisitos.md
 al cumplir los criterios de calidad. HU-79 pasa a revisión tras completar el
 reporte y queda completa únicamente con aprobación de Luis Dorian y visto
 bueno del PO.
+
+## 10. QA final integral — tarjetas, ingresos, balance, perfil y exportación
+
+Rama: `test/qa-final`. La ficha del APK, resultados y evidencia por caso se
+registran en [qa-final-reporte.md](qa/qa-final-reporte.md). Ejecutar también los
+51 casos RF1–RF13 de las secciones 5 y 5.1 en ese APK. Una comprobación API se
+identifica como tal y no sustituye pasos de interfaz pendientes. No heredar
+aprobaciones históricas «por indicación». Pasa/Falla exige ejecución observable;
+una precondición ausente se registra Bloqueado, sin inventar un defecto.
+
+| ID | Precondición | Pasos | Resultado esperado | Prioridad |
+| --- | --- | --- | --- | --- |
+| CP-FINAL-TAR-01 | Cuenta QA sin tarjetas | Crear crédito con nombre y últimos 4; editar nombre y cambiar a débito; recargar | Alta y edición persisten; lista y vista previa reflejan tipo y últimos cuatro | Alta |
+| CP-FINAL-TAR-02 | Formulario Nueva tarjeta | Guardar vacío; intentar últimos cuatro incompletos y día de corte fuera de 1–31; corregir | Mensajes útiles; no guarda datos inválidos; acepta datos corregidos | Alta |
+| CP-FINAL-TAR-03 | Tarjeta propia creada | Asociarla a gasto y suscripción; abrir Cartera/Tarjetas y cambiar mes; consultar resumen API | Conserva asociación y suma variable y fijo mensual de esa tarjeta, sin duplicar | Alta |
+| CP-FINAL-TAR-04 | Tarjeta con gasto y suscripción | Eliminar tarjeta y confirmar; abrir movimientos, suscripción y reportes | Desaparece tarjeta; gastos, suscripciones e importes persisten sin tarjeta asociada | Alta |
+| CP-FINAL-TAR-05 | Cuentas A/B y tarjeta de A | Como B consultar resumen, editar tarjeta y crear gasto con tarjeta de A | 404/400 según contrato; ninguna modificación de A | Alta |
+| CP-FINAL-REP-01 | Ingresos QA de dos fuentes y dos meses, totales conocidos | Reportes → Ingresos; comparar total, reparto por fuente, mes anterior y selector mensual con API | Totales y comparación coinciden; cambio de mes no mezcla datos | Alta |
+| CP-FINAL-REP-02 | Ingresos y gastos variables/fijos conocidos | Reportes → Balance; revisar mes, serie y resumen API | Balance = ingresos − variable − fijo; serie y selección mensual coherentes | Alta |
+| CP-FINAL-REP-03 | Cuenta/mes sin ingresos ni gastos | Abrir Ingresos y Balance | Cero o estado vacío legible, sin errores, NaN ni gráfica rota | Alta |
+| CP-FINAL-PER-01 | Cuenta QA autenticada | Perfil → editar nombre; guardar; cerrar y reabrir app | Nombre persiste en Perfil e Inicio | Alta |
+| CP-FINAL-PER-02 | Contraseña actual QA conocida | Cambiar contraseña; cerrar sesión; intentar contraseña anterior y después nueva | Anterior rechazada; nueva inicia sesión; claves no expuestas en evidencia | Alta |
+| CP-FINAL-PER-03 | Tema Automático y MXN iniciales | Cambiar a oscuro y USD; reabrir; revisar Nuevo gasto; restablecer | Preferencias persisten y se aplican; no alteran importes históricos | Media |
+| CP-FINAL-PER-04 | Cuenta QA desechable, distinta de cuenta personal | Cerrar sesión; comprobar ausencia de datos; reingresar; eliminar cuenta con contraseña y confirmar rechazo de login posterior | Logout aísla datos; eliminación confirmada impide recuperar sesión de esa cuenta | Alta |
+| CP-FINAL-PER-05 | Sesión autenticada y onboarding ya completado | Cerrar proceso sin logout y relanzar durante la comprobación de persistencia | Restaura sesión y no repite onboarding; mantiene datos y preferencias | Alta |
+| CP-FINAL-EXP-01 | Datos QA con gastos, ingresos, comas y comillas | Perfil → Exportar mis datos; revisar entrega CSV y contrastar contenido con `/exportar?formato=csv` | CSV UTF-8 con encabezados y filas propias, escapado correcto; entrega utilizable según interfaz ofrecida | Alta |
+| CP-FINAL-EXP-02 | Cuentas A/B y movimientos en meses distintos | Exportar filtrando mes; repetir sin datos y sin token; comparar cuentas | No mezcla meses ni usuarios; sin datos conserva encabezados; sin token rechaza | Alta |
+| CP-FINAL-REC-01 | Cuenta QA y fecha D conocida | Crear ingreso semanal, quincenal y mensual; revisar próxima fecha; editar y quitar repetición | Próximo D+7, D+15 o mismo día del mes siguiente ajustado a fin de mes; quitar repetición cancela próxima fecha | Alta |
+| CP-FINAL-REC-02 | Job controlable y plantillas QA vencidas; sin planificador concurrente | Ejecutar job con referencia D dos veces; revisar ingresos/balance; cancelar o eliminar plantilla y volver a ejecutar | Genera pendientes una sola vez y avanza próxima fecha; segunda corrida no duplica; cancelada/eliminada no genera | Alta |
+
+Variantes de datos en QA final: usar correos QA desechables en vez del correo de
+ejemplo del plan. CP-RF2-01 también se contrasta con tarjeta para cubrir la
+asociación nueva; el registro efectivo se comprueba en RF12. Para RF8, la
+predefinida actual «Entretenimiento» representa «Ocio» del ejemplo. No modificar
+los criterios numéricos. El widget Billo actual muestra saldo disponible
+(ingresos menos variable), mientras CP-RF13-01/02 aún exigen mes y total de gasto;
+registrar esa divergencia y resolverla con producto antes de aprobar esos casos.
+
+La programación visible no acredita la ejecución del job recurrente. RF7 requiere
+recepción real y control del proceso, RF11 negativo requiere controlar la fuente
+manteniendo la API accesible y CP-RF13-03 requiere reinicio real sin red. Mantener
+esos bloqueos explícitos hasta contar con sus precondiciones.

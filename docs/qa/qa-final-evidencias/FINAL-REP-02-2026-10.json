@@ -1,0 +1,58 @@
+{
+  "mes": "2026-10",
+  "ingresos": 200,
+  "gasto_variable": 0,
+  "gasto_fijo": 300,
+  "gastos": 300,
+  "balance": -100,
+  "serie": [
+    {
+      "mes": "2026-05",
+      "ingresos": 0,
+      "gasto_variable": 0,
+      "gasto_fijo": 300,
+      "gastos": 300,
+      "balance": -300
+    },
+    {
+      "mes": "2026-06",
+      "ingresos": 0,
+      "gasto_variable": 0,
+      "gasto_fijo": 300,
+      "gastos": 300,
+      "balance": -300
+    },
+    {
+      "mes": "2026-07",
+      "ingresos": 0,
+      "gasto_variable": 0,
+      "gasto_fijo": 300,
+      "gastos": 300,
+      "balance": -300
+    },
+    {
+      "mes": "2026-08",
+      "ingresos": 0,
+      "gasto_variable": 0,
+      "gasto_fijo": 300,
+      "gastos": 300,
+      "balance": -300
+    },
+    {
+      "mes": "2026-09",
+      "ingresos": 0,
+      "gasto_variable": 0,
+      "gasto_fijo": 300,
+      "gastos": 300,
+      "balance": -300
+    },
+    {
+      "mes": "2026-10",
+      "ingresos": 200,
+      "gasto_variable": 0,
+      "gasto_fijo": 300,
+      "gastos": 300,
+      "balance": -100
+    }
+  ]
+}

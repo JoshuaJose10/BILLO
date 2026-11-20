@@ -1,0 +1,17 @@
+[
+  {
+    "id": 19,
+    "servicio_id": null,
+    "tarjeta_id": 5,
+    "nombre": "Netflix",
+    "costo": 199,
+    "moneda": "MXN",
+    "monto_original": null,
+    "tipo_cambio": null,
+    "frecuencia": "mensual",
+    "fecha_cobro": "2026-11-29",
+    "estado": "activa",
+    "personas": 1,
+    "dias_para_cobro": 10
+  }
+]
