@@ -1,4 +1,4 @@
-# Contrato de API — Billo (v1.10)
+# Contrato de API — Billo (v1.11)
 
 Estado: **esquema de BD congelado desde el 2026-10-13** (ver «Congelamiento del esquema»). Cualquier cambio al contrato o al esquema se acuerda con el equipo y se anota en el **Registro de cambios**.
 
@@ -525,6 +525,8 @@ Los reportes en `docs/qa/` se escribieron contra v1.0 y se conservan como histor
 Pendiente en la colección Postman (**HU-22**, Luis Dorian): agregar las aserciones de que el 401 trae `error.code` = `NO_AUTORIZADO` y de que el registro devuelve `token`. Hoy la colección solo revisa el HTTP 401, las claves del error y la envoltura `usuario`.
 
 ## Registro de cambios
+
+- 2026-11-18 — v1.11 — Actualización de la versión documental por solicitud del usuario para la referencia de QA de HU-79 (mejoras de suscripciones HU-71 a HU-78). Se conserva el comportamiento descrito en el contrato; esta actualización no acredita la ejecución de QA ni la inclusión de las mejoras en el APK.
 
 - 2026-11-12 — v1.3 — Corrección de recuperación de contraseña: migración 016 cambia `reset_token_expira` a `TIMESTAMPTZ` e invalida códigos previos con fechas ambiguas. Sin cambios en rutas ni respuestas de la API.
 
