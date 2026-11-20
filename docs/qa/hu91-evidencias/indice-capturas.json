@@ -1,0 +1,392 @@
+[
+  {
+    "file": "01-registro-a.png",
+    "description": "Cuenta A: formulario de registro en claro, contraseña oculta.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:11:22.280Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 252536,
+    "sha256": "814c8a589a367cf0fbe78463c5dfa75e939367b73ac2537013e2bb29ba9ffdba"
+  },
+  {
+    "file": "02-onboarding-claro.png",
+    "description": "Cuenta A: Elige tus categorías, catálogo inicial con 14 activas.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:11:42.444Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 323112,
+    "sha256": "f213f3d1f3604e7f4a9968f30b6d6c48983d2013247e9ddc041ae3440366742b"
+  },
+  {
+    "file": "03-onboarding-tres-seleccion.png",
+    "description": "Cuenta A: final del selector después de desactivar once predefinidas.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:12:36.495Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 199076,
+    "sha256": "a61dec525247faa31f40604838924ec10af8057458b3caad2b497058f1114f44"
+  },
+  {
+    "file": "04-gasto-solo-tres.png",
+    "description": "Cuenta A: Nuevo gasto con Entretenimiento, Comida y Transporte.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:12:52.634Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 211892,
+    "sha256": "9b8bf36fb11098777db0bfa09307e3e53f870d9c0bc6985d26561b28d79dddb1"
+  },
+  {
+    "file": "05-gasto-predefinida-100.png",
+    "description": "Cuenta A: importe de 100 antes de seleccionar la categoría.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:14:09.133Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 215957,
+    "sha256": "90bc98838c851842f8c12086353c64e41dbd8280d781bbd3a16a40f71e490938"
+  },
+  {
+    "file": "06-gasto-predefinida-guardado.png",
+    "description": "Cuenta A: gasto de 100 en Entretenimiento guardado desde Android.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:14:36.871Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 271044,
+    "sha256": "b83b7aacd68d5d82d8a7e3002d9e71b2def53a07484e7689d46d3727fefb8039"
+  },
+  {
+    "file": "07-mis-categorias-claro.png",
+    "description": "Mis categorías en tema claro, selección previa a ocultar Entretenimiento.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:15:16.391Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 314511,
+    "sha256": "944fcf2af7c07e6fbcf87439172504f6cc469c90c5a2394bd466e2285cf93ddc"
+  },
+  {
+    "file": "08-ocultar-predefinida.png",
+    "description": "Entretenimiento inactiva y aviso de conservación de históricos.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:15:21.990Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 313458,
+    "sha256": "ce4ce6e08a3636af553c2138ea8b5f2ed734cd692da9a53030394c218da23521"
+  },
+  {
+    "file": "09-no-cero-categorias.png",
+    "description": "Rechazo al intentar apagar la última predefinida activa.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:15:40.154Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 242025,
+    "sha256": "053e8e3baaea9ef5b9dc868bdea1bbed524f6f12896e87d68bdcaded5487043e"
+  },
+  {
+    "file": "10-crear-propia.png",
+    "description": "Crear HU91 Propia desde Mis categorías.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:16:25.413Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 249708,
+    "sha256": "ed25e605038514e652ee75347a85c8cf2d0d7beb588122d8a6b2c9637e49b0e0"
+  },
+  {
+    "file": "11-propia-creada.png",
+    "description": "HU91 Propia ya guardada en la lista.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:16:39.688Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 289548,
+    "sha256": "733540b6129a46bb6a3b28a7e9743102a81d74878767ba06f807473f5876c778"
+  },
+  {
+    "file": "12-renombrar-propia.png",
+    "description": "Formulario para renombrar a HU91 Renombrada.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:17:10.319Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 254553,
+    "sha256": "a8a59d8cee04da31389ff69845541dc53a071381d1b7ab376d714aa0c22ceca7"
+  },
+  {
+    "file": "13-propia-renombrada.png",
+    "description": "HU91 Renombrada guardada en la lista.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:17:13.770Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 291694,
+    "sha256": "88bcda2ab1b59da394e173e148bec40bd9d9d88cfee764ac38bb2007fef4ef15"
+  },
+  {
+    "file": "14-movimientos-categoria-oculta.png",
+    "description": "Movimientos conserva Entretenimiento oculta y gasto de 100.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:17:23.724Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 198286,
+    "sha256": "9cb3fdf20786abcb3c2720e41b16faab6cfb97bed2b6af784d1907838516131a"
+  },
+  {
+    "file": "15-gasto-propia-50.png",
+    "description": "Nuevo gasto: HU91 Renombrada seleccionada, importe 50.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:18:20.899Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 198331,
+    "sha256": "86e47e85fd4c000490773a5f3e425e4af5a68d5896235d56a92a6eb57d6831f1"
+  },
+  {
+    "file": "16-movimientos-ambas.png",
+    "description": "Movimientos: gasto oculto de 100 y propia de 50, total 150.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:18:24.672Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 227420,
+    "sha256": "f788e6bb13d46e73900db5df7aec56b000baa8b5f03728c91d80f5ef75d341ee"
+  },
+  {
+    "file": "17-reportes-propia-oculta.png",
+    "description": "Reportes: dona de 150, roja para propia y morada para Entretenimiento.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:18:31.082Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 305649,
+    "sha256": "7605a025a93204e2b5cb598459ab25af73ce66b78fe443fa425cd6f5a67fb75d"
+  },
+  {
+    "file": "18-reportes-detalle-categorias.png",
+    "description": "Reportes: desglose de ambas categorías, montos y colores.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:18:43.069Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 317884,
+    "sha256": "1b435e209b40d31da4afa7bcdb6bb87e77ab66e3101e9f290ed76c6ce7ab4192"
+  },
+  {
+    "file": "19-presupuesto-oculto-visible.png",
+    "description": "Presupuesto de Entretenimiento oculta permanece visible: 100 de 500.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:19:00.237Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 217071,
+    "sha256": "c71a8152f6fa54ead7ef945bd32f700dc70cd3f543e8a7e00de2190131600ffd"
+  },
+  {
+    "file": "20-presupuesto-categorias-disponibles.png",
+    "description": "Nuevo presupuesto ofrece las categorías disponibles y excluye la oculta.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:19:05.622Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 224064,
+    "sha256": "5ca6e1fa1d46b1186c1bd4828c140f15173ace4d4953f2f10eca815806b4ccf4"
+  },
+  {
+    "file": "21-mis-categorias-oscuro.png",
+    "description": "Mis categorías en tema oscuro, estado activo e inactivo legible.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:19:36.899Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 559467,
+    "sha256": "52ec7d3ceabc3999e17fa888594567b6557903f5f555560d73b3a5eae3cde48b"
+  },
+  {
+    "file": "22-confirmar-borrado-en-uso.png",
+    "description": "Confirmación de borrado de HU91 Renombrada con gasto.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:19:55.363Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 340640,
+    "sha256": "6b68672be74fb39493ccf12e605b61961077816193e80ff4b55f330c31c48cf9"
+  },
+  {
+    "file": "23-categoria-en-uso.png",
+    "description": "Rechazo de borrado: categoría tiene gastos o presupuestos.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:20:00.947Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 339281,
+    "sha256": "f533dabb9f9d6e9f6e7a1fbe1aa59bf50d917b6ca84928917cca3d0a490e185e"
+  },
+  {
+    "file": "24-propia-temporal.png",
+    "description": "HU91 Temporal creada sin uso en tema oscuro.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:20:31.641Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 534766,
+    "sha256": "c73dd2061f7b8bb0866addcfd597bac69f59a9a4a8abb9f7932610b9f144cb8a"
+  },
+  {
+    "file": "25-propia-temporal-eliminada.png",
+    "description": "Después de confirmar la eliminación de HU91 Temporal.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:20:41.793Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 521248,
+    "sha256": "ac14186e681fb54cd5c733b09d1d9b25563715cdc823feb17907ed2df1e2a751"
+  },
+  {
+    "file": "26-registro-b-oscuro.png",
+    "description": "Cuenta B: formulario de registro en oscuro, contraseña oculta.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:21:51.175Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 568583,
+    "sha256": "138017b52bc22b8c4d31751c02dadc3bd93291259e95d8b2b1db2f891b08e73a"
+  },
+  {
+    "file": "27-onboarding-oscuro.png",
+    "description": "Cuenta B: Elige tus categorías en tema oscuro.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:22:11.200Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 856136,
+    "sha256": "c0df850a437df9597bb4b2c6c4f269ab26327c2a97d42254043887dbd1a46fbd"
+  },
+  {
+    "file": "28-onboarding-agregar-propia.png",
+    "description": "Cuenta B: agregar HU91 Alta durante el onboarding.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:22:32.934Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 228611,
+    "sha256": "0bf8f58dd42ae6d11aac96ef7af5b8b9562db55df318dde254abd68798d6f560"
+  },
+  {
+    "file": "29-onboarding-propia-pendiente.png",
+    "description": "HU91 Alta pendiente en onboarding antes de Continuar.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:22:38.673Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 263402,
+    "sha256": "2c297ae1d1e1928ef496a776cb6612a5289aa90e092e1f23da2982272ea6a796"
+  },
+  {
+    "file": "30-visitante-inicio.png",
+    "description": "Visitante: inicio con datos de ejemplo y acceso directo sin onboarding.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:09:49.041Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 381224,
+    "sha256": "2163ce1b044f09caf2157fe48a49e08f44ddadd17d0d3ddc44cece8b08ddf907"
+  },
+  {
+    "file": "31-visitante-categorias.png",
+    "description": "Visitante: Nuevo gasto solicita crear cuenta para poder guardar.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:10:10.015Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 317218,
+    "sha256": "c99a4be7914beeffbcf62420a932806a18ed143def76ca18252f7b5ca41152e6"
+  },
+  {
+    "file": "32-propia-alta-en-nuevo-gasto.png",
+    "description": "Cuenta B: propia del onboarding ofrecida en Nuevo gasto.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:23:18.239Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 338266,
+    "sha256": "313ce67267aa788d8b9e79198b1fd9efbb9bb57101c853f837a2750b87ec77f7"
+  },
+  {
+    "file": "33-gasto-propia-alta.png",
+    "description": "Cuenta B: gasto de 50 con HU91 Alta seleccionada.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:23:57.476Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 341456,
+    "sha256": "4a64f833f41002bb4e37822ec1c2e3ae549a4c1b1bfabee43eb7cdeedaa10cb0"
+  },
+  {
+    "file": "34-propia-alta-gasto-guardado.png",
+    "description": "Cuenta B: gasto de HU91 Alta persistido, tema oscuro; barra activa vacía.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:24:04.156Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 564914,
+    "sha256": "b8e99b09bcf2279fc7aba4bffbbad4704ab6cb7243d37f3b3f43c63d724eee5a"
+  },
+  {
+    "file": "35-visitante-predefinidas.png",
+    "description": "Visitante: Movimientos, categorías predefinidas y datos locales.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:24:59.466Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 292445,
+    "sha256": "6fd0ccd8225e7a7da5b4fc5a996f53c2c07019304b8879328d4f9c4ab0206ab9"
+  },
+  {
+    "file": "36-visitante-predefinidas-final.png",
+    "description": "Visitante: extremo final del selector de categorías predefinidas.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:25:36.173Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 291358,
+    "sha256": "046199cf048f55f13f9a094ade7877c2c35de5aec89e52490ef084db0a29f571"
+  },
+  {
+    "file": "37-navbar-cartera-claro.png",
+    "description": "Bug exploratorio: Cartera activa sin icono ni etiqueta, después de esperar.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:25:58.432Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 301829,
+    "sha256": "9568c06ba22599d2c6ccd2ffda27fe9e37185c64687e557f4fe0bbd572becd61"
+  },
+  {
+    "file": "38-navbar-inicio-claro.png",
+    "description": "Bug exploratorio: Inicio activo sin icono ni etiqueta, después de esperar.",
+    "source": "Captura original ADB del teléfono físico",
+    "fileModifiedAt": "2026-11-19T08:26:06.139Z",
+    "width": 1080,
+    "height": 2220,
+    "bytes": 381100,
+    "sha256": "94a7977244c78f0c8daeb78403595dfc60ea48be464892edf356003993c09bbb"
+  },
+  {
+    "file": "39-api-resumen.png",
+    "description": "Exportación visual generada desde JSON reales de API; no es UI de Postman.",
+    "source": "Exportación de api-resumen.html con Edge headless",
+    "fileModifiedAt": "2026-11-19T08:32:18.928Z",
+    "width": 1440,
+    "height": 2450,
+    "bytes": 198312,
+    "sha256": "387caffc280c294042303c811f2834e4adc6d52028ea6ebbf0e9d019f6ec5f0e"
+  }
+]

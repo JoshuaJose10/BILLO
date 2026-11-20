@@ -1,0 +1,992 @@
+{
+  "task": "HU-91: API ampliada",
+  "baseUrl": "https://billo-api-v30t.onrender.com",
+  "timezone": "America/Mexico_City",
+  "backendCommit": "Render no expone el commit en /health",
+  "runnerSha256": "1f55da8ae756e186cd2e7a54694ce8eb2ba873356ee19b2807b7ce2a0a060eaa",
+  "summary": {
+    "requests": 32,
+    "passed": 32,
+    "failed": 0,
+    "completed": true
+  },
+  "executions": [
+    {
+      "name": "Registro A: requiere onboarding",
+      "at": "2026-11-19T08:24:43.502Z",
+      "method": "POST",
+      "route": "/auth/register",
+      "request": {
+        "nombre": "QA HU91 API A",
+        "email": "[OMITIDO]",
+        "password": "[OMITIDO]"
+      },
+      "status": 201,
+      "response": {
+        "usuario": {
+          "id": 14,
+          "nombre": "QA HU91 API A",
+          "email": "[OMITIDO]",
+          "categorias_configuradas": false
+        },
+        "token": "[OMITIDO]"
+      },
+      "passed": true
+    },
+    {
+      "name": "Registro B: requiere onboarding",
+      "at": "2026-11-19T08:24:44.557Z",
+      "method": "POST",
+      "route": "/auth/register",
+      "request": {
+        "nombre": "QA HU91 API B",
+        "email": "[OMITIDO]",
+        "password": "[OMITIDO]"
+      },
+      "status": 201,
+      "response": {
+        "usuario": {
+          "id": 15,
+          "nombre": "QA HU91 API B",
+          "email": "[OMITIDO]",
+          "categorias_configuradas": false
+        },
+        "token": "[OMITIDO]"
+      },
+      "passed": true
+    },
+    {
+      "name": "Catálogo predefinido",
+      "at": "2026-11-19T08:24:45.222Z",
+      "method": "GET",
+      "route": "/categorias/predefinidas",
+      "request": null,
+      "status": 200,
+      "response": {
+        "categorias": [
+          {
+            "id": 1,
+            "nombre": "Entretenimiento",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 2,
+            "nombre": "Comida",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 3,
+            "nombre": "Transporte",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 4,
+            "nombre": "Salud",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 5,
+            "nombre": "Otros",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 6,
+            "nombre": "Servicios",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 7,
+            "nombre": "Comida rápida",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 8,
+            "nombre": "Súper",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 9,
+            "nombre": "Café",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 10,
+            "nombre": "Hogar",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 11,
+            "nombre": "Ropa",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 12,
+            "nombre": "Educación",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 13,
+            "nombre": "Mascotas",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 14,
+            "nombre": "Cuidado personal",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          }
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "Seleccionar exactamente tres",
+      "at": "2026-11-19T08:24:45.332Z",
+      "method": "PUT",
+      "route": "/categorias/seleccion",
+      "request": {
+        "categoria_ids": [
+          1,
+          2,
+          3
+        ]
+      },
+      "status": 200,
+      "response": {
+        "categoria_ids": [
+          1,
+          2,
+          3
+        ],
+        "categorias_configuradas": true,
+        "categorias": [
+          {
+            "id": 1,
+            "nombre": "Entretenimiento",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 2,
+            "nombre": "Comida",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 3,
+            "nombre": "Transporte",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          }
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "Nuevo gasto recibe solo tres",
+      "at": "2026-11-19T08:24:45.528Z",
+      "method": "GET",
+      "route": "/categorias?tipo=gasto",
+      "request": null,
+      "status": 200,
+      "response": [
+        {
+          "id": 1,
+          "nombre": "Entretenimiento",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 2,
+          "nombre": "Comida",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 3,
+          "nombre": "Transporte",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "Cero predefinidas rechazado",
+      "at": "2026-11-19T08:24:45.643Z",
+      "method": "PUT",
+      "route": "/categorias/seleccion",
+      "request": {
+        "categoria_ids": []
+      },
+      "status": 400,
+      "response": {
+        "error": {
+          "code": "SELECCION_VACIA",
+          "message": "Debes seleccionar al menos una categoría predefinida"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "Crear propia y asignar color",
+      "at": "2026-11-19T08:24:45.752Z",
+      "method": "POST",
+      "route": "/categorias",
+      "request": {
+        "nombre": "HU91 propia con gasto"
+      },
+      "status": 201,
+      "response": {
+        "categoria": {
+          "id": 22,
+          "nombre": "HU91 propia con gasto",
+          "tipo": "gasto",
+          "es_predefinida": false,
+          "propia": true,
+          "color": "#EF4444"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "Crear propia sin uso",
+      "at": "2026-11-19T08:24:45.869Z",
+      "method": "POST",
+      "route": "/categorias",
+      "request": {
+        "nombre": "HU91 temporal"
+      },
+      "status": 201,
+      "response": {
+        "categoria": {
+          "id": 23,
+          "nombre": "HU91 temporal",
+          "tipo": "gasto",
+          "es_predefinida": false,
+          "propia": true,
+          "color": "#F97316"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "Renombrar propia",
+      "at": "2026-11-19T08:24:46.010Z",
+      "method": "PUT",
+      "route": "/categorias/23",
+      "request": {
+        "nombre": "HU91 renombrada"
+      },
+      "status": 200,
+      "response": {
+        "categoria": {
+          "id": 23,
+          "nombre": "HU91 renombrada",
+          "tipo": "gasto",
+          "es_predefinida": false,
+          "propia": true,
+          "color": "#F97316"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "B no ve propia de A",
+      "at": "2026-11-19T08:24:46.133Z",
+      "method": "GET",
+      "route": "/categorias",
+      "request": null,
+      "status": 200,
+      "response": [
+        {
+          "id": 1,
+          "nombre": "Entretenimiento",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 2,
+          "nombre": "Comida",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 3,
+          "nombre": "Transporte",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 4,
+          "nombre": "Salud",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 5,
+          "nombre": "Otros",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 6,
+          "nombre": "Servicios",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 7,
+          "nombre": "Comida rápida",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 8,
+          "nombre": "Súper",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 9,
+          "nombre": "Café",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 10,
+          "nombre": "Hogar",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 11,
+          "nombre": "Ropa",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 12,
+          "nombre": "Educación",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 13,
+          "nombre": "Mascotas",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 14,
+          "nombre": "Cuidado personal",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "B no puede renombrar propia ajena",
+      "at": "2026-11-19T08:24:46.248Z",
+      "method": "PUT",
+      "route": "/categorias/22",
+      "request": {
+        "nombre": "Cambio ajeno"
+      },
+      "status": 404,
+      "response": {
+        "error": {
+          "code": "CATEGORIA_NO_ENCONTRADA",
+          "message": "Categoría no encontrada"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "B no puede borrar propia ajena",
+      "at": "2026-11-19T08:24:46.355Z",
+      "method": "DELETE",
+      "route": "/categorias/22",
+      "request": null,
+      "status": 404,
+      "response": {
+        "error": {
+          "code": "CATEGORIA_NO_ENCONTRADA",
+          "message": "Categoría no encontrada"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "B no puede gastar con propia ajena",
+      "at": "2026-11-19T08:24:46.491Z",
+      "method": "POST",
+      "route": "/gastos",
+      "request": {
+        "categoria_id": 22,
+        "monto": 1,
+        "fecha": "2026-11-19",
+        "metodo_pago": "efectivo"
+      },
+      "status": 400,
+      "response": {
+        "error": {
+          "code": "CATEGORIA_INEXISTENTE",
+          "message": "La categoría seleccionada no existe"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "Borrar propia sin uso",
+      "at": "2026-11-19T08:24:46.598Z",
+      "method": "DELETE",
+      "route": "/categorias/23",
+      "request": null,
+      "status": 200,
+      "response": {
+        "eliminado": true
+      },
+      "passed": true
+    },
+    {
+      "name": "Gasto con predefinida antes de ocultar",
+      "at": "2026-11-19T08:24:46.708Z",
+      "method": "POST",
+      "route": "/gastos",
+      "request": {
+        "categoria_id": 1,
+        "monto": 100,
+        "fecha": "2026-11-19",
+        "metodo_pago": "efectivo",
+        "nota": "QA HU91 categoría por usuario"
+      },
+      "status": 201,
+      "response": {
+        "gasto": {
+          "id": 39,
+          "monto": 100,
+          "moneda": "MXN",
+          "monto_original": null,
+          "tipo_cambio": null,
+          "categoria_id": 1,
+          "tarjeta_id": null,
+          "fecha": "2026-11-19",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU91 categoría por usuario"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "Gasto con propia",
+      "at": "2026-11-19T08:24:46.819Z",
+      "method": "POST",
+      "route": "/gastos",
+      "request": {
+        "categoria_id": 22,
+        "monto": 50,
+        "fecha": "2026-11-19",
+        "metodo_pago": "efectivo",
+        "nota": "QA HU91 categoría por usuario"
+      },
+      "status": 201,
+      "response": {
+        "gasto": {
+          "id": 40,
+          "monto": 50,
+          "moneda": "MXN",
+          "monto_original": null,
+          "tipo_cambio": null,
+          "categoria_id": 22,
+          "tarjeta_id": null,
+          "fecha": "2026-11-19",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU91 categoría por usuario"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "Presupuesto antes de ocultar",
+      "at": "2026-11-19T08:24:46.931Z",
+      "method": "POST",
+      "route": "/presupuestos",
+      "request": {
+        "categoria_id": 1,
+        "mes": "2026-11",
+        "monto_limite": 500
+      },
+      "status": 201,
+      "response": {
+        "presupuesto": {
+          "id": 9,
+          "categoria_id": 1,
+          "mes": "2026-11",
+          "monto_limite": 500
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "Borrar propia usada por gasto",
+      "at": "2026-11-19T08:24:47.043Z",
+      "method": "DELETE",
+      "route": "/categorias/22",
+      "request": null,
+      "status": 409,
+      "response": {
+        "error": {
+          "code": "CATEGORIA_EN_USO",
+          "message": "No se puede eliminar la categoría porque tiene gastos o presupuestos asociados"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "Crear propia para presupuesto",
+      "at": "2026-11-19T08:24:47.149Z",
+      "method": "POST",
+      "route": "/categorias",
+      "request": {
+        "nombre": "HU91 propia con presupuesto"
+      },
+      "status": 201,
+      "response": {
+        "categoria": {
+          "id": 24,
+          "nombre": "HU91 propia con presupuesto",
+          "tipo": "gasto",
+          "es_predefinida": false,
+          "propia": true,
+          "color": "#F97316"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "Presupuesto con propia",
+      "at": "2026-11-19T08:24:47.264Z",
+      "method": "POST",
+      "route": "/presupuestos",
+      "request": {
+        "categoria_id": 24,
+        "mes": "2026-11",
+        "monto_limite": 300
+      },
+      "status": 201,
+      "response": {
+        "presupuesto": {
+          "id": 10,
+          "categoria_id": 24,
+          "mes": "2026-11",
+          "monto_limite": 300
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "Borrar propia usada solo por presupuesto",
+      "at": "2026-11-19T08:24:47.377Z",
+      "method": "DELETE",
+      "route": "/categorias/24",
+      "request": null,
+      "status": 409,
+      "response": {
+        "error": {
+          "code": "CATEGORIA_EN_USO",
+          "message": "No se puede eliminar la categoría porque tiene gastos o presupuestos asociados"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "Ocultar predefinida con historial",
+      "at": "2026-11-19T08:24:47.487Z",
+      "method": "PUT",
+      "route": "/categorias/seleccion",
+      "request": {
+        "categoria_ids": [
+          2,
+          3
+        ]
+      },
+      "status": 200,
+      "response": {
+        "categoria_ids": [
+          2,
+          3
+        ],
+        "categorias_configuradas": true,
+        "categorias": [
+          {
+            "id": 2,
+            "nombre": "Comida",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 3,
+            "nombre": "Transporte",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 22,
+            "nombre": "HU91 propia con gasto",
+            "tipo": "gasto",
+            "es_predefinida": false,
+            "propia": true,
+            "color": "#EF4444"
+          },
+          {
+            "id": 24,
+            "nombre": "HU91 propia con presupuesto",
+            "tipo": "gasto",
+            "es_predefinida": false,
+            "propia": true,
+            "color": "#F97316"
+          }
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "Disponibles excluye oculta y conserva propias",
+      "at": "2026-11-19T08:24:47.603Z",
+      "method": "GET",
+      "route": "/categorias?tipo=gasto",
+      "request": null,
+      "status": 200,
+      "response": [
+        {
+          "id": 2,
+          "nombre": "Comida",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 3,
+          "nombre": "Transporte",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 22,
+          "nombre": "HU91 propia con gasto",
+          "tipo": "gasto",
+          "es_predefinida": false,
+          "propia": true,
+          "color": "#EF4444"
+        },
+        {
+          "id": 24,
+          "nombre": "HU91 propia con presupuesto",
+          "tipo": "gasto",
+          "es_predefinida": false,
+          "propia": true,
+          "color": "#F97316"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "Nuevo gasto rechaza oculta",
+      "at": "2026-11-19T08:24:47.706Z",
+      "method": "POST",
+      "route": "/gastos",
+      "request": {
+        "categoria_id": 1,
+        "monto": 10,
+        "fecha": "2026-11-19",
+        "metodo_pago": "efectivo",
+        "nota": "QA HU91 categoría por usuario"
+      },
+      "status": 400,
+      "response": {
+        "error": {
+          "code": "CATEGORIA_INEXISTENTE",
+          "message": "La categoría seleccionada no existe"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "Nuevo presupuesto rechaza oculta",
+      "at": "2026-11-19T08:24:47.816Z",
+      "method": "POST",
+      "route": "/presupuestos",
+      "request": {
+        "categoria_id": 1,
+        "mes": "2026-12",
+        "monto_limite": 500
+      },
+      "status": 400,
+      "response": {
+        "error": {
+          "code": "CATEGORIA_INEXISTENTE",
+          "message": "La categoría seleccionada no existe"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "Movimientos conserva gasto oculto",
+      "at": "2026-11-19T08:24:47.926Z",
+      "method": "GET",
+      "route": "/gastos?mes=2026-11",
+      "request": null,
+      "status": 200,
+      "response": [
+        {
+          "id": 40,
+          "monto": 50,
+          "moneda": "MXN",
+          "monto_original": null,
+          "tipo_cambio": null,
+          "categoria_id": 22,
+          "tarjeta_id": null,
+          "fecha": "2026-11-19",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU91 categoría por usuario"
+        },
+        {
+          "id": 39,
+          "monto": 100,
+          "moneda": "MXN",
+          "monto_original": null,
+          "tipo_cambio": null,
+          "categoria_id": 1,
+          "tarjeta_id": null,
+          "fecha": "2026-11-19",
+          "metodo_pago": "efectivo",
+          "nota": "QA HU91 categoría por usuario"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "Presupuesto oculto sigue visible",
+      "at": "2026-11-19T08:24:48.036Z",
+      "method": "GET",
+      "route": "/presupuestos?mes=2026-11",
+      "request": null,
+      "status": 200,
+      "response": [
+        {
+          "id": 9,
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "mes": "2026-11",
+          "monto_limite": 500,
+          "gastado": 100,
+          "porcentaje": 20,
+          "estado": "ok"
+        },
+        {
+          "id": 10,
+          "categoria_id": 24,
+          "categoria": "HU91 propia con presupuesto",
+          "mes": "2026-11",
+          "monto_limite": 300,
+          "gastado": 0,
+          "porcentaje": 0,
+          "estado": "ok"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "Resumen conserva 150",
+      "at": "2026-11-19T08:24:48.143Z",
+      "method": "GET",
+      "route": "/reportes/resumen?mes=2026-11",
+      "request": null,
+      "status": 200,
+      "response": {
+        "mes": "2026-11",
+        "gasto_variable": 150,
+        "gasto_fijo": 0,
+        "total": 150
+      },
+      "passed": true
+    },
+    {
+      "name": "Reporte conserva propia y oculta",
+      "at": "2026-11-19T08:24:48.256Z",
+      "method": "GET",
+      "route": "/reportes/por-categoria?mes=2026-11",
+      "request": null,
+      "status": 200,
+      "response": [
+        {
+          "categoria_id": 1,
+          "categoria": "Entretenimiento",
+          "total": 100,
+          "porcentaje": 67
+        },
+        {
+          "categoria_id": 22,
+          "categoria": "HU91 propia con gasto",
+          "total": 50,
+          "porcentaje": 33
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "Login configurado conserva bandera",
+      "at": "2026-11-19T08:24:48.359Z",
+      "method": "POST",
+      "route": "/auth/login",
+      "request": {
+        "email": "[OMITIDO]",
+        "password": "[OMITIDO]"
+      },
+      "status": 200,
+      "response": {
+        "usuario": {
+          "id": 14,
+          "nombre": "QA HU91 API A",
+          "email": "[OMITIDO]",
+          "rol": "usuario",
+          "categorias_configuradas": true
+        },
+        "token": "[OMITIDO]"
+      },
+      "passed": true
+    },
+    {
+      "name": "Limpieza: eliminar exclusivamente cuenta QA de esta corrida",
+      "at": "2026-11-19T08:24:48.914Z",
+      "method": "DELETE",
+      "route": "/auth/cuenta",
+      "request": {
+        "password": "[OMITIDO]"
+      },
+      "status": 200,
+      "response": {
+        "eliminado": true
+      },
+      "passed": true
+    },
+    {
+      "name": "Limpieza: eliminar exclusivamente cuenta QA de esta corrida",
+      "at": "2026-11-19T08:24:49.541Z",
+      "method": "DELETE",
+      "route": "/auth/cuenta",
+      "request": {
+        "password": "[OMITIDO]"
+      },
+      "status": 200,
+      "response": {
+        "eliminado": true
+      },
+      "passed": true
+    }
+  ]
+}

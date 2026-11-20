@@ -1,0 +1,1242 @@
+{
+  "task": "HU-91 API: seleccion de Autenticacion y Categorias",
+  "contract": "v1.5",
+  "executedAt": "2026-11-19T08:09:10.094Z",
+  "timezone": "America/Mexico_City",
+  "backendCommit": "Despliegue Render: commit no expuesto por /health",
+  "backendTree": "8623d3663606b8474413008f9e0aa69911225458",
+  "collectionSha256": "80c4dae896878a4a91f77d09c24b1dc95837044c2d913846cff7652a0ec38778",
+  "node": "v22.15.0",
+  "newman": "6.2.3",
+  "iterations": 1,
+  "checkoutCommit": "6281015ba698ec523bb4c6d99672c230788e0d75",
+  "baseUrl": "https://billo-api-v30t.onrender.com",
+  "selection": "Registro A, login A, registro B, login B; carpeta 02 completa; una iteracion",
+  "acceptancePolicy": "100% de casos y aserciones",
+  "groups": {
+    "01 Autenticación — ejecutar en orden": {
+      "cases": 4,
+      "passed": 4,
+      "failed": 0,
+      "casePassRate": 100,
+      "assertions": 20,
+      "assertionsPassed": 20,
+      "assertionsFailed": 0,
+      "assertionPassRate": 100
+    },
+    "02 Categorías — catálogo": {
+      "cases": 11,
+      "passed": 11,
+      "failed": 0,
+      "casePassRate": 100,
+      "assertions": 48,
+      "assertionsPassed": 48,
+      "assertionsFailed": 0,
+      "assertionPassRate": 100
+    }
+  },
+  "summary": {
+    "cases": 15,
+    "passed": 15,
+    "failed": 0,
+    "casePassRate": 100,
+    "assertions": 68,
+    "assertionsPassed": 68,
+    "assertionsFailed": 0,
+    "assertionPassRate": 100
+  },
+  "acceptance": {
+    "passed": true
+  },
+  "stats": {
+    "iterations": {
+      "total": 1,
+      "pending": 0,
+      "failed": 0
+    },
+    "items": {
+      "total": 15,
+      "pending": 0,
+      "failed": 0
+    },
+    "scripts": {
+      "total": 31,
+      "pending": 0,
+      "failed": 0
+    },
+    "prerequests": {
+      "total": 15,
+      "pending": 0,
+      "failed": 0
+    },
+    "requests": {
+      "total": 15,
+      "pending": 0,
+      "failed": 0
+    },
+    "tests": {
+      "total": 15,
+      "pending": 0,
+      "failed": 0
+    },
+    "assertions": {
+      "total": 68,
+      "pending": 0,
+      "failed": 0
+    },
+    "testScripts": {
+      "total": 30,
+      "pending": 0,
+      "failed": 0
+    },
+    "prerequestScripts": {
+      "total": 1,
+      "pending": 0,
+      "failed": 0
+    }
+  },
+  "auxiliaryRequests": 0,
+  "executionErrors": [],
+  "executions": [
+    {
+      "iteration": 1,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "01 CP-RF1-01 [API] — Registro válido e inicialización",
+      "method": "POST",
+      "path": "auth/register",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Usuario creado con los datos de QA",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: registro devuelve { usuario: {...} }",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: registro devuelve token y usuario",
+          "passed": true
+        }
+      ],
+      "response": {
+        "usuario": {
+          "id": 8,
+          "nombre": "QA Postman",
+          "email": "[CORREO_QA]",
+          "categorias_configuradas": false
+        },
+        "token": "[OMITIDO]"
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "06 CP-RF1-02 [API] — Login válido y guardar token",
+      "method": "POST",
+      "path": "auth/login",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Devuelve token y usuario registrado",
+          "passed": true
+        }
+      ],
+      "response": {
+        "usuario": {
+          "id": 8,
+          "nombre": "QA Postman",
+          "email": "[CORREO_QA]",
+          "rol": "usuario",
+          "categorias_configuradas": false
+        },
+        "token": "[OMITIDO]"
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "QA-AUTH-10 — Registrar usuario B",
+      "method": "POST",
+      "path": "auth/register",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "B distinto de A",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: registro envuelto",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: registro devuelve token y usuario",
+          "passed": true
+        }
+      ],
+      "response": {
+        "usuario": {
+          "id": 9,
+          "nombre": "QA Postman B",
+          "email": "[CORREO_QA]",
+          "categorias_configuradas": false
+        },
+        "token": "[OMITIDO]"
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "01 Autenticación — ejecutar en orden",
+      "name": "QA-AUTH-11 — Login usuario B",
+      "method": "POST",
+      "path": "auth/login",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Token e identidad B",
+          "passed": true
+        }
+      ],
+      "response": {
+        "usuario": {
+          "id": 9,
+          "nombre": "QA Postman B",
+          "email": "[CORREO_QA]",
+          "rol": "usuario",
+          "categorias_configuradas": false
+        },
+        "token": "[OMITIDO]"
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 Categorías — catálogo",
+      "name": "PRE-CAT-01 — Catálogo de predefinidas",
+      "method": "GET",
+      "path": "categorias/predefinidas",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Catálogo de predefinidas válido",
+          "passed": true
+        }
+      ],
+      "response": {
+        "categorias": [
+          {
+            "id": 1,
+            "nombre": "Entretenimiento",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 2,
+            "nombre": "Comida",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 3,
+            "nombre": "Transporte",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 4,
+            "nombre": "Salud",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 5,
+            "nombre": "Otros",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 6,
+            "nombre": "Servicios",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 7,
+            "nombre": "Comida rápida",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 8,
+            "nombre": "Súper",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 9,
+            "nombre": "Café",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 10,
+            "nombre": "Hogar",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 11,
+            "nombre": "Ropa",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 12,
+            "nombre": "Educación",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 13,
+            "nombre": "Mascotas",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          },
+          {
+            "id": 14,
+            "nombre": "Cuidado personal",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null,
+            "seleccionada": true
+          }
+        ]
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 Categorías — catálogo",
+      "name": "PRE-CAT-02 — Seleccionar predefinidas Usuario A",
+      "method": "PUT",
+      "path": "categorias/seleccion",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Categorías configuradas",
+          "passed": true
+        }
+      ],
+      "response": {
+        "categoria_ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "categorias_configuradas": true,
+        "categorias": [
+          {
+            "id": 1,
+            "nombre": "Entretenimiento",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 2,
+            "nombre": "Comida",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 3,
+            "nombre": "Transporte",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 4,
+            "nombre": "Salud",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 5,
+            "nombre": "Otros",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 6,
+            "nombre": "Servicios",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 7,
+            "nombre": "Comida rápida",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 8,
+            "nombre": "Súper",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 9,
+            "nombre": "Café",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 10,
+            "nombre": "Hogar",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 11,
+            "nombre": "Ropa",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 12,
+            "nombre": "Educación",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 13,
+            "nombre": "Mascotas",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 14,
+            "nombre": "Cuidado personal",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          }
+        ]
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 Categorías — catálogo",
+      "name": "PRE-CAT-03 — Seleccionar predefinidas Usuario B",
+      "method": "PUT",
+      "path": "categorias/seleccion",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Categorías configuradas B",
+          "passed": true
+        }
+      ],
+      "response": {
+        "categoria_ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "categorias_configuradas": true,
+        "categorias": [
+          {
+            "id": 1,
+            "nombre": "Entretenimiento",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 2,
+            "nombre": "Comida",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 3,
+            "nombre": "Transporte",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 4,
+            "nombre": "Salud",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 5,
+            "nombre": "Otros",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 6,
+            "nombre": "Servicios",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 7,
+            "nombre": "Comida rápida",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 8,
+            "nombre": "Súper",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 9,
+            "nombre": "Café",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 10,
+            "nombre": "Hogar",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 11,
+            "nombre": "Ropa",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 12,
+            "nombre": "Educación",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 13,
+            "nombre": "Mascotas",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          },
+          {
+            "id": 14,
+            "nombre": "Cuidado personal",
+            "tipo": "gasto",
+            "es_predefinida": true,
+            "propia": false,
+            "color": null
+          }
+        ]
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 Categorías — catálogo",
+      "name": "QA-CAT-01 — Consultar categorías y preparar IDs",
+      "method": "GET",
+      "path": "categorias",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Catálogo no vacío",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: campos del catálogo",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "nombre": "Entretenimiento",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 2,
+          "nombre": "Comida",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 3,
+          "nombre": "Transporte",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 4,
+          "nombre": "Salud",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 5,
+          "nombre": "Otros",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 6,
+          "nombre": "Servicios",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 7,
+          "nombre": "Comida rápida",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 8,
+          "nombre": "Súper",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 9,
+          "nombre": "Café",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 10,
+          "nombre": "Hogar",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 11,
+          "nombre": "Ropa",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 12,
+          "nombre": "Educación",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 13,
+          "nombre": "Mascotas",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 14,
+          "nombre": "Cuidado personal",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "02 Categorías — catálogo",
+      "name": "QA-CAT-02 — Filtrar tipo gasto",
+      "method": "GET",
+      "path": "categorias",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: solo categorías de gasto",
+          "passed": true
+        }
+      ],
+      "response": [
+        {
+          "id": 1,
+          "nombre": "Entretenimiento",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 2,
+          "nombre": "Comida",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 3,
+          "nombre": "Transporte",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 4,
+          "nombre": "Salud",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 5,
+          "nombre": "Otros",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 6,
+          "nombre": "Servicios",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 7,
+          "nombre": "Comida rápida",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 8,
+          "nombre": "Súper",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 9,
+          "nombre": "Café",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 10,
+          "nombre": "Hogar",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 11,
+          "nombre": "Ropa",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 12,
+          "nombre": "Educación",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 13,
+          "nombre": "Mascotas",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        },
+        {
+          "id": 14,
+          "nombre": "Cuidado personal",
+          "tipo": "gasto",
+          "es_predefinida": true,
+          "propia": false,
+          "color": null
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "folder": "02 Categorías — catálogo",
+      "name": "QA-CAT-03 — Tipo inválido",
+      "method": "GET",
+      "path": "categorias",
+      "status": 400,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.code y error.message (v1.1)",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "TIPO_INVALIDO",
+          "message": "El tipo de categoría debe ser gasto o membresia"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 Categorías — catálogo",
+      "name": "QA-CAT-04 — Sin token",
+      "method": "GET",
+      "path": "categorias",
+      "status": 401,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 401",
+          "passed": true
+        },
+        {
+          "name": "Error JSON descriptivo",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: error.code y error.message (v1.1)",
+          "passed": true
+        },
+        {
+          "name": "CONTRATO: 401 NO_AUTORIZADO",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "NO_AUTORIZADO",
+          "message": "Token no proporcionado o formato inválido"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 Categorías — catálogo",
+      "name": "CAT-SEL-VACIA — Selección vacía (400)",
+      "method": "PUT",
+      "path": "categorias/seleccion",
+      "status": 400,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 400",
+          "passed": true
+        },
+        {
+          "name": "Código SELECCION_VACIA",
+          "passed": true
+        }
+      ],
+      "response": {
+        "error": {
+          "code": "SELECCION_VACIA",
+          "message": "Debes seleccionar al menos una categoría predefinida"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 Categorías — catálogo",
+      "name": "CAT-PROPIA-POST — Crear categoría propia",
+      "method": "POST",
+      "path": "categorias",
+      "status": 201,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Categoría propia creada con color",
+          "passed": true
+        }
+      ],
+      "response": {
+        "categoria": {
+          "id": 15,
+          "nombre": "Mascotas QA",
+          "tipo": "gasto",
+          "es_predefinida": false,
+          "propia": true,
+          "color": "#EF4444"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 Categorías — catálogo",
+      "name": "CAT-PROPIA-PUT — Renombrar categoría propia",
+      "method": "PUT",
+      "path": "categorias/15",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Nombre actualizado",
+          "passed": true
+        }
+      ],
+      "response": {
+        "categoria": {
+          "id": 15,
+          "nombre": "Veterinario QA",
+          "tipo": "gasto",
+          "es_predefinida": false,
+          "propia": true,
+          "color": "#EF4444"
+        }
+      }
+    },
+    {
+      "iteration": 1,
+      "folder": "02 Categorías — catálogo",
+      "name": "CAT-PROPIA-DELETE — Eliminar categoría propia",
+      "method": "DELETE",
+      "path": "categorias/15",
+      "status": 200,
+      "passed": true,
+      "assertions": [
+        {
+          "name": "Respuesta JSON",
+          "passed": true
+        },
+        {
+          "name": "No expone contraseñas ni hashes",
+          "passed": true
+        },
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Eliminada",
+          "passed": true
+        }
+      ],
+      "response": {
+        "eliminado": true
+      }
+    }
+  ]
+}

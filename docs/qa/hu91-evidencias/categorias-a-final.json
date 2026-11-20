@@ -1,0 +1,26 @@
+[
+  {
+    "id": 2,
+    "nombre": "Comida",
+    "tipo": "gasto",
+    "es_predefinida": true,
+    "propia": false,
+    "color": null
+  },
+  {
+    "id": 12,
+    "nombre": "Educación",
+    "tipo": "gasto",
+    "es_predefinida": true,
+    "propia": false,
+    "color": null
+  },
+  {
+    "id": 19,
+    "nombre": "HU91 Renombrada",
+    "tipo": "gasto",
+    "es_predefinida": false,
+    "propia": true,
+    "color": "#EF4444"
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "at": "2026-11-19T08:14:45.102Z",
+  "purpose": "Preparación API de presupuesto antes de ocultar; gasto se crea desde Android",
+  "method": "POST",
+  "path": "/presupuestos",
+  "status": 201,
+  "body": {
+    "presupuesto": {
+      "id": 8,
+      "categoria_id": 1,
+      "mes": "2026-11",
+      "monto_limite": 500
+    }
+  }
+}

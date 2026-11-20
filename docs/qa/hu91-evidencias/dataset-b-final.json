@@ -1,0 +1,143 @@
+{
+  "at": "2026-11-19T08:24:24.735Z",
+  "usuario": {
+    "nombre": "QA HU91 B",
+    "categorias_configuradas": true
+  },
+  "categorias": [
+    {
+      "id": 1,
+      "nombre": "Entretenimiento",
+      "tipo": "gasto",
+      "es_predefinida": true,
+      "propia": false,
+      "color": null
+    },
+    {
+      "id": 2,
+      "nombre": "Comida",
+      "tipo": "gasto",
+      "es_predefinida": true,
+      "propia": false,
+      "color": null
+    },
+    {
+      "id": 3,
+      "nombre": "Transporte",
+      "tipo": "gasto",
+      "es_predefinida": true,
+      "propia": false,
+      "color": null
+    },
+    {
+      "id": 4,
+      "nombre": "Salud",
+      "tipo": "gasto",
+      "es_predefinida": true,
+      "propia": false,
+      "color": null
+    },
+    {
+      "id": 5,
+      "nombre": "Otros",
+      "tipo": "gasto",
+      "es_predefinida": true,
+      "propia": false,
+      "color": null
+    },
+    {
+      "id": 6,
+      "nombre": "Servicios",
+      "tipo": "gasto",
+      "es_predefinida": true,
+      "propia": false,
+      "color": null
+    },
+    {
+      "id": 7,
+      "nombre": "Comida rápida",
+      "tipo": "gasto",
+      "es_predefinida": true,
+      "propia": false,
+      "color": null
+    },
+    {
+      "id": 8,
+      "nombre": "Súper",
+      "tipo": "gasto",
+      "es_predefinida": true,
+      "propia": false,
+      "color": null
+    },
+    {
+      "id": 9,
+      "nombre": "Café",
+      "tipo": "gasto",
+      "es_predefinida": true,
+      "propia": false,
+      "color": null
+    },
+    {
+      "id": 10,
+      "nombre": "Hogar",
+      "tipo": "gasto",
+      "es_predefinida": true,
+      "propia": false,
+      "color": null
+    },
+    {
+      "id": 11,
+      "nombre": "Ropa",
+      "tipo": "gasto",
+      "es_predefinida": true,
+      "propia": false,
+      "color": null
+    },
+    {
+      "id": 12,
+      "nombre": "Educación",
+      "tipo": "gasto",
+      "es_predefinida": true,
+      "propia": false,
+      "color": null
+    },
+    {
+      "id": 13,
+      "nombre": "Mascotas",
+      "tipo": "gasto",
+      "es_predefinida": true,
+      "propia": false,
+      "color": null
+    },
+    {
+      "id": 14,
+      "nombre": "Cuidado personal",
+      "tipo": "gasto",
+      "es_predefinida": true,
+      "propia": false,
+      "color": null
+    },
+    {
+      "id": 21,
+      "nombre": "HU91 Alta",
+      "tipo": "gasto",
+      "es_predefinida": false,
+      "propia": true,
+      "color": "#EF4444"
+    }
+  ],
+  "gastos": [
+    {
+      "id": 38,
+      "monto": 50,
+      "moneda": "MXN",
+      "monto_original": null,
+      "tipo_cambio": null,
+      "categoria_id": 21,
+      "tarjeta_id": null,
+      "fecha": "2026-11-19",
+      "metodo_pago": "efectivo",
+      "nota": null
+    }
+  ]
+}
