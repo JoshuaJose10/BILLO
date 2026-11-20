@@ -3,6 +3,19 @@
 App móvil de gastos diarios con módulo de membresías digitales.
 Proyecto de Tópicos Selectos de Ingeniería de Software — Infinite Labs.
 
+## Instalar la app (versión final)
+
+La versión terminada de la app es la del release **v1.0.0-final**. Para probarla en un teléfono Android, instala
+este APK (no uses los anteriores):
+
+- **APK:** [billo.apk](https://github.com/JoshuaJose10/BILLO/releases/download/v1.0.0-final/billo.apk)
+- **Página del release:** <https://github.com/JoshuaJose10/BILLO/releases/tag/v1.0.0-final>
+- **API en línea:** <https://billo-api-v30t.onrender.com> (la gratuita se duerme tras unos 15 minutos sin uso;
+  abre `/health` y espera la respuesta antes de probar).
+
+Permite instalar apps de orígenes desconocidos cuando el sistema lo pida. También puedes entrar con «Explorar sin
+cuenta» (modo visitante) o crear una cuenta propia.
+
 ## Estructura
 - `mobile/` — App React Native / Expo SDK 58
 - `backend/` — API Node.js + Express

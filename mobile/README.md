@@ -88,8 +88,7 @@ Para preparar las pruebas del APK por USB con ADB, scrcpy y capturas por caso,
 consulta la [guía de entorno Android para HU-79](../docs/qa/hu79-entorno-android.md).
 
 Para generar y compartir una nueva versión, seguir la
-[guía de release Android](../docs/release-android.md). La configuración local
-prepara la versión **1.0.1**; no significa que ya exista un APK publicado.
+[guía de release Android](../docs/release-android.md). La versión terminada está publicada como **v1.0.0-final** (ver más abajo).
 
 El perfil `release` de `eas.json` genera un APK instalable que ya apunta a la API en línea
 (`EXPO_PUBLIC_API_URL=https://billo-api-v30t.onrender.com`, ver «API en línea» en el README de la raíz). No usa
@@ -104,7 +103,7 @@ Al terminar, EAS muestra un enlace de la compilación con el botón de descarga 
 teléfono Android, abre ese enlace desde el teléfono (o descarga el archivo y ábrelo) y permite instalar apps de
 orígenes desconocidos cuando el sistema lo pida.
 
-- **Enlace de descarga del APK vigente (v1.0.0-apk):** [application-56bcd3ef-2c7e-42a5-b9c6-09cb1fc4950e.apk](https://github.com/JoshuaJose10/BILLO/releases/download/v1.0.0-apk/application-56bcd3ef-2c7e-42a5-b9c6-09cb1fc4950e.apk) · página del release: <https://github.com/JoshuaJose10/BILLO/releases/tag/v1.0.0-apk>
+- **APK que debes instalar (versión final, v1.0.0-final):** [billo.apk](https://github.com/JoshuaJose10/BILLO/releases/download/v1.0.0-final/billo.apk) · página del release: <https://github.com/JoshuaJose10/BILLO/releases/tag/v1.0.0-final>. Las versiones anteriores (v1.0.0-apk y v1.0.1-hu94-qa) quedan solo como historial.
 - **Antes de probar:** abre `https://billo-api-v30t.onrender.com/health` y espera la respuesta; la API gratuita
   se duerme tras unos 15 minutos sin uso y tarda cerca de un minuto en despertar.
 - **Notificaciones push:** sin `google-services.json` (ver sección anterior) la app funciona igual, solo que no
